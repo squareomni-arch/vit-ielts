@@ -26,15 +26,15 @@ const isValidImageUrl = (url: string): boolean => {
 
 export const HeroBanner = ({ config }: HeroBannerProps) => {
   const {
-    trustpilot,
-    headline,
-    description,
-    buttons,
-    backgroundImage,
-    bannerImage,
-    featureCards,
+    trustpilot = { image: '', rating: '' },
+    headline = { line1: '', line2: '', line3: '', line4: '' },
+    description = { text: '', highlightText: '' },
+    buttons = { primary: { text: '', link: '#' } },
+    backgroundImage = '',
+    bannerImage = '',
+    featureCards = [],
     decorativeShape,
-  } = config;
+  } = config || {};
 
   // Chọn card có avatars (nếu có), fallback về card thứ 2
   const enrolledCard =
@@ -237,138 +237,56 @@ export const HeroBanner = ({ config }: HeroBannerProps) => {
               {/* Feature Card 1 - Top Right */}
               {featureCards[0] && (
                 <div className="absolute top-4 right-4 bg-white rounded-xl shadow-lg p-3 sm:p-5 flex items-center gap-2 sm:gap-3 animate-float max-w-[200px] sm:max-w-[250px]">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0">
-                      {isExternalUrl(featureCards[0].icon) ? (
-                        <img
-                          src={featureCards[0].icon}
-                          alt="Icon"
-                          className="object-contain w-full h-full"
-                          style={{ width: "48px", height: "48px" }}
-                        />
-                      ) : (
-                        <Image
-                          src={featureCards[0].icon}
-                          alt="Icon"
-                          width={48}
-                          height={48}
-                          unoptimized
-                          className="object-contain w-full h-full"
-                        />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      {featureCards[0].title && (
-                        <h6 className="font-bold text-sm sm:text-base text-gray-900 wrap-break-word line-clamp-2">
-                          {featureCards[0].title}
-                        </h6>
-                      )}
-                      <p
-                        className="text-xs sm:text-sm wrap-break-word line-clamp-2"
-                        style={{ color: "#ec4899" }}
-                      >
-                        {featureCards[0].subtitle}
-                      </p>
-                    </div>
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0">
+                    {isExternalUrl(featureCards[0].icon) ? (
+                      <img
+                        src={featureCards[0].icon}
+                        alt="Icon"
+                        className="object-contain w-full h-full"
+                        style={{ width: "48px", height: "48px" }}
+                      />
+                    ) : (
+                      <Image
+                        src={featureCards[0].icon}
+                        alt="Icon"
+                        width={48}
+                        height={48}
+                        unoptimized
+                        className="object-contain w-full h-full"
+                      />
+                    )}
                   </div>
+                  <div className="min-w-0 flex-1">
+                    {featureCards[0].title && (
+                      <h6 className="font-bold text-sm sm:text-base text-gray-900 wrap-break-word line-clamp-2">
+                        {featureCards[0].title}
+                      </h6>
+                    )}
+                    <p
+                      className="text-xs sm:text-sm wrap-break-word line-clamp-2"
+                      style={{ color: "#ec4899" }}
+                    >
+                      {featureCards[0].subtitle}
+                    </p>
+                  </div>
+                </div>
               )}
 
               {/* Enrolled Card - Middle Left */}
               {enrolledCard && (
                 <div className="absolute bottom-1/4 left-0 bg-white rounded-xl shadow-lg p-3 sm:p-5 animate-float-delayed max-w-[200px] sm:max-w-[250px]">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-3">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0">
-                        {isExternalUrl(enrolledCard.icon) ? (
-                          <img
-                            src={enrolledCard.icon}
-                            alt="Icon"
-                            className="object-contain w-full h-full"
-                            style={{ width: "48px", height: "48px" }}
-                          />
-                        ) : (
-                          <Image
-                            src={enrolledCard.icon}
-                            alt="Icon"
-                            width={48}
-                            height={48}
-                            unoptimized
-                            className="object-contain w-full h-full"
-                          />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        {enrolledCard.value && (
-                          <h6 className="font-bold text-lg sm:text-xl text-gray-900 wrap-break-word line-clamp-1">
-                            {enrolledCard.value}
-                          </h6>
-                        )}
-                        <p
-                          className="text-xs sm:text-sm wrap-break-word line-clamp-2"
-                          style={{ color: "#22c55e" }}
-                        >
-                          {enrolledCard.subtitle}
-                        </p>
-                      </div>
-                    </div>
-                    {/* Profile Avatars */}
-                    {enrolledCard.avatars && (
-                      <div className="flex -space-x-2 flex-wrap">
-                        {enrolledCard.avatars
-                          .slice(0, 5)
-                          .map((avatar, i) => {
-                            // Bỏ qua avatar không hợp lệ nhưng không chặn cả mảng
-                            if (!isValidImageUrl(avatar)) {
-                              return null;
-                            }
-
-                            return (
-                              <div
-                                key={i}
-                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-white overflow-hidden relative shrink-0"
-                              >
-                                {isExternalUrl(avatar) ? (
-                                  <img
-                                    src={avatar}
-                                    alt={`Student ${i + 1}`}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      console.error("Failed to load avatar:", avatar);
-                                      e.currentTarget.style.display = "none";
-                                    }}
-                                  />
-                                ) : (
-                                  <Image
-                                    src={avatar}
-                                    alt={`Student ${i + 1}`}
-                                    fill
-                                    className="object-cover"
-                                    unoptimized
-                                    onError={() => {
-                                      console.error("Failed to load avatar:", avatar);
-                                    }}
-                                  />
-                                )}
-                              </div>
-                            );
-                          })}
-                      </div>
-                    )}
-                  </div>
-              )}
-
-              {/* Feature Card 2 - Bottom Right */}
-              {featureCards[2] && (
-                <div className="absolute bottom-4 right-4 bg-white rounded-xl shadow-lg p-3 sm:p-5 flex items-center gap-2 sm:gap-3 animate-float-delayed-2 max-w-[200px] sm:max-w-[250px]">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-3">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0">
-                      {isExternalUrl(featureCards[2].icon) ? (
+                      {isExternalUrl(enrolledCard.icon) ? (
                         <img
-                          src={featureCards[2].icon}
+                          src={enrolledCard.icon}
                           alt="Icon"
                           className="object-contain w-full h-full"
                           style={{ width: "48px", height: "48px" }}
                         />
                       ) : (
                         <Image
-                          src={featureCards[2].icon}
+                          src={enrolledCard.icon}
                           alt="Icon"
                           width={48}
                           height={48}
@@ -378,19 +296,101 @@ export const HeroBanner = ({ config }: HeroBannerProps) => {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      {featureCards[2].value && (
+                      {enrolledCard.value && (
                         <h6 className="font-bold text-lg sm:text-xl text-gray-900 wrap-break-word line-clamp-1">
-                          {featureCards[2].value}
+                          {enrolledCard.value}
                         </h6>
                       )}
                       <p
                         className="text-xs sm:text-sm wrap-break-word line-clamp-2"
                         style={{ color: "#22c55e" }}
                       >
-                        {featureCards[2].subtitle}
+                        {enrolledCard.subtitle}
                       </p>
                     </div>
                   </div>
+                  {/* Profile Avatars */}
+                  {enrolledCard.avatars && (
+                    <div className="flex -space-x-2 flex-wrap">
+                      {enrolledCard.avatars
+                        .slice(0, 5)
+                        .map((avatar, i) => {
+                          // Bỏ qua avatar không hợp lệ nhưng không chặn cả mảng
+                          if (!isValidImageUrl(avatar)) {
+                            return null;
+                          }
+
+                          return (
+                            <div
+                              key={i}
+                              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-white overflow-hidden relative shrink-0"
+                            >
+                              {isExternalUrl(avatar) ? (
+                                <img
+                                  src={avatar}
+                                  alt={`Student ${i + 1}`}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    console.error("Failed to load avatar:", avatar);
+                                    e.currentTarget.style.display = "none";
+                                  }}
+                                />
+                              ) : (
+                                <Image
+                                  src={avatar}
+                                  alt={`Student ${i + 1}`}
+                                  fill
+                                  className="object-cover"
+                                  unoptimized
+                                  onError={() => {
+                                    console.error("Failed to load avatar:", avatar);
+                                  }}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Feature Card 2 - Bottom Right */}
+              {featureCards[2] && (
+                <div className="absolute bottom-4 right-4 bg-white rounded-xl shadow-lg p-3 sm:p-5 flex items-center gap-2 sm:gap-3 animate-float-delayed-2 max-w-[200px] sm:max-w-[250px]">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0">
+                    {isExternalUrl(featureCards[2].icon) ? (
+                      <img
+                        src={featureCards[2].icon}
+                        alt="Icon"
+                        className="object-contain w-full h-full"
+                        style={{ width: "48px", height: "48px" }}
+                      />
+                    ) : (
+                      <Image
+                        src={featureCards[2].icon}
+                        alt="Icon"
+                        width={48}
+                        height={48}
+                        unoptimized
+                        className="object-contain w-full h-full"
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    {featureCards[2].value && (
+                      <h6 className="font-bold text-lg sm:text-xl text-gray-900 wrap-break-word line-clamp-1">
+                        {featureCards[2].value}
+                      </h6>
+                    )}
+                    <p
+                      className="text-xs sm:text-sm wrap-break-word line-clamp-2"
+                      style={{ color: "#22c55e" }}
+                    >
+                      {featureCards[2].subtitle}
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
           </div>

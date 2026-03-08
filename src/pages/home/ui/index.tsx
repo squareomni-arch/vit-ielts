@@ -32,7 +32,9 @@ export const PageHome = ({
   return (
     <>
       <HeroBanner config={heroBannerConfig} />
-      <IeltsTestPlatformIntro config={testPlatformIntroConfig} />
+      {testPlatformIntroConfig?.badge && (
+        <IeltsTestPlatformIntro config={testPlatformIntroConfig} />
+      )}
       <div className="py-10">
         <Container className="space-y-16">
           {isSignedIn && (
@@ -54,7 +56,7 @@ export const PageHome = ({
       <div
         className="w-full py-10"
         style={{
-          background: practiceSectionConfig.backgroundGradient,
+          background: practiceSectionConfig?.backgroundGradient ?? undefined,
         }}
       >
         <Container className="space-y-16">
@@ -84,8 +86,12 @@ export const PageHome = ({
           />
         </Container>
       </div>
-      <WhyChooseUs config={whyChooseUsConfig} />
-      <Testimonials config={testimonialsConfig} />
+      {whyChooseUsConfig?.badge && (
+        <WhyChooseUs config={whyChooseUsConfig} />
+      )}
+      {testimonialsConfig?.testimonials && (
+        <Testimonials config={testimonialsConfig} />
+      )}
     </>
   );
 };
