@@ -1,7 +1,6 @@
-import { createContext, useContext } from "react";
-import { useQuery } from "@/shared/graphql/compat";
-
-const GET_TARGET_SCORE = "";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createClient } from "~supabase/client";
+import { useAuth } from "@/appx/providers";
 
 type TargetScore = {
   examDate: string | null;
@@ -38,20 +37,50 @@ export const WidgetContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const { data, refetch, loading } = useQuery<{
-    viewer: { userData: { targetScore: TargetScore } };
-  }>(GET_TARGET_SCORE, {
-    context: {
-      authRequired: true,
-    },
-    notifyOnNetworkStatusChange: true,
-  });
+  const { currentUser } = useAuth();
+  const [targetScore, setTargetScore] = useState<TargetScore>(defaultValue);
+  const [loading, setLoading] = useState(true);
+
+  const fetchTargetScore = useCallback(async () => {
+    if (!currentUser?.id) {
+      setLoading(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("users")
+        .select("target_score, exam_date")
+        .eq("id", currentUser.id)
+        .single();
+
+      if (data) {
+        const ts = data.target_score as any || {};
+        setTargetScore({
+          examDate: data.exam_date || null,
+          listening: ts.listening || null,
+          reading: ts.reading || null,
+          speaking: ts.speaking || null,
+          writing: ts.writing || null,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching target score:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    fetchTargetScore();
+  }, [fetchTargetScore]);
 
   return (
     <WidgetContext.Provider
       value={{
-        targetScore: data?.viewer.userData.targetScore || defaultValue,
-        refetch,
+        targetScore,
+        refetch: fetchTargetScore,
         loading,
       }}
     >

@@ -35,19 +35,29 @@ interface TestimonialsConfig {
 
 // Default configs
 const DEFAULT_HERO_BANNER: HeroBannerConfig = {
-  title: {
-    line1: "Practice for the",
-    line2: {
-      prefix: "IELTS",
-      highlighted: "Exam",
-      suffix: "",
-      underlined: "Here.",
-    },
+  trustpilot: {
+    image: "/img-admin/o-trustpilot.png",
+    rating: "Excellent 4.9 out of 5",
   },
-  subtitle: "Luyện tập và thi thử IELTS Online trên máy tính miễn phí.",
-  button: { text: "Start Practicing", link: "#" },
-  backgroundGradient:
-    "linear-gradient(180deg, #FFFDF7 0%, #FFF8E7 50%, #FFF3D6 100%)",
+  headline: {
+    line1: "Education Is The Best",
+    line2: "Key",
+    line3: "Success",
+    line4: "In Life",
+  },
+  description: {
+    text: "Luyện tập và thi thử IELTS Online trên máy tính miễn phí.",
+    highlightText: "Start now!",
+  },
+  buttons: {
+    primary: { text: "Start Practicing", link: "#" },
+  },
+  backgroundImage: "",
+  bannerImage: "/img-admin/o-banner.png",
+  featureCards: [],
+  decorativeShape: {
+    image: "/img-admin/o-shape-1.png",
+  },
 };
 
 const DEFAULT_TESTIMONIALS: TestimonialsConfig = {

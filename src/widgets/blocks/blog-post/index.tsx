@@ -4,9 +4,9 @@ import "@splidejs/react-splide/css";
 import { Skeleton } from "antd";
 import Image from "next/image";
 import _ from "lodash";
-import { useMemo } from "react";
-import { GET_POSTS, IPostResponse } from "./api";
-import { useQuery } from "@/shared/graphql/compat";
+import { useEffect, useMemo, useState } from "react";
+import { createClient } from "~supabase/client";
+import { getPosts } from "~services/post";
 
 type Props = {
   title: string;
@@ -52,13 +52,40 @@ export const BlogPost = ({
     () => _.merge(defaultSliderOptions, inputSliderOptions),
     [inputSliderOptions]
   );
-  const { data, loading } = useQuery<IPostResponse>(GET_POSTS, {
-    variables: {
-      categoryIds,
-      tagIds,
-      first: limit,
-    },
-  });
+  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const supabase = createClient();
+        const result = await getPosts(supabase, {
+          page: 1,
+          pageSize: limit,
+        });
+        // Map to legacy edge format
+        setPosts(
+          (result.data || []).map((post: any) => ({
+            node: {
+              id: post.id,
+              title: post.title,
+              slug: post.slug,
+              excerpt: post.excerpt || "",
+              link: `/blog/${post.slug}`,
+              featuredImage: post.featured_image
+                ? { node: { sourceUrl: post.featured_image, altText: post.title } }
+                : undefined,
+            },
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching blog posts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPosts();
+  }, [limit]);
 
   return (
     <article className="space-y-6">
@@ -95,8 +122,8 @@ export const BlogPost = ({
           ))
         ) : (
           <>
-            {data ? (
-              data.posts.edges.map(({ node: item }, index) => (
+            {posts.length ? (
+              posts.map(({ node: item }, index) => (
                 <SplideSlide key={index}>
                   <div className="space-y-3 h-full flex flex-col">
                     <Link href={item.link} title={item.title} className="block">

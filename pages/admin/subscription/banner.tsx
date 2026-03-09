@@ -12,6 +12,7 @@ import {
 import type { SubscriptionBannerConfig } from "@/shared/types/admin-config";
 import { ImageUpload } from "@/shared/ui/image-upload";
 import AdminLayout from "../_layout";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const { Panel } = Collapse;
 
@@ -162,4 +163,6 @@ function SubscriptionBannerPage() {
 }
 
 export default SubscriptionBannerPage;
+
+export const getServerSideProps = withAdmin;
 

@@ -4,13 +4,12 @@ import {
   ChooseSettingsWritingIcon,
 } from "@/shared/ui/icons";
 import { Button, Checkbox, Modal, Select } from "antd";
-import { IExamCollection, TAKE_THE_TEST, TakeTheTestResponse } from "../../api";
-import { useEffect, useMemo } from "react";
+import { IExamCollection } from "../../api";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/router";
 import _ from "lodash";
 import { toast } from "react-toastify";
-import { useMutation } from "@/shared/graphql/compat";
 
 type FormValues = {
   testPart: number[];
@@ -47,8 +46,7 @@ function ExamModeModal({
       quizId: quiz.id,
     },
   });
-  const [takeTest, { loading }] =
-    useMutation<TakeTheTestResponse>(TAKE_THE_TEST);
+  const [loading, setLoading] = useState(false);
 
   const testPart = watch("testPart");
 
@@ -59,19 +57,27 @@ function ExamModeModal({
   }, [testPart, setValue]);
 
   const onSubmit = handleSubmit(async (data) => {
-    _.set(data, "testPart", JSON.stringify(data.testPart));
+    setLoading(true);
     try {
-      const result = await takeTest({
-        variables: {
-          ...data,
+      const response = await fetch("/api/test-flow/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quizId: data.quizId,
+          testPart: data.testPart,
+          testTime: data.testTime,
+          testMode: data.testMode,
           retake: true,
-        },
-        context: {
-          authRequired: true,
-        },
+        }),
       });
 
-      const testId = result.data?.takeTheTest?.data?.id;
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Failed to start test");
+      }
+
+      const testId = result.data?.id;
       if (testId) {
         router.push(`${navigateLink}?testId=${testId}`);
       } else {
@@ -80,10 +86,11 @@ function ExamModeModal({
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);
-        return;
       } else {
         toast.error("Something went wrong");
       }
+    } finally {
+      setLoading(false);
     }
   });
 

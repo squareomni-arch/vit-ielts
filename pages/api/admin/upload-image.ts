@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import formidable from "formidable";
 import fs from "fs";
 import path from "path";
+// @ts-ignore — @vercel/blob@0.0.2 types are outdated; del exists at runtime
 import { put, del } from "@vercel/blob";
 import axios from "axios";
 
@@ -66,12 +67,14 @@ async function uploadToBlob(
   }
 
   // Upload file mới
+  // @ts-ignore — fileBuffer type mismatch with old @vercel/blob types
   const blob = await put(fileName, fileBuffer, {
     access: "public",
     token,
     contentType: file.mimetype || "image/jpeg",
   });
 
+  // @ts-ignore — pathname exists in runtime but not in old @vercel/blob@0.0.2 types
   return `/${blob.pathname}`;
 }
 

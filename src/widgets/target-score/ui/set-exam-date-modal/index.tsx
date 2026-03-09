@@ -1,11 +1,10 @@
 import { DatePicker, Modal } from "antd";
-import React, { ComponentProps, useEffect } from "react";
+import React, { ComponentProps, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useWidgetContext } from "../../context";
-import { UPDATE_EXAM_DATE } from "../../api";
 import { useAuth } from "@/appx/providers";
 import dayjs, { Dayjs } from "dayjs";
-import { useMutation } from "@/shared/graphql/compat";
+import { createClient } from "~supabase/client";
 
 type FormData = {
   examDate: Dayjs;
@@ -20,31 +19,29 @@ export const SetExamDateModal = ({
   } = useWidgetContext();
   const { currentUser } = useAuth();
   const { control, getValues, reset, setValue } = useForm<FormData>();
-  const [updateExamDate, { loading }] = useMutation<
-    { updateUserTargetScore: { clientMutationId: string } },
-    { id: string; examDate: string }
-  >(UPDATE_EXAM_DATE, {
-    context: {
-      authRequired: true,
-    },
-  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     reset();
   }, [props.open, reset]);
 
   const handleOk = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    const ISODate = getValues("examDate").add(1, "day").toISOString();
+    setLoading(true);
+    try {
+      const ISODate = getValues("examDate").add(1, "day").toISOString();
+      const supabase = createClient();
+      await supabase
+        .from("users")
+        .update({ exam_date: ISODate })
+        .eq("id", currentUser!.id);
 
-    await updateExamDate({
-      variables: {
-        id: currentUser!.id,
-        examDate: ISODate,
-      },
-    });
-
-    refetch();
-    props.onOk?.(e);
+      await refetch();
+      props.onOk?.(e);
+    } catch (error) {
+      console.error("Error updating exam date:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

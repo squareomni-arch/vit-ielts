@@ -1,13 +1,10 @@
 import { MyProfileLayout } from "@/widgets/layouts";
-import {
-  GET_USER_PAYMENT_HISTORY,
-  UserPaymentHistory,
-} from "../api/getUserPaymentHistory";
 import { Card, Skeleton, Table, TableProps, Tag } from "antd";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { currencyFormat } from "@/shared/lib";
-import { useQuery } from "@/shared/graphql/compat";
+import { createClient } from "~supabase/client";
+import { useAuth } from "@/appx/providers";
 
 // Hàm tạo Order ID từ paymentDate
 const generateOrderId = (paymentDate: string, index: number): string => {
@@ -27,25 +24,45 @@ const getStatus = (paymentDate: string): { text: string; color: string } => {
 };
 
 export const PagePaymentHistory = () => {
-  const { data, loading } = useQuery<UserPaymentHistory>(
-    GET_USER_PAYMENT_HISTORY,
-    {
-      context: {
-        authRequired: true,
-      },
+  const { currentUser } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!currentUser?.id) {
+      setLoading(false);
+      return;
     }
-  );
+
+    const fetchOrders = async () => {
+      try {
+        const supabase = createClient();
+        const { data: orderData } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("user_id", currentUser.id)
+          .order("created_at", { ascending: false });
+
+        setOrders(orderData || []);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, [currentUser?.id]);
 
   const dataSource = useMemo(() => {
-    return (
-      (data?.viewer?.userData?.paymentHistory || []).map((item, index) => ({
-        ...item,
-        key: index,
-        orderId: generateOrderId(item.paymentDate, index),
-        status: getStatus(item.paymentDate),
-      })) || []
-    );
-  }, [data]);
+    return orders.map((order: any, index: number) => ({
+      key: index,
+      orderId: order.id ? `#${String(order.id).slice(-4)}` : generateOrderId(order.created_at || "", index),
+      content: order.plan_name || order.transfer_content || "Pro Subscription",
+      paymentDate: order.created_at,
+      amount: order.amount || 0,
+      status: { text: order.status || "pending", color: order.status === "completed" ? "#34D399" : order.status === "pending" ? "#60A5FA" : "#FBBF24" },
+    }));
+  }, [orders]);
 
   const columns: TableProps<(typeof dataSource)[number]>["columns"] = [
     {

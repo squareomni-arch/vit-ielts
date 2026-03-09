@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button, Input, Form, Card, Space, Collapse, message } from "antd";
 import type { PracticeSectionConfig } from "@/shared/types/admin-config";
 import AdminLayout from "../_layout";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const { Panel } = Collapse;
 
@@ -104,4 +105,6 @@ function PracticeSectionPage() {
 }
 
 export default PracticeSectionPage;
+
+export const getServerSideProps = withAdmin;
 

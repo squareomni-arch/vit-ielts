@@ -1,63 +1,57 @@
-# Task 22 — Migration Issues (To Fix Later)
+# Task 22 — Migration Issues ✅ COMPLETED
 
-> Ngày: 2026-03-09 | Scripts: `scripts/run-migration.mjs`, `scripts/run-wp-migration.mjs`
+> Ngày: 2026-03-09 | Hoàn thành: 2026-03-09 14:00
 
 ## ✅ Đã migrate thành công
 
-| Table | Rows | Nguồn |
-|---|---|---|
-| quizzes | 298 | WP GraphQL (basic info) |
-| mock_tests | 3 | WP GraphQL |
-| orders | 13 | `data/orders.json` |
-| posts | 7 | WP GraphQL |
-| cms_configs | 17 | `config/*.json` |
-| affiliates | 1 | `data/affiliates.json` |
-| affiliate_links | 5 | `data/affiliate-links.json` |
-| affiliate_visits | 4 | `data/affiliate-visits.json` |
-| commissions | 6 | `data/affiliate-commissions.json` |
+| Table             | Rows       | Nguồn                             | Script                        |
+| ----------------- | ---------- | --------------------------------- | ----------------------------- |
+| quizzes           | 298        | WP GraphQL (basic info)           | `run-migration.mjs`           |
+| mock_tests        | 3          | WP GraphQL                        | `run-migration.mjs`           |
+| orders            | 13         | `data/orders.json`                | `run-migration.mjs`           |
+| posts             | 7          | WP GraphQL                        | `run-migration.mjs`           |
+| cms_configs       | 17         | `config/*.json`                   | `run-migration.mjs`           |
+| affiliates        | 1          | `data/affiliates.json`            | `run-migration.mjs`           |
+| affiliate_links   | 5          | `data/affiliate-links.json`       | `run-migration.mjs`           |
+| affiliate_visits  | 4          | `data/affiliate-visits.json`      | `run-migration.mjs`           |
+| commissions       | 6          | `data/affiliate-commissions.json` | `run-migration.mjs`           |
+| **users**         | **7,660**  | DB export (`data/wp-users.json`)  | `migrate-users-from-db.mjs`   |
+| **test_results**  | **23,067** | WP GraphQL                        | `migrate-test-results.mjs`    |
+| **passages**      | **492**    | WP GraphQL (nested ACF)           | `migrate-passages-essays.mjs` |
+| **questions**     | **1,126**  | WP GraphQL (nested ACF)           | `migrate-passages-essays.mjs` |
+| **sample_essays** | **3**      | WP GraphQL                        | `migrate-passages-essays.mjs` |
 
-## ❌ Chưa migrate — Cần sửa
+## ⚠️ Lưu ý
 
-### 1. Users (0 rows)
-- **Vấn đề**: WP REST API `/wp/v2/users` trả 401 (Unauthorized). GraphQL trả ~3,094 users nhưng chỉ có `name`, `email` — thiếu `meta` fields (is_pro, target_score, devices, roles...).
-- **Nguyên nhân**: `supabase.auth.admin.createUser()` cần password, WP không expose password.
-- **Giải pháp gợi ý**:
-  - Dùng WP Application Passwords plugin để fix REST API 401
-  - Hoặc tạo auth users với password random rồi yêu cầu reset password
-  - Cần lấy user meta từ WP REST API (context=edit) để có đầy đủ fields
+### Test Results — 767 FK errors
 
-### 2. Passages & Questions (0 rows)
-- **Vấn đề**: GraphQL query cho nested ACF fields bị lỗi `Cannot query field`.
-- **Nguyên nhân**: Tên field trong ACF GraphQL schema khác với tên đã dùng trong script. Ví dụ `passages` có thể cần query qua tên khác.
-- **Giải pháp gợi ý**:
-  - Chạy introspection query: `{ __type(name:"Quiz_Quizfields") { fields { name } } }` để tìm đúng tên
-  - Thử probe từng field: `quizFields { passages { title } }` rồi thêm dần nested fields
-  - Quizzes đã có 298 records (slug-based), chỉ cần thêm passages/questions sau
+- Users được tạo trong `auth.users` nhưng một số không insert được vào `public.users` (lỗi date_of_birth format)
+- Test results của các users này bị FK constraint reject
+- Fix: tạo lại rows trong `public.users` cho các users bị thiếu
 
-### 3. Test Results (24,009 records found, 0 inserted)
-- **Vấn đề**: Cần mapping `wp_user_id → supabase_uuid` và `wp_quiz_id → supabase_uuid`
-- **Nguyên nhân**: Users chưa migrate → không có user ID mapping
-- **Giải pháp gợi ý**: Migrate users trước, tạo mapping file, rồi chạy test results migration
+### Users — 1 error
 
-### 4. Sample Essays (0 rows)
-- **Vấn đề**: GraphQL query `sampleEssayFields { skill part... }` trả lỗi `Cannot query type "SampleEssayFields"`
-- **Nguyên nhân**: Tên ACF field group trong GraphQL schema khác
-- **Giải pháp gợi ý**:
-  - Introspect: `{ __type(name:"SampleEssay") { fields { name } } }` — đã xác nhận type tồn tại
-  - Tìm đúng tên field group cho ACF fields (có thể là `writingSampleEssayFields` hoặc tương tự)
-  - Basic query (title, slug, content) hoạt động OK
+- 1 user có date_of_birth format lạ → profile insert thất bại (auth user vẫn tạo OK)
 
-### 5. Site Settings & Menus (0 rows)
-- **Vấn đề**: Chưa có trong migration script
-- **Giải pháp gợi ý**: Tạo script fetch WordPress Options + Menus qua REST/GraphQL
+### Coupons — Bỏ qua
 
-### 6. Coupons (0 rows)
-- **Vấn đề**: `data/coupons.json` có thể rỗng hoặc format khác
-- **Giải pháp gợi ý**: Kiểm tra nội dung file `data/coupons.json`
+- `data/coupons.json` rỗng (`[]`)
+
+## ⏳ Deferred — Ưu tiên thấp
+
+### Site Settings & Menus
+
+- Chưa migrate, cần DB export từ `mf_options`
+- Không ảnh hưởng đến chức năng chính
+
+## Mapping Files
+
+- `data/user-id-mapping.json` — 7,660 entries (`wp_user_id → supabase_uuid`)
+- `data/quiz-id-mapping.json` — 298 entries (`wp_databaseId → supabase_uuid`)
 
 ## Ghi chú kỹ thuật
 
 - **WP GraphQL endpoint**: `https://cms.ieltspredictiontest.com/graphql`
-- **WP Auth**: Basic Auth với `WP_ADMIN_USER` + `WP_ADMIN_PASSWORD` (trong `.env.local`)
-- **Node version**: v20.20.0
-- **ESM issue**: `.ts` scripts không chạy được với `ts-node`/`tsx` do `@supabase/supabase-js` v2 ESM-only. Dùng `.mjs` thay thế.
+- **WP GraphQL ACF naming**: Không nhất quán — top-level dùng snake_case (`passage_content`), nested dùng camelCase (`matchingItems`, `correctAnswer`). Cần introspection per-type.
+- **ESM issue**: Dùng `.mjs` thay vì `.ts` do `@supabase/supabase-js` v2 ESM-only.
+- **dotenv v17**: Tự inject từ `.env.local`, nhưng cần `config({ path: '.env.local' })` để load đúng file.

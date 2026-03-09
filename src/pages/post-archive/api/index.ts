@@ -1,4 +1,4 @@
-import { IPost } from "@/shared/types";
+import { IPost, SEOType } from "@/shared/types";
 
 export type CategoryData = {
     category: {

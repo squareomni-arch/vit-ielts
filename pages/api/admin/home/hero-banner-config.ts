@@ -50,6 +50,7 @@ export default async function handler(
         },
       },
       bannerImage: "/img-admin/o-banner.png",
+      backgroundImage: "",
       featureCards: [],
       decorativeShape: {
         image: "/img-admin/o-shape-1.png",

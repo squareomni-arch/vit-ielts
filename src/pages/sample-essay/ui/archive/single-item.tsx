@@ -94,12 +94,12 @@ export const DefaultView = ({
     <article className="rounded-lg shadow overflow-hidden h-full group relative">
       <ProLink
         title={post.title}
-        isPro={post.postMeta.proUserOnly}
+        isPro={post.postMeta?.proUserOnly ?? false}
         href={ROUTES.SAMPLE_ESSAY.SINGLE(post.slug)}
         className="text-left"
       >
         <div className="aspect-3/2 overflow-hidden relative block">
-          {post.postMeta.proUserOnly && (
+          {post.postMeta?.proUserOnly && (
             <div className="absolute top-3 right-3 z-10">
               <div
                 className={

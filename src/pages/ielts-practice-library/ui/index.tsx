@@ -15,17 +15,17 @@ import { Filter } from "./filter";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { QuizLibraryNav } from "@/widgets";
 import { useRouter } from "next/router";
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import _ from "lodash";
 import {
-  GET_PRACTICE_TESTS,
   IPracticeTestResponses,
   PracticeTestItem,
 } from "@/entities/practice-test";
 import { QUESTION_FORMS } from "@/shared/constants";
 import { PracticeTest } from "@/widgets/blocks";
 import type { PracticeLibraryBannerConfig } from "./types";
-import { useLazyQuery } from "@/shared/graphql/compat";
+import { createClient } from "~supabase/client";
+import { getQuizzes } from "~services/quiz";
 
 export type FilterFormValues = {
   progress: "pending" | "completed" | "in-progress";
@@ -80,30 +80,83 @@ export const PageIELTSPracticeLibrary = ({
     }
   };
 
-  const [getData, { data, loading, called, variables }] =
-    useLazyQuery<IPracticeTestResponses>(GET_PRACTICE_TESTS, {
-      context: {
-        authRequired: true,
-      },
-    });
+  const [data, setData] = useState<IPracticeTestResponses | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [called, setCalled] = useState(false);
+  const [currentPageSize, setCurrentPageSize] = useState(PAGE_SIZE);
 
-  // 1. Logic đồng bộ từ URL vào Form (Đảm bảo Form State và Pagination UI phản ánh URL)
+  const getData = useCallback(async (params: any) => {
+    setLoading(true);
+    setCalled(true);
+    try {
+      const supabase = createClient();
+      const { search, offsetPagination, skill, source, part, quarter, year, question_form, orderby } = params;
+      const page = offsetPagination ? Math.floor(offsetPagination.offset / offsetPagination.size) + 1 : 1;
+      const pageSize = offsetPagination?.size || PAGE_SIZE;
+      setCurrentPageSize(pageSize);
+
+      const result = await getQuizzes(supabase, {
+        skill: skill || undefined,
+        search: search || undefined,
+        source: source || undefined,
+        part: part || undefined,
+        quarter: quarter || undefined,
+        year: year || undefined,
+        questionForm: question_form || undefined,
+        page,
+        pageSize,
+      });
+
+      // Map to legacy format expected by components
+      const edges = (result.data || []).map((quiz: any) => ({
+        node: {
+          id: quiz.id,
+          title: quiz.title,
+          slug: quiz.slug,
+          link: `/ielts-practice-library/${quiz.skill}/${quiz.slug}`,
+          featuredImage: quiz.featured_image
+            ? { node: { sourceUrl: quiz.featured_image, altText: quiz.title } }
+            : null,
+          quizFields: {
+            skill: [quiz.skill],
+            type: [quiz.type || "practice"],
+            part: [quiz.part || "0"],
+            testsTaken: quiz.tests_taken || 0,
+            proUserOnly: quiz.pro_user_only || false,
+          },
+        },
+      }));
+
+      setData({
+        quizzes: {
+          edges,
+          pageInfo: {
+            offsetPagination: {
+              total: result.count || 0,
+            },
+          },
+        },
+      } as any);
+    } catch (error) {
+      console.error("Error fetching practice tests:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // 1. Logic đồng bộ từ URL vào Form
   useEffect(() => {
     if (!router.isReady) return;
     const { page, ...rest } = router.query;
-
-    // Lấy giá trị hiện tại của form (hoặc giá trị mặc định nếu lần đầu load)
     const currentValues = getValues();
-
-    // Cập nhật form state từ URL
     reset({
       ...currentValues,
       ...rest,
-      page: page ? Number(page) : 1, // Đảm bảo page là số, mặc định là 1
+      page: page ? Number(page) : 1,
     } as FilterFormValues);
   }, [router.query, router.isReady, reset, getValues]);
 
-  // 2. Logic gọi API dựa trên router params (GIỮ NGUYÊN)
+  // 2. Logic gọi API dựa trên router params
   useEffect(() => {
     const {
       sort,
@@ -117,11 +170,10 @@ export const PageIELTSPracticeLibrary = ({
       year,
     } = router.query;
     const size = Number(pageSize) || PAGE_SIZE;
-    // Đảm bảo page được lấy từ URL (router.query.page)
     const currentPage = Number(page) || 1;
     const offset = (currentPage - 1) * size;
 
-    const params = {
+    const params: any = {
       search,
       offsetPagination: {
         offset,
@@ -144,7 +196,6 @@ export const PageIELTSPracticeLibrary = ({
         _.set(params, "orderby", [{ field: "DATE", order: "ASC" }]);
         break;
       case "popular":
-        // _.set(params, "orderby", [{ field: "VIEW_COUNT", order: "DESC" }]);
         break;
       case "a-z":
         _.set(params, "orderby", [{ field: "TITLE", order: "ASC" }]);
@@ -157,9 +208,7 @@ export const PageIELTSPracticeLibrary = ({
         break;
     }
 
-    getData({
-      variables: params,
-    });
+    getData(params);
   }, [getData, router.pathname, router.query]);
 
   const filterValues = watch();
@@ -441,7 +490,7 @@ export const PageIELTSPracticeLibrary = ({
                 <Pagination
                   // [FIX] Dùng 'current' để đồng bộ với URL/state
                   current={router.query.page ? Number(router.query.page) : 1}
-                  pageSize={variables?.offsetPagination.size || PAGE_SIZE}
+                  pageSize={currentPageSize}
                   total={data.quizzes.pageInfo.offsetPagination.total || 0}
                   showSizeChanger={false}
                   onChange={(page, pageSize) => {

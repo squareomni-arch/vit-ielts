@@ -5,6 +5,7 @@ import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 type UserRow = {
     id: string;
@@ -194,3 +195,5 @@ export default function AdminUsersPage() {
         </AdminLayout>
     );
 }
+
+export const getServerSideProps = withAdmin;

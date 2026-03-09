@@ -4,6 +4,7 @@ import { DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import AdminLayout from "../_layout";
 import dayjs from "dayjs";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 type TestResultRow = {
     id: string;
@@ -76,3 +77,5 @@ export default function AdminTestResultsPage() {
         </AdminLayout>
     );
 }
+
+export const getServerSideProps = withAdmin;

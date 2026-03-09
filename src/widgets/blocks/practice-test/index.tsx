@@ -3,13 +3,12 @@ import { Options, Splide, SplideSlide } from "@splidejs/react-splide";
 import "@splidejs/react-splide/css";
 import { Empty, Skeleton } from "antd";
 import _ from "lodash";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  GET_PRACTICE_TESTS,
-  IPracticeTestResponses,
   PracticeTestItem,
 } from "@/entities/practice-test";
-import { useQuery } from "@/shared/graphql/compat";
+import { createClient } from "~supabase/client";
+import { getQuizzes } from "~services/quiz";
 
 type Props = {
   title: string;
@@ -53,21 +52,48 @@ export const PracticeTest = ({
     () => _.merge(defaultSliderOptions, inputSliderOptions),
     [inputSliderOptions]
   );
-  const { data, loading } = useQuery<IPracticeTestResponses>(
-    GET_PRACTICE_TESTS,
-    {
-      context: {
-        authRequired: true,
-      },
-      variables: {
-        skill,
-        offsetPagination: {
-          offset: 0,
-          size: limit,
-        },
-      },
-    }
-  );
+  const [loading, setLoading] = useState(true);
+  const [quizzes, setQuizzes] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      try {
+        const supabase = createClient();
+        const result = await getQuizzes(supabase, {
+          skill,
+          page: 1,
+          pageSize: limit,
+        });
+        // Map to legacy edge format for PracticeTestItem
+        setQuizzes(
+          (result.data || []).map((q: any) => ({
+            node: {
+              id: q.id,
+              title: q.title,
+              slug: q.slug,
+              excerpt: q.excerpt || "",
+              link: `/ielts-practice-library/${q.slug}`,
+              featuredImage: q.featured_image
+                ? { node: { sourceUrl: q.featured_image, altText: q.title } }
+                : undefined,
+              quizFields: {
+                testsTaken: q.tests_taken || 0,
+                proUserOnly: q.pro_user_only,
+                skill: [q.skill, q.skill],
+                type: [q.type, q.type],
+                time: q.time_minutes,
+              },
+            },
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching practice tests:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchQuizzes();
+  }, [skill, limit]);
 
   return (
     <article className="space-y-6">
@@ -105,9 +131,9 @@ export const PracticeTest = ({
         </Splide>
       ) : (
         <>
-          {data?.quizzes.edges.length ? (
+          {quizzes.length ? (
             <Splide options={sliderOptions} tag="section">
-              {data.quizzes.edges.map(({ node: item }) => (
+              {quizzes.map(({ node: item }: any) => (
                 <SplideSlide key={item.id}>
                   <PracticeTestItem item={item} />
                 </SplideSlide>

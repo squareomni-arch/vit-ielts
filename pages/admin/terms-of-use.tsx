@@ -4,6 +4,7 @@ import type { TermsOfUseConfig } from "@/shared/types/admin-config";
 import AdminLayout from "./_layout";
 import { ImageUpload } from "@/shared/ui/image-upload";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const { Panel } = Collapse;
 const { TextArea } = Input;
@@ -228,4 +229,6 @@ function TermsOfUsePage() {
 }
 
 export default TermsOfUsePage;
+
+export const getServerSideProps = withAdmin;
 

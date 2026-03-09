@@ -3,20 +3,45 @@ import _ from "lodash";
 import Link from "next/link";
 import Image from "next/image";
 import { Skeleton } from "antd";
-import { GET_RELATED_POSTS } from "@/pages/post-single/api";
 import { ProLink } from "@/shared/ui";
-import { useQuery } from "@/shared/graphql/compat";
+import { useEffect, useState } from "react";
+import { createClient } from "~supabase/client";
+import { getPosts } from "~services/post";
 
 function RelatedPost({ post }: { post: IPost }) {
-  const { data, loading } = useQuery<
-    { posts: { nodes: IPost[] } },
-    { categoryIds: string[]; notIn: string[] }
-  >(GET_RELATED_POSTS, {
-    variables: {
-      categoryIds: post.categories.edges.map((category) => category.node.id),
-      notIn: [post.id],
-    },
-  });
+  const [relatedPosts, setRelatedPosts] = useState<IPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRelated = async () => {
+      try {
+        const supabase = createClient();
+        const result = await getPosts(supabase, {
+          page: 1,
+          pageSize: 6,
+        });
+        const mapped = (result.data || []).filter((p: any) => p.id !== post.id).map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          link: `/blog/${p.slug}`,
+          featuredImage: p.featured_image
+            ? { node: { sourceUrl: p.featured_image, altText: p.title } }
+            : undefined,
+          categories: { edges: [] },
+          postMeta: { views: p.views || 0, proUserOnly: p.pro_user_only || false },
+        })) as unknown as IPost[];
+        setRelatedPosts(mapped);
+      } catch (error) {
+        console.error("Error fetching related posts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRelated();
+  }, [post.id]);
+
+  const data = { posts: { nodes: relatedPosts } };
 
   return (
     <>

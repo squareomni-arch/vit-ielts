@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button, Input, Form, Card, Space, Collapse, message } from "antd";
 import type { FAQConfig } from "@/shared/types/admin-config";
 import AdminLayout from "../_layout";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const { Panel } = Collapse;
 const { TextArea } = Input;
@@ -182,4 +183,6 @@ function FAQPage() {
 }
 
 export default FAQPage;
+
+export const getServerSideProps = withAdmin;
 

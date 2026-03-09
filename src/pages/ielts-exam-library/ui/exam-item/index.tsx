@@ -1,21 +1,19 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ROUTES } from "@/shared/routes";
-// import { LinkButton } from "@/shared/ui";
-// import _ from "lodash";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Skeleton } from "antd";
-// import { twMerge } from "tailwind-merge";
-import {
-  GET_TEST_RESULT,
-  ITestResultResponses,
-} from "@/entities/practice-test";
 import { IExamCollection } from "../../api";
 import ExamModeModal from "../exam-mode-modal";
 import { useAuth } from "@/appx/providers";
 import { useProContentModal } from "@/shared/ui/pro-content";
 import { LinkButton } from "@/shared/ui";
-import { useQuery } from "@/shared/graphql/compat";
+import { createClient } from "~supabase/client";
+
+interface TestResultRow {
+  id: string;
+  status: string;
+}
 
 export const ExamItem = ({
   item,
@@ -27,15 +25,42 @@ export const ExamItem = ({
   const { currentUser } = useAuth();
   const openProContentModal = useProContentModal((state) => state.open);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { data, loading } = useQuery<ITestResultResponses>(GET_TEST_RESULT, {
-    variables: {
-      quizId: item.id,
-      authorId: currentUser?.id,
-    },
-    context: {
-      authRequired: true,
-    },
-  });
+  const [loading, setLoading] = useState(true);
+  const [publishedResults, setPublishedResults] = useState<TestResultRow[]>([]);
+
+  // Fetch test results for this quiz from Supabase
+  useEffect(() => {
+    if (!currentUser?.id) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchTestResults = async () => {
+      try {
+        const supabase = createClient();
+        const { data: results } = await supabase
+          .from("test_results")
+          .select("id, status")
+          .eq("quiz_id", item.id)
+          .eq("user_id", currentUser.id)
+          .eq("status", "published")
+          .order("created_at", { ascending: false })
+          .limit(5);
+
+        setPublishedResults(results || []);
+      } catch (error) {
+        console.error("Error fetching test results:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTestResults();
+  }, [item.id, currentUser?.id]);
+
+  const data = useMemo(() => ({
+    publishedResults: { nodes: publishedResults },
+  }), [publishedResults]);
 
   // const isInProgress = useMemo(
   //   () => data && data.testResults.nodes.length > 0,

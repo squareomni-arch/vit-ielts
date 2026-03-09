@@ -9,16 +9,16 @@ import {
   IELTSReadingExamIcon,
 } from "@/shared/ui/icons";
 import {
-  GET_EXAM_COLLECTIONS,
   IExamCollection,
   IExamCollectionResponse,
 } from "../api";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ExamCollection from "./exam-collection";
 import _ from "lodash";
 import type { ExamLibraryHeroConfig } from "./types";
-import { useLazyQuery } from "@/shared/graphql/compat";
+import { createClient } from "~supabase/client";
+import { getExamCollections } from "~services/exam-collection";
 
 export type FilterFormValues = {
   type: "all" | "academic" | "general";
@@ -49,12 +49,42 @@ export const PageIELTSExamLibrary = ({
     formState: { isDirty },
   } = methods;
 
-  const [getData, { data, loading, called, variables }] =
-    useLazyQuery<IExamCollectionResponse>(GET_EXAM_COLLECTIONS, {
-      context: {
-        authRequired: true,
-      },
-    });
+  const [data, setData] = useState<IExamCollectionResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [called, setCalled] = useState(false);
+  const [currentPageSize, setCurrentPageSize] = useState(PAGE_SIZE);
+
+  const getData = useCallback(async (params: any) => {
+    setLoading(true);
+    setCalled(true);
+    try {
+      const supabase = createClient();
+      const { type, search, offsetPagination } = params;
+      const page = offsetPagination ? Math.floor(offsetPagination.offset / offsetPagination.size) + 1 : 1;
+      const pageSize = offsetPagination?.size || PAGE_SIZE;
+      setCurrentPageSize(pageSize);
+
+      const result = await getExamCollections(supabase, {
+        type: type && type !== "all" ? type : undefined,
+        search: search || undefined,
+        page,
+        pageSize,
+      });
+
+      setData({
+        examCollection: {
+          data: result.data,
+          pageInfo: {
+            total: result.pageInfo.total,
+          },
+        },
+      } as any);
+    } catch (error) {
+      console.error("Error fetching exam collections:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const { type, sort, search, page, size: pageSize } = router.query;
@@ -70,9 +100,7 @@ export const PageIELTSExamLibrary = ({
       },
     };
 
-    getData({
-      variables: params,
-    });
+    getData(params);
   }, [getData, router.query]);
 
   const [activeKey, setActiveKey] = useState<string>("reading");
@@ -223,7 +251,7 @@ export const PageIELTSExamLibrary = ({
             <Pagination
               defaultCurrent={router.query.page ? Number(router.query.page) : 1}
               total={data?.examCollection.pageInfo.total || 0}
-              pageSize={variables?.offsetPagination.size}
+              pageSize={currentPageSize}
               showSizeChanger={false}
               onChange={(page, pageSize) => {
                 setValue("size", pageSize, {

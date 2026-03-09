@@ -85,7 +85,7 @@ export function PageTestResult({
   }, [post.quizFields.skill]);
 
   // --- Lấy số câu đúng (Để truyền vào BandScore) ---
-  const correctAnswers = Number(scoreData?.correctAnswersCount ?? scoreData?.correctAns ?? 0);
+  const correctAnswers = Number(scoreData?.correctAns ?? 0);
 
   return (
     <>
@@ -218,7 +218,7 @@ export function PageTestResult({
             {/* ▲▲▲ [KẾT THÚC SỬA ĐỔI] ▲▲▲ */}
 
             {/* Giữ nguyên AnswerKeys */}
-            <AnswerKeys data={scoreData} skill={skill} />
+            <AnswerKeys data={scoreData} skill={skill as "listening" | "reading"} />
           </div>
         </div>
       </Container>
@@ -237,7 +237,7 @@ export function PageTestResult({
       {/* Giữ nguyên ExamModeModal */}
       <ExamModeModal
         navigateLink={ROUTES.TAKE_THE_TEST(post.slug)}
-        quiz={post}
+        quiz={post as any}
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />

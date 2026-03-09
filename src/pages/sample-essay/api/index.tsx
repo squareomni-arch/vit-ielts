@@ -1,3 +1,4 @@
+import type { SEOType } from "@/shared/types";
 
 export const GET_SAMPLE_ESSAYS = "";
 

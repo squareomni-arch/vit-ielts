@@ -4,29 +4,14 @@ import { IPost } from "@/shared/types";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { useMutation } from "@/shared/graphql/compat";
-
-const DO_RATING = "";
+import { createClient } from "~supabase/client";
+import { ratePost } from "~services/post";
 
 export const StarRating = ({ post }: { post: IPost }) => {
   const [ratingData, setRatingData] = useState(post.rating);
   const router = useRouter();
   const { currentUser } = useAuth();
   const [percent, setPercent] = useState(0);
-  const [doRating] = useMutation<
-    {
-      updatePostRating: {
-        clientMutationId: string;
-        count: number;
-        rate: number;
-      };
-    },
-    { id: string; rate: number }
-  >(DO_RATING, {
-    context: {
-      authRequired: true,
-    },
-  });
 
   useEffect(() => {
     setPercent((ratingData.rate / 5) * 100);
@@ -35,13 +20,14 @@ export const StarRating = ({ post }: { post: IPost }) => {
   const handleRate = async (rate: number) => {
     if (ratingData.voted) return;
     if (currentUser) {
-      const { data } = await doRating({
-        variables: { id: post.id, rate },
-      });
-
-      if (data) {
-        const { rate, count } = data.updatePostRating;
-        setRatingData({ rate, count, voted: true });
+      try {
+        const supabase = createClient();
+        const result = await ratePost(supabase, post.id, currentUser.id, rate);
+        if (result) {
+          setRatingData({ rate: result.rate, count: result.count, voted: true });
+        }
+      } catch (err) {
+        console.error("Rating failed:", err);
       }
     } else {
       router.push(`${ROUTES.LOGIN}?redirect=${router.asPath}`);

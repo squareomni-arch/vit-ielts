@@ -1,3 +1,4 @@
+import type { SEOType } from "@/shared/types";
 
 export const GET_TEST_RESULT = "";
 
@@ -72,6 +73,8 @@ export type IPracticeSingle = {
     passages: {
       title: string;
       passage_content: string;
+      audio_start?: string;
+      audio_end?: string;
       questions: (IQuestion & {
         startIndex?: number;
       })[];
@@ -99,6 +102,7 @@ export type IQuestion = {
   explanations: {
     content: string;
   }[];
+  optionChoose?: number | string;
   matchingQuestion?: {
     layoutType?: 'standard' | 'summary' | 'heading' | 'list';
     summaryText?: string;
@@ -110,7 +114,6 @@ export type IQuestion = {
       optionText: string;
     }[];
   };
-  // ▼▼▼ BẮT ĐẦU CẬP NHẬT TYPE ▼▼▼
   matrixQuestion?: {
     matrixCategories: {
       categoryLetter: string;
@@ -123,7 +126,6 @@ export type IQuestion = {
     layoutType?: "standard" | "simple";
     legendTitle?: string;
   };
-  // ▲▲▲ KẾT THÚC CẬP NHẬT TYPE ▲▲▲
 };
 
 export const GET_USER = "";

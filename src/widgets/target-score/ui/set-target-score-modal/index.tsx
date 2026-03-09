@@ -2,9 +2,8 @@ import { Modal, Select } from "antd";
 import React, { ComponentProps, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useWidgetContext } from "../../context";
-import { UPDATE_TARGET_SCORE } from "../../api";
 import { useAuth } from "@/appx/providers";
-import { useMutation } from "@/shared/graphql/compat";
+import { createClient } from "~supabase/client";
 
 type FormData = {
   reading: number;
@@ -20,11 +19,7 @@ export const SetTargetScoreModal = ({
   const { currentUser } = useAuth();
   const [overallScore, setOverallScore] = useState<string>();
   const { control, watch, reset, setValue } = useForm<FormData>();
-  const [updateTargetScore, { loading }] = useMutation(UPDATE_TARGET_SCORE, {
-    context: {
-      authRequired: true,
-    },
-  });
+  const [loading, setLoading] = useState(false);
 
   const scoreOptions = Array.from({ length: 17 }, (_, i) => {
     const value = (i + 2) * 0.5;
@@ -47,17 +42,28 @@ export const SetTargetScoreModal = ({
   }, [props.open, reset]);
 
   const handleOk = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    await updateTargetScore({
-      variables: {
-        id: currentUser?.id,
-        listening: values.listening,
-        reading: values.reading,
-        speaking: values.speaking,
-        writing: values.writing,
-      },
-    });
-    refetch();
-    props.onOk?.(e);
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      await supabase
+        .from("users")
+        .update({
+          target_score: {
+            listening: values.listening,
+            reading: values.reading,
+            speaking: values.speaking,
+            writing: values.writing,
+          },
+        })
+        .eq("id", currentUser!.id);
+
+      await refetch();
+      props.onOk?.(e);
+    } catch (error) {
+      console.error("Error updating target score:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

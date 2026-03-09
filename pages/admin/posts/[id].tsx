@@ -3,6 +3,7 @@ import { Card, Form, Input, Select, Switch, Button, Space, message, Spin, Row, C
 import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const { TextArea } = Input;
 
@@ -81,3 +82,5 @@ export default function AdminPostEditorPage() {
         </AdminLayout>
     );
 }
+
+export const getServerSideProps = withAdmin;

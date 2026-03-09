@@ -22,7 +22,7 @@ import _ from "lodash";
 import Footer from "./footer";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
-import { IDraftResponse, ITestResult, SAVE_DRAFT } from "../api";
+import { ITestResult } from "../api";
 import dayjs from "dayjs";
 import { TextSelectionProvider, TextSelectionWrapper } from "@/shared/ui";
 import Notepad from "./notepad";
@@ -43,7 +43,7 @@ import {
   DragOverEvent,
 } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
-import { useMutation } from "@/shared/graphql/compat";
+import { useCallback } from "react";
 
 // ==================================================================
 // COMPONENT RENDER PASSAGE CHO 'HEADING'
@@ -280,15 +280,26 @@ export function PageTakeTheTest() {
   const [isMobileView, setIsMobileView] = useState(false);
   const questionPanelRef = useRef<HTMLDivElement>(null);
 
-  const [saveDraftFn] = useMutation<
-    IDraftResponse,
-    { answers: string; testId: string; timeLeft: string }
-  >(SAVE_DRAFT, {
-    context: { authRequired: true },
-    onError: (err) => {
-      console.warn("Auto-save Mutation Error Handled:", err);
+  // Auto-save draft via API route
+  const saveDraftFn = useCallback(async (params: {
+    answers: string;
+    testId: string;
+    timeLeft: string;
+  }) => {
+    const response = await fetch("/api/test-flow/save-draft", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        testId: params.testId,
+        answers: params.answers,
+        timeLeft: params.timeLeft,
+      }),
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || "Save draft failed");
     }
-  });
+  }, []);
 
   const currentPassage = useMemo(
     () =>
@@ -562,13 +573,11 @@ export function PageTakeTheTest() {
       if (isSubmitting || isSubmitted) return;
 
       saveDraftFn({
-        variables: {
-          answers: JSON.stringify(getValues()),
-          testId: testID,
-          timeLeft:
-            timer?.format("mm:ss") ||
-            dayjs(post.quizFields.time, "mm").format("mm:ss"),
-        },
+        answers: JSON.stringify(getValues()),
+        testId: testID,
+        timeLeft:
+          timer?.format("mm:ss") ||
+          dayjs(post.quizFields.time, "mm").format("mm:ss"),
       }).catch((err) => {
         console.warn("Auto-save silently failed", err);
       });

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, Tabs, Form, Input, Button, message, Spin, Switch, InputNumber, Row, Col } from "antd";
 import { SaveOutlined, SendOutlined } from "@ant-design/icons";
 import AdminLayout from "../_layout";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const { TextArea } = Input;
 
@@ -135,3 +136,5 @@ export default function AdminSettingsPage() {
         </AdminLayout>
     );
 }
+
+export const getServerSideProps = withAdmin;

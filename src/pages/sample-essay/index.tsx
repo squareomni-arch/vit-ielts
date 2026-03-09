@@ -51,7 +51,8 @@ export const getServerSidePropsArchive = async (
     writing: {
       title: {
         line1: "DOL IELTS Writing",
-        line2: { highlighted: "Task 1 Academic", after: "Sample" },
+        line2Highlighted: "Task 1 Academic",
+        line2After: "Sample",
       },
       description: {
         line1: "Tổng hợp bài mẫu IELTS Exam Writing Task 1 và hướng dẫn cách làm bài,",
@@ -63,7 +64,8 @@ export const getServerSidePropsArchive = async (
     speaking: {
       title: {
         line1: "DOL IELTS Speaking",
-        line2: { highlighted: "Task 1 Academic", after: "Sample" },
+        line2Highlighted: "Task 1 Academic",
+        line2After: "Sample",
       },
       description: {
         line1: "Tổng hợp bài mẫu IELTS Exam Speaking Task 1 và hướng dẫn cách làm bài,",
@@ -104,10 +106,13 @@ export type SampleEssayProps = {
   paged: number;
   pageSize: number;
   skill: "speaking" | "writing" | "reading" | "listening";
-  filterData: Record<string, unknown>;
+  filterData: Record<string, any>;
   bannerConfig: SampleEssayBannerConfig;
-  nodes: unknown[];
+  nodes: any[];
   pageInfo: { offsetPagination: { total: number } };
+  // Legacy compat fields used by UI components
+  sampleEssays?: any;
+  seo?: any;
 };
 
 /**

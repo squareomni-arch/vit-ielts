@@ -98,7 +98,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
             }
             : undefined,
         })),
-      })),
+      })) as any,
       pdf: quiz.pdf_url
         ? { node: { id: quiz.id, mediaItemUrl: quiz.pdf_url, databaseId: 0 } }
         : undefined,

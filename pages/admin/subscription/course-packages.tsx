@@ -13,6 +13,7 @@ import {
 } from "antd";
 import type { CoursePackagesConfig } from "@/shared/types/admin-config";
 import AdminLayout from "../_layout";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const { Panel } = Collapse;
 
@@ -174,7 +175,7 @@ export default function CoursePackagesPage() {
                         <Form.Item
                           {...field}
                           name={field.name}
-                          fieldKey={field.fieldKey}
+
                           rules={[
                             { required: true, message: "Enter feature text" },
                           ]}
@@ -205,7 +206,7 @@ export default function CoursePackagesPage() {
                         <Form.Item
                           {...field}
                           name={field.name}
-                          fieldKey={field.fieldKey}
+
                           rules={[
                             { required: true, message: "Enter feature text" },
                           ]}
@@ -304,7 +305,7 @@ export default function CoursePackagesPage() {
                           <Form.Item
                             {...field}
                             name={[field.name, "name"]}
-                            fieldKey={[field.fieldKey, "name"]}
+
                             label="Name"
                             rules={[
                               { required: true, message: "Enter plan name" },
@@ -315,7 +316,7 @@ export default function CoursePackagesPage() {
                           <Form.Item
                             {...field}
                             name={[field.name, "months"]}
-                            fieldKey={[field.fieldKey, "months"]}
+
                             label="Months"
                             rules={[
                               {
@@ -329,7 +330,7 @@ export default function CoursePackagesPage() {
                           <Form.Item
                             {...field}
                             name={[field.name, "price"]}
-                            fieldKey={[field.fieldKey, "price"]}
+
                             label="Price"
                             rules={[{ required: true, message: "Enter price" }]}
                           >
@@ -338,7 +339,7 @@ export default function CoursePackagesPage() {
                           <Form.Item
                             {...field}
                             name={[field.name, "popular"]}
-                            fieldKey={[field.fieldKey, "popular"]}
+
                             label="Popular Badge"
                             valuePropName="checked"
                           >
@@ -347,7 +348,7 @@ export default function CoursePackagesPage() {
                           <Form.Item
                             {...field}
                             name={[field.name, "featuredDeal"]}
-                            fieldKey={[field.fieldKey, "featuredDeal"]}
+
                             label="Featured Deal"
                             valuePropName="checked"
                           >
@@ -357,7 +358,7 @@ export default function CoursePackagesPage() {
                         <Form.Item
                           {...field}
                           name={[field.name, "dealNote"]}
-                          fieldKey={[field.fieldKey, "dealNote"]}
+
                           label="Deal Note"
                         >
                           <Input placeholder="Same price as the shorter plan" />
@@ -365,7 +366,7 @@ export default function CoursePackagesPage() {
                         <Form.Item
                           {...field}
                           name={[field.name, "samePriceAsMonths"]}
-                          fieldKey={[field.fieldKey, "samePriceAsMonths"]}
+
                           label="Same Price As (months)"
                         >
                           <InputNumber min={1} />
@@ -425,7 +426,7 @@ export default function CoursePackagesPage() {
                         <Form.Item
                           {...field}
                           name={field.name}
-                          fieldKey={field.fieldKey}
+
                           label={`Skill #${field.name + 1}`}
                           rules={[
                             { required: true, message: "Enter skill name" },
@@ -465,7 +466,7 @@ export default function CoursePackagesPage() {
                           <Form.Item
                             {...field}
                             name={[field.name, "name"]}
-                            fieldKey={[field.fieldKey, "name"]}
+
                             label="Name"
                             rules={[
                               { required: true, message: "Enter plan name" },
@@ -476,7 +477,7 @@ export default function CoursePackagesPage() {
                           <Form.Item
                             {...field}
                             name={[field.name, "months"]}
-                            fieldKey={[field.fieldKey, "months"]}
+
                             label="Months"
                             rules={[
                               {
@@ -490,7 +491,7 @@ export default function CoursePackagesPage() {
                           <Form.Item
                             {...field}
                             name={[field.name, "price"]}
-                            fieldKey={[field.fieldKey, "price"]}
+
                             label="Price"
                             rules={[{ required: true, message: "Enter price" }]}
                           >
@@ -499,7 +500,7 @@ export default function CoursePackagesPage() {
                           <Form.Item
                             {...field}
                             name={[field.name, "popular"]}
-                            fieldKey={[field.fieldKey, "popular"]}
+
                             label="Popular Badge"
                             valuePropName="checked"
                           >
@@ -508,7 +509,7 @@ export default function CoursePackagesPage() {
                           <Form.Item
                             {...field}
                             name={[field.name, "featuredDeal"]}
-                            fieldKey={[field.fieldKey, "featuredDeal"]}
+
                             label="Featured Deal"
                             valuePropName="checked"
                           >
@@ -518,7 +519,7 @@ export default function CoursePackagesPage() {
                         <Form.Item
                           {...field}
                           name={[field.name, "dealNote"]}
-                          fieldKey={[field.fieldKey, "dealNote"]}
+
                           label="Deal Note"
                         >
                           <Input placeholder="Best value" />
@@ -526,7 +527,7 @@ export default function CoursePackagesPage() {
                         <Form.Item
                           {...field}
                           name={[field.name, "samePriceAsMonths"]}
-                          fieldKey={[field.fieldKey, "samePriceAsMonths"]}
+
                           label="Same Price As (months)"
                         >
                           <InputNumber min={1} />
@@ -558,3 +559,5 @@ export default function CoursePackagesPage() {
     </AdminLayout>
   );
 }
+
+export const getServerSideProps = withAdmin;

@@ -11,6 +11,7 @@ import {
 } from "antd";
 import type { PracticeLibraryBannerConfig } from "@/shared/types/admin-config";
 import AdminLayout from "../_layout";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const { Panel } = Collapse;
 
@@ -338,3 +339,5 @@ function PracticeLibraryBannerPage() {
 }
 
 export default PracticeLibraryBannerPage;
+
+export const getServerSideProps = withAdmin;

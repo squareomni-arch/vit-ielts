@@ -21,16 +21,17 @@ function createModifiedMenuData(
   ) => string | React.ReactNode
 ): ItemType[] | undefined {
   if (!menu) return undefined;
-  return menu.map((item) => {
+  return menu.map((item, index) => {
+    const itemKey = (item.key ?? item.uri ?? `menu-${index}`).toString();
     if (item.children && item.children.length) {
       return {
-        key: item.key.toString(),
+        key: itemKey,
         label: modifyFn(item),
         children: createModifiedMenuData(item.children, modifyFn),
       };
     }
     return {
-      key: item.key.toString(),
+      key: itemKey,
       label: modifyFn(item),
     };
   });
@@ -209,7 +210,7 @@ export const Header = () => {
     });
 
     if (item) {
-      setActiveKey(item.key.toString());
+      setActiveKey((item.key ?? item.uri ?? "").toString());
     }
   }, [masterData.menuData, router.pathname]);
 

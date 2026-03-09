@@ -6,20 +6,23 @@ import { IPost } from "@/shared/types";
 import Image from "next/image";
 import { StarRating } from "@/entities";
 import dayjs from "dayjs";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import SharePost from "./share-post";
 import RelatedPost from "./related-post";
 import { decode } from "html-entities";
-import { useMutation } from "@/shared/graphql/compat";
-// import CommentSection from "./comment-section";
-
-const UPDATE_VIEW_COUNT = "";
+import { createClient } from "~supabase/client";
 
 export const PageSingle = ({ post }: { post: IPost }) => {
-  const [updateViewCount] = useMutation<
-    { clientMutationId: string },
-    { id: string }
-  >(UPDATE_VIEW_COUNT);
+  // Increment view count via Supabase
+  const incrementViews = useCallback(async () => {
+    try {
+      const supabase = createClient();
+      await supabase.rpc("increment_post_views", { post_id: post.id });
+    } catch (err) {
+      // Silently fail — view counting is not critical
+      console.warn("Failed to increment views:", err);
+    }
+  }, [post.id]);
 
   const breadcrumbItems = post.seo.breadcrumbs.map((item, index) => ({
     title:
@@ -35,11 +38,11 @@ export const PageSingle = ({ post }: { post: IPost }) => {
   useEffect(() => {
     const thirtyPercentOfReadTime = readingTime * 0.3;
     const timeout = setTimeout(async () => {
-      await updateViewCount({ variables: { id: post.id } });
+      await incrementViews();
     }, thirtyPercentOfReadTime * 1000);
 
     return () => clearTimeout(timeout);
-  }, [post.id, readingTime, updateViewCount]);
+  }, [post.id, readingTime, incrementViews]);
 
   return (
     <>

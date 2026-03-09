@@ -3,6 +3,7 @@ import { Button, Input, Form, Card, Space, Collapse, message } from "antd";
 import type { TestimonialsConfig } from "@/shared/types/admin-config";
 import AdminLayout from "../_layout";
 import { ImageUpload } from "@/shared/ui/image-upload";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const { Panel } = Collapse;
 const { TextArea } = Input;
@@ -222,3 +223,5 @@ function TestimonialsPage() {
 }
 
 export default TestimonialsPage;
+
+export const getServerSideProps = withAdmin;

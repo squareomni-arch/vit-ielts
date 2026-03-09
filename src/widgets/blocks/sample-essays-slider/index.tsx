@@ -3,14 +3,10 @@ import { Options, Splide, SplideSlide } from "@splidejs/react-splide";
 import "@splidejs/react-splide/css";
 import { Skeleton } from "antd";
 import _ from "lodash";
-import { useMemo } from "react";
-import {
-  GET_SAMPLE_ESSAY_VARIABLES,
-  GET_SAMPLE_ESSAYS,
-  SampleEssayResponse,
-} from "./api";
+import { useEffect, useMemo, useState } from "react";
 import { DefaultView } from "@/pages/sample-essay/ui/archive/single-item";
-import { useQuery } from "@/shared/graphql/compat";
+import { createClient } from "~supabase/client";
+import { getSampleEssays } from "~services/sample-essay";
 
 type Props = {
   title: string;
@@ -54,18 +50,59 @@ export const SampleEssaysSlider = ({
     () => _.merge(defaultSliderOptions, inputSliderOptions),
     [inputSliderOptions]
   );
-  const { data, loading } = useQuery<
-    SampleEssayResponse,
-    GET_SAMPLE_ESSAY_VARIABLES
-  >(GET_SAMPLE_ESSAYS, {
-    variables: {
-      skill,
-      offsetPagination: {
-        offset: 0,
-        size: limit,
-      },
-    },
-  });
+  const [loading, setLoading] = useState(true);
+  const [essays, setEssays] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchEssays = async () => {
+      try {
+        const supabase = createClient();
+        const result = await getSampleEssays(supabase, {
+          skill,
+          page: 1,
+          pageSize: limit,
+        });
+        // Map to legacy edge format for DefaultView
+        setEssays(
+          (result.data || []).map((essay: any) => ({
+            node: {
+              id: essay.id,
+              title: essay.title,
+              slug: essay.slug,
+              excerpt: essay.excerpt || "",
+              link: `/sample-essay/${essay.slug}`,
+              featuredImage: essay.featured_image
+                ? { node: { sourceUrl: essay.featured_image, altText: essay.title } }
+                : undefined,
+              sampleEssayType: {
+                nodes: [{ name: essay.skill || skill }],
+              },
+              sampleEssayFields: {
+                part: essay.part || "",
+                topic: essay.topic || "",
+              },
+              postMeta: {
+                proUserOnly: essay.pro_user_only ?? false,
+              },
+              speakingSampleEssayFields: skill === "speaking" ? {
+                part: essay.part ? [essay.part, essay.part.replace("-", " ").replace(/\b\w/g, (c: string) => c.toUpperCase())] : ["part-1", "Part 1"],
+                questionType: essay.question_type ? (Array.isArray(essay.question_type) ? essay.question_type : [essay.question_type]) : [],
+              } : undefined,
+              writingSampleEssayFields: skill === "writing" ? {
+                task: essay.task ? [essay.task, essay.task.replace("-", " ").replace(/\b\w/g, (c: string) => c.toUpperCase())] : ["task-1", "Task 1"],
+                topic: essay.topic ? (Array.isArray(essay.topic) ? essay.topic : [essay.topic]) : [],
+              } : undefined,
+            },
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching sample essays:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEssays();
+  }, [skill, limit]);
 
   return (
     <article className="space-y-6">
@@ -102,8 +139,8 @@ export const SampleEssaysSlider = ({
           ))
         ) : (
           <>
-            {data ? (
-              data.sampleEssayType.sampleEssays.edges.map((item, index) => (
+            {essays.length ? (
+              essays.map((item, index) => (
                 <SplideSlide key={index}>
                   <div className="p-0.5 h-full">
                     <DefaultView post={item} skill={skill} />

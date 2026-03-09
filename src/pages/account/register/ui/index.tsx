@@ -9,7 +9,6 @@ import { ROUTES } from "@/shared/routes";
 import dayjs, { Dayjs } from "dayjs";
 import { toast } from "react-toastify";
 import { useState } from "react";
-import { useGoogleLogin } from "@react-oauth/google";
 import { GoogleIcon } from "@/shared/ui/icons";
 import type { RegisterPageConfig } from "@/shared/types/admin-config";
 
@@ -29,7 +28,7 @@ interface PageRegisterProps {
 export function PageRegister({ registerConfig }: PageRegisterProps) {
   const { masterData } = useAppContext();
   const router = useRouter();
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, signInWithGoogle } = useAuth();
   const {
     control,
     handleSubmit,
@@ -45,46 +44,28 @@ export function PageRegister({ registerConfig }: PageRegisterProps) {
   const [isRegisterHovered, setIsRegisterHovered] = useState(false);
 
   const onSubmit = async (data: FormData) => {
-    const result = await signUp(data);
+    const result = await signUp(data as any);
 
-    if (!result.errors) {
+    if (!(result as any).errors) {
       toast.success("Account created successfully");
-      await signIn({ username: data.email, password: data.password });
+      await signIn({ email: data.email, password: data.password });
       router.push("/");
     } else {
       setError("email", {
         type: "manual",
-        message: result.errors[0].message,
+        message: (result as any).errors[0].message,
       });
     }
   };
 
-  const triggerGoogleLogin = useGoogleLogin({
-    flow: "auth-code",
-    onSuccess: async (tokenResponse) => {
-      const result = await signIn({
-        provider: "GOOGLE",
-        args: {
-          code: tokenResponse.code,
-        },
-      });
-
-      if (result) {
-        const { redirect } = router.query;
-        if (redirect) {
-          router.push(redirect as string);
-        } else {
-          router.push("/");
-        }
-      }
-    },
-    onNonOAuthError: () => {
+  const handleGoogleLogin = async () => {
+    try {
+      setIsLoading(true);
+      await signInWithGoogle();
+    } catch {
       setIsLoading(false);
-    },
-    onError: () => {
-      setIsLoading(false);
-    },
-  });
+    }
+  };
 
   return (
     <div className="space-y-7">
@@ -399,7 +380,7 @@ export function PageRegister({ registerConfig }: PageRegisterProps) {
                   rules={{
                     required: { value: true, message: "Gender is required" },
                     validate: (value) => {
-                      if (!value || value === "") {
+                      if (!value || (value as string) === "") {
                         return "Gender is required";
                       }
                       return true;
@@ -533,10 +514,7 @@ export function PageRegister({ registerConfig }: PageRegisterProps) {
           </form>
           <div className="mt-6 pt-6 border-t border-gray-200">
             <Button
-              onClick={() => {
-                setIsLoading(true);
-                triggerGoogleLogin();
-              }}
+              onClick={handleGoogleLogin}
               block
               size="large"
               loading={isLoading || isSubmitting}

@@ -1,3 +1,4 @@
+import type { SEOType } from "@/shared/types";
 
 export const GET_PRACTICE_SINGLE = "";
 
@@ -102,7 +103,18 @@ export type IPracticeSingle = {
         explanations: {
           content: string;
         }[];
-
+        optionChoose?: number | string;
+        matchingQuestion?: {
+          layoutType?: 'standard' | 'summary' | 'heading' | 'list';
+          summaryText?: string;
+          matchingItems?: {
+            questionPart: string;
+            correctAnswer: string;
+          }[];
+          answerOptions?: {
+            optionText: string;
+          }[];
+        };
         matrixQuestion?: {
           matrixCategories: {
             categoryLetter: string;

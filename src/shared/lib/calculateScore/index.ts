@@ -412,7 +412,7 @@ const processCheckboxQuestion = (
     details.push({
       correct: isSingleCorrect,
       userAnswer: userChoiceIndex !== undefined ? getOptionText(userChoiceIndex) : null,
-      answer: correctChoiceIndex !== undefined ? getOptionText(correctChoiceIndex) : "N/A",
+      answer: correctChoiceIndex !== undefined ? getOptionText(correctChoiceIndex) ?? "N/A" : "N/A",
     });
 
   } else {
@@ -432,7 +432,7 @@ const processCheckboxQuestion = (
       details.push({
         correct: isThisChoiceCorrect,
         userAnswer: userText,
-        answer: isThisChoiceCorrect ? userText : missedCorrectText.join(', '),
+        answer: isThisChoiceCorrect ? (userText ?? 'N/A') : missedCorrectText.join(', '),
       });
     });
   }

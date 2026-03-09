@@ -28,7 +28,7 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { formatPrice } from "@/pages/subscription/ui/subscription-plans/pricing";
-import { withMasterData } from "@/shared/hoc";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 import { GetServerSideProps } from "next";
 
 const GET_USER_EMAIL = "";
@@ -720,5 +720,5 @@ export default function AffiliateUsersPage() {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = withMasterData;
+export const getServerSideProps: GetServerSideProps = withAdmin;
 

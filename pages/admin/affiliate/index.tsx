@@ -7,6 +7,7 @@ import { EyeOutlined, DollarOutlined, UserOutlined, CheckOutlined } from "@ant-d
 import type { ColumnsType } from "antd/es/table";
 import AdminLayout from "../_layout";
 import dayjs from "dayjs";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const formatPrice = (amount: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
@@ -153,3 +154,5 @@ export default function AdminAffiliatePage() {
         </AdminLayout>
     );
 }
+
+export const getServerSideProps = withAdmin;

@@ -1,15 +1,14 @@
 import { useAppContext } from "@/appx/providers";
 import Head from "next/head";
 import { MyProfileLayout } from "@/widgets/layouts";
-import { GET_USERDATA, UserData } from "../api";
 import { Button, Card, DatePicker, Input, Select, Skeleton } from "antd";
 import { Controller, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import { AvatarUpload, UserAccountTypeBadge } from "@/shared/ui";
 import { toast } from "react-toastify";
-import { UPDATE_USER } from "../api/updateUser";
-import { useMutation, useQuery } from "@/shared/graphql/compat";
+import { createClient } from "~supabase/client";
+import { useAuth } from "@/appx/providers";
 
 type UserDataForm = {
   id: string;
@@ -37,16 +36,57 @@ export const PageMyProfile = () => {
       allSettings: { generalSettingsTitle },
     },
   } = useAppContext();
-  const { data, refetch } = useQuery<UserData>(GET_USERDATA, {
-    context: {
-      authRequired: true,
-    },
-  });
-  const [updateUser] = useMutation(UPDATE_USER, {
-    context: {
-      authRequired: true,
-    },
-  });
+  const { currentUser } = useAuth();
+  const [userData, setUserData] = useState<any>(null);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  // Fetch user profile from Supabase
+  const fetchProfile = async () => {
+    if (!currentUser?.id) return;
+    try {
+      const supabase = createClient();
+      const { data: profile } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", currentUser.id)
+        .single();
+
+      if (profile) {
+        setUserData({
+          viewer: {
+            id: profile.id,
+            name: profile.name || "",
+            email: profile.email || "",
+            userData: {
+              isPro: profile.is_pro,
+              gender: profile.gender ? [profile.gender] : ["male"],
+              dateOfBirth: profile.date_of_birth,
+              phoneNumber: profile.phone_number || "",
+              avatar: profile.avatar_url
+                ? {
+                  node: {
+                    mediaDetails: {
+                      sizes: [{ sourceUrl: profile.avatar_url, width: "96" }],
+                    },
+                  },
+                }
+                : undefined,
+            },
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setDataLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, [currentUser?.id]);
+
+  const data = userData;
 
   useEffect(() => {
     if (data?.viewer) {
@@ -63,24 +103,28 @@ export const PageMyProfile = () => {
     }
   }, [data, setValue]);
 
-  const onSubmit = async (data: UserDataForm) => {
-    const dirtyFieldsMap = Object.keys(dirtyFields).reduce((acc, key) => {
-      acc[key as keyof UserDataForm] = data[key as keyof UserDataForm];
-      return acc;
-    }, {} as Record<keyof UserDataForm, (typeof data)[keyof UserDataForm]>);
+  const onSubmit = async (formData: UserDataForm) => {
+    try {
+      const supabase = createClient();
+      const updateData: Record<string, any> = {};
 
-    const result = await updateUser({
-      variables: {
-        ...dirtyFieldsMap,
-        id: data.id,
-      },
-    });
+      if (dirtyFields.name) updateData.name = formData.name;
+      if (dirtyFields.email) updateData.email = formData.email;
+      if (dirtyFields.gender) updateData.gender = formData.gender;
+      if (dirtyFields.phoneNumber) updateData.phone_number = formData.phoneNumber;
+      if (dirtyFields.date_of_birth) updateData.date_of_birth = formData.date_of_birth?.format("YYYY-MM-DD");
 
-    if (!result.errors) {
-      await refetch();
+      const { error } = await supabase
+        .from("users")
+        .update(updateData)
+        .eq("id", formData.id);
+
+      if (error) throw error;
+
+      await fetchProfile();
       toast.success("Profile updated successfully");
-    } else {
-      toast.error(result.errors[0].message);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to update profile");
     }
   };
 
@@ -89,7 +133,7 @@ export const PageMyProfile = () => {
       <Head>
         <title>{`My Profile | ${generalSettingsTitle}`}</title>
       </Head>
-        {data?.viewer ? (
+         {data?.viewer && !dataLoading ? (
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex items-center space-x-4 border-b pb-4 border-gray-100 mb-4">
             <div className="h-24">

@@ -4,27 +4,28 @@ import { Breadcrumb, Card } from "antd";
 import Link from "next/link";
 import Image from "next/image";
 import dayjs from "dayjs";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import SharePost from "./share-post";
-// import RelatedPost from "./related-post";
 import { SingleSampleEssay } from "@/pages/sample-essay/api";
-// import CommentSection from "./comment-section";
 import { decode } from "html-entities";
-import { useMutation } from "@/shared/graphql/compat";
-
-const UPDATE_VIEW_COUNT = "";
+import { createClient } from "~supabase/client";
 
 export const PageSingle = ({
   sampleEssay: post,
 }: {
   sampleEssay: SingleSampleEssay;
 }) => {
-  const [updateViewCount] = useMutation<
-    { clientMutationId: string },
-    { id: string }
-  >(UPDATE_VIEW_COUNT);
+  // Increment view count via Supabase
+  const incrementViews = useCallback(async () => {
+    try {
+      const supabase = createClient();
+      await supabase.rpc("increment_sample_essay_views", { essay_id: post.id });
+    } catch (err) {
+      console.warn("Failed to increment views:", err);
+    }
+  }, [post.id]);
 
-  const breadcrumbItems = post.seo.breadcrumbs.map((item, index) => ({
+  const breadcrumbItems = post.seo.breadcrumbs.map((item: any, index: number) => ({
     title:
       index === post.seo.breadcrumbs.length - 1 ? (
         decode(item.text)
@@ -38,11 +39,11 @@ export const PageSingle = ({
   useEffect(() => {
     const thirtyPercentOfReadTime = readingTime * 0.3;
     const timeout = setTimeout(async () => {
-      await updateViewCount({ variables: { id: post.id } });
+      await incrementViews();
     }, thirtyPercentOfReadTime * 1000);
 
     return () => clearTimeout(timeout);
-  }, [post.id, readingTime, updateViewCount]);
+  }, [post.id, readingTime, incrementViews]);
 
   return (
     <>

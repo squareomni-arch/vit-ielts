@@ -23,8 +23,8 @@ const countSubQuestions = (question: IQuestion): number => {
         }
 
         // B. Nếu là dạng "standard" hoặc "list", đếm số item cần nối
-        if ((layoutType === 'standard' || layoutType === 'list') && question.matchingQuestion.matchingItems?.length > 0) {
-            return question.matchingQuestion.matchingItems.length;
+        if ((layoutType === 'standard' || layoutType === 'list') && (question.matchingQuestion.matchingItems?.length ?? 0) > 0) {
+            return question.matchingQuestion.matchingItems!.length;
         }
     }
 

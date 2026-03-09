@@ -15,6 +15,7 @@ import {
   PageSingle as PageSampleEssaySingle,
   getServerSidePropsSingle as getServerSidePropsSampleEssaySingle,
 } from "@/pages/sample-essay";
+import { createServerSupabase } from "~supabase/server";
 
 const PageHandler = (props: {
   category?: unknown;
@@ -46,8 +47,6 @@ const PageHandler = (props: {
 
 export default PageHandler;
 
-const GET_NEWS_ARCHIVE_BY_SLUG = "";
-
 export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
   withMasterData,
   async (context) => {
@@ -65,36 +64,52 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
       };
     }
 
+    // Handle known sample essay routes
     if (slug === "ielts-speaking-sample") {
       return getServerSidePropsSampleEssayArchive(context, "speaking");
     } else if (slug === "ielts-writing-sample") {
       return getServerSidePropsSampleEssayArchive(context, "writing");
     }
 
-    const { client } = createServerApolloClient(context);
+    // Resolve slug against Supabase tables
+    const supabase = createServerSupabase(context);
 
-    const { data } = await client.query<
-      {
-        category?: { id: string };
-        post?: { id: string };
-        sampleEssay?: { id: string };
-      },
-      { slug: string }
-    >({
-      query: GET_NEWS_ARCHIVE_BY_SLUG,
-      variables: {
-        slug: slug,
-      },
-    });
+    // 1. Check if slug is a post
+    const { data: post } = await supabase
+      .from("posts")
+      .select("slug")
+      .eq("slug", slug)
+      .eq("status", "published")
+      .maybeSingle();
 
-    if (data.category) {
-      return getServerSidePropsArchive(context, data.category.id);
-    } else if (data.post) {
-      return getServerSidePropsSingle(context, data.post.id);
-    } else if (data.sampleEssay) {
-      return getServerSidePropsSampleEssaySingle(context, data.sampleEssay.id);
+    if (post) {
+      return getServerSidePropsSingle(context, slug);
     }
 
+    // 2. Check if slug is a sample essay
+    const { data: essay } = await supabase
+      .from("sample_essays")
+      .select("slug")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (essay) {
+      return getServerSidePropsSampleEssaySingle(context, slug);
+    }
+
+    // 3. Check if slug matches a post category
+    const { data: categoryPosts } = await supabase
+      .from("posts")
+      .select("id")
+      .contains("categories", [slug])
+      .eq("status", "published")
+      .limit(1);
+
+    if (categoryPosts && categoryPosts.length > 0) {
+      return getServerSidePropsArchive(context, slug);
+    }
+
+    // Nothing found
     return {
       notFound: true,
     };

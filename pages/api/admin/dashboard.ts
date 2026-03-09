@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
+import { createApiSupabase } from "~supabase/server";
 
 type ResponseData = {
     success: boolean;
@@ -24,6 +25,21 @@ export default async function handler(
     }
 
     try {
+        // Admin auth check
+        const supabase = createApiSupabase(req, res);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            return res.status(401).json({ success: false, error: "Unauthorized" });
+        }
+        const { data: profile } = await supabaseAdmin
+            .from("users")
+            .select("roles")
+            .eq("id", user.id)
+            .maybeSingle();
+        const roles: string[] = Array.isArray(profile?.roles) ? profile.roles : [];
+        if (!roles.includes("administrator")) {
+            return res.status(403).json({ success: false, error: "Forbidden" });
+        }
         // Today start (UTC)
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);

@@ -9,7 +9,6 @@ import { Button } from "antd";
 // import { twMerge } from "tailwind-merge";
 import { useAuth } from "@/appx/providers";
 import { useProContentModal } from "@/shared/ui/pro-content";
-import { useLazyQuery } from "@/shared/graphql/compat";
 
 const PART_COLORS = [
   "rgb(255, 164, 27)", // Part 1 / Task 1 / Passage 1

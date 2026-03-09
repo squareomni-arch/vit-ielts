@@ -38,22 +38,22 @@ export function QuestionRender({ question, startIndex = 0, readOnly = false }: Q
 
   switch (questionType) {
     case 'radio':
-      return <Radio question={question} startIndex={finalStartIndex} readOnly={readOnly} />;
+      return <Radio question={question as any} startIndex={finalStartIndex} readOnly={readOnly} />;
 
     case 'checkbox':
-      return <Checkbox question={question} startIndex={finalStartIndex} readOnly={readOnly} />;
+      return <Checkbox question={question as any} startIndex={finalStartIndex} readOnly={readOnly} />;
 
     case 'select':
-      return <Select question={question} startIndex={finalStartIndex} readOnly={readOnly} />;
+      return <Select question={question as any} startIndex={finalStartIndex} readOnly={readOnly} />;
 
     case 'fillup':
-      return <Fillup question={question} startIndex={finalStartIndex} readOnly={readOnly} />;
+      return <Fillup question={question as any} startIndex={finalStartIndex} readOnly={readOnly} />;
 
     case 'matching': // Đảm bảo type trong ACF của bạn là 'matching'
-      return <MatchingQuestion question={question} startIndex={finalStartIndex} readOnly={readOnly} />;
+      return <MatchingQuestion question={question as any} startIndex={finalStartIndex} readOnly={readOnly} />;
 
     case 'matrix':
-      return <MatrixQuestion question={question} startIndex={finalStartIndex} readOnly={readOnly} />;
+      return <MatrixQuestion question={question as any} startIndex={finalStartIndex} readOnly={readOnly} />;
 
     default:
       return (

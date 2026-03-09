@@ -3,11 +3,11 @@ import { Options, Splide, SplideSlide } from "@splidejs/react-splide";
 import "@splidejs/react-splide/css";
 import { Empty, Skeleton } from "antd";
 import _ from "lodash";
-import { useMemo } from "react";
-import { GET_EXAM_COLLECTIONS, IExamCollectionResponse } from "@/pages/ielts-exam-library/api";
+import { useEffect, useMemo, useState } from "react";
 import { ExamItem } from "@/pages/ielts-exam-library/ui/exam-item";
 import { ROUTES } from "@/shared/routes";
-import { useQuery } from "@/shared/graphql/compat";
+import { createClient } from "~supabase/client";
+import { getExamCollections } from "~services/exam-collection";
 
 type Props = {
   title: string;
@@ -49,29 +49,57 @@ export const FullTestCarousel = ({
     () => _.merge({}, defaultSliderOptions, inputSliderOptions),
     [inputSliderOptions]
   );
-  const { data, loading } = useQuery<IExamCollectionResponse>(
-    GET_EXAM_COLLECTIONS,
-    {
-      context: { authRequired: false },
-      variables: {
-        offsetPagination: {
-          offset: 0,
-          size: limit,
-        },
-      },
-    }
-  );
+  const [loading, setLoading] = useState(true);
+  const [exams, setExams] = useState<any[]>([]);
 
-  const exams = useMemo(() => {
-    if (!data) return [];
-    const listening = data.examCollection.data.listening.flatMap(
-      (collection) => collection.exams
-    );
-    const reading = data.examCollection.data.reading.flatMap(
-      (collection) => collection.exams
-    );
-    return [...listening, ...reading];
-  }, [data]);
+  useEffect(() => {
+    const fetchExams = async () => {
+      try {
+        const supabase = createClient();
+        const result = await getExamCollections(supabase, {
+          page: 1,
+          pageSize: limit,
+        });
+
+        // Flatten collections into individual exam items
+        const allExams: any[] = [];
+        const collectionData = result.data;
+
+        const mapExam = (exam: any) => ({
+          ...exam,
+          featuredImage: exam.featured_image,
+          link: `/ielts-practice-library/${exam.slug}`,
+          quizFields: {
+            proUserOnly: exam.pro_user_only ?? false,
+            testsTaken: exam.tests_taken ?? 0,
+            skill: [exam.skill, exam.skill],
+            type: [exam.type, exam.type],
+            time: exam.time_minutes,
+          },
+        });
+
+        // Process listening
+        for (const collection of collectionData.listening) {
+          for (const exam of collection.exams) {
+            allExams.push(mapExam(exam));
+          }
+        }
+        // Process reading
+        for (const collection of collectionData.reading) {
+          for (const exam of collection.exams) {
+            allExams.push(mapExam(exam));
+          }
+        }
+
+        setExams(allExams);
+      } catch (error) {
+        console.error("Error fetching exam collections:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExams();
+  }, [limit]);
 
   return (
     <article className="space-y-6">

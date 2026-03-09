@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Form, Input, Button, Card, Collapse, message } from "antd";
 import AdminLayout from "../_layout";
 import type { TopBarConfig } from "@/shared/types/admin-config";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const { Panel } = Collapse;
 
@@ -138,3 +139,5 @@ export default function TopBarAdminPage() {
     </AdminLayout>
   );
 }
+
+export const getServerSideProps = withAdmin;

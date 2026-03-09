@@ -5,6 +5,7 @@ import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const formatPrice = (amount: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
@@ -101,3 +102,5 @@ export default function AdminOrdersPage() {
         </AdminLayout>
     );
 }
+
+export const getServerSideProps = withAdmin;

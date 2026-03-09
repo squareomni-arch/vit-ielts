@@ -13,7 +13,18 @@ import {
   Popconfirm,
 } from "antd";
 import AdminLayout from "../_layout";
-import type { Coupon } from "@/pages/api/admin/coupons";
+// Coupon mapped type matching the API response shape (camelCase)
+type Coupon = {
+  id: string;
+  code: string;
+  discountAmount: number;
+  maxUses: number;
+  currentUses: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 export default function CouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -261,3 +272,5 @@ export default function CouponsPage() {
     </AdminLayout>
   );
 }
+
+export const getServerSideProps = withAdmin;

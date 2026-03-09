@@ -3,11 +3,6 @@ import { SEOHeader } from "@/widgets";
 import { Breadcrumb, Button, Input } from "antd";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
-import {
-  SEND_EMAIL_MUTATION,
-  SendEmailMutationResponse,
-  SendEmailMutationVariables,
-} from "../api";
 import { toast } from "react-toastify";
 import {
   FacebookRoundedIcon,
@@ -15,7 +10,7 @@ import {
   YoutubeIcon,
   ZaloIcon,
 } from "@/shared/ui/icons";
-import { useMutation } from "@/shared/graphql/compat";
+import { useState } from "react";
 
 type FormValues = {
   name: string;
@@ -61,10 +56,7 @@ export const PageContact = () => {
     },
   ];
 
-  const [sendEmailFn, { loading }] = useMutation<
-    SendEmailMutationResponse,
-    SendEmailMutationVariables
-  >(SEND_EMAIL_MUTATION);
+  const [loading, setLoading] = useState(false);
 
   const {
     control,
@@ -73,23 +65,29 @@ export const PageContact = () => {
   } = useForm<FormValues>();
 
   const handleSendEmail = async (data: FormValues) => {
-    await toast.promise(
-      sendEmailFn({
-        variables: {
-          input: {
-            email: data.email,
-            message: data.message,
-            name: data.name,
-            subject: data.subject,
-          },
-        },
-      }),
-      {
-        pending: "Sending...",
-        success: "Thank you for your message! We will get back to you soon.",
-        error: "Something went wrong",
-      }
-    );
+    setLoading(true);
+    try {
+      await toast.promise(
+        fetch("/api/contact/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }).then(async (res) => {
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || "Failed to send email");
+          }
+          return res.json();
+        }),
+        {
+          pending: "Sending...",
+          success: "Thank you for your message! We will get back to you soon.",
+          error: "Something went wrong",
+        }
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

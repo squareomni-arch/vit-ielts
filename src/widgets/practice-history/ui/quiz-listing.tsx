@@ -1,17 +1,15 @@
 import { Progress, Table, TableProps } from "antd";
 import {
-  GET_PRACTICE_HISTORY,
   GetPracticeHistory,
-  GetPracticeHistoryVariables,
 } from "../api";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/appx/providers";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { calculateScore } from "@/shared/lib";
 import Link from "next/link";
 import { ROUTES } from "@/shared/routes";
-import { useLazyQuery } from "@/shared/graphql/compat";
+import { createClient } from "~supabase/client";
 dayjs.extend(duration);
 
 const calcTimeTaken = (testTime: string, timeLeft: string) => {
@@ -43,15 +41,78 @@ export const QuizListing = ({ skill }: { skill: "listening" | "reading" }) => {
   const { currentUser } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [data, setData] = useState<GetPracticeHistory | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const [getData, { data, loading }] = useLazyQuery<
-    GetPracticeHistory,
-    GetPracticeHistoryVariables
-  >(GET_PRACTICE_HISTORY, {
-    context: {
-      authRequired: true,
-    },
-  });
+  const getData = useCallback(async (params: { quizSkill: string; authorId: string }) => {
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { data: results } = await supabase
+        .from("test_results")
+        .select("*")
+        .eq("user_id", params.authorId)
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      // Map to legacy format
+      if (results) {
+        // We need to also fetch quiz data for each result
+        const quizIds = [...new Set(results.map((r: any) => r.quiz_id))];
+        const { data: quizzes } = await supabase
+          .from("quizzes")
+          .select("id, title, slug, skill, type, time_minutes, passages(*, questions(*))")
+          .in("id", quizIds);
+
+        const quizMap = new Map((quizzes || []).map((q: any) => [q.id, q]));
+
+        const edges = results.map((r: any) => {
+          const quiz = quizMap.get(r.quiz_id) || {};
+          return {
+            node: {
+              id: r.id,
+              status: r.status === "published" ? "publish" : r.status,
+              testResultFields: {
+                dateTaken: r.started_at ? String(dayjs(r.started_at).unix()) : null,
+                dateSubmitted: r.submitted_at ? String(dayjs(r.submitted_at).unix()) : String(dayjs(r.created_at).unix()),
+                testTime: String((quiz as any).time_minutes || 60),
+                timeLeft: r.time_left || "0:00",
+                answers: JSON.stringify({ answers: r.answers || [] }),
+                testPart: JSON.stringify(r.test_part || "all"),
+                quiz: {
+                  node: {
+                    title: (quiz as any).title || "",
+                    slug: (quiz as any).slug || "",
+                    quizFields: {
+                      skill: [(quiz as any).skill || skill, (quiz as any).skill || skill],
+                      type: [(quiz as any).type || "practice"],
+                      passages: ((quiz as any).passages || []).map((p: any) => ({
+                        questions: (p.questions || []).map((q: any) => ({
+                          explanations: q.answers || [],
+                        })),
+                      })),
+                    },
+                  },
+                },
+              },
+            },
+          };
+        });
+
+        setData({
+          testResults: {
+            edges,
+            pageInfo: { total: results.length },
+          },
+        } as any);
+      }
+    } catch (error) {
+      console.error("Error fetching practice history:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [skill]);
 
   const columns: TableProps<
     GetPracticeHistory["testResults"]["edges"][number]["node"]
@@ -223,14 +284,9 @@ export const QuizListing = ({ skill }: { skill: "listening" | "reading" }) => {
 
   useEffect(() => {
     if (currentUser?.id) {
-
       getData({
-        variables: {
-          quizSkill: skill,
-          authorId: currentUser.id,
-          offset: 0,
-          size: 100, // Tăng size để load nhiều bài làm hơn (tối đa 100 bài)
-        },
+        quizSkill: skill,
+        authorId: currentUser.id,
       });
     }
   }, [currentUser, getData, skill]);

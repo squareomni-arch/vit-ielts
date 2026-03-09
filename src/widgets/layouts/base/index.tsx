@@ -1,33 +1,32 @@
-// ieltspredictiontes\src\widgets\layouts\base\index.tsx
-
 import { useAppContext, useAuth } from "@/appx/providers";
 import { FloatingButton, Footer, SaleNotification } from "./ui";
 import { Header } from "./ui/header";
 import { ClipboardEvent, MouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useDeviceID } from "@/shared/hooks";
 import { toast } from "react-toastify";
-import { useLazyQuery } from "@/shared/graphql/compat";
-
-// ========================================================================
-// === DEVICE CHECKER: Kiểm tra thiết bị, chỉ chạy khi user đã login ===
-// ========================================================================
-const CHECK_DEVICE_QUERY = "";
+import { createClient } from "~supabase/client";
 
 const DeviceChecker = () => {
   const { signOut, isSignedIn } = useAuth();
   const getDeviceID = useDeviceID((state) => state.getDeviceID);
   const getDeviceType = useDeviceID((state) => state.getDeviceType);
   const [deviceId, setDeviceId] = useState<string>("");
-  const hasLoggedOut = useRef(false); // Tránh gọi signOut nhiều lần
+  const hasLoggedOut = useRef(false);
+  const [data, setData] = useState<any>(null);
 
-  const [checkMutation, { data }] = useLazyQuery(CHECK_DEVICE_QUERY, {
-    variables: { deviceId, deviceType: getDeviceType() },
-    context: { authRequired: true },
-    fetchPolicy: "no-cache",
-    onError: (error) => {
-      console.error("CheckDevice Error:", error.message);
+  const checkMutation = useCallback(async () => {
+    if (!deviceId || !isSignedIn) return;
+    try {
+      const supabase = createClient();
+      const { data: result } = await supabase.rpc("check_device", {
+        device_id: deviceId,
+        device_type: getDeviceType(),
+      });
+      setData({ checkDevice: result });
+    } catch (error) {
+      console.error("CheckDevice Error:", error);
     }
-  });
+  }, [deviceId, isSignedIn, getDeviceType]);
 
   useEffect(() => {
     // Chỉ lấy deviceId khi user đã login

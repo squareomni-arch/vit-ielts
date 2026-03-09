@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 import { IPracticeSingle } from "@/pages/ielts-practice-single/api";
-import { ISubmitAnswerVariables, ITestResult, SUBMIT_ANSWER } from "@/pages/take-the-test/api";
+import { ITestResult } from "@/pages/take-the-test/api";
 
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
@@ -18,9 +18,7 @@ import { ROUTES } from "@/shared/routes";
 import { Duration } from "dayjs/plugin/duration";
 import { countQuestion } from "@/shared/lib";
 import { UniqueIdentifier } from "@dnd-kit/core";
-// Import notification
 import { notification } from "antd";
-import { useMutation } from "@/shared/graphql/compat";
 
 export type AnswerFormValues = {
   answers: (string | number[] | object)[];
@@ -142,19 +140,7 @@ export const ExamProvider = ({
   const [isReady, setIsReady] = useState(false);
   const [timer, setTimer] = useState<Duration>();
 
-  // [SỬA QUAN TRỌNG] Thêm onError vào options của useMutation để Apollo không ném Unhandled Runtime Error
-  const [submitFn] = useMutation<object, ISubmitAnswerVariables>(
-    SUBMIT_ANSWER,
-    {
-      context: {
-        authRequired: true,
-      },
-      onError: (error) => {
-        // Log lỗi ở đây để Apollo biết là lỗi đã được xử lý (handled)
-        console.error("Mutation Error Handled:", error);
-      }
-    }
-  );
+
 
   const [isNotesViewOpen, setIsNotesViewOpen] = useState(false);
   const [selectedTextSize, setSelectedTextSize] = useState("Regular");
@@ -205,31 +191,35 @@ export const ExamProvider = ({
     return 0;
   }, [refMap, sigMap, idMap]);
 
-  // Logic Submit có Try/Catch và Notification
+  // Submit test answers via API route
   const handleSubmitAnswer = useCallback(async (data: AnswerFormValues) => {
     try {
-      await submitFn({
-        variables: {
-          input: {
-            testId: testID,
-            answers: JSON.stringify(data),
-            dateSubmitted: dayjs().unix(),
-            timeLeft: timer?.format("mm:ss") || "00:00",
-          },
-        },
+      const response = await fetch("/api/test-flow/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          testId: testID,
+          answers: data,
+          timeLeft: timer?.format("mm:ss") || "00:00",
+        }),
       });
-      // Chỉ chuyển trang nếu không có lỗi ném ra từ submitFn
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Submit failed");
+      }
+
       await router.push(ROUTES.TEST_RESULT(testID));
     } catch (error: any) {
       console.error("Submit Failed in Handler:", error);
-      // Hiển thị thông báo lỗi thân thiện cho người dùng
       notification.error({
         message: "Submission Error",
-        description: "Failed to submit test. Please check your internet connection.",
+        description: error?.message || "Failed to submit test. Please check your internet connection.",
         duration: 5,
       });
     }
-  }, [submitFn, testID, timer, router]);
+  }, [testID, timer, router]);
 
   const contextValue = useMemo(
     () => ({

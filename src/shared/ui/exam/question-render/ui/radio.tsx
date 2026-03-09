@@ -97,7 +97,7 @@ export const Radio = ({
                 const userDidAnswer =
                   userAnswerIndex !== null && userAnswerIndex !== undefined;
                 const isUserCorrect =
-                  userDidAnswer && userAnswerIndex === correctAnswerIndex;
+                  userDidAnswer && Number(userAnswerIndex) === correctAnswerIndex;
 
                 const groupValue = readOnly ? correctAnswerIndex : userAnswerIndex;
 
@@ -137,7 +137,7 @@ export const Radio = ({
                               </span>
                             );
                           } else if (!isUserCorrect && userDidAnswer) {
-                            if (optIndex === userAnswerIndex) {
+                            if (optIndex === Number(userAnswerIndex)) {
                               optionBgClass = "bg-[#d3e3fd] text-red-500 font-semibold";
                               suffix = (
                                 <span className="material-symbols-rounded text-red-600 ml-auto">cancel</span>
@@ -151,7 +151,7 @@ export const Radio = ({
                             }
                           }
                         } else {
-                          const isSelected = field.value === optIndex;
+                          const isSelected = Number(field.value) === optIndex;
                           optionBgClass = isSelected
                             ? "bg-[#bbd8f0]"
                             : "hover:bg-[#e4e4e4]";

@@ -75,6 +75,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     try {
       const config = await readConfig<CoursePackagesConfig>(supabaseAdmin, sectionName);
+      if (!config) {
+        return res.status(404).json({ message: "Config not found" });
+      }
       const normalizedComboPlans = normalizeComboPlans(config.combo.plans);
       const normalizedSinglePlans = normalizeSinglePlans(config.single.plans);
       const normalizedConfig = {
@@ -92,7 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         JSON.stringify(config.combo.plans) !== JSON.stringify(normalizedComboPlans) ||
         JSON.stringify(config.single.plans) !== JSON.stringify(normalizedSinglePlans)
       ) {
-        await writeConfig<CoursePackagesConfig>(supabaseAdmin, sectionName, normalizedConfig);
+        await writeConfig<CoursePackagesConfig>(supabaseAdmin, sectionName, normalizedConfig as CoursePackagesConfig);
       }
       return res.status(200).json(normalizedConfig);
     } catch (error) {
@@ -119,7 +122,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           plans: normalizedSinglePlans,
         },
       };
-      await writeConfig<CoursePackagesConfig>(supabaseAdmin, sectionName, normalizedConfig);
+      await writeConfig<CoursePackagesConfig>(supabaseAdmin, sectionName, normalizedConfig as CoursePackagesConfig);
       return res.status(200).json({ message: "Lưu config thành công" });
     } catch (error) {
       return res.status(500).json({

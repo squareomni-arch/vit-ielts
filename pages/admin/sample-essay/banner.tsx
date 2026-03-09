@@ -11,6 +11,7 @@ import {
 } from "antd";
 import type { SampleEssayBannerConfig } from "../../api/admin/sample-essay/banner";
 import AdminLayout from "../_layout";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const { Panel } = Collapse;
 
@@ -371,3 +372,5 @@ function SampleEssayBannerPage() {
 }
 
 export default SampleEssayBannerPage;
+
+export const getServerSideProps = withAdmin;

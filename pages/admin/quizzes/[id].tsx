@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
+import { withAdmin } from "@/shared/hoc/withAdmin";
 
 const { TextArea } = Input;
 const { Panel } = Collapse;
@@ -651,4 +652,6 @@ function MatrixEditor({ data, onChange }: {
         </div>
     );
 }
+
+export const getServerSideProps = withAdmin;
 

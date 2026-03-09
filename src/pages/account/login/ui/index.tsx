@@ -6,7 +6,6 @@ import { useRouter } from "next/router";
 import { useAuth } from "@/appx/providers";
 import Link from "next/link";
 import { ROUTES } from "@/shared/routes";
-import { useGoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
 import { GoogleIcon } from "@/shared/ui/icons";
 import { Breadcrumb } from "antd";
@@ -24,7 +23,7 @@ interface PageLoginProps {
 
 export function PageLogin({ loginConfig }: PageLoginProps) {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const {
     control,
     handleSubmit,
@@ -36,36 +35,18 @@ export function PageLogin({ loginConfig }: PageLoginProps) {
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [isLoginHovered, setIsLoginHovered] = useState(false);
 
-  const triggerGoogleLogin = useGoogleLogin({
-    flow: "auth-code",
-    onSuccess: async (tokenResponse) => {
-      const result = await signIn({
-        provider: "GOOGLE",
-        args: {
-          code: tokenResponse.code,
-        },
-      });
-
-      if (result) {
-        const { redirect } = router.query;
-        if (redirect) {
-          router.push(redirect as string);
-        } else {
-          router.push("/");
-        }
-      }
-    },
-    onNonOAuthError: () => {
+  const handleGoogleLogin = async () => {
+    try {
+      setIsLoading(true);
+      await signInWithGoogle();
+    } catch {
       setIsLoading(false);
-    },
-    onError: () => {
-      setIsLoading(false);
-    },
-  });
+    }
+  };
 
   const onSubmit = async (data: FormData) => {
     const result = await signIn({
-      username: data.email,
+      email: data.email,
       password: data.password,
     }).catch(() => {
       setError("email", {
@@ -298,10 +279,7 @@ export function PageLogin({ loginConfig }: PageLoginProps) {
           </form>
           <div className="mt-6 pt-6 border-t border-gray-200">
             <Button
-              onClick={() => {
-                setIsLoading(true);
-                triggerGoogleLogin();
-              }}
+              onClick={handleGoogleLogin}
               block
               size="large"
               loading={isLoading || isSubmitting}
