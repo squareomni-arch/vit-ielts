@@ -6,7 +6,7 @@ interface WhyChooseUsProps {
 }
 
 export const WhyChooseUs = ({ config }: WhyChooseUsProps) => {
-  const { badge, title, description, statistics } = config;
+  const { badge, title, description, statistics = [] } = config;
   return (
     <div className="bg-white">
       <Container>
@@ -67,9 +67,8 @@ export const WhyChooseUs = ({ config }: WhyChooseUsProps) => {
             return (
               <div
                 key={index}
-                className={`bg-white rounded-lg shadow-md px-6 py-10 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full flex flex-col items-center justify-start ${
-                  index === 1 || index === 3 ? "md:mt-10" : ""
-                }`}
+                className={`bg-white rounded-lg shadow-md px-6 py-10 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full flex flex-col items-center justify-start ${index === 1 || index === 3 ? "md:mt-10" : ""
+                  }`}
               >
                 {/* Icon Circle */}
                 <div

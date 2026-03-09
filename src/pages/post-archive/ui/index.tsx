@@ -19,9 +19,9 @@ export const PageArchive = ({
   pageSize: number;
 }) => {
   const router = useRouter();
-  const breadcrumbItems = category.seo.breadcrumbs.map((item, index) => ({
+  const breadcrumbItems = (category.seo?.breadcrumbs || []).map((item, index) => ({
     title:
-      index === category.seo.breadcrumbs.length - 1 ? (
+      index === (category.seo?.breadcrumbs?.length ?? 0) - 1 ? (
         decode(item.text)
       ) : (
         <Link href={item.url}>{decode(item.text)}</Link>

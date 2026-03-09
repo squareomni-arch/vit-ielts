@@ -87,7 +87,7 @@ const TestimonialCard = ({
 };
 
 export const Testimonials = ({ config }: TestimonialsProps) => {
-  const { title, description, button, testimonials } = config;
+  const { title, description, button, testimonials = [] } = config;
 
   // Duplicate testimonials for seamless loop
   // Create a copy before reversing to avoid mutating the original array

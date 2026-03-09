@@ -1,71 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-
-const AFFILIATES_FILE = "affiliates.json";
-const LINKS_FILE = "affiliate-links.json";
-const COMMISSIONS_FILE = "affiliate-commissions.json";
-const VISITS_FILE = "affiliate-visits.json";
-
-interface AffiliateUser {
-  id: string;
-  userId: string;
-  email?: string;
-  name?: string;
-  commissionRate?: number;
-  status: "pending" | "approved" | "rejected";
-  createdAt: string;
-  approvedAt?: string;
-  rejectedAt?: string;
-  customLink?: string;
-  emailNotifications: boolean;
-}
-
-async function getAffiliates(): Promise<AffiliateUser[]> {
-  try {
-    const result = readData<AffiliateUser[]>(AFFILIATES_FILE);
-    const data = result instanceof Promise ? await result : result;
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error("Error getting affiliates:", error);
-    return [];
-  }
-}
-
-async function saveAffiliates(affiliates: AffiliateUser[]): Promise<void> {
-  const result = writeData<AffiliateUser[]>(AFFILIATES_FILE, affiliates);
-  if (result instanceof Promise) {
-    await result;
-  }
-}
-
-async function getLinks(): Promise<any[]> {
-  try {
-    const result = readData<any[]>(LINKS_FILE);
-    const data = result instanceof Promise ? await result : result;
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-}
-
-async function getCommissions(): Promise<any[]> {
-  try {
-    const result = readData<any[]>(COMMISSIONS_FILE);
-    const data = result instanceof Promise ? await result : result;
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-}
-
-async function getVisits(): Promise<any[]> {
-  try {
-    const result = readData<any[]>(VISITS_FILE);
-    const data = result instanceof Promise ? await result : result;
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-}
+import { supabaseAdmin } from "~supabase/admin";
+import { getAffiliateLinks, getCommissions, getAffiliateVisits } from "../../../../services/affiliate";
 
 export default async function handler(
   req: NextApiRequest,
@@ -73,38 +8,47 @@ export default async function handler(
 ) {
   if (req.method === "GET") {
     try {
-      const affiliates = await getAffiliates();
-      const allLinks = await getLinks();
-      const allCommissions = await getCommissions();
-      const allVisits = await getVisits();
+      // Fetch all affiliates with user info
+      const { data: affiliates, error } = await supabaseAdmin
+        .from("affiliates")
+        .select("*, users(email, name)")
+        .order("created_at", { ascending: false });
 
-      // Enrich affiliates with stats
-      const affiliatesWithStats = affiliates.map((affiliate: AffiliateUser) => {
-        const links = allLinks.filter((l: any) => l.affiliateId === affiliate.id);
-        const commissions = allCommissions.filter((c: any) => c.affiliateId === affiliate.id);
-        const visits = allVisits.filter((v: any) => v.affiliateId === affiliate.id);
+      if (error) throw error;
 
-        const totalCommissions = commissions.reduce(
-          (sum: number, c: any) => sum + c.commissionAmount,
-          0
-        );
-        const pendingCommissions = commissions
-          .filter((c: any) => c.status === "pending")
-          .reduce((sum: number, c: any) => sum + c.commissionAmount, 0);
-        const totalVisits = visits.length;
-        const totalConversions = visits.filter((v: any) => v.converted).length;
+      // Enrich with stats (parallel fetch per affiliate)
+      const affiliatesWithStats = await Promise.all(
+        (affiliates ?? []).map(async (affiliate: any) => {
+          const [links, commissions, visits] = await Promise.all([
+            getAffiliateLinks(supabaseAdmin, affiliate.id).catch(() => []),
+            getCommissions(supabaseAdmin, affiliate.id).catch(() => []),
+            getAffiliateVisits(supabaseAdmin, affiliate.id).catch(() => []),
+          ]);
 
-        return {
-          ...affiliate,
-          stats: {
-            totalLinks: links.length,
-            totalVisits,
-            totalConversions,
-            totalCommissions,
-            pendingCommissions,
-          },
-        };
-      });
+          const totalCommissions = commissions.reduce(
+            (sum: number, c: any) => sum + (c.commission_amount || 0),
+            0
+          );
+          const pendingCommissions = commissions
+            .filter((c: any) => c.status === "pending")
+            .reduce((sum: number, c: any) => sum + (c.commission_amount || 0), 0);
+          const totalVisits = visits.length;
+          const totalConversions = visits.filter((v: any) => v.converted).length;
+
+          return {
+            ...affiliate,
+            email: affiliate.users?.email ?? null,
+            name: affiliate.users?.name ?? null,
+            stats: {
+              totalLinks: links.length,
+              totalVisits,
+              totalConversions,
+              totalCommissions,
+              pendingCommissions,
+            },
+          };
+        })
+      );
 
       return res.status(200).json({
         success: true,
@@ -127,37 +71,35 @@ export default async function handler(
         return res.status(400).json({ error: "Action and affiliate ID are required" });
       }
 
-      const affiliates = await getAffiliates();
-      const affiliateIndex = affiliates.findIndex((a) => a.id === affiliateId);
-
-      if (affiliateIndex === -1) {
-        return res.status(404).json({ error: "Affiliate not found" });
-      }
-
-      const affiliate = affiliates[affiliateIndex];
+      // Build update payload
+      const updateData: Record<string, unknown> = {};
 
       if (action === "approve") {
-        affiliate.status = "approved";
-        affiliate.approvedAt = new Date().toISOString();
-        if (customLink) affiliate.customLink = customLink;
-        if (commissionRate !== undefined) affiliate.commissionRate = Number(commissionRate);
-        if (email) affiliate.email = email;
+        updateData.status = "active";
+        if (customLink) updateData.custom_link = customLink;
+        if (commissionRate !== undefined) updateData.commission_rate = Number(commissionRate);
       } else if (action === "reject") {
-        affiliate.status = "rejected";
-        affiliate.rejectedAt = new Date().toISOString();
+        updateData.status = "rejected";
       } else if (action === "update") {
-        if (status) affiliate.status = status;
-        if (customLink !== undefined) affiliate.customLink = customLink;
-        if (commissionRate !== undefined) affiliate.commissionRate = Number(commissionRate);
-        if (email) affiliate.email = email;
+        if (status) updateData.status = status;
+        if (customLink !== undefined) updateData.custom_link = customLink;
+        if (commissionRate !== undefined) updateData.commission_rate = Number(commissionRate);
+      } else {
+        return res.status(400).json({ error: `Unknown action: ${action}` });
       }
 
-      affiliates[affiliateIndex] = affiliate;
-      await saveAffiliates(affiliates);
+      const { data: updated, error } = await supabaseAdmin
+        .from("affiliates")
+        .update(updateData)
+        .eq("id", affiliateId)
+        .select()
+        .single();
+
+      if (error) throw error;
 
       return res.status(200).json({
         success: true,
-        affiliate,
+        affiliate: updated,
         message: `Affiliate ${action === "approve" ? "approved" : action === "reject" ? "rejected" : "updated"} successfully`,
       });
     } catch (error) {
@@ -171,4 +113,3 @@ export default async function handler(
 
   return res.status(405).json({ error: "Method not allowed" });
 }
-

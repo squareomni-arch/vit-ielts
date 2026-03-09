@@ -53,8 +53,9 @@ const DeviceChecker = () => {
   }, [checkBlur, deviceId, checkMutation, isSignedIn]);
 
   useEffect(() => {
-    if (data && !data.checkDevice && !hasLoggedOut.current) {
-      hasLoggedOut.current = true; // Đánh dấu đã logout, tránh gọi lại
+    // Only logout if check_device explicitly returns false (not null/undefined/error)
+    if (data && data.checkDevice === false && !hasLoggedOut.current) {
+      hasLoggedOut.current = true;
       toast.error("Your account has been logged in from another device, you will be logged out.");
       signOut();
     }

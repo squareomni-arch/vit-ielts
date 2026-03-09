@@ -1,6 +1,7 @@
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { createServerSupabase } from "~supabase/server";
 import { supabaseAdmin } from "~supabase/admin";
+import { isAdminRole } from "~lib/parseRoles";
 
 /**
  * SSR guard — redirects non-admin users.
@@ -42,9 +43,7 @@ export const withAdmin: GetServerSideProps = async (
     .eq("id", user.id)
     .maybeSingle();
 
-  const roles: string[] = Array.isArray(profile?.roles) ? profile.roles : [];
-
-  if (!roles.includes("administrator")) {
+  if (!isAdminRole(profile?.roles)) {
     return {
       redirect: {
         destination: "/",

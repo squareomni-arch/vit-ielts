@@ -1,6 +1,7 @@
 import { createServerSupabase } from "./server";
 import { GetServerSidePropsContext } from "next";
 import { MasterData } from "@/appx/providers";
+import { parseRoles } from "~lib/parseRoles";
 
 /**
  * SSR master data fetcher — replaces withMasterData.tsx
@@ -44,7 +45,7 @@ export async function getMasterData(context: GetServerSidePropsContext): Promise
                 id: user.id,
                 name: profile.name ?? "",
                 roles: {
-                    nodes: (profile.roles as string[] ?? ["subscriber"]).map(
+                    nodes: parseRoles(profile.roles).map(
                         (name: string) => ({ name })
                     ),
                 },

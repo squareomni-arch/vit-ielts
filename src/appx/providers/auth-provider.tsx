@@ -2,6 +2,7 @@ import { createClient } from "~supabase/client";
 import { useAppContext } from "@/appx/providers";
 import { useRouter } from "next/router";
 import { ROUTES } from "@/shared/routes";
+import { isAdminRole } from "~lib/parseRoles";
 
 type SignUpParams = {
   name: string;
@@ -33,15 +34,43 @@ export const useAuth = () => {
       password,
     });
     if (error) throw error;
-    router.push("/");
+
+    // Always check admin role first — determines default destination
+    let isAdmin = false;
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from("users")
+        .select("roles")
+        .eq("id", data.user.id)
+        .single();
+
+      isAdmin = isAdminRole(profile?.roles);
+    }
+
+    // Determine redirect destination:
+    // - Admin always goes to /admin (unless explicit redirect to a specific admin/page)
+    // - Regular user uses ?redirect param or falls back to /
+    const explicitRedirect = router.query.redirect as string | undefined;
+    if (isAdmin) {
+      // Admin: use explicit redirect only if it's an admin page, otherwise go to /admin
+      window.location.href = (explicitRedirect && explicitRedirect.startsWith("/admin"))
+        ? explicitRedirect
+        : "/admin";
+    } else {
+      window.location.href = explicitRedirect || "/";
+    }
+
     return data;
   };
 
   const signInWithGoogle = async () => {
+    // Pass redirect param through to the OAuth callback
+    const redirectParam = (router.query.redirect as string) || "/";
+    const callbackUrl = `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectParam)}`;
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl,
       },
     });
     if (error) throw error;
@@ -80,7 +109,7 @@ export const useAuth = () => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    router.push(ROUTES.LOGIN(router.asPath));
+    window.location.href = "/account/login";
   };
 
   return {

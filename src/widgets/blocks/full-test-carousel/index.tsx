@@ -79,14 +79,14 @@ export const FullTestCarousel = ({
         });
 
         // Process listening
-        for (const collection of collectionData.listening) {
-          for (const exam of collection.exams) {
+        for (const collection of (collectionData.listening || [])) {
+          for (const exam of (collection.exams || [])) {
             allExams.push(mapExam(exam));
           }
         }
         // Process reading
-        for (const collection of collectionData.reading) {
-          for (const exam of collection.exams) {
+        for (const collection of (collectionData.reading || [])) {
+          for (const exam of (collection.exams || [])) {
             allExams.push(mapExam(exam));
           }
         }

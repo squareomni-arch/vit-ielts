@@ -16,7 +16,10 @@ export default function AuthCallback() {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((event) => {
             if (event === "SIGNED_IN") {
-                router.push("/");
+                // Use full page navigation so Supabase cookies are sent to SSR
+                const params = new URLSearchParams(window.location.search);
+                const redirectTo = params.get("redirect") || "/";
+                window.location.href = redirectTo;
             }
         });
 

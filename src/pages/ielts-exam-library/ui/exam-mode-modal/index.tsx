@@ -41,7 +41,7 @@ function ExamModeModal({
     formState: { isSubmitting, isSubmitted },
   } = useForm<FormValues>({
     defaultValues: {
-      testPart: quiz.quizFields.passages.map((_, idx) => idx),
+      testPart: (quiz.quizFields?.passages || []).map((_, idx) => idx),
       testTime: Number(quiz.quizFields.time),
       quizId: quiz.id,
     },
@@ -96,24 +96,23 @@ function ExamModeModal({
 
   const partOptions = useMemo(() => {
     const options: { label: string; value: number }[] = [];
-    quiz.quizFields.passages.forEach((passage, idx) => {
+    (quiz.quizFields?.passages || []).forEach((passage, idx) => {
       // const questions = passage.questions.reduce((acc, question) => {
       //   return acc + question.explanations.length;
       // }, 0);
 
       options.push({
-        label: `${
-          quiz.quizFields.skill[0] === "reading" ? "Passage" : "Part"
-        } ${idx + 1}`,
+        label: `${quiz.quizFields.skill[0] === "reading" ? "Passage" : "Part"
+          } ${idx + 1}`,
         value: idx,
       });
     });
 
     return options;
-  }, [quiz.quizFields.passages, quiz.quizFields.skill]);
+  }, [quiz.quizFields?.passages, quiz.quizFields?.skill]);
 
   const fullTestInfo = useMemo(() => {
-    const totalQues = quiz.quizFields.passages.reduce((acc, passage) => {
+    const totalQues = (quiz.quizFields?.passages || []).reduce((acc, passage) => {
       return (
         acc +
         passage.questions.reduce((acc, question) => {
@@ -123,7 +122,7 @@ function ExamModeModal({
     }, 0);
 
     return `${quiz.quizFields.time} minutes - ${partOptions.length} parts - ${totalQues} questions`;
-  }, [partOptions.length, quiz.quizFields.passages, quiz.quizFields.time]);
+  }, [partOptions.length, quiz.quizFields?.passages, quiz.quizFields?.time]);
 
   const testPartWatcher = useWatch({
     control,

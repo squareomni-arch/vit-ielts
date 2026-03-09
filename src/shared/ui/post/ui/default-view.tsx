@@ -58,12 +58,12 @@ export const DefaultView = ({ post }: { post: IPost }) => {
             <span>{dayjs(post.date).format("DD/MM/YYYY")}</span>
           </p>
         </div>
-        {post.categories.edges.length > 0 && (
+        {post.categories?.edges?.length > 0 && (
           <div className="flex items-center text-xs font-nunito flex-wrap gap-x-2 gap-y-1">
             <span className="material-symbols-rounded filled text-red-800 text-3xl!">
               shoppingmode
             </span>
-            {post.categories.edges.map(({ node }, index) => (
+            {post.categories?.edges?.map(({ node }, index) => (
               <Link
                 href={node.link}
                 key={index}

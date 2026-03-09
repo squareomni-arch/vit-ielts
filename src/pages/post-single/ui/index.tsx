@@ -24,9 +24,9 @@ export const PageSingle = ({ post }: { post: IPost }) => {
     }
   }, [post.id]);
 
-  const breadcrumbItems = post.seo.breadcrumbs.map((item, index) => ({
+  const breadcrumbItems = (post.seo?.breadcrumbs || []).map((item, index) => ({
     title:
-      index === post.seo.breadcrumbs.length - 1 ? (
+      index === (post.seo?.breadcrumbs?.length ?? 0) - 1 ? (
         decode(item.text)
       ) : (
         <Link href={item.url}>{decode(item.text)}</Link>
@@ -88,12 +88,12 @@ export const PageSingle = ({ post }: { post: IPost }) => {
                       </p>
                     </div>
                   </div>
-                  {post.categories.edges.length > 0 && (
+                  {post.categories?.edges?.length > 0 && (
                     <div className="flex items-center text-xs font-nunito flex-wrap gap-x-2 gap-y-1">
                       <span className="material-symbols-rounded filled text-red-800 text-3xl!">
                         shoppingmode
                       </span>
-                      {post.categories.edges.map(({ node }, index) => (
+                      {post.categories?.edges?.map(({ node }, index) => (
                         <Link
                           href={node.link}
                           key={index}

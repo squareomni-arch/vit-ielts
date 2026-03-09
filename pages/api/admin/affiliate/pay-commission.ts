@@ -1,19 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-
-const COMMISSIONS_FILE = "affiliate-commissions.json";
-
-async function getCommissions(): Promise<any[]> {
-  try {
-    const data = await Promise.resolve(readData<any[]>(COMMISSIONS_FILE));
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-}
-
-async function saveCommissions(commissions: any[]): Promise<void> {
-  await Promise.resolve(writeData<any[]>(COMMISSIONS_FILE, commissions));
-}
+import { supabaseAdmin } from "~supabase/admin";
 
 export default async function handler(
   req: NextApiRequest,
@@ -30,44 +16,48 @@ export default async function handler(
       return res.status(400).json({ error: "Commission ID is required" });
     }
 
-    const commissions = await getCommissions();
-    const commissionIndex = commissions.findIndex(
-      (c: any) => c.id === commissionId
-    );
+    // Fetch commission
+    const { data: commission, error: fetchError } = await supabaseAdmin
+      .from("affiliate_commissions")
+      .select("id, status")
+      .eq("id", commissionId)
+      .single();
 
-    if (commissionIndex === -1) {
+    if (fetchError || !commission) {
       return res.status(404).json({ error: "Commission not found" });
     }
 
-    const commission = commissions[commissionIndex];
-
     if (commission.status === "paid") {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Commission already paid",
-        message: "Hoa hồng này đã được thanh toán rồi"
+        message: "Hoa hồng này đã được thanh toán rồi",
       });
     }
 
     if (commission.status !== "pending") {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Invalid commission status",
-        message: "Chỉ có thể thanh toán hoa hồng đang chờ thanh toán"
+        message: "Chỉ có thể thanh toán hoa hồng đang chờ thanh toán",
       });
     }
 
     // Update commission status to paid
-    commissions[commissionIndex] = {
-      ...commission,
-      status: "paid",
-      paidAt: new Date().toISOString(),
-    };
+    const { data: updated, error: updateError } = await supabaseAdmin
+      .from("affiliate_commissions")
+      .update({
+        status: "paid",
+        paid_at: new Date().toISOString(),
+      })
+      .eq("id", commissionId)
+      .select()
+      .single();
 
-    await saveCommissions(commissions);
+    if (updateError) throw updateError;
 
     return res.status(200).json({
       success: true,
       message: "Thanh toán hoa hồng thành công",
-      commission: commissions[commissionIndex],
+      commission: updated,
     });
   } catch (error) {
     console.error("Error paying commission:", error);
@@ -77,4 +67,3 @@ export default async function handler(
     });
   }
 }
-

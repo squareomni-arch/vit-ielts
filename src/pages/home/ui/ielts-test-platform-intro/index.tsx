@@ -10,7 +10,7 @@ interface IeltsTestPlatformIntroProps {
 export const IeltsTestPlatformIntro = ({
   config,
 }: IeltsTestPlatformIntroProps) => {
-  const { badge, backgroundGradient, title, categories } = config;
+  const { badge, backgroundGradient, title, categories = [] } = config;
   return (
     <div className="relative pt-16 md:py-16 overflow-hidden">
       {/* Gradient Shape Background - Half top with color, half bottom white */}

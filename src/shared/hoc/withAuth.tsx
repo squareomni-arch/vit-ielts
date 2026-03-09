@@ -1,5 +1,4 @@
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
-import { ROUTES } from "@/shared/routes";
 import { createServerSupabase } from "~supabase/server";
 
 /**
@@ -8,7 +7,6 @@ import { createServerSupabase } from "~supabase/server";
  */
 export async function withAuth(
   context: GetServerSidePropsContext,
-  redirect = ROUTES.LOGIN(context.resolvedUrl)
 ): ReturnType<GetServerSideProps> {
   const supabase = createServerSupabase(context);
   const { data: { user } } = await supabase.auth.getUser();
@@ -21,10 +19,9 @@ export async function withAuth(
 
   return {
     redirect: {
-      destination: `${redirect}?redirect=${encodeURIComponent(
-        context.resolvedUrl
-      )}`,
+      destination: `/account/login?redirect=${encodeURIComponent(context.resolvedUrl)}`,
       statusCode: 302,
     },
   };
 }
+

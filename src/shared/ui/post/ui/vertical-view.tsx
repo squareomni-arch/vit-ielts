@@ -41,12 +41,12 @@ export const VerticalView = ({ post }: { post: IPost }) => {
             <span>{dayjs(post.date).format("DD/MM/YYYY")}</span>
           </p>
         </div>
-        {post.categories.edges.length > 0 && (
+        {post.categories?.edges?.length > 0 && (
           <div className="items-center text-xs font-nunito flex-wrap gap-x-1 gap-y-1 hidden md:flex mt-3">
             <span className="material-symbols-rounded filled text-neutral-300 text-base! leading-none!">
               shoppingmode
             </span>
-            {post.categories.edges.map(({ node }, index) => (
+            {post.categories?.edges?.map(({ node }, index) => (
               <Fragment key={index}>
                 <Link
                   href={node.link}
@@ -54,7 +54,7 @@ export const VerticalView = ({ post }: { post: IPost }) => {
                 >
                   <span className="block">{node.name}</span>
                 </Link>
-                {index < post.categories.edges.length - 1 && ","}
+                {index < (post.categories?.edges?.length ?? 0) - 1 && ","}
               </Fragment>
             ))}
           </div>

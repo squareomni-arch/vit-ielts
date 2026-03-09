@@ -135,7 +135,7 @@ export const Header = () => {
           key: "3",
           label: <Link href={ROUTES.ACCOUNT.ORDER_HISTORY}>Order History</Link>,
         },
-        ...(currentUser?.roles.nodes[0].name === "administrator"
+        ...(currentUser?.roles?.nodes?.[0]?.name === "administrator"
           ? [
             { type: "divider" as const },
             {
@@ -404,7 +404,7 @@ export const Header = () => {
                             Payment History
                           </div>
                         </Link>
-                        {currentUser?.roles.nodes[0].name ===
+                        {currentUser?.roles?.nodes?.[0]?.name ===
                           "administrator" && (
                             <>
                               <Divider className="my-1" />
