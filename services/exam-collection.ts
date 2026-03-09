@@ -153,20 +153,22 @@ export async function getExamCollections(
             const mt = mockTestMap.get(mtId);
             if (!mt) continue;
             for (const pt of mt.practice_tests) {
-                allQuizIdsToFetch.add(pt.reading_test_id);
-                allQuizIdsToFetch.add(pt.listening_test_id);
+                if (pt.reading_test_id) allQuizIdsToFetch.add(pt.reading_test_id);
+                if (pt.listening_test_id) allQuizIdsToFetch.add(pt.listening_test_id);
             }
         }
     }
 
     // Batch-fetch quiz summaries
     const quizMap = new Map<string, ExamCollectionItem>();
+    // Filter out any null/undefined values that may have slipped in
+    const validQuizIds = [...allQuizIdsToFetch].filter(id => id && id !== 'null');
 
-    if (allQuizIdsToFetch.size > 0) {
+    if (validQuizIds.length > 0) {
         const { data: quizDetails, error: detailError } = await supabase
             .from("quizzes")
             .select(QUIZ_SUMMARY_SELECT)
-            .in("id", [...allQuizIdsToFetch]);
+            .in("id", validQuizIds);
 
         if (detailError) throw detailError;
 
