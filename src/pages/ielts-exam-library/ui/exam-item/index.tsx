@@ -28,6 +28,9 @@ export const ExamItem = ({
   const [loading, setLoading] = useState(true);
   const [publishedResults, setPublishedResults] = useState<TestResultRow[]>([]);
 
+  // quizFields is now always provided by the exam-collection service
+  const quizFields = item.quizFields;
+
   // Fetch test results for this quiz from Supabase
   useEffect(() => {
     if (!currentUser?.id) {
@@ -120,7 +123,7 @@ export const ExamItem = ({
         href={currentUser ? itemLink : ROUTES.LOGIN(itemLink)}
         title={item.title}
         className="block"
-        {...(item.quizFields.proUserOnly &&
+        {...(quizFields.proUserOnly &&
           !currentUser?.userData.isPro && {
             onClick: handleOpen,
           })}
@@ -139,7 +142,7 @@ export const ExamItem = ({
             )}
           </div>
         </div> */}
-        {item.quizFields.proUserOnly && (
+        {quizFields.proUserOnly && (
           <div className="absolute top-3 right-3 z-10">
             <div
               className={
@@ -165,7 +168,7 @@ export const ExamItem = ({
           href={currentUser ? itemLink : ROUTES.LOGIN(itemLink)}
           title={item.title}
           className="block"
-          {...(item.quizFields.proUserOnly &&
+          {...(quizFields.proUserOnly &&
             !currentUser?.userData.isPro && {
               onClick: handleOpen,
             })}
@@ -175,7 +178,7 @@ export const ExamItem = ({
           </h4>
         </Link>
         <p className="text-gray-500">
-          {item.quizFields.testsTaken || 0} attempts
+          {quizFields.testsTaken || 0} attempts
         </p>
       </div>
       <div className="mt-auto">
@@ -197,14 +200,14 @@ export const ExamItem = ({
                   <span className="font-semibold">Take the Test</span>
                 </LinkButton>
               </Link>
-            ) : item.quizFields.proUserOnly && currentUser.userData.isPro ? (
+            ) : quizFields.proUserOnly && currentUser.userData.isPro ? (
               <Button onClick={() => setIsModalOpen(true)} size="large">
                 <span className="material-symbols-rounded text-primary!">
                   play_circle
                 </span>
                 <span className="font-semibold">Take the Test</span>
               </Button>
-            ) : item.quizFields.proUserOnly ? (
+            ) : quizFields.proUserOnly ? (
               <Button size="large" onClick={openProContentModal}>
                 <span className="material-symbols-rounded text-primary!">
                   play_circle

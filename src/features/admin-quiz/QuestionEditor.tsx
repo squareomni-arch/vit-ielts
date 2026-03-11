@@ -63,13 +63,13 @@ export default function QuestionEditor({ question: q, onUpdate }: QuestionEditor
             )}
             {q.type === "matching" && (
                 <MatchingEditor
-                    data={q.matching_question ?? { layout_type: "standard", matching_items: [], answer_options: [] }}
+                    data={q.matching_question ?? { layoutType: "standard", matchingItems: [], answerOptions: [] }}
                     onChange={(v) => onUpdate("matching_question", v)}
                 />
             )}
             {q.type === "matrix" && (
                 <MatrixEditor
-                    data={q.matrix_question ?? { matrix_categories: [], matrix_items: [] }}
+                    data={q.matrix_question ?? { matrixCategories: [], matrixItems: [] }}
                     onChange={(v) => onUpdate("matrix_question", v)}
                 />
             )}

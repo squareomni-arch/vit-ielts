@@ -11,7 +11,9 @@
     "migrate:json": "ts-node scripts/migrate-json-data.ts",
     "migrate:configs": "ts-node scripts/migrate-configs.ts",
     "migrate:wp": "ts-node scripts/migrate-wp-data.ts",
-    "migrate:all": "ts-node scripts/migrate-all.ts"
+    "migrate:all": "ts-node scripts/migrate-all.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@ant-design/cssinjs": "^1.23.0",
@@ -64,6 +66,8 @@
     "eslint-config-next": "15.2.6",
     "tailwindcss": "^4.1.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.0.18"
   }
 }

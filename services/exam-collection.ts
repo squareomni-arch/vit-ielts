@@ -185,8 +185,8 @@ export async function getExamCollections(
     const listeningCollections: CollectionWithExams[] = [];
 
     for (const coll of paginatedCollections) {
-        const readingExams: ExamCollectionItem[] = [];
-        const listeningExams: ExamCollectionItem[] = [];
+        const readingExams: any[] = [];
+        const listeningExams: any[] = [];
 
         for (const mtId of coll.mock_test_ids) {
             const mt = mockTestMap.get(mtId);
@@ -195,12 +195,12 @@ export async function getExamCollections(
             for (const pt of mt.practice_tests) {
                 const readingQuiz = quizMap.get(pt.reading_test_id);
                 if (readingQuiz && !readingExams.some((e) => e.id === readingQuiz.id)) {
-                    readingExams.push(readingQuiz);
+                    readingExams.push(toExamItemWithQuizFields(readingQuiz));
                 }
 
                 const listeningQuiz = quizMap.get(pt.listening_test_id);
                 if (listeningQuiz && !listeningExams.some((e) => e.id === listeningQuiz.id)) {
-                    listeningExams.push(listeningQuiz);
+                    listeningExams.push(toExamItemWithQuizFields(listeningQuiz));
                 }
             }
         }
@@ -287,22 +287,24 @@ export async function getCollectionDetail(
     }
 
     // 5. Build reading / listening arrays
-    const readingExams: ExamCollectionItem[] = [];
-    const listeningExams: ExamCollectionItem[] = [];
-    const allExams: ExamCollectionItem[] = [];
+    const readingExams: any[] = [];
+    const listeningExams: any[] = [];
+    const allExams: any[] = [];
 
     for (const mt of mockTests ?? []) {
         for (const pt of (mt as MockTest).practice_tests) {
             const readingQuiz = quizMap.get(pt.reading_test_id);
             if (readingQuiz && !readingExams.some((e) => e.id === readingQuiz.id)) {
-                readingExams.push(readingQuiz);
-                allExams.push(readingQuiz);
+                const mapped = toExamItemWithQuizFields(readingQuiz);
+                readingExams.push(mapped);
+                allExams.push(mapped);
             }
 
             const listeningQuiz = quizMap.get(pt.listening_test_id);
             if (listeningQuiz && !listeningExams.some((e) => e.id === listeningQuiz.id)) {
-                listeningExams.push(listeningQuiz);
-                allExams.push(listeningQuiz);
+                const mapped = toExamItemWithQuizFields(listeningQuiz);
+                listeningExams.push(mapped);
+                allExams.push(mapped);
             }
         }
     }
@@ -323,6 +325,28 @@ export async function getCollectionDetail(
 // ============================================================================
 // Internal Helpers
 // ============================================================================
+
+/**
+ * Map flat Supabase ExamCollectionItem → legacy shape with quizFields.
+ * This ensures UI components can access quiz.quizFields.time etc. consistently.
+ */
+function toExamItemWithQuizFields(item: ExamCollectionItem) {
+    return {
+        id: item.id,
+        title: item.title,
+        slug: item.slug,
+        featuredImage: item.featured_image,
+        link: `/ielts-practice-library/${item.slug}`,
+        quizFields: {
+            proUserOnly: item.pro_user_only,
+            testsTaken: item.tests_taken,
+            skill: [item.skill, item.skill],
+            type: ["exam", "exam"],
+            time: item.time_minutes,
+            passages: [],
+        },
+    };
+}
 
 /** Build empty response with correct pagination shape */
 function buildEmptyResponse(

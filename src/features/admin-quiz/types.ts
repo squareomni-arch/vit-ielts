@@ -40,14 +40,16 @@ export type QuestionData = {
     list_of_questions?: { question: string; correct: string; options: { option_text: string }[] }[];
     list_of_options?: { option_text: string; correct: boolean }[];
     matching_question?: {
-        layout_type: string;
-        matching_items: { questionPart: string; correctAnswer: string }[];
-        answer_options: { option_text: string }[];
-        summary_text?: string;
+        layoutType: string;
+        matchingItems: { questionPart: string; correctAnswer: string }[];
+        answerOptions: { optionText: string }[];
+        summaryText?: string;
     };
     matrix_question?: {
-        matrix_categories: { category_letter: string; category_text: string }[];
-        matrix_items: { item_text: string; correct_category_letter: string }[];
+        matrixCategories: { categoryLetter: string; categoryText: string }[];
+        matrixItems: { itemText: string; correctCategoryLetter: string }[];
+        layoutType?: string;
+        legendTitle?: string;
     };
     explanations?: { content: string }[];
 };

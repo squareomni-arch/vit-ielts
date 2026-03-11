@@ -62,32 +62,20 @@ export const FullTestCarousel = ({
         });
 
         // Flatten collections into individual exam items
+        // Service now returns items with quizFields already mapped
         const allExams: any[] = [];
         const collectionData = result.data;
-
-        const mapExam = (exam: any) => ({
-          ...exam,
-          featuredImage: exam.featured_image,
-          link: `/ielts-practice-library/${exam.slug}`,
-          quizFields: {
-            proUserOnly: exam.pro_user_only ?? false,
-            testsTaken: exam.tests_taken ?? 0,
-            skill: [exam.skill, exam.skill],
-            type: [exam.type, exam.type],
-            time: exam.time_minutes,
-          },
-        });
 
         // Process listening
         for (const collection of (collectionData.listening || [])) {
           for (const exam of (collection.exams || [])) {
-            allExams.push(mapExam(exam));
+            allExams.push(exam);
           }
         }
         // Process reading
         for (const collection of (collectionData.reading || [])) {
           for (const exam of (collection.exams || [])) {
-            allExams.push(mapExam(exam));
+            allExams.push(exam);
           }
         }
 
