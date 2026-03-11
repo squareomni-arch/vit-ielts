@@ -44,16 +44,26 @@ export function PageRegister({ registerConfig }: PageRegisterProps) {
   const [isRegisterHovered, setIsRegisterHovered] = useState(false);
 
   const onSubmit = async (data: FormData) => {
-    const result = await signUp(data as any);
+    try {
+      await signUp({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        date_of_birth: data.date_of_birth
+          ? dayjs(data.date_of_birth).format("YYYY-MM-DD")
+          : "",
+        gender: data.gender,
+      });
 
-    if (!(result as any).errors) {
-      toast.success("Account created successfully");
+      toast.success("Account created successfully!");
+      // signUp already creates the auth session, just sign in to set cookie & redirect
       await signIn({ email: data.email, password: data.password });
-      router.push("/");
-    } else {
+    } catch (err: any) {
+      const message =
+        err?.message || "Registration failed. Please try again.";
       setError("email", {
         type: "manual",
-        message: (result as any).errors[0].message,
+        message,
       });
     }
   };
