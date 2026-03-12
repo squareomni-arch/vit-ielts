@@ -28,9 +28,10 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
     alert("Bài làm đã được nộp! Xem kết quả trong Console.");
   };
 
-  const breadcrumbItems = post.seo.breadcrumbs.map((item, index) => ({
+  const breadcrumbs = post.seo?.breadcrumbs || [];
+  const breadcrumbItems = breadcrumbs.map((item, index) => ({
     title:
-      index === post.seo.breadcrumbs.length - 1 ? (
+      index === breadcrumbs.length - 1 ? (
         decode(item.text)
       ) : (
         <Link href={item.url}>{decode(item.text)}</Link>
@@ -71,7 +72,7 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
 
   return (
     <>
-      <SEOHeader fullHead={post.seo.fullHead} title={post.seo.title} />
+      <SEOHeader fullHead={post.seo?.fullHead} title={post.seo?.title} />
       <Container className="pb-5 max-w-screen-2xl space-y-16 md:space-y-24">
         {/* Phần tiêu đề, ảnh, tác giả... giữ nguyên */}
         <div className="w-full md:w-7/12 space-y-6 mx-auto">

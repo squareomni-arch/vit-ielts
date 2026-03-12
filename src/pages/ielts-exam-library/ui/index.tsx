@@ -107,9 +107,10 @@ export const PageIELTSExamLibrary = ({
 
   useEffect(() => {
     if (!data) return;
+    const reading = data.examCollection?.data?.reading || [];
+    const listening = data.examCollection?.data?.listening || [];
     setActiveKey(
-      data.examCollection.data.reading.length === 0 &&
-        data.examCollection.data.listening.length > 0
+      reading.length === 0 && listening.length > 0
         ? "listening"
         : "reading"
     );
@@ -211,14 +212,14 @@ export const PageIELTSExamLibrary = ({
                 key: "reading",
                 label: `Reading (${
                   _.sum(
-                    data?.examCollection.data.reading.map(
+                    (data?.examCollection?.data?.reading || []).map(
                       (item) => item.exams.length
                     )
                   ) || 0
                 })`,
                 children: (
                   <IELTSExamLibraryTab
-                    data={data?.examCollection.data.reading}
+                    data={data?.examCollection?.data?.reading}
                     loading={loading || !called}
                   />
                 ),
@@ -230,14 +231,14 @@ export const PageIELTSExamLibrary = ({
                 key: "listening",
                 label: `Listening (${
                   _.sum(
-                    data?.examCollection.data.listening.map(
+                    (data?.examCollection?.data?.listening || []).map(
                       (item) => item.exams.length
                     )
                   ) || 0
                 })`,
                 children: (
                   <IELTSExamLibraryTab
-                    data={data?.examCollection.data.listening}
+                    data={data?.examCollection?.data?.listening}
                     loading={loading || !called}
                   />
                 ),
@@ -247,10 +248,10 @@ export const PageIELTSExamLibrary = ({
               },
             ]}
           />
-          {data && data.examCollection.pageInfo.total >= PAGE_SIZE && (
+          {data && (data.examCollection?.pageInfo?.total || 0) >= PAGE_SIZE && (
             <Pagination
               defaultCurrent={router.query.page ? Number(router.query.page) : 1}
-              total={data?.examCollection.pageInfo.total || 0}
+              total={data?.examCollection?.pageInfo?.total || 0}
               pageSize={currentPageSize}
               showSizeChanger={false}
               onChange={(page, pageSize) => {

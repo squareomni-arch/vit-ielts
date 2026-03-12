@@ -5,13 +5,13 @@ export const SEOHeader = ({
   fullHead: fullHeadString,
   title,
 }: {
-  fullHead: string;
-  title: string;
+  fullHead?: string;
+  title?: string;
 }) => {
-  const fullHead = parse(fullHeadString);
+  const fullHead = fullHeadString ? parse(fullHeadString) : null;
   return (
     <Head>
-      <title>{title}</title>
+      {title && <title>{title}</title>}
       {fullHead}
     </Head>
   );

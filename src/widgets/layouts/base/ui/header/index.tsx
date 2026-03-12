@@ -14,6 +14,35 @@ import _ from "lodash";
 import { FacebookRoundedIcon, ZaloIcon } from "@/shared/ui/icons";
 import type { TopBarConfig } from "./types";
 
+/**
+ * Mapping from menu item labels to correct Next.js routes.
+ * The Supabase `menus` table has empty URIs after migration from WordPress.
+ */
+const MENU_LABEL_TO_ROUTE: Record<string, string> = {
+  "home": ROUTES.HOME,
+  "ielts online test": ROUTES.EXAM.ARCHIVE,
+  "ielts full test": ROUTES.EXAM.ARCHIVE,
+  "ielts reading practice": ROUTES.PRACTICE.ARCHIVE_READING,
+  "ielts listening practice": ROUTES.PRACTICE.ARCHIVE_LISTENING,
+  "ielts sample": ROUTES.SAMPLE_ESSAY.ARCHIVE_WRITING,
+  "ielts writing sample": ROUTES.SAMPLE_ESSAY.ARCHIVE_WRITING,
+  "ielts speaking sample": ROUTES.SAMPLE_ESSAY.ARCHIVE_SPEAKING,
+  "ielts reading sample": ROUTES.SAMPLE_ESSAY.ARCHIVE_READING,
+  "ielts listening sample": ROUTES.SAMPLE_ESSAY.ARCHIVE_LISTENING,
+  "ielts prediction": "/ielts-prediction",
+  "subscription": ROUTES.SUBSCRIPTION,
+  "contact": "/contact",
+  "about us": ROUTES.ABOUT_US,
+};
+
+function resolveMenuUri(item: MenuItem): string {
+  if (item.uri && item.uri !== "#" && item.uri !== "/#" && !item.uri.startsWith("http")) {
+    return item.uri;
+  }
+  const label = typeof item.label === "string" ? item.label.toLowerCase().trim() : "";
+  return MENU_LABEL_TO_ROUTE[label] || item.uri || "#";
+}
+
 function createModifiedMenuData(
   menu: MasterData["menuData"][string] | undefined,
   modifyFn: (
@@ -22,17 +51,18 @@ function createModifiedMenuData(
 ): ItemType[] | undefined {
   if (!menu) return undefined;
   return menu.map((item, index) => {
-    const itemKey = (item.key ?? item.uri ?? `menu-${index}`).toString();
-    if (item.children && item.children.length) {
+    const resolved = { ...item, uri: resolveMenuUri(item) };
+    const itemKey = (resolved.key ?? resolved.uri ?? `menu-${index}`).toString();
+    if (resolved.children && resolved.children.length) {
       return {
         key: itemKey,
-        label: modifyFn(item),
-        children: createModifiedMenuData(item.children, modifyFn),
+        label: modifyFn(resolved),
+        children: createModifiedMenuData(resolved.children, modifyFn),
       };
     }
     return {
       key: itemKey,
-      label: modifyFn(item),
+      label: modifyFn(resolved),
     };
   });
 }

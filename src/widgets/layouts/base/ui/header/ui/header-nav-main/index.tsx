@@ -3,7 +3,40 @@ import { useMemo, useState } from "react";
 import { ConfigProvider, Dropdown } from "antd";
 import { createStyles } from "antd-style";
 import { ROUTES } from "@/shared/routes";
-import { MasterData, useAppContext } from "@/appx/providers";
+import { MasterData, MenuItem, useAppContext } from "@/appx/providers";
+
+/**
+ * Mapping from menu item labels to correct Next.js routes.
+ * The Supabase `menus` table has empty URIs after migration from WordPress.
+ * This resolves them based on the label text.
+ */
+const MENU_LABEL_TO_ROUTE: Record<string, string> = {
+  "home": ROUTES.HOME,
+  "ielts online test": ROUTES.EXAM.ARCHIVE,
+  "ielts full test": ROUTES.EXAM.ARCHIVE,
+  "ielts reading practice": ROUTES.PRACTICE.ARCHIVE_READING,
+  "ielts listening practice": ROUTES.PRACTICE.ARCHIVE_LISTENING,
+  "ielts sample": ROUTES.SAMPLE_ESSAY.ARCHIVE_WRITING,
+  "ielts writing sample": ROUTES.SAMPLE_ESSAY.ARCHIVE_WRITING,
+  "ielts speaking sample": ROUTES.SAMPLE_ESSAY.ARCHIVE_SPEAKING,
+  "ielts reading sample": ROUTES.SAMPLE_ESSAY.ARCHIVE_READING,
+  "ielts listening sample": ROUTES.SAMPLE_ESSAY.ARCHIVE_LISTENING,
+  "ielts prediction": "/ielts-prediction",
+  "subscription": ROUTES.SUBSCRIPTION,
+  "contact": "/contact",
+  "about us": ROUTES.ABOUT_US,
+};
+
+/** Resolve a menu item URI: use DB value if valid, otherwise fall back to label mapping */
+function resolveMenuUri(item: MenuItem): string {
+  // If the URI is valid (not empty, not #, not a full WP URL)
+  if (item.uri && item.uri !== "#" && item.uri !== "/#" && !item.uri.startsWith("http")) {
+    return item.uri;
+  }
+  // Look up by label
+  const label = typeof item.label === "string" ? item.label.toLowerCase().trim() : "";
+  return MENU_LABEL_TO_ROUTE[label] || item.uri || "#";
+}
 
 const useStyle = createStyles(({ css }) => ({
   headerNavMenu: css`
@@ -57,9 +90,10 @@ function createModifiedMenuData(
 ): MasterData["menuData"][string] {
   if (!menu) return [];
   const newMenuData = menu.map((item) => {
+    const resolved = { ...item, uri: resolveMenuUri(item) };
     return {
-      ...item,
-      label: modifyFn(item),
+      ...resolved,
+      label: modifyFn(resolved),
       children: item.children
         ? createModifiedMenuData(item.children, modifyFn)
         : undefined,
@@ -81,18 +115,13 @@ export const HeaderNavMain = () => {
     const menuData = masterData.menuData;
 
     const cmsMenuItems = menuData["main-menu"].map((item) => {
-      // Đảm bảo item "Home" luôn trỏ về trang chủ
-      const labelStr =
-        typeof item.label === "string" ? item.label.toLowerCase() : "";
-      const isHome =
-        labelStr === "home" || item.uri === "/" || item.uri === ROUTES.HOME;
-      const uri = isHome ? ROUTES.HOME : item.uri || "#";
+      const uri = resolveMenuUri(item);
 
       return {
         ...item,
         uri,
-        children: createModifiedMenuData(item.children, (item) => (
-          <Link href={item.uri || "#"}>{item.label}</Link>
+        children: createModifiedMenuData(item.children, (child) => (
+          <Link href={child.uri || "#"}>{child.label}</Link>
         )),
       };
     });

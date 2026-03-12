@@ -195,7 +195,7 @@ export const PageArchive = ({
 
   return (
     <FormProvider {...methods}>
-      <SEOHeader fullHead={seo.fullHead} title={seo.title} />
+      <SEOHeader fullHead={seo?.fullHead} title={seo?.title} />
 
       {/* Sample Essay Banner Section */}
       {showBanner &&

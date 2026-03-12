@@ -46,7 +46,7 @@ export const PageSingle = ({ post }: { post: IPost }) => {
 
   return (
     <>
-      <SEOHeader fullHead={post.seo.fullHead} title={post.seo.title} />
+      <SEOHeader fullHead={post.seo?.fullHead} title={post.seo?.title} />
       <Container>
         <div className="flex -m-4 flex-wrap justify-center">
           <div className="p-4 md:w-8/12 w-full">
@@ -78,7 +78,7 @@ export const PageSingle = ({ post }: { post: IPost }) => {
                         <span className="material-symbols-rounded text-lg! leading-none!">
                           visibility
                         </span>
-                        <span>{post.postMeta.views || 0}</span>
+                        <span>{post.postMeta?.views || 0}</span>
                       </p>
                       <p className="text-xs text-gray-600 flex items-center space-x-1">
                         <span className="material-symbols-rounded text-lg! leading-none!">

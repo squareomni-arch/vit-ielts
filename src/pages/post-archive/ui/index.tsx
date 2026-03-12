@@ -30,7 +30,7 @@ export const PageArchive = ({
 
   return (
     <>
-      <SEOHeader fullHead={category.seo.fullHead} title={category.seo.title} />
+      <SEOHeader fullHead={category.seo?.fullHead} title={category.seo?.title} />
       <Container>
         <div className="flex -m-4 flex-wrap">
           <div className="p-4 w-full">

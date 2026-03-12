@@ -25,9 +25,10 @@ export const PageSingle = ({
     }
   }, [post.id]);
 
-  const breadcrumbItems = post.seo.breadcrumbs.map((item: any, index: number) => ({
+  const breadcrumbs = post.seo?.breadcrumbs || [];
+  const breadcrumbItems = breadcrumbs.map((item: any, index: number) => ({
     title:
-      index === post.seo.breadcrumbs.length - 1 ? (
+      index === breadcrumbs.length - 1 ? (
         decode(item.text)
       ) : (
         <Link href={item.url}>{decode(item.text)}</Link>
@@ -47,7 +48,7 @@ export const PageSingle = ({
 
   return (
     <>
-      <SEOHeader fullHead={post.seo.fullHead} title={post.seo.title} />
+      <SEOHeader fullHead={post.seo?.fullHead} title={post.seo?.title} />
       <Container>
         <div className="flex -m-4 flex-wrap justify-center">
           <div className="p-4 md:w-8/12 w-full">
@@ -78,7 +79,7 @@ export const PageSingle = ({
                         <span className="material-symbols-rounded text-lg! leading-none!">
                           visibility
                         </span>
-                        <span>{post.postMeta.views || 0}</span>
+                        <span>{post.postMeta?.views || 0}</span>
                       </p>
                       <p className="text-xs text-gray-600 flex items-center space-x-1">
                         <span className="material-symbols-rounded text-lg! leading-none!">
