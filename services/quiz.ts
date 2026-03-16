@@ -283,8 +283,16 @@ export async function createQuiz(
         if (questionError) throw questionError;
     }
 
-    // 4. Return full quiz by slug
-    return (await getQuizBySlug(supabase, quiz.slug))!;
+    // 4. Return created quiz with passages
+    const { data: createdQuiz, error: fetchError } = await supabase
+        .from("quizzes")
+        .select(`*, passages(*, questions(*))`)
+        .eq("id", quiz.id)
+        .single();
+
+    if (fetchError) throw fetchError;
+
+    return createdQuiz as QuizWithPassages;
 }
 
 /** Input type for updating an existing quiz */
@@ -315,27 +323,33 @@ export async function updateQuiz(
 ): Promise<QuizWithPassages | null> {
     const { passages: passagesInput, ...quizData } = input;
 
-    // 1. Update quiz fields
-    if (Object.keys(quizData).length > 0) {
-        const { error: quizError } = await supabase
-            .from("quizzes")
-            .update(quizData)
-            .eq("id", id);
+    // 1. Run independent operations in parallel:
+    //    - Update quiz fields
+    //    - Delete old passages (CASCADE deletes questions)
+    const promises: Promise<void>[] = [];
 
-        if (quizError) throw quizError;
+    if (Object.keys(quizData).length > 0) {
+        promises.push(
+            (async () => {
+                const { error } = await supabase.from("quizzes").update(quizData).eq("id", id);
+                if (error) throw error;
+            })()
+        );
     }
 
-    // 2. Replace passages + questions if provided
     if (passagesInput) {
-        // Delete old passages (CASCADE deletes questions)
-        const { error: deleteError } = await supabase
-            .from("passages")
-            .delete()
-            .eq("quiz_id", id);
+        promises.push(
+            (async () => {
+                const { error } = await supabase.from("passages").delete().eq("quiz_id", id);
+                if (error) throw error;
+            })()
+        );
+    }
 
-        if (deleteError) throw deleteError;
+    await Promise.all(promises);
 
-        // Re-insert passages
+    // 2. Re-insert passages + questions (must be sequential: passages first, then questions)
+    if (passagesInput) {
         const passagesWithQuizId = passagesInput.map((p, index) => ({
             quiz_id: id,
             title: p.title ?? null,
@@ -352,7 +366,7 @@ export async function updateQuiz(
 
         if (passageError) throw passageError;
 
-        // Re-insert questions
+        // Re-insert questions (batch)
         const allQuestions = passagesInput.flatMap((p, pIndex) =>
             (p.questions ?? []).map((q, qIndex) => ({
                 passage_id: passages[pIndex].id,
@@ -379,7 +393,7 @@ export async function updateQuiz(
         }
     }
 
-    // 3. Fetch and return updated quiz
+    // 3. Return minimal confirmation (client already has the data)
     const { data: updatedQuiz } = await supabase
         .from("quizzes")
         .select("slug")

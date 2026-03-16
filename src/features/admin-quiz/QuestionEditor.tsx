@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
     Card, Input, Select, Form, Row, Col, Space, Tag,
 } from "antd";
@@ -15,7 +16,7 @@ type QuestionEditorProps = {
     onUpdate: (field: string, value: unknown) => void;
 };
 
-export default function QuestionEditor({ question: q, onUpdate }: QuestionEditorProps) {
+function QuestionEditorInner({ question: q, onUpdate }: QuestionEditorProps) {
     return (
         <>
             <Row gutter={16}>
@@ -76,3 +77,6 @@ export default function QuestionEditor({ question: q, onUpdate }: QuestionEditor
         </>
     );
 }
+
+const QuestionEditor = memo(QuestionEditorInner);
+export default QuestionEditor;

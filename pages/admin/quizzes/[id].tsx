@@ -12,7 +12,8 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
-import { withAdmin } from "@/shared/hoc/withAdmin";
+import { withAdminData } from "@/shared/hoc/withAdmin";
+import { supabaseAdmin } from "~supabase/admin";
 import {
     QuizEditorForm,
     PassageList,
@@ -23,18 +24,30 @@ import type { PassageData, QuestionData } from "@/features/admin-quiz";
 
 const { Title, Text } = Typography;
 
-export default function QuizEditorPage() {
-    const router = useRouter();
-    const { id } = router.query;
-    return <QuizEditor quizId={id as string | undefined} />;
+type QuizEditorPageProps = {
+    initialQuiz?: Record<string, unknown> | null;
+    quizId?: string;
+};
+
+export default function QuizEditorPage({ initialQuiz, quizId }: QuizEditorPageProps) {
+    return <QuizEditor quizId={quizId} initialQuiz={initialQuiz} />;
 }
 
-function QuizEditor({ quizId }: { quizId?: string }) {
+function QuizEditor({ quizId, initialQuiz }: { quizId?: string; initialQuiz?: Record<string, unknown> | null }) {
     const router = useRouter();
     const [form] = Form.useForm();
     const [saving, setSaving] = useState(false);
-    const [loading, setLoading] = useState(!!quizId);
-    const [passages, setPassages] = useState<PassageData[]>([{ ...DEFAULT_PASSAGE, sort_order: 0, questions: [] }]);
+    // No loading spinner needed if we have SSR data
+    const [loading, setLoading] = useState(!!quizId && !initialQuiz);
+    const [passages, setPassages] = useState<PassageData[]>(() => {
+        if (initialQuiz?.passages) {
+            return (initialQuiz.passages as PassageData[]).map((p: PassageData, idx: number) => ({
+                ...p, sort_order: idx,
+                questions: (p.questions ?? []).map((q: QuestionData, qIdx: number) => ({ ...q, sort_order: qIdx })),
+            }));
+        }
+        return [{ ...DEFAULT_PASSAGE, sort_order: 0, questions: [] }];
+    });
     const isNew = !quizId;
 
     // ── UX State ──
@@ -79,9 +92,26 @@ function QuizEditor({ quizId }: { quizId?: string }) {
     const currentType = Form.useWatch("type", form);
     const currentSlug = Form.useWatch("slug", form);
 
+    // Hydrate form from SSR data on mount (if available)
     useEffect(() => {
-        if (quizId) fetchQuiz();
-        else {
+        if (initialQuiz) {
+            const quiz = initialQuiz as Record<string, unknown>;
+            form.setFieldsValue({
+                title: quiz.title, slug: quiz.slug, excerpt: quiz.excerpt,
+                type: quiz.type, skill: quiz.skill, time_minutes: quiz.time_minutes,
+                pro_user_only: quiz.pro_user_only, score_type: quiz.score_type,
+                featured_image: quiz.featured_image, audio_url: quiz.audio_url,
+                pdf_url: quiz.pdf_url, source: quiz.source, year: quiz.year,
+                quarter: quiz.quarter, part: quiz.part, question_form: quiz.question_form,
+                status: quiz.status,
+            });
+            if (quiz.slug) setSlugManuallyEdited(true);
+            setIsDirty(false);
+            setSaveError(null);
+            setTimeout(() => { initialLoadDone.current = true; }, 0);
+        } else if (quizId) {
+            fetchQuiz(); // Fallback: client-side fetch if no SSR data
+        } else {
             initialLoadDone.current = true;
         }
     }, [quizId]);
@@ -227,36 +257,57 @@ function QuizEditor({ quizId }: { quizId?: string }) {
     }
 
     // --- Passage helpers ---
-    const addPassage = () => setPassagesTracked([...passages, { ...DEFAULT_PASSAGE, sort_order: passages.length, questions: [] }]);
-    const removePassage = (idx: number) => setPassagesTracked(passages.filter((_, i) => i !== idx));
-    const reorderPassages = (oldIndex: number, newIndex: number) => setPassagesTracked(arrayMove(passages, oldIndex, newIndex));
-    const updatePassage = (idx: number, field: string, value: unknown) => {
-        const arr = [...passages];
-        (arr[idx] as Record<string, unknown>)[field] = value;
-        setPassagesTracked(arr);
-    };
+    const addPassage = useCallback(() => setPassagesTracked((prev: PassageData[]) => [...prev, { ...DEFAULT_PASSAGE, sort_order: prev.length, questions: [] }]), [setPassagesTracked]);
+    const removePassage = useCallback((idx: number) => setPassagesTracked((prev: PassageData[]) => prev.filter((_, i) => i !== idx)), [setPassagesTracked]);
+    const reorderPassages = useCallback((oldIndex: number, newIndex: number) => setPassagesTracked((prev: PassageData[]) => arrayMove(prev, oldIndex, newIndex)), [setPassagesTracked]);
+    const updatePassage = useCallback((idx: number, field: string, value: unknown) => {
+        setPassagesTracked((prev: PassageData[]) => {
+            const arr = [...prev];
+            (arr[idx] as Record<string, unknown>)[field] = value;
+            return arr;
+        });
+    }, [setPassagesTracked]);
 
     // --- Question helpers ---
-    const addQuestion = (pIdx: number) => {
-        const arr = [...passages];
-        arr[pIdx].questions.push({ ...DEFAULT_QUESTION, sort_order: arr[pIdx].questions.length, list_of_questions: [] });
-        setPassagesTracked(arr);
-    };
-    const removeQuestion = (pIdx: number, qIdx: number) => {
-        const arr = [...passages];
-        arr[pIdx].questions = arr[pIdx].questions.filter((_, i) => i !== qIdx);
-        setPassagesTracked(arr);
-    };
-    const updateQuestion = (pIdx: number, qIdx: number, field: string, value: unknown) => {
-        const arr = [...passages];
-        (arr[pIdx].questions[qIdx] as Record<string, unknown>)[field] = value;
-        setPassagesTracked(arr);
-    };
-    const reorderQuestions = (pIdx: number, oldIndex: number, newIndex: number) => {
-        const arr = [...passages];
-        arr[pIdx].questions = arrayMove(arr[pIdx].questions, oldIndex, newIndex);
-        setPassagesTracked(arr);
-    };
+    const addQuestion = useCallback((pIdx: number) => {
+        setPassagesTracked((prev: PassageData[]) => {
+            const arr = [...prev];
+            arr[pIdx] = {
+                ...arr[pIdx],
+                questions: [...arr[pIdx].questions, { ...DEFAULT_QUESTION, sort_order: arr[pIdx].questions.length, list_of_questions: [] }],
+            };
+            return arr;
+        });
+    }, [setPassagesTracked]);
+    const removeQuestion = useCallback((pIdx: number, qIdx: number) => {
+        setPassagesTracked((prev: PassageData[]) => {
+            const arr = [...prev];
+            arr[pIdx] = {
+                ...arr[pIdx],
+                questions: arr[pIdx].questions.filter((_, i) => i !== qIdx),
+            };
+            return arr;
+        });
+    }, [setPassagesTracked]);
+    const updateQuestion = useCallback((pIdx: number, qIdx: number, field: string, value: unknown) => {
+        setPassagesTracked((prev: PassageData[]) => {
+            const arr = [...prev];
+            const questions = [...arr[pIdx].questions];
+            questions[qIdx] = { ...questions[qIdx], [field]: value };
+            arr[pIdx] = { ...arr[pIdx], questions };
+            return arr;
+        });
+    }, [setPassagesTracked]);
+    const reorderQuestions = useCallback((pIdx: number, oldIndex: number, newIndex: number) => {
+        setPassagesTracked((prev: PassageData[]) => {
+            const arr = [...prev];
+            arr[pIdx] = {
+                ...arr[pIdx],
+                questions: arrayMove(arr[pIdx].questions, oldIndex, newIndex),
+            };
+            return arr;
+        });
+    }, [setPassagesTracked]);
 
     if (loading) {
         return (
@@ -760,4 +811,31 @@ function QuizEditor({ quizId }: { quizId?: string }) {
     );
 }
 
-export const getServerSideProps = withAdmin;
+export const getServerSideProps = withAdminData(async (context) => {
+    const quizId = context.params?.id as string | undefined;
+    if (!quizId) return { quizId: undefined, initialQuiz: null };
+
+    try {
+        const { data, error } = await supabaseAdmin
+            .from("quizzes")
+            .select(`*, passages(*, questions(*))`)
+            .eq("id", quizId)
+            .single();
+
+        if (error || !data) return { quizId, initialQuiz: null };
+
+        // Sort passages and questions by sort_order
+        if (data.passages) {
+            data.passages.sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order);
+            data.passages.forEach((p: { questions?: { sort_order: number }[] }) => {
+                if (p.questions) {
+                    p.questions.sort((a, b) => a.sort_order - b.sort_order);
+                }
+            });
+        }
+
+        return { quizId, initialQuiz: data };
+    } catch {
+        return { quizId, initialQuiz: null };
+    }
+});

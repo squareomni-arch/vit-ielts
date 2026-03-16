@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Button, Tag, Popconfirm, Badge, Tooltip } from "antd";
 import {
     PlusOutlined, DeleteOutlined, HolderOutlined,
-    QuestionCircleOutlined,
+    QuestionCircleOutlined, DownOutlined, RightOutlined,
+    EditOutlined,
 } from "@ant-design/icons";
 import {
     DndContext,
@@ -40,40 +41,51 @@ const TYPE_CONFIG: Record<string, { color: string; icon: string; label: string }
     matrix: { color: "#eb2f96", icon: "▦", label: "Matrix" },
 };
 
+// ---------------------------------------------------------------------------
+// Get a short preview text from question data
+// ---------------------------------------------------------------------------
+function getQuestionPreview(q: QuestionData): string {
+    if (q.title) return q.title;
+    if (q.question_text) {
+        // Strip HTML tags for preview
+        const text = q.question_text.replace(/<[^>]*>/g, "").trim();
+        return text.length > 60 ? text.slice(0, 60) + "…" : text;
+    }
+    return "(Chưa có nội dung)";
+}
+
+// ---------------------------------------------------------------------------
+// Count sub-items for summary badge
+// ---------------------------------------------------------------------------
+function getSubItemCount(q: QuestionData): number {
+    if (q.type === "radio" || q.type === "select") return q.list_of_questions?.length || 0;
+    if (q.type === "fillup") return q.explanations?.length || 0;
+    if (q.type === "checkbox") return q.list_of_options?.length || 0;
+    if (q.type === "matching") return q.matching_question?.matchingItems?.length || 0;
+    if (q.type === "matrix") return q.matrix_question?.matrixItems?.length || 0;
+    return 0;
+}
+
 function SortableQuestionCard({
     question,
     qIdx,
+    isExpanded,
+    onToggle,
     onRemove,
     onUpdate,
 }: {
     question: QuestionData;
     qIdx: number;
+    isExpanded: boolean;
+    onToggle: () => void;
     onRemove: () => void;
     onUpdate: (field: string, value: unknown) => void;
 }) {
     const sortableId = question.id || `q-${qIdx}`;
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: sortableId });
     const config = TYPE_CONFIG[question.type] || { color: "#8c8c8c", icon: "?", label: question.type };
-
-    // Count sub-items for summary
-    const subItemCount = useMemo(() => {
-        if (question.type === "radio" || question.type === "select") {
-            return question.list_of_questions?.length || 0;
-        }
-        if (question.type === "fillup") {
-            return question.explanations?.length || 0;
-        }
-        if (question.type === "checkbox") {
-            return question.list_of_options?.length || 0;
-        }
-        if (question.type === "matching") {
-            return question.matching_question?.matchingItems?.length || 0;
-        }
-        if (question.type === "matrix") {
-            return question.matrix_question?.matrixItems?.length || 0;
-        }
-        return 0;
-    }, [question]);
+    const subItemCount = getSubItemCount(question);
+    const preview = getQuestionPreview(question);
 
     const transformStr = CSS.Transform.toString(transform);
     const style: React.CSSProperties = {
@@ -86,7 +98,7 @@ function SortableQuestionCard({
 
     return (
         <div ref={setNodeRef} style={style} {...attributes}>
-            <div className="question-card">
+            <div className={`question-card ${isExpanded ? "question-card--expanded" : ""}`}>
                 {/* Color stripe on the left */}
                 <div
                     className="question-card-stripe"
@@ -94,15 +106,26 @@ function SortableQuestionCard({
                 />
 
                 <div className="question-card-inner">
-                    {/* Header */}
-                    <div className="question-card-header">
+                    {/* Header — always visible, clickable to toggle */}
+                    <div
+                        className="question-card-header"
+                        onClick={onToggle}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggle(); } }}
+                    >
                         <div className="question-card-header-left">
                             <span
                                 {...listeners}
                                 className="question-drag-handle"
                                 title="Kéo để sắp xếp"
+                                onClick={(e) => e.stopPropagation()}
                             >
                                 <HolderOutlined />
+                            </span>
+
+                            <span className="question-expand-icon">
+                                {isExpanded ? <DownOutlined /> : <RightOutlined />}
                             </span>
 
                             <span className="question-card-number">
@@ -121,14 +144,15 @@ function SortableQuestionCard({
                                 {config.icon} {config.label}
                             </Tag>
 
-                            {question.title && (
-                                <span className="question-card-title-text">
-                                    {question.title}
+                            {/* Collapsed: show preview text */}
+                            {!isExpanded && (
+                                <span className="question-card-preview">
+                                    {preview}
                                 </span>
                             )}
                         </div>
 
-                        <div className="question-card-header-right">
+                        <div className="question-card-header-right" onClick={(e) => e.stopPropagation()}>
                             {subItemCount > 0 && (
                                 <Tooltip title={`${subItemCount} mục con`}>
                                     <Badge
@@ -139,6 +163,16 @@ function SortableQuestionCard({
                                             fontSize: 11,
                                             boxShadow: 'none',
                                         }}
+                                    />
+                                </Tooltip>
+                            )}
+                            {!isExpanded && (
+                                <Tooltip title="Chỉnh sửa">
+                                    <Button
+                                        size="small"
+                                        icon={<EditOutlined />}
+                                        type="text"
+                                        onClick={(e) => { e.stopPropagation(); onToggle(); }}
                                     />
                                 </Tooltip>
                             )}
@@ -160,10 +194,12 @@ function SortableQuestionCard({
                         </div>
                     </div>
 
-                    {/* Editor content */}
-                    <div className="question-card-body">
-                        <QuestionEditor question={question} onUpdate={onUpdate} />
-                    </div>
+                    {/* Body — only visible when expanded */}
+                    {isExpanded && (
+                        <div className="question-card-body">
+                            <QuestionEditor question={question} onUpdate={onUpdate} />
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -172,7 +208,7 @@ function SortableQuestionCard({
                     display: flex;
                     border: 1px solid #e8e8e8;
                     border-radius: 8px;
-                    margin-bottom: 12px;
+                    margin-bottom: 8px;
                     overflow: hidden;
                     background: #fff;
                     transition: all 0.2s;
@@ -182,6 +218,11 @@ function SortableQuestionCard({
                 .question-card:hover {
                     border-color: #d9d9d9;
                     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+                }
+
+                .question-card--expanded {
+                    border-color: #91caff;
+                    box-shadow: 0 2px 8px rgba(24,144,255,0.12);
                 }
 
                 .question-card-stripe {
@@ -199,9 +240,20 @@ function SortableQuestionCard({
                     align-items: center;
                     justify-content: space-between;
                     padding: 10px 14px;
-                    border-bottom: 1px solid #f5f5f5;
                     background: #fafafa;
                     gap: 8px;
+                    cursor: pointer;
+                    user-select: none;
+                    transition: background 0.15s;
+                }
+
+                .question-card-header:hover {
+                    background: #f0f5ff;
+                }
+
+                .question-card--expanded .question-card-header {
+                    border-bottom: 1px solid #f0f0f0;
+                    background: #e6f4ff;
                 }
 
                 .question-card-header-left {
@@ -235,6 +287,18 @@ function SortableQuestionCard({
                     background: #e6f7ff;
                 }
 
+                .question-expand-icon {
+                    font-size: 10px;
+                    color: #999;
+                    display: flex;
+                    align-items: center;
+                    transition: color 0.15s;
+                }
+
+                .question-card--expanded .question-expand-icon {
+                    color: #1890ff;
+                }
+
                 .question-card-number {
                     font-weight: 700;
                     font-size: 13px;
@@ -242,16 +306,29 @@ function SortableQuestionCard({
                     min-width: 28px;
                 }
 
-                .question-card-title-text {
+                .question-card-preview {
                     font-size: 13px;
-                    color: #666;
+                    color: #888;
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
+                    max-width: 400px;
                 }
 
                 .question-card-body {
                     padding: 16px 14px;
+                    animation: slideDown 0.2s ease-out;
+                }
+
+                @keyframes slideDown {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-8px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
                 }
             `}</style>
         </div>
@@ -259,6 +336,9 @@ function SortableQuestionCard({
 }
 
 export default function QuestionList({ questions, onAdd, onRemove, onUpdate, onReorder }: QuestionListProps) {
+    // Accordion state: only one question expanded at a time
+    const [expandedKey, setExpandedKey] = useState<string | null>(null);
+
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -281,6 +361,18 @@ export default function QuestionList({ questions, onAdd, onRemove, onUpdate, onR
         }
     };
 
+    const toggleQuestion = useCallback((key: string) => {
+        setExpandedKey(prev => prev === key ? null : key);
+    }, []);
+
+    // Add question and auto-expand it
+    const handleAddQuestion = useCallback(() => {
+        onAdd();
+        // After adding, expand the new question (it will be at the end)
+        const newKey = `q-${safeQuestions.length}`;
+        setExpandedKey(newKey);
+    }, [onAdd, safeQuestions.length]);
+
     return (
         <div>
             {/* Add question bar */}
@@ -288,7 +380,7 @@ export default function QuestionList({ questions, onAdd, onRemove, onUpdate, onR
                 <Button
                     type="dashed"
                     icon={<PlusOutlined />}
-                    onClick={onAdd}
+                    onClick={handleAddQuestion}
                     block
                     className="question-add-btn"
                 >
@@ -304,24 +396,61 @@ export default function QuestionList({ questions, onAdd, onRemove, onUpdate, onR
                     </p>
                 </div>
             ) : (
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                    <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-                        {safeQuestions.map((q, qIdx) => (
-                            <SortableQuestionCard
-                                key={q.id || `q-${qIdx}`}
-                                question={q}
-                                qIdx={qIdx}
-                                onRemove={() => onRemove(qIdx)}
-                                onUpdate={(field, value) => onUpdate(qIdx, field, value)}
-                            />
-                        ))}
-                    </SortableContext>
-                </DndContext>
+                <>
+                    {/* Collapse/expand all helper */}
+                    <div className="question-list-toolbar">
+                        <span className="question-list-count">
+                            {safeQuestions.length} câu hỏi
+                        </span>
+                        {expandedKey && (
+                            <Button
+                                size="small"
+                                type="link"
+                                onClick={() => setExpandedKey(null)}
+                            >
+                                Thu gọn tất cả
+                            </Button>
+                        )}
+                    </div>
+
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                        <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
+                            {safeQuestions.map((q, qIdx) => {
+                                const key = q.id || `q-${qIdx}`;
+                                return (
+                                    <SortableQuestionCard
+                                        key={key}
+                                        question={q}
+                                        qIdx={qIdx}
+                                        isExpanded={expandedKey === key}
+                                        onToggle={() => toggleQuestion(key)}
+                                        onRemove={() => onRemove(qIdx)}
+                                        onUpdate={(field, value) => onUpdate(qIdx, field, value)}
+                                    />
+                                );
+                            })}
+                        </SortableContext>
+                    </DndContext>
+                </>
             )}
 
             <style jsx>{`
                 .question-list-add-bar {
-                    margin-bottom: 16px;
+                    margin-bottom: 12px;
+                }
+
+                .question-list-toolbar {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 8px;
+                    padding: 0 2px;
+                }
+
+                .question-list-count {
+                    font-size: 12px;
+                    color: #999;
+                    font-weight: 500;
                 }
 
                 .question-list-empty {

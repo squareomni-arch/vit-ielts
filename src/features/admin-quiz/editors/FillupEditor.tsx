@@ -8,10 +8,10 @@ type FillupEditorProps = {
 
 export default function FillupEditor({ explanations, onChange }: FillupEditorProps) {
     return (
-        <div className="bg-gray-50 p-3 rounded">
+        <div className="sub-editor-container">
             <Divider orientation="left">Fill-up Explanations</Divider>
             {(Array.isArray(explanations) ? explanations : []).map((e, idx) => (
-                <Space key={idx} className="mb-1 w-full">
+                <Space key={idx} style={{ marginBottom: 4, width: '100%' }}>
                     <Input
                         value={e.content}
                         onChange={(ev) => {
@@ -26,6 +26,15 @@ export default function FillupEditor({ explanations, onChange }: FillupEditorPro
                 </Space>
             ))}
             <Button icon={<PlusOutlined />} onClick={() => onChange([...explanations, { content: "" }])}>Thêm đáp án</Button>
+
+            <style jsx>{`
+                .sub-editor-container {
+                    background: #f8f9fa;
+                    padding: 12px;
+                    border-radius: 8px;
+                    border: 1px solid #f0f0f0;
+                }
+            `}</style>
         </div>
     );
 }

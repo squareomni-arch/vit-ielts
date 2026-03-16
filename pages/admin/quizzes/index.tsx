@@ -1,11 +1,20 @@
 import { useEffect, useState, useCallback } from "react";
-import { Table, Tag, Input, Space, Card, Button, Select, message, Popconfirm } from "antd";
-import { PlusOutlined, SearchOutlined, EditOutlined, CopyOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+    Table, Tag, Input, Space, Card, Button, Select, message, Popconfirm,
+    Modal, Form, Switch, InputNumber, Typography,
+} from "antd";
+import {
+    PlusOutlined, SearchOutlined, EditOutlined, CopyOutlined,
+    DeleteOutlined, ReadOutlined, CustomerServiceOutlined,
+} from "@ant-design/icons";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 import { withAdmin } from "@/shared/hoc/withAdmin";
+
+const { TextArea } = Input;
+const { Text } = Typography;
 
 type QuizRow = {
     id: string;
@@ -19,6 +28,244 @@ type QuizRow = {
     created_at: string;
 };
 
+// ---------------------------------------------------------------------------
+// Slugify helper
+// ---------------------------------------------------------------------------
+function slugify(text: string): string {
+    const dm: Record<string, string> = {
+        'à':'a','á':'a','ả':'a','ã':'a','ạ':'a',
+        'ă':'a','ằ':'a','ắ':'a','ẳ':'a','ẵ':'a','ặ':'a',
+        'â':'a','ầ':'a','ấ':'a','ẩ':'a','ẫ':'a','ậ':'a',
+        'đ':'d',
+        'è':'e','é':'e','ẻ':'e','ẽ':'e','ẹ':'e',
+        'ê':'e','ề':'e','ế':'e','ể':'e','ễ':'e','ệ':'e',
+        'ì':'i','í':'i','ỉ':'i','ĩ':'i','ị':'i',
+        'ò':'o','ó':'o','ỏ':'o','õ':'o','ọ':'o',
+        'ô':'o','ồ':'o','ố':'o','ổ':'o','ỗ':'o','ộ':'o',
+        'ơ':'o','ờ':'o','ớ':'o','ở':'o','ỡ':'o','ợ':'o',
+        'ù':'u','ú':'u','ủ':'u','ũ':'u','ụ':'u',
+        'ư':'u','ừ':'u','ứ':'u','ử':'u','ữ':'u','ự':'u',
+        'ỳ':'y','ý':'y','ỷ':'y','ỹ':'y','ỵ':'y',
+    };
+    return text.toLowerCase().split('').map(ch => dm[ch] || ch).join('')
+        .replace(/[^a-z0-9\s-]/g, '').replace(/[\s_]+/g, '-')
+        .replace(/-+/g, '-').replace(/^-|-$/g, '');
+}
+
+// ---------------------------------------------------------------------------
+// Add Quiz Modal component
+// ---------------------------------------------------------------------------
+function AddQuizModal({
+    open,
+    onClose,
+    onCreated,
+}: {
+    open: boolean;
+    onClose: () => void;
+    onCreated: (id: string) => void;
+}) {
+    const [form] = Form.useForm();
+    const [selectedSkill, setSelectedSkill] = useState<"reading" | "listening">("reading");
+    const [creating, setCreating] = useState(false);
+
+    const handleOk = async () => {
+        try {
+            const values = await form.validateFields();
+            setCreating(true);
+
+            const title = values.title?.trim();
+            const baseSlug = slugify(title);
+            const uniqueSuffix = Date.now().toString(36).slice(-5);
+            const payload = {
+                title,
+                slug: baseSlug ? `${baseSlug}-${uniqueSuffix}` : `quiz-${uniqueSuffix}`,
+                skill: selectedSkill,
+                type: values.type || "practice",
+                pro_user_only: values.pro_user_only || false,
+                excerpt: values.excerpt || "",
+                time_minutes: values.time_minutes || 60,
+                status: "draft",
+                passages: [{ title: "", content: "", sort_order: 0, questions: [] }],
+            };
+
+            const res = await fetch("/api/admin/quizzes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            const json = await res.json();
+
+            if (json.success && json.data?.id) {
+                message.success("Đã tạo quiz mới");
+                form.resetFields();
+                setSelectedSkill("reading");
+                onCreated(json.data.id);
+            } else {
+                message.error(json.error || "Lỗi khi tạo quiz");
+            }
+        } catch (err) {
+            if (err && typeof err === "object" && "errorFields" in err) {
+                // Form validation error — don't show extra message
+            } else {
+                message.error("Lỗi khi tạo quiz");
+            }
+        } finally {
+            setCreating(false);
+        }
+    };
+
+    const handleCancel = () => {
+        form.resetFields();
+        setSelectedSkill("reading");
+        onClose();
+    };
+
+    return (
+        <Modal
+            title="Add Quiz"
+            open={open}
+            onCancel={handleCancel}
+            width={520}
+            footer={[
+                <Button key="cancel" onClick={handleCancel}>
+                    Cancel
+                </Button>,
+                <Button
+                    key="ok"
+                    type="primary"
+                    loading={creating}
+                    onClick={handleOk}
+                    style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                >
+                    OK
+                </Button>,
+            ]}
+            destroyOnClose
+        >
+            {/* ── Skill Tabs ── */}
+            <div className="add-quiz-skill-tabs">
+                <div
+                    className={`add-quiz-skill-tab ${selectedSkill === "reading" ? "active" : ""}`}
+                    onClick={() => setSelectedSkill("reading")}
+                >
+                    <ReadOutlined style={{ fontSize: 28 }} />
+                    <span>Reading</span>
+                </div>
+                <div
+                    className={`add-quiz-skill-tab ${selectedSkill === "listening" ? "active" : ""}`}
+                    onClick={() => setSelectedSkill("listening")}
+                >
+                    <CustomerServiceOutlined style={{ fontSize: 28 }} />
+                    <span>Listening</span>
+                </div>
+            </div>
+
+            <Form
+                form={form}
+                layout="vertical"
+                initialValues={{
+                    type: "practice",
+                    pro_user_only: false,
+                    time_minutes: 60,
+                }}
+            >
+                <Form.Item
+                    name="title"
+                    label={<Text strong>Quiz title <Text type="danger">*</Text></Text>}
+                    rules={[{ required: true, message: "Vui lòng nhập tiêu đề" }]}
+                >
+                    <Input placeholder="Title" size="large" />
+                </Form.Item>
+
+                <Form.Item
+                    name="type"
+                    label={<Text strong>Quiz type <Text type="danger">*</Text></Text>}
+                >
+                    <Select
+                        size="large"
+                        options={[
+                            { value: "practice", label: "Practice" },
+                            { value: "exam", label: "Exam" },
+                        ]}
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    name="pro_user_only"
+                    label={<Text strong>Pro</Text>}
+                    valuePropName="checked"
+                >
+                    <Switch />
+                </Form.Item>
+
+                <Form.Item
+                    name="excerpt"
+                    label={<Text strong>Short description (Optional)</Text>}
+                >
+                    <TextArea
+                        rows={3}
+                        placeholder="Short description (Optional)"
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    name="time_minutes"
+                    label={<Text strong>Time (minutes)</Text>}
+                >
+                    <InputNumber
+                        min={0}
+                        max={180}
+                        addonAfter="minutes"
+                        style={{ width: "100%" }}
+                        size="large"
+                    />
+                </Form.Item>
+            </Form>
+
+            <style jsx>{`
+                .add-quiz-skill-tabs {
+                    display: flex;
+                    gap: 12px;
+                    justify-content: center;
+                    margin-bottom: 24px;
+                    padding: 8px 0;
+                }
+
+                .add-quiz-skill-tab {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 16px 28px;
+                    border: 2px solid #e8e8e8;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    color: #999;
+                    font-size: 14px;
+                    font-weight: 500;
+                    min-width: 100px;
+                }
+
+                .add-quiz-skill-tab:hover {
+                    border-color: #b7e4c7;
+                    color: #52c41a;
+                }
+
+                .add-quiz-skill-tab.active {
+                    border-color: #52c41a;
+                    color: #52c41a;
+                    background: #f6ffed;
+                    box-shadow: 0 0 0 1px #52c41a;
+                }
+            `}</style>
+        </Modal>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Main Page
+// ---------------------------------------------------------------------------
 export default function AdminQuizzesPage() {
     const router = useRouter();
     const [quizzes, setQuizzes] = useState<QuizRow[]>([]);
@@ -30,6 +277,7 @@ export default function AdminQuizzesPage() {
     const [skillFilter, setSkillFilter] = useState<string>("");
     const [typeFilter, setTypeFilter] = useState<string>("");
     const [statusFilter, setStatusFilter] = useState<string>("");
+    const [showAddModal, setShowAddModal] = useState(false);
 
     const fetchQuizzes = useCallback(async () => {
         setLoading(true);
@@ -160,7 +408,7 @@ export default function AdminQuizzesPage() {
             <Card
                 title={<h1 className="text-2xl font-bold m-0">Quản lý Quizzes</h1>}
                 extra={
-                    <Button type="primary" icon={<PlusOutlined />} onClick={() => router.push("/admin/quizzes/new")}>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => setShowAddModal(true)}>
                         Thêm quiz mới
                     </Button>
                 }
@@ -197,6 +445,16 @@ export default function AdminQuizzesPage() {
                     scroll={{ x: 1000 }}
                 />
             </Card>
+
+            {/* Add Quiz Modal — BP Quiz style */}
+            <AddQuizModal
+                open={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onCreated={(id) => {
+                    setShowAddModal(false);
+                    router.push(`/admin/quizzes/${id}`);
+                }}
+            />
         </AdminLayout>
     );
 }

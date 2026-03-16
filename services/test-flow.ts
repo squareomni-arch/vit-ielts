@@ -190,7 +190,7 @@ export async function takeTheTest(
     // Step 2: Check existing draft
     const { data: existingDraft } = await supabase
         .from("test_results")
-        .select("*")
+        .select("id, user_id, quiz_id, answers, test_part, time_left, test_time, test_mode, score, status, submitted_at, created_at")
         .eq("user_id", userId)
         .eq("quiz_id", params.quizId)
         .eq("status", "draft")
@@ -462,7 +462,7 @@ export async function getTestResultsByQuiz(
 ): Promise<TestResult[]> {
     const { data, error } = await supabase
         .from("test_results")
-        .select("*")
+        .select("id, user_id, quiz_id, score, test_part, time_left, test_time, test_mode, status, submitted_at, created_at")
         .eq("quiz_id", quizId)
         .eq("status", "published")
         .order("submitted_at", { ascending: false });

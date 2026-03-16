@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
     Card, Input, InputNumber, Form, Row, Col, Divider,
 } from "antd";
@@ -15,7 +16,7 @@ type PassageEditorProps = {
     onReorderQuestions: (oldIndex: number, newIndex: number) => void;
 };
 
-export default function PassageEditor({
+function PassageEditorInner({
     passage,
     pIdx,
     onUpdatePassage,
@@ -59,3 +60,6 @@ export default function PassageEditor({
         </div>
     );
 }
+
+const PassageEditor = memo(PassageEditorInner);
+export default PassageEditor;

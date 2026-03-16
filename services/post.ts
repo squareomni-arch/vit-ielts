@@ -63,7 +63,7 @@ export async function getPosts(
 
     let query = supabase
         .from("posts")
-        .select("*", { count: "exact" })
+        .select("id, title, slug, excerpt, featured_image, status, pro_user_only, views, categories, published_at, created_at", { count: "exact" })
         .eq("status", "published");
 
     // Filter by category (JSONB array contains)

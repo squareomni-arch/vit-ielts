@@ -54,3 +54,31 @@ export const withAdmin: GetServerSideProps = async (
 
   return { props: {} };
 };
+
+/**
+ * Enhanced SSR guard with data pre-fetching.
+ * Runs withAdmin auth check, then calls `fetchData` callback to load page data
+ * in the same SSR request — avoiding a redundant client-side API call + auth.
+ *
+ * Usage:
+ *   export const getServerSideProps = withAdminData(async (ctx) => {
+ *     const data = await fetchSomething(ctx.params.id);
+ *     return { myProp: data };
+ *   });
+ */
+export function withAdminData(
+  fetchData: (context: GetServerSidePropsContext) => Promise<Record<string, unknown>>
+): GetServerSideProps {
+  return async (context: GetServerSidePropsContext) => {
+    const guard = await withAdmin(context);
+    if (!("props" in guard)) return guard; // redirect or notFound
+
+    try {
+      const extraProps = await fetchData(context);
+      return { props: { ...guard.props, ...extraProps } };
+    } catch (error) {
+      console.error("[withAdminData] Error fetching data:", error);
+      return { props: { ...guard.props } };
+    }
+  };
+}

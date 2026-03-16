@@ -76,7 +76,7 @@ export async function getSampleEssays(
 
     let query = supabase
         .from("sample_essays")
-        .select("*", { count: "exact" })
+        .select("id, title, slug, excerpt, skill, part, question_type, quarter, year, source, topic, task, passage, featured_image, status, pro_user_only, views, published_at, created_at", { count: "exact" })
         .eq("status", "published");
 
     // Exact match filters

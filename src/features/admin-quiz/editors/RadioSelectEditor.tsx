@@ -39,17 +39,17 @@ export default function RadioSelectEditor({ questions, onChange }: RadioSelectEd
     };
 
     return (
-        <div className="bg-gray-50 p-3 rounded">
+        <div className="sub-editor-container">
             <Divider orientation="left">Radio/Select Questions</Divider>
             {(Array.isArray(questions) ? questions : []).map((q, idx) => (
-                <Card key={idx} size="small" className="mb-2" extra={<Button size="small" danger icon={<DeleteOutlined />} onClick={() => remove(idx)} />}>
+                <Card key={idx} size="small" style={{ marginBottom: 8 }} extra={<Button size="small" danger icon={<DeleteOutlined />} onClick={() => remove(idx)} />}>
                     <Row gutter={8}>
                         <Col span={12}><Input placeholder="Question text" value={q.question} onChange={(e) => update(idx, "question", e.target.value)} /></Col>
                         <Col span={12}><Input placeholder="Correct answer" value={q.correct} onChange={(e) => update(idx, "correct", e.target.value)} /></Col>
                     </Row>
-                    <div className="mt-2">
+                    <div style={{ marginTop: 8 }}>
                         {(q.options ?? []).map((opt, oIdx) => (
-                            <Space key={oIdx} className="mb-1 w-full">
+                            <Space key={oIdx} style={{ marginBottom: 4, width: '100%' }}>
                                 <Input size="small" placeholder={`Option ${oIdx + 1}`} value={opt.option_text} onChange={(e) => updateOption(idx, oIdx, e.target.value)} style={{ width: 300 }} />
                                 <Button size="small" danger icon={<DeleteOutlined />} onClick={() => removeOption(idx, oIdx)} />
                             </Space>
@@ -59,6 +59,15 @@ export default function RadioSelectEditor({ questions, onChange }: RadioSelectEd
                 </Card>
             ))}
             <Button icon={<PlusOutlined />} onClick={add}>Thêm câu hỏi</Button>
+
+            <style jsx>{`
+                .sub-editor-container {
+                    background: #f8f9fa;
+                    padding: 12px;
+                    border-radius: 8px;
+                    border: 1px solid #f0f0f0;
+                }
+            `}</style>
         </div>
     );
 }

@@ -52,18 +52,18 @@ export default async function handler(
             // Total users
             supabaseAdmin
                 .from("users")
-                .select("*", { count: "exact", head: true }),
+                .select("id", { count: "exact", head: true }),
 
             // Pro users
             supabaseAdmin
                 .from("users")
-                .select("*", { count: "exact", head: true })
+                .select("id", { count: "exact", head: true })
                 .eq("is_pro", true),
 
             // Today new users
             supabaseAdmin
                 .from("users")
-                .select("*", { count: "exact", head: true })
+                .select("id", { count: "exact", head: true })
                 .gte("created_at", todayISO),
 
             // Total tests taken (sum of tests_taken across all quizzes)

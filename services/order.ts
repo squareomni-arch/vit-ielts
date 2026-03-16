@@ -93,7 +93,7 @@ export async function createOrder(
     if (params.couponId) {
         const { data: coupon, error: couponError } = await supabaseAdmin
             .from("coupons")
-            .select("*")
+            .select("id, is_active, max_uses, current_uses")
             .eq("id", params.couponId)
             .single();
 
@@ -166,7 +166,7 @@ export async function getOrderByTransferContent(
     // 1. Exact match trên order_id hoặc transfer_content
     const { data: exactMatch } = await supabaseAdmin
         .from("orders")
-        .select("*")
+        .select("id, order_id, user_id, package_type, duration, skill_type, amount, original_amount, discount_amount, coupon_id, coupon_code, status, payment_method, transfer_content, affiliate_ref, created_at")
         .or(`order_id.eq.${content},transfer_content.eq.${content}`)
         .maybeSingle();
 
@@ -178,7 +178,7 @@ export async function getOrderByTransferContent(
     // Tìm tất cả pending orders và check partial match
     const { data: allOrders } = await supabaseAdmin
         .from("orders")
-        .select("*")
+        .select("id, order_id, user_id, package_type, duration, skill_type, amount, original_amount, discount_amount, coupon_id, coupon_code, status, payment_method, transfer_content, affiliate_ref, created_at")
         .in("status", ["pending"]);
 
     if (!allOrders || allOrders.length === 0) return null;
@@ -214,7 +214,7 @@ export async function getOrderById(
 ) {
     const { data, error } = await supabaseAdmin
         .from("orders")
-        .select("*")
+        .select("id, order_id, user_id, package_type, duration, skill_type, amount, original_amount, discount_amount, coupon_code, status, payment_method, transfer_content, affiliate_ref, created_at")
         .eq("order_id", orderId)
         .maybeSingle();
 
@@ -288,7 +288,7 @@ export async function getOrders(
 
     let query = supabaseAdmin
         .from("orders")
-        .select("*", { count: "exact" })
+        .select("id, order_id, user_id, package_type, duration, skill_type, amount, original_amount, discount_amount, coupon_code, status, payment_method, transfer_content, affiliate_ref, created_at", { count: "exact" })
         .order("created_at", { ascending: false });
 
     if (status) {
