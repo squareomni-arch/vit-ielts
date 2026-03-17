@@ -1,14 +1,113 @@
 import { useEffect, useState } from "react";
 import {
     Card, Descriptions, Tag, Button, Tabs, Table, Modal,
-    InputNumber, Space, message, Spin, Avatar, Popconfirm,
+    InputNumber, Space, message, Spin, Avatar, Popconfirm, Tooltip,
 } from "antd";
-import { UserOutlined, CrownOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import {
+    UserOutlined, CrownOutlined, ArrowLeftOutlined,
+    DesktopOutlined, TabletOutlined, MobileOutlined, CopyOutlined, CheckOutlined,
+} from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 import { withAdmin } from "@/shared/hoc/withAdmin";
+
+/* ── Device display helpers ──────────────────────────── */
+
+type DeviceType = "desktop" | "tablet" | "mobile";
+type DeviceEntry = { device_id: string };
+type DevicesMap = Partial<Record<DeviceType, DeviceEntry>>;
+
+const DEVICE_META: Record<DeviceType, { icon: React.ReactNode; label: string; color: string }> = {
+    desktop: { icon: <DesktopOutlined />, label: "Desktop", color: "#1677ff" },
+    tablet:  { icon: <TabletOutlined />,  label: "Tablet",  color: "#722ed1" },
+    mobile:  { icon: <MobileOutlined />,  label: "Mobile",  color: "#13c2c2" },
+};
+
+function DeviceCard({ type, entry }: { type: DeviceType; entry?: DeviceEntry }) {
+    const [copied, setCopied] = useState(false);
+    const meta = DEVICE_META[type];
+    const id = entry?.device_id;
+
+    const handleCopy = async () => {
+        if (!id) return;
+        await navigator.clipboard.writeText(id);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+    };
+
+    return (
+        <div
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "8px 14px",
+                borderRadius: 8,
+                border: `1px solid ${id ? meta.color + "40" : "#f0f0f0"}`,
+                background: id ? meta.color + "08" : "#fafafa",
+                opacity: id ? 1 : 0.45,
+                minWidth: 220,
+            }}
+        >
+            <span
+                style={{
+                    fontSize: 22,
+                    color: id ? meta.color : "#bfbfbf",
+                    display: "flex",
+                    alignItems: "center",
+                }}
+            >
+                {meta.icon}
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: 13, color: id ? "#262626" : "#bfbfbf" }}>
+                    {meta.label}
+                </div>
+                {id ? (
+                    <Tooltip title={id}>
+                        <span
+                            className="font-mono"
+                            style={{ fontSize: 11, color: "#8c8c8c", cursor: "default" }}
+                        >
+                            {id.slice(0, 8)}…{id.slice(-4)}
+                        </span>
+                    </Tooltip>
+                ) : (
+                    <span style={{ fontSize: 11, color: "#d9d9d9" }}>Chưa đăng ký</span>
+                )}
+            </div>
+            {id && (
+                <Tooltip title={copied ? "Đã copy!" : "Copy ID"}>
+                    <Button
+                        type="text"
+                        size="small"
+                        icon={copied ? <CheckOutlined style={{ color: "#52c41a" }} /> : <CopyOutlined />}
+                        onClick={handleCopy}
+                        style={{ color: "#8c8c8c" }}
+                    />
+                </Tooltip>
+            )}
+        </div>
+    );
+}
+
+function DevicesDisplay({ devices }: { devices: DevicesMap | null }) {
+    const deviceMap = (devices ?? {}) as DevicesMap;
+    const types: DeviceType[] = ["desktop", "tablet", "mobile"];
+    const hasAny = types.some((t) => deviceMap[t]?.device_id);
+
+    if (!hasAny) return <span>—</span>;
+
+    return (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {types.map((type) => (
+                <DeviceCard key={type} type={type} entry={deviceMap[type]} />
+            ))}
+        </div>
+    );
+}
 
 const formatPrice = (amount: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
@@ -272,11 +371,7 @@ export default function AdminUserDetailPage() {
                             ) : "—"}
                         </Descriptions.Item>
                         <Descriptions.Item label="Devices" span={2}>
-                            {user.devices ? (
-                                <pre className="text-xs bg-gray-50 p-2 rounded m-0 max-h-32 overflow-auto">
-                                    {JSON.stringify(user.devices, null, 2)}
-                                </pre>
-                            ) : "—"}
+                            <DevicesDisplay devices={user.devices as DevicesMap} />
                         </Descriptions.Item>
                     </Descriptions>
                 </Card>

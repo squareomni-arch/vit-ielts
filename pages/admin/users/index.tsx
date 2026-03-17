@@ -52,6 +52,7 @@ export default function AdminUsersPage() {
 
     // ── Filters ──
     const [search, setSearch] = useState("");
+    const [searchInput, setSearchInput] = useState("");
     const [roleFilter, setRoleFilter] = useState<string>("all");
     const [proFilter, setProFilter] = useState<string>("all");
     const [proStatusFilter, setProStatusFilter] = useState<string>("all");
@@ -160,11 +161,13 @@ export default function AdminUsersPage() {
 
     const handleSearch = (value: string) => {
         setSearch(value);
+        setSearchInput(value);
         setPage(1);
     };
 
     const handleClearFilters = () => {
         setSearch("");
+        setSearchInput("");
         setRoleFilter("all");
         setProFilter("all");
         setProStatusFilter("all");
@@ -447,8 +450,11 @@ export default function AdminUsersPage() {
                         <Input.Search
                             placeholder="Tìm theo tên, email..."
                             allowClear
-                            value={search}
-                            onChange={(e) => !e.target.value && setSearch("")}
+                            value={searchInput}
+                            onChange={(e) => {
+                                setSearchInput(e.target.value);
+                                if (!e.target.value) setSearch("");
+                            }}
                             onSearch={handleSearch}
                             className="admin-users-search"
                             prefix={<SearchOutlined style={{ color: "#999" }} />}
