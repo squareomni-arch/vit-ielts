@@ -66,6 +66,7 @@ export async function getMasterData(context: GetServerSidePropsContext): Promise
                             ? new Date(profile.pro_expiration_date) > new Date()
                             : false),
                     proExpirationDate: profile.pro_expiration_date ?? null,
+                    proSkills: profile.pro_skills ?? null,
                 },
             };
         }

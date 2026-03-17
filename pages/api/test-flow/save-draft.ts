@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createServerClient } from "@supabase/ssr";
+import { createApiSupabase } from "~supabase/server";
 import { saveTestResult } from "~services/test-flow";
 
 type ResponseData = {
@@ -16,28 +16,7 @@ export default async function handler(
   }
 
   try {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return Object.entries(req.cookies).map(([name, value]) => ({
-              name,
-              value: value || "",
-            }));
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              res.setHeader(
-                "Set-Cookie",
-                `${name}=${value}; Path=/; ${options?.maxAge ? `Max-Age=${options.maxAge}` : ""}`
-              );
-            });
-          },
-        },
-      }
-    );
+    const supabase = createApiSupabase(req, res);
 
     const { testId, answers, timeLeft } = req.body;
 

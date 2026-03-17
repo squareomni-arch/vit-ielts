@@ -13,7 +13,10 @@
 
 import { SupabaseClient } from "@supabase/supabase-js";
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import { isAdminRole } from "../lib/parseRoles";
+
+dayjs.extend(customParseFormat);
 
 // ============================================================
 // Types
@@ -38,6 +41,7 @@ type TargetScoreUpdate = {
 type ProStatus = {
     isPro: boolean;
     expirationDate: string | null;
+    proSkills: string[] | null;  // null = all skills (combo), array = specific skills
 };
 
 // ============================================================
@@ -119,27 +123,28 @@ export async function checkProStatus(
 ): Promise<ProStatus> {
     const { data, error } = await supabase
         .from("users")
-        .select("is_pro, pro_expiration_date, roles")
+        .select("is_pro, pro_expiration_date, pro_skills, roles")
         .eq("id", userId)
         .single();
 
     if (error) throw error;
-    if (!data) return { isPro: false, expirationDate: null };
+    if (!data) return { isPro: false, expirationDate: null, proSkills: null };
 
-    // Admin luôn Pro
+    // Admin always has Pro (all skills)
     if (isAdminRole(data.roles)) {
-        return { isPro: true, expirationDate: data.pro_expiration_date };
+        return { isPro: true, expirationDate: data.pro_expiration_date, proSkills: null };
     }
 
-    // Check is_pro flag + expiration date chưa qua
+    // Check is_pro flag + expiration date not passed
     if (!data.is_pro || !data.pro_expiration_date) {
-        return { isPro: false, expirationDate: data.pro_expiration_date };
+        return { isPro: false, expirationDate: data.pro_expiration_date, proSkills: data.pro_skills ?? null };
     }
 
-    const isExpired = new Date(data.pro_expiration_date) < new Date();
+    const isExpired = dayjs(data.pro_expiration_date).isBefore(dayjs());
     return {
         isPro: !isExpired,
         expirationDate: data.pro_expiration_date,
+        proSkills: data.pro_skills ?? null,
     };
 }
 
@@ -158,22 +163,29 @@ export async function activateProAccount(
     supabaseAdmin: SupabaseClient,
     userId: string,
     durationMonths: number,
+    proSkills: string[] | null = null,  // null = all skills (combo)
 ) {
-    // Lấy trạng thái Pro hiện tại
+    // Get current Pro status
     const { data: user, error: fetchError } = await supabaseAdmin
         .from("users")
-        .select("is_pro, pro_expiration_date")
+        .select("is_pro, pro_expiration_date, pro_skills")
         .eq("id", userId)
         .single();
 
     if (fetchError) throw fetchError;
 
-    // Tính ngày hết hạn mới
+    // Calculate new expiration date
     const newExpirationDate = calculateProExpirationDate(
         user?.pro_expiration_date ?? null,
         durationMonths,
         user?.is_pro ?? false,
     );
+
+    // Merge pro_skills:
+    // - Combo (null) always wins (upgrade to full access)
+    // - If user already has combo → keep combo
+    // - If user has single + buying different single → merge into array
+    const mergedSkills = mergeProSkills(user?.pro_skills ?? null, proSkills);
 
     // Update user
     const { data, error } = await supabaseAdmin
@@ -181,9 +193,10 @@ export async function activateProAccount(
         .update({
             is_pro: true,
             pro_expiration_date: newExpirationDate,
+            pro_skills: mergedSkills,
         })
         .eq("id", userId)
-        .select("is_pro, pro_expiration_date")
+        .select("is_pro, pro_expiration_date, pro_skills")
         .single();
 
     if (error) throw error;
@@ -193,6 +206,34 @@ export async function activateProAccount(
 // ============================================================
 // Helpers (internal)
 // ============================================================
+
+/**
+ * Merge pro_skills when activating Pro.
+ *
+ * Logic:
+ * - Combo (null) always wins → full access
+ * - User already has combo → keep combo
+ * - User has single + buying different single → merge (deduplicate)
+ * - User has single + buying same single → no change
+ *
+ * @param current - Current pro_skills (null = combo/all)
+ * @param incoming - New purchase pro_skills (null = combo/all)
+ * @returns Merged pro_skills
+ */
+export function mergeProSkills(
+    current: string[] | null,
+    incoming: string[] | null,
+): string[] | null {
+    // Combo purchase → upgrade to full access
+    if (incoming === null) return null;
+
+    // User already has combo → keep combo (don't downgrade)
+    if (current === null) return null;
+
+    // Merge singles, deduplicate
+    const merged = [...new Set([...current, ...incoming])];
+    return merged;
+}
 
 /**
  * Tính ngày hết hạn Pro mới
@@ -212,7 +253,7 @@ export function calculateProExpirationDate(
 ): string {
     const now = dayjs();
 
-    // Parse ngày hết hạn hiện tại (nếu có)
+    // Parse current expiration date (if any)
     const parseDate = (dateStr: string): dayjs.Dayjs => {
         // Format ACF legacy: "YYYYMMDD"
         if (/^\d{8}$/.test(dateStr)) {
@@ -222,16 +263,16 @@ export function calculateProExpirationDate(
         return dayjs(dateStr);
     };
 
-    // Nếu có ngày hết hạn hiện tại
+    // If there is a current expiration date
     if (currentExpirationDate) {
         const currentExp = parseDate(currentExpirationDate);
 
-        // Cộng thêm nếu ngày hết hạn còn trong tương lai
+        // Extend if expiration is still in the future
         if (currentExp.isValid() && currentExp.isAfter(now)) {
             return currentExp.add(duration, "month").format("YYYY-MM-DD");
         }
     }
 
-    // Mặc định: tính từ ngày hiện tại
+    // Default: calculate from current date
     return now.add(duration, "month").format("YYYY-MM-DD");
 }

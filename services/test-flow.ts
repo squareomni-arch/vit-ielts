@@ -26,6 +26,7 @@ import type {
 } from "./types/database";
 import type { QuizWithPassages as QuizForScoring } from "./types/quiz";
 import { calculateScore } from "./scoring";
+import { TEST_RESULT_COLUMNS, TEST_RESULT_SUMMARY_COLUMNS } from "./lib/columns";
 
 // ============================================================================
 // Custom Error Classes
@@ -162,7 +163,7 @@ export async function takeTheTest(
     // Step 1: Check Pro access
     const { data: quiz, error: quizError } = await supabase
         .from("quizzes")
-        .select("pro_user_only")
+        .select("pro_user_only, skill")
         .eq("id", params.quizId)
         .single();
 
@@ -173,7 +174,7 @@ export async function takeTheTest(
     if (quiz.pro_user_only) {
         const { data: profile } = await supabase
             .from("users")
-            .select("is_pro, pro_expiration_date")
+            .select("is_pro, pro_expiration_date, pro_skills")
             .eq("id", userId)
             .single();
 
@@ -185,12 +186,22 @@ export async function takeTheTest(
         if (!isPro) {
             throw new ProAccessError();
         }
+
+        // Skill-level check: pro_skills = null means all skills (combo)
+        // If pro_skills is an array, user must have access to this quiz's skill
+        if (
+            profile.pro_skills !== null &&
+            Array.isArray(profile.pro_skills) &&
+            !profile.pro_skills.includes(quiz.skill)
+        ) {
+            throw new ProAccessError();
+        }
     }
 
     // Step 2: Check existing draft
     const { data: existingDraft } = await supabase
         .from("test_results")
-        .select("id, user_id, quiz_id, answers, test_part, time_left, test_time, test_mode, score, status, submitted_at, created_at")
+        .select(TEST_RESULT_COLUMNS)
         .eq("user_id", userId)
         .eq("quiz_id", params.quizId)
         .eq("status", "draft")
@@ -319,11 +330,12 @@ export async function submitTestResult(
 
     // Convert to scoring engine format and calculate score
     const quizForScoring = toQuizForScoring(quizData);
-    const score = calculateScore(
+    const scoreResult = calculateScore(
         answers.answers as Parameters<typeof calculateScore>[0],
         quizForScoring,
         testResult.test_part as number[],
     );
+    const score = scoreResult.score;
 
     // Update test result: publish with score
     const { data: updatedResult, error: updateError } = await supabase
@@ -393,7 +405,7 @@ export async function getUserTestHistory(
     filters: TestHistoryFilters = {},
 ): Promise<PaginatedResponse<TestResultWithQuiz>> {
     const page = filters.page ?? 1;
-    const pageSize = filters.pageSize ?? 10;
+    const pageSize = Math.min(filters.pageSize ?? 10, 100);
 
     let query = supabase
         .from("test_results")
@@ -412,8 +424,19 @@ export async function getUserTestHistory(
         query = query.eq("quiz_id", filters.quizId);
     }
 
+    // PostgREST .eq() on embedded resources doesn't filter parent rows,
+    // so we use a 2-step approach: get quiz IDs first, then filter.
     if (filters.skill) {
-        query = query.eq("quizzes.skill", filters.skill);
+        const { data: matchingQuizzes } = await supabase
+            .from("quizzes")
+            .select("id")
+            .eq("skill", filters.skill);
+
+        const quizIds = (matchingQuizzes ?? []).map((q) => q.id);
+        if (quizIds.length === 0) {
+            return { data: [], count: 0, page, pageSize, totalPages: 0 };
+        }
+        query = query.in("quiz_id", quizIds);
     }
 
     if (filters.dateFrom) {
@@ -462,7 +485,7 @@ export async function getTestResultsByQuiz(
 ): Promise<TestResult[]> {
     const { data, error } = await supabase
         .from("test_results")
-        .select("id, user_id, quiz_id, score, test_part, time_left, test_time, test_mode, status, submitted_at, created_at")
+        .select(TEST_RESULT_SUMMARY_COLUMNS)
         .eq("quiz_id", quizId)
         .eq("status", "published")
         .order("submitted_at", { ascending: false });
@@ -470,3 +493,31 @@ export async function getTestResultsByQuiz(
     if (error) throw error;
     return (data ?? []) as TestResult[];
 }
+
+// ============================================================================
+// 7. cleanupOldTestResults
+// ============================================================================
+
+/**
+ * Delete old test results to free storage.
+ * - Published results older than 6 months (from submitted_at)
+ * - Abandoned drafts older than 30 days (from created_at)
+ *
+ * Uses a PostgreSQL RPC function for atomic batch deletion.
+ *
+ * @param supabase - Supabase admin client (service_role, bypass RLS)
+ * @returns Number of deleted rows
+ * @see supabase/migrations/004_cleanup_test_results.sql
+ */
+export async function cleanupOldTestResults(
+    supabase: SupabaseClient,
+): Promise<number> {
+    const { data, error } = await supabase.rpc("cleanup_old_test_results");
+
+    if (error) {
+        throw new Error(`Failed to cleanup old test results: ${error.message}`);
+    }
+
+    return (data as number) ?? 0;
+}
+

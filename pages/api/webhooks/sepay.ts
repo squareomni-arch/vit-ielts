@@ -1,8 +1,9 @@
-﻿import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
+import crypto from "crypto";
 import { supabaseAdmin } from "~supabase/admin";
 import {
   getOrderByTransferContent,
-  updateOrderStatus,
+  completeOrder,
 } from "../../../services/order";
 import { activateProAccount, getUserProfile } from "../../../services/user";
 import {
@@ -18,18 +19,47 @@ const log = dbg.webhook;
 // ============================================================
 
 interface SepayWebhookPayload {
-  gateway?: string; // "ACB"
-  transactionDate?: string; // "2026-01-23 16:58:05"
-  accountNumber?: string; // "2447967"
+  gateway?: string;
+  transactionDate?: string;
+  accountNumber?: string;
   subAccount?: string | null;
   code?: string | null;
-  content?: string; // Ná»™i dung chuyá»ƒn khoáº£n â€” chá»©a mÃ£ Ä‘Æ¡n hÃ ng
-  transferType?: string; // "in"
+  content?: string;
+  transferType?: string;
   description?: string;
-  transferAmount?: number; // Sá»‘ tiá»n (VND)
+  transferAmount?: number;
   referenceCode?: string;
   accumulated?: number;
   id?: number;
+}
+
+// ============================================================
+// Signature Verification (Blocker #1)
+// ============================================================
+
+/**
+ * Verify HMAC-SHA256 signature from Sepay webhook.
+ * Uses timing-safe comparison to prevent timing attacks.
+ */
+function verifyWebhookSignature(
+  rawBody: string,
+  signature: string,
+  secret: string,
+): boolean {
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(rawBody, "utf8")
+    .digest("hex");
+
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(signature, "hex"),
+      Buffer.from(expected, "hex"),
+    );
+  } catch {
+    // Buffers of different lengths → signature is invalid
+    return false;
+  }
 }
 
 // ============================================================
@@ -40,23 +70,28 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  // Chá»‰ cháº¥p nháº­n POST request
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Optional: Verify webhook signature tá»« Sepay (náº¿u cÃ³)
+  // ── Blocker #1: Verify webhook signature ──
   const webhookSecret = process.env.SEPAY_WEBHOOK_SECRET;
   if (webhookSecret) {
-    // TODO: Implement signature verification náº¿u Sepay cung cáº¥p
-    // const signature = req.headers["x-sepay-signature"];
-    // if (!verifySignature(payload, signature, webhookSecret)) {
-    //   return res.status(401).json({ error: "Invalid signature" });
-    // }
+    const signature =
+      (req.headers["x-sepay-signature"] as string) ||
+      (req.headers["authorization"] as string) ||
+      "";
+
+    const rawBody =
+      typeof req.body === "string" ? req.body : JSON.stringify(req.body);
+
+    if (!signature || !verifyWebhookSignature(rawBody, signature, webhookSecret)) {
+      log.error("[Sepay Webhook] Invalid or missing signature");
+      return res.status(401).json({ error: "Invalid webhook signature" });
+    }
   }
 
   try {
-    // Parse webhook payload tá»« Sepay
     const payload: SepayWebhookPayload = req.body;
     log(
       `[Sepay Webhook] Raw payload received:`,
@@ -74,9 +109,8 @@ export default async function handler(
       });
     }
 
-    // â”€â”€ Parse orderId tá»« content â”€â”€
-    // Format tá»« Sepay: "IELTS PREDICTION 17691622312585779 FT26023000837022 ..."
-    // OrderId format: "IELTS PREDICTION {timestamp}{random}"
+    // ── Parse orderId from content ──
+    // Format: "IELTS PREDICTION 17691622312585779 FT26023000837022 ..."
     let orderId = "";
 
     const orderIdPattern = /IELTS\s+PREDICTION\s+(\d+)/i;
@@ -106,10 +140,10 @@ export default async function handler(
       transactionDate: payload.transactionDate || new Date().toISOString(),
     });
 
-    // â”€â”€ TÃ¬m order â”€â”€
+    // ── Find order ──
     let order = await getOrderByTransferContent(supabaseAdmin, orderId);
 
-    // Thá»­ tÃ¬m thÃªm vá»›i chá»‰ pháº§n sá»‘ náº¿u khÃ´ng tÃ¬m tháº¥y
+    // Retry with numeric part only if not found
     if (!order) {
       const orderIdNumbers = orderId
         .replace("IELTS PREDICTION", "")
@@ -141,19 +175,7 @@ export default async function handler(
       userId: order.user_id,
     });
 
-    // â”€â”€ Kiá»ƒm tra order Ä‘Ã£ xá»­ lÃ½ chÆ°a â”€â”€
-    if (order.status === "completed") {
-      log(
-        `[Sepay Webhook] Order already completed: ${order.order_id}`,
-      );
-      return res.status(200).json({
-        success: true,
-        message: "Order already processed",
-        orderId: order.order_id,
-      });
-    }
-
-    // â”€â”€ Äá»‘i chiáº¿u sá»‘ tiá»n (cho phÃ©p sai sá»‘ 1000 VND) â”€â”€
+    // ── Verify amount (allow 1000 VND tolerance) ──
     if (Math.abs(order.amount - amount) > 1000) {
       log.error(`[Sepay Webhook] Amount mismatch:`, {
         expected: order.amount,
@@ -167,7 +189,27 @@ export default async function handler(
       });
     }
 
-    // â”€â”€ Láº¥y thÃ´ng tin user tá»« Supabase â”€â”€
+    // ── Blocker #2: Atomically mark order as completed FIRST ──
+    // completeOrder() only transitions pending → completed.
+    // If the order was already completed, updated=false → return early (idempotent).
+    const { updated } = await completeOrder(supabaseAdmin, order.order_id);
+
+    if (!updated) {
+      log(
+        `[Sepay Webhook] Order already processed (not pending): ${order.order_id}`,
+      );
+      return res.status(200).json({
+        success: true,
+        message: "Order already processed",
+        orderId: order.order_id,
+      });
+    }
+
+    log(
+      `[Sepay Webhook] ✔ Order status updated: ${order.order_id} → completed`,
+    );
+
+    // ── Fetch user info ──
     let userEmail: string | null = null;
     let userName: string | null = null;
 
@@ -189,7 +231,7 @@ export default async function handler(
       }
     }
 
-    // â”€â”€ KÃ­ch hoáº¡t Pro account â”€â”€
+    // ── Activate Pro account ──
     if (order.user_id && !order.user_id.startsWith("temp_")) {
       try {
         log(
@@ -199,13 +241,16 @@ export default async function handler(
           supabaseAdmin,
           order.user_id,
           order.duration,
+          order.package_type === "single" && order.skill_type
+            ? [order.skill_type]
+            : null,
         );
         log(
-          `[Sepay Webhook] âœ“ ProAccount updated successfully for user: ${order.user_id}`,
+          `[Sepay Webhook] ✔ ProAccount updated successfully for user: ${order.user_id}`,
         );
       } catch (updateError) {
-        log.error(`[Sepay Webhook] âœ— Error updating ProAccount:`, updateError);
-        // Váº«n tiáº¿p tá»¥c xá»­ lÃ½, khÃ´ng fail toÃ n bá»™ request
+        log.error(`[Sepay Webhook] ✗ Error updating ProAccount:`, updateError);
+        // Continue — order is already marked completed
       }
     } else {
       log(
@@ -213,7 +258,7 @@ export default async function handler(
       );
     }
 
-    // â”€â”€ Gá»­i email cho khÃ¡ch hÃ ng â”€â”€
+    // ── Send customer email ──
     if (userEmail && userName) {
       try {
         log(
@@ -226,10 +271,10 @@ export default async function handler(
           order.amount,
           order.duration,
         );
-        log(`[Sepay Webhook] âœ“ Customer email sent successfully`);
+        log(`[Sepay Webhook] ✔ Customer email sent successfully`);
       } catch (emailError) {
         log.error(
-          `[Sepay Webhook] âœ— Error sending customer email:`,
+          `[Sepay Webhook] ✗ Error sending customer email:`,
           emailError,
         );
       }
@@ -239,41 +284,27 @@ export default async function handler(
       );
     }
 
-    // â”€â”€ Gá»­i email cho admin â”€â”€
+    // ── Send admin notification email ──
     try {
       const adminEmail =
         process.env.ADMIN_EMAIL || "admin@ieltspredictiontest.com";
       log(`[Sepay Webhook] Sending admin email to: ${adminEmail}`);
       await sendAdminNotificationEmail(
         order.order_id,
-        userName || "KhÃ¡ch hÃ ng",
+        userName || "Khách hàng",
         userEmail || "N/A",
         order.amount,
         order.duration,
       );
-      log(`[Sepay Webhook] âœ“ Admin email sent successfully`);
+      log(`[Sepay Webhook] ✔ Admin email sent successfully`);
     } catch (emailError) {
       log.error(
-        `[Sepay Webhook] âœ— Error sending admin email:`,
+        `[Sepay Webhook] ✗ Error sending admin email:`,
         emailError,
       );
     }
 
-    // â”€â”€ Cáº­p nháº­t order status â†’ completed â”€â”€
-    try {
-      await updateOrderStatus(supabaseAdmin, order.order_id, "completed");
-      log(
-        `[Sepay Webhook] âœ“ Updated order status: ${order.order_id} â†’ completed`,
-      );
-    } catch (saveError) {
-      log.error(
-        `[Sepay Webhook] Error updating order status:`,
-        saveError,
-      );
-      // Váº«n tráº£ vá» success vÃ¬ cÃ¡c bÆ°á»›c khÃ¡c Ä‘Ã£ hoÃ n thÃ nh
-    }
-
-    log(`[Sepay Webhook] âœ“ Successfully processed order:`, {
+    log(`[Sepay Webhook] ✔ Successfully processed order:`, {
       orderId: order.order_id,
       amount,
       userId: order.user_id,

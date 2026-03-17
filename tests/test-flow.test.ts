@@ -62,12 +62,50 @@ const proUser = {
   id: "user-001",
   is_pro: true,
   pro_expiration_date: new Date(Date.now() + 86400000 * 30).toISOString(), // 30 days from now
+  pro_skills: null, // combo = all skills
 };
 
 const freeUser = {
   id: "user-001",
   is_pro: false,
   pro_expiration_date: null,
+  pro_skills: null,
+};
+
+const listeningOnlyUser = {
+  id: "user-001",
+  is_pro: true,
+  pro_expiration_date: new Date(Date.now() + 86400000 * 30).toISOString(),
+  pro_skills: ["listening"], // single listening package
+};
+
+const readingListeningUser = {
+  id: "user-001",
+  is_pro: true,
+  pro_expiration_date: new Date(Date.now() + 86400000 * 30).toISOString(),
+  pro_skills: ["reading", "listening"], // merged singles
+};
+
+const proReadingQuiz = {
+  id: "quiz-pro-reading",
+  title: "Pro Reading Quiz",
+  slug: "pro-reading",
+  pro_user_only: true,
+  status: "published",
+  skill: "reading",
+  type: "exam",
+  time_minutes: 60,
+};
+
+const proListeningQuiz = {
+  id: "quiz-pro-listening",
+  title: "Pro Listening Quiz",
+  slug: "pro-listening",
+  pro_user_only: true,
+  status: "published",
+  skill: "listening",
+  type: "exam",
+  time_minutes: 60,
 };
 
 const draftTestResult = {
@@ -221,6 +259,70 @@ describe("Test Flow — takeTheTest()", () => {
 
     const result = await takeTheTest(supabase as any, {
       quizId: "quiz-pro-001",
+      testPart: [0],
+      testTime: 60,
+      testMode: "practice",
+      retake: false,
+    });
+
+    expect(result).toBeDefined();
+    expect(result.status).toBe("draft");
+  });
+
+  it("throws ProAccessError for single-listening user accessing reading quiz", async () => {
+    const supabase = createMockSupabase(
+      {
+        quizzes: [proReadingQuiz],
+        users: [listeningOnlyUser],
+      },
+      "user-001"
+    );
+
+    await expect(
+      takeTheTest(supabase as any, {
+        quizId: "quiz-pro-reading",
+        testPart: [0],
+        testTime: 60,
+        testMode: "practice",
+        retake: false,
+      })
+    ).rejects.toThrow(ProAccessError);
+  });
+
+  it("allows single-listening user to access listening quiz", async () => {
+    const supabase = createMockSupabase(
+      {
+        quizzes: [proListeningQuiz],
+        users: [listeningOnlyUser],
+        test_results: [],
+      },
+      "user-001"
+    );
+
+    const result = await takeTheTest(supabase as any, {
+      quizId: "quiz-pro-listening",
+      testPart: [0],
+      testTime: 60,
+      testMode: "practice",
+      retake: false,
+    });
+
+    expect(result).toBeDefined();
+    expect(result.status).toBe("draft");
+  });
+
+  it("allows combo user (pro_skills=null) to access any quiz", async () => {
+    const supabase = createMockSupabase(
+      {
+        quizzes: [proReadingQuiz],
+        users: [proUser], // proUser has pro_skills: null (combo)
+        test_results: [],
+      },
+      "user-001"
+    );
+
+    const result = await takeTheTest(supabase as any, {
+      quizId: "quiz-pro-reading",
       testPart: [0],
       testTime: 60,
       testMode: "practice",

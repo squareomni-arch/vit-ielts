@@ -143,7 +143,6 @@ const CheckoutPage = () => {
     setIsCreatingOrder(true);
 
     try {
-      const userId = currentUser?.id || "";
       
       const response = await fetch("/api/orders/create", {
         method: "POST",
@@ -159,7 +158,6 @@ const CheckoutPage = () => {
           couponId: appliedCoupon?.id,
           couponCode: appliedCoupon?.code,
           discountAmount: appliedCoupon?.discountAmount || 0,
-          userId: userId,
         }),
       });
 

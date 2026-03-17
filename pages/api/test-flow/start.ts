@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createServerClient } from "@supabase/ssr";
+import { createApiSupabase } from "~supabase/server";
 import { takeTheTest } from "~services/test-flow";
+import { StartTestSchema } from "~services/lib/validation";
+import { rateLimit } from "~lib/rate-limit";
 
 type ResponseData = {
   success: boolean;
@@ -22,38 +24,21 @@ export default async function handler(
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
 
+  // Rate limit: 30 test starts per minute per IP
+  if (rateLimit(req, res, { windowMs: 60_000, max: 30, keyPrefix: "test-start" })) return;
+
   try {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return Object.entries(req.cookies).map(([name, value]) => ({
-              name,
-              value: value || "",
-            }));
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              res.setHeader(
-                "Set-Cookie",
-                `${name}=${value}; Path=/; ${options?.maxAge ? `Max-Age=${options.maxAge}` : ""}`
-              );
-            });
-          },
-        },
-      }
-    );
+    const supabase = createApiSupabase(req, res);
 
-    const { quizId, testPart, testTime, testMode, retake } = req.body;
-
-    if (!quizId) {
+    const parsed = StartTestSchema.safeParse(req.body);
+    if (!parsed.success) {
       return res.status(400).json({
         success: false,
-        error: "quizId is required",
+        error: parsed.error.issues.map((i) => i.message).join(", "),
       });
     }
+
+    const { quizId, testPart, testTime, testMode, retake } = parsed.data;
 
     const result = await takeTheTest(supabase, {
       quizId,

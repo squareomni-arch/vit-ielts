@@ -17,6 +17,18 @@ import type { QuizWithPassages, QuizQuestion } from "./types/quiz";
 /** User answer can be a string, number, array of indices, object map, or null/undefined */
 type UserAnswer = string | number | number[] | Record<string, string> | null | undefined;
 
+/** Rich result from the scoring engine */
+export type ScoreResult = {
+    /** Band score from 0.0 to 9.0 (step 0.5) */
+    score: number;
+    /** Number of correctly answered sub-questions */
+    totalCorrect: number;
+    /** Total number of scored sub-questions */
+    totalQuestions: number;
+    /** Number of questions with no answer provided */
+    unanswered: number;
+};
+
 /** Internal question representation with associated passage content for heading layout */
 type ScoringQuestion = QuizQuestion & {
     associated_passage_content?: string;
@@ -303,13 +315,15 @@ export function calculateScore(
     answers: UserAnswer[] | null | undefined,
     quiz: QuizWithPassages | null | undefined,
     testPart: number[] | null | undefined,
-): number {
+): ScoreResult {
+    const EMPTY_RESULT: ScoreResult = { score: 0, totalCorrect: 0, totalQuestions: 0, unanswered: 0 };
+
     // Guard: invalid input → score 0
     const safeAnswers: UserAnswer[] = Array.isArray(answers) ? answers : [];
     const safeTestPart: number[] = Array.isArray(testPart) ? testPart : [];
 
     if (!quiz?.passages) {
-        return 0;
+        return EMPTY_RESULT;
     }
 
     // Step 1: Filter passages by testPart indices
@@ -373,15 +387,34 @@ export function calculateScore(
         answerIndex = result.nextIndex;
     }
 
-    // Step 4: Calculate final score
-    // Làm tròn score đến 0.5 gần nhất: round(raw * 2) / 2
+    // Step 4: Count unanswered questions
+    let unanswered = 0;
+    let checkIdx = 0;
+    for (const question of allQuestions) {
+        const subCount = (question.list_of_questions ?? []).length || 1;
+        for (let i = 0; i < subCount; i++) {
+            const ans = safeAnswers[checkIdx + i];
+            if (ans === null || ans === undefined || ans === "") {
+                unanswered++;
+            }
+        }
+        checkIdx += subCount;
+    }
+
+    // Step 5: Calculate final score
+    // Round score to nearest 0.5: round(raw * 2) / 2
     // @origin functions.php L1442–1452
     if (totalQuestions === 0) {
-        return 0;
+        return EMPTY_RESULT;
     }
 
     const rawScore = (totalCorrect / totalQuestions) * 9;
     const roundedScore = Math.round(rawScore * 2) / 2;
 
-    return roundedScore;
+    return {
+        score: roundedScore,
+        totalCorrect,
+        totalQuestions,
+        unanswered,
+    };
 }

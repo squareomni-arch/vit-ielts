@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
 import { validateCoupon } from "../../../services/coupon";
+import { ValidateCouponSchema } from "../../../services/lib/validation";
+import { rateLimit } from "~lib/rate-limit";
 
 export default async function handler(
   req: NextApiRequest,
@@ -10,15 +12,19 @@ export default async function handler(
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  try {
-    const { code } = req.body;
+  // Rate limit: 20 coupon validations per minute per IP
+  if (rateLimit(req, res, { windowMs: 60_000, max: 20, keyPrefix: "coupon" })) return;
 
-    if (!code || typeof code !== "string") {
+  try {
+    const parsed = ValidateCouponSchema.safeParse(req.body);
+    if (!parsed.success) {
       return res.status(400).json({
         valid: false,
-        message: "Vui lòng nhập mã giảm giá",
+        message: "Vui lòng nhập mã giảm giá hợp lệ",
       });
     }
+
+    const { code } = parsed.data;
 
     const result = await validateCoupon(supabaseAdmin, code);
 

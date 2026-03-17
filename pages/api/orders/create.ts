@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
+import { createApiSupabase } from "~supabase/server";
 import { createOrder } from "../../../services/order";
+import { CreateOrderSchema } from "../../../services/lib/validation";
 
 const AFFILIATE_COOKIE_NAME = "affiliate_ref";
 
@@ -19,6 +21,15 @@ export default async function handler(
   }
 
   try {
+    // Validate input with Zod
+    const parsed = CreateOrderSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        success: false,
+        error: parsed.error.issues.map((i) => i.message).join(", "),
+      });
+    }
+
     const {
       packageType,
       duration,
@@ -28,15 +39,20 @@ export default async function handler(
       couponId,
       couponCode,
       discountAmount,
-      userId,
-    } = req.body;
+    } = parsed.data;
 
-    if (!packageType || !duration || !amount) {
-      return res.status(400).json({ success: false, error: "Missing required fields" });
+    // Extract userId from authenticated Supabase session (NOT from client body)
+    const supabase = createApiSupabase(req, res);
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return res.status(401).json({
+        success: false,
+        error: "Vui lòng đăng nhập để tiếp tục",
+      });
     }
 
-    // userId từ body hoặc temp ID
-    const finalUserId = userId || `temp_${Date.now()}`;
+    const finalUserId = user.id;
 
     // Affiliate ref từ cookie
     const affiliateRef = req.cookies[AFFILIATE_COOKIE_NAME];
@@ -46,7 +62,7 @@ export default async function handler(
       userId: finalUserId,
       packageType,
       duration,
-      skillType,
+      skillType: skillType as "reading" | "listening" | undefined,
       amount,
       originalAmount,
       couponId,

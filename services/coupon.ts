@@ -123,29 +123,18 @@ export async function useCoupon(
     supabaseAdmin: SupabaseClient,
     couponId: string,
 ) {
-    // Verify coupon exists and is usable
-    const { data: coupon, error: fetchError } = await supabaseAdmin
-        .from("coupons")
-        .select("id, is_active, max_uses, current_uses")
-        .eq("id", couponId)
-        .single();
+    // Atomic: validate + increment in one operation (prevents race conditions)
+    const { data: result, error } = await supabaseAdmin
+        .rpc("increment_coupon_uses", { p_coupon_id: couponId });
 
-    if (fetchError) throw fetchError;
-
-    if (!coupon || !coupon.is_active) {
+    if (error) {
         throw new Error("Mã giảm giá không hợp lệ");
     }
 
-    if (coupon.max_uses !== null && coupon.current_uses >= coupon.max_uses) {
-        throw new Error("Mã giảm giá đã hết lượt sử dụng");
+    // RPC returns empty array if coupon is invalid, inactive, or exhausted
+    if (!result || (Array.isArray(result) && result.length === 0)) {
+        throw new Error("Mã giảm giá không hợp lệ hoặc đã hết lượt sử dụng");
     }
-
-    const { error } = await supabaseAdmin
-        .from("coupons")
-        .update({ current_uses: (coupon.current_uses ?? 0) + 1 })
-        .eq("id", couponId);
-
-    if (error) throw error;
 }
 
 /**

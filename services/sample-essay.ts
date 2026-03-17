@@ -9,6 +9,7 @@
  */
 
 import { SupabaseClient } from "@supabase/supabase-js";
+import { sanitizeFilterValue } from "./lib/sanitize";
 import type {
     SampleEssay,
     SampleEssayFilters,
@@ -72,7 +73,7 @@ export async function getSampleEssays(
     filters: SampleEssayFilters = {}
 ): Promise<PaginatedResponse<SampleEssay>> {
     const page = filters.page || 1;
-    const pageSize = filters.pageSize || 12;
+    const pageSize = Math.min(filters.pageSize || 12, 100);
 
     let query = supabase
         .from("sample_essays")
@@ -90,15 +91,15 @@ export async function getSampleEssays(
 
     // LIKE match filters (partial match — mirrors WordPress meta_query LIKE)
     if (filters.questionType) {
-        query = query.ilike("question_type", `%${filters.questionType}%`);
+        query = query.ilike("question_type", `%${sanitizeFilterValue(filters.questionType)}%`);
     }
     if (filters.topic) {
-        query = query.ilike("topic", `%${filters.topic}%`);
+        query = query.ilike("topic", `%${sanitizeFilterValue(filters.topic)}%`);
     }
 
     // Search by title
     if (filters.search) {
-        query = query.ilike("title", `%${filters.search}%`);
+        query = query.ilike("title", `%${sanitizeFilterValue(filters.search)}%`);
     }
 
     // Pagination + ordering

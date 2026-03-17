@@ -1,6 +1,22 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
 
+const isProduction = process.env.NODE_ENV === "production";
+
+/**
+ * Build a secure Set-Cookie header string from Supabase cookie options.
+ * - Secure: only transmit over HTTPS (production only)
+ * - SameSite=Lax: CSRF protection while allowing top-level navigations
+ * - HttpOnly is intentionally NOT set — Supabase JS client needs to read these cookies
+ */
+function buildCookieString(name: string, value: string, options?: CookieOptions): string {
+    const parts = [`${name}=${value}`, `Path=${options?.path ?? "/"}`];
+    if (options?.maxAge) parts.push(`Max-Age=${options.maxAge}`);
+    if (isProduction) parts.push("Secure");
+    parts.push("SameSite=Lax");
+    return parts.join("; ");
+}
+
 export function createServerSupabase(context: GetServerSidePropsContext) {
     return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,12 +36,10 @@ export function createServerSupabase(context: GetServerSidePropsContext) {
                         options?: CookieOptions;
                     }[]
                 ) {
-                    cookiesToSet.forEach(({ name, value, options }) => {
-                        context.res.setHeader(
-                            "Set-Cookie",
-                            `${name}=${value}; Path=/; ${options?.maxAge ? `Max-Age=${options.maxAge}` : ""}`
-                        );
-                    });
+                    const cookieStrings = cookiesToSet.map(({ name, value, options }) =>
+                        buildCookieString(name, value, options)
+                    );
+                    context.res.setHeader("Set-Cookie", cookieStrings);
                 },
             },
         }
@@ -55,12 +69,10 @@ export function createApiSupabase(req: NextApiRequest, res: NextApiResponse) {
                         options?: CookieOptions;
                     }[]
                 ) {
-                    cookiesToSet.forEach(({ name, value, options }) => {
-                        res.setHeader(
-                            "Set-Cookie",
-                            `${name}=${value}; Path=/; ${options?.maxAge ? `Max-Age=${options.maxAge}` : ""}`
-                        );
-                    });
+                    const cookieStrings = cookiesToSet.map(({ name, value, options }) =>
+                        buildCookieString(name, value, options)
+                    );
+                    res.setHeader("Set-Cookie", cookieStrings);
                 },
             },
         }

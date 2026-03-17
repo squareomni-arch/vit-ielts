@@ -9,7 +9,10 @@
  * @see LEGACY_CODEBASE_DOCS.md#6-orders-payment
  */
 
+import crypto from "crypto";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { sanitizeFilterValue } from "./lib/sanitize";
+import { ORDER_COLUMNS } from "./lib/columns";
 
 // ============================================================
 // Types
@@ -51,7 +54,7 @@ type OrderFilters = {
  */
 function generateOrderId(): string {
     const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 10000)
+    const random = crypto.randomInt(10000)
         .toString()
         .padStart(4, "0");
     return `IELTS PREDICTION ${timestamp}${random}`;
@@ -89,34 +92,19 @@ export async function createOrder(
     const orderId = generateOrderId();
     const transferContent = generateTransferContent(orderId);
 
-    // Validate + update coupon nếu có
+    // Validate + atomically increment coupon usage (prevents race conditions)
     if (params.couponId) {
-        const { data: coupon, error: couponError } = await supabaseAdmin
-            .from("coupons")
-            .select("id, is_active, max_uses, current_uses")
-            .eq("id", params.couponId)
-            .single();
+        const { data: couponResult, error: couponError } = await supabaseAdmin
+            .rpc("increment_coupon_uses", { p_coupon_id: params.couponId });
 
-        if (couponError || !coupon) {
+        if (couponError) {
+            console.error("[Order Service] Error incrementing coupon:", couponError);
             throw new Error("Mã giảm giá không hợp lệ");
         }
 
-        if (!coupon.is_active) {
-            throw new Error("Mã giảm giá không hợp lệ");
-        }
-
-        if (coupon.max_uses && coupon.current_uses >= coupon.max_uses) {
-            throw new Error("Mã giảm giá đã hết lượt sử dụng");
-        }
-
-        // Increment coupon usage
-        const { error: updateError } = await supabaseAdmin
-            .from("coupons")
-            .update({ current_uses: (coupon.current_uses ?? 0) + 1 })
-            .eq("id", params.couponId);
-
-        if (updateError) {
-            console.error("[Order Service] Error updating coupon usage:", updateError);
+        // RPC returns empty array if coupon is invalid, inactive, or exhausted
+        if (!couponResult || (Array.isArray(couponResult) && couponResult.length === 0)) {
+            throw new Error("Mã giảm giá không hợp lệ hoặc đã hết lượt sử dụng");
         }
     }
 
@@ -163,42 +151,30 @@ export async function getOrderByTransferContent(
     supabaseAdmin: SupabaseClient,
     content: string,
 ) {
-    // 1. Exact match trên order_id hoặc transfer_content
+    // 1. Exact match on order_id or transfer_content
     const { data: exactMatch } = await supabaseAdmin
         .from("orders")
-        .select("id, order_id, user_id, package_type, duration, skill_type, amount, original_amount, discount_amount, coupon_id, coupon_code, status, payment_method, transfer_content, affiliate_ref, created_at")
+        .select(ORDER_COLUMNS)
         .or(`order_id.eq.${content},transfer_content.eq.${content}`)
         .maybeSingle();
 
     if (exactMatch) return exactMatch;
 
-    // 2. Partial match — normalize spaces và tìm kiếm fuzzy
+    // 2. Partial match — normalize and use database-side ilike
     const normalizedSearch = content.replace(/\s+/g, " ").trim();
+    const sanitized = sanitizeFilterValue(normalizedSearch);
 
-    // Tìm tất cả pending orders và check partial match
-    const { data: allOrders } = await supabaseAdmin
+    if (!sanitized) return null;
+
+    const { data: partialMatch } = await supabaseAdmin
         .from("orders")
-        .select("id, order_id, user_id, package_type, duration, skill_type, amount, original_amount, discount_amount, coupon_id, coupon_code, status, payment_method, transfer_content, affiliate_ref, created_at")
-        .in("status", ["pending"]);
+        .select(ORDER_COLUMNS)
+        .eq("status", "pending")
+        .or(`order_id.ilike.%${sanitized}%,transfer_content.ilike.%${sanitized}%`)
+        .limit(1)
+        .maybeSingle();
 
-    if (!allOrders || allOrders.length === 0) return null;
-
-    // Fuzzy match logic (giữ nguyên từ legacy)
-    const matched = allOrders.find((o) => {
-        const normalizedOrderId = o.order_id.replace(/\s+/g, " ").trim();
-        const normalizedTransferContent = (o.transfer_content ?? "")
-            .replace(/\s+/g, " ")
-            .trim();
-
-        return (
-            normalizedOrderId.includes(normalizedSearch) ||
-            normalizedTransferContent.includes(normalizedSearch) ||
-            normalizedSearch.includes(normalizedOrderId) ||
-            normalizedSearch.includes(normalizedTransferContent)
-        );
-    });
-
-    return matched ?? null;
+    return partialMatch ?? null;
 }
 
 /**
@@ -214,7 +190,7 @@ export async function getOrderById(
 ) {
     const { data, error } = await supabaseAdmin
         .from("orders")
-        .select("id, order_id, user_id, package_type, duration, skill_type, amount, original_amount, discount_amount, coupon_code, status, payment_method, transfer_content, affiliate_ref, created_at")
+        .select(ORDER_COLUMNS)
         .eq("order_id", orderId)
         .maybeSingle();
 
@@ -234,12 +210,14 @@ export async function getOrdersByUser(
     userId: string,
     { page = 1, pageSize = 10 }: { page?: number; pageSize?: number } = {},
 ) {
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
+    const safePage = page;
+    const safePageSize = Math.min(pageSize, 100);
+    const from = (safePage - 1) * safePageSize;
+    const to = from + safePageSize - 1;
 
     const { data, error, count } = await supabase
         .from("orders")
-        .select("*", { count: "exact" })
+        .select(ORDER_COLUMNS, { count: "exact" })
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .range(from, to);
@@ -273,6 +251,37 @@ export async function updateOrderStatus(
 }
 
 /**
+ * Atomically transition order status from "pending" to "completed".
+ * Returns { updated: true, order } if the transition happened,
+ * or { updated: false, order: null } if the order was already completed/cancelled.
+ *
+ * Used by webhook handlers to ensure idempotent payment processing.
+ *
+ * @param supabaseAdmin - Admin client (bypass RLS)
+ * @param orderId - Order ID text
+ * @returns { updated, order }
+ */
+export async function completeOrder(
+    supabaseAdmin: SupabaseClient,
+    orderId: string,
+) {
+    const { data, error } = await supabaseAdmin
+        .from("orders")
+        .update({ status: "completed" as OrderStatus })
+        .eq("order_id", orderId)
+        .eq("status", "pending")
+        .select()
+        .maybeSingle();
+
+    if (error) throw error;
+
+    return {
+        updated: data !== null,
+        order: data,
+    };
+}
+
+/**
  * Admin: lấy danh sách orders có filter
  *
  * @param supabaseAdmin - Admin client (bypass RLS)
@@ -282,13 +291,14 @@ export async function getOrders(
     supabaseAdmin: SupabaseClient,
     filters: OrderFilters = {},
 ) {
-    const { status, dateFrom, dateTo, search, page = 1, pageSize = 20 } = filters;
+    const { status, dateFrom, dateTo, search, page = 1, pageSize: rawPageSize = 20 } = filters;
+    const pageSize = Math.min(rawPageSize, 100);
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
     let query = supabaseAdmin
         .from("orders")
-        .select("id, order_id, user_id, package_type, duration, skill_type, amount, original_amount, discount_amount, coupon_code, status, payment_method, transfer_content, affiliate_ref, created_at", { count: "exact" })
+        .select(ORDER_COLUMNS, { count: "exact" })
         .order("created_at", { ascending: false });
 
     if (status) {
@@ -304,8 +314,9 @@ export async function getOrders(
     }
 
     if (search) {
+        const safe = sanitizeFilterValue(search);
         query = query.or(
-            `order_id.ilike.%${search}%,transfer_content.ilike.%${search}%`,
+            `order_id.ilike.%${safe}%,transfer_content.ilike.%${safe}%`,
         );
     }
 

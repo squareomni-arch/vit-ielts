@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { dbg } from "../../../lib/debug";
+import { SendEmailSchema } from "../../../services/lib/validation";
+import { rateLimit } from "~lib/rate-limit";
 
 const log = dbg.email;
 
@@ -16,15 +18,19 @@ export default async function handler(
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
 
-  try {
-    const { name, email, subject, message } = req.body;
+  // Rate limit: 5 contact emails per minute per IP
+  if (rateLimit(req, res, { windowMs: 60_000, max: 5, keyPrefix: "contact" })) return;
 
-    if (!name || !email || !subject || !message) {
+  try {
+    const parsed = SendEmailSchema.safeParse(req.body);
+    if (!parsed.success) {
       return res.status(400).json({
         success: false,
-        error: "All fields are required: name, email, subject, message",
+        error: parsed.error.issues.map((i) => i.message).join(", "),
       });
     }
+
+    const { name, email, subject, message } = parsed.data;
 
     // For now, log the contact form data.
     // TODO: Hook up to a real email service (SendGrid, Resend, etc.)

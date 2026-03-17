@@ -9,6 +9,7 @@
  */
 
 import { SupabaseClient } from "@supabase/supabase-js";
+import { AFFILIATE_COLUMNS, AFFILIATE_LINK_COLUMNS, AFFILIATE_VISIT_COLUMNS, COMMISSION_COLUMNS } from "./lib/columns";
 
 // ============================================================
 // Types
@@ -96,7 +97,7 @@ export async function registerAffiliate(
     // Check if affiliate already exists
     const { data: existing, error: fetchError } = await supabaseAdmin
         .from("affiliates")
-        .select("*")
+        .select(AFFILIATE_COLUMNS)
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -142,7 +143,7 @@ export async function getAffiliateByUserId(
 ) {
     const { data, error } = await supabase
         .from("affiliates")
-        .select("*")
+        .select(AFFILIATE_COLUMNS)
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -163,7 +164,7 @@ export async function getAffiliateLinks(
 ) {
     const { data, error } = await supabase
         .from("affiliate_links")
-        .select("*")
+        .select(AFFILIATE_LINK_COLUMNS)
         .eq("affiliate_id", affiliateId)
         .order("created_at", { ascending: false });
 
@@ -188,7 +189,7 @@ export async function createAffiliateLink(
     // Check if link with same customLink already exists for this affiliate
     const { data: existing, error: fetchError } = await supabaseAdmin
         .from("affiliate_links")
-        .select("*")
+        .select(AFFILIATE_LINK_COLUMNS)
         .eq("affiliate_id", affiliateId)
         .eq("custom_link", customLink)
         .maybeSingle();
@@ -323,7 +324,7 @@ export async function getCommissions(
 ) {
     const { data, error } = await supabase
         .from("commissions")
-        .select("*")
+        .select(COMMISSION_COLUMNS)
         .eq("affiliate_id", affiliateId)
         .order("created_at", { ascending: false });
 
@@ -349,7 +350,7 @@ export async function createCommission(
     // Check if commission already exists for this order
     const { data: existing, error: fetchError } = await supabaseAdmin
         .from("commissions")
-        .select("*")
+        .select(COMMISSION_COLUMNS)
         .eq("affiliate_id", affiliateId)
         .eq("order_id", orderId)
         .maybeSingle();
@@ -392,30 +393,41 @@ export async function getAffiliateStats(
     supabase: SupabaseClient,
     affiliateId: string,
 ): Promise<AffiliateStats> {
-    // Fetch visits and commissions in parallel
-    const [visitsResult, commissionsResult] = await Promise.all([
+    // Use count-only queries and DB-side aggregation instead of fetching all rows
+    const [
+        totalVisitsResult,
+        totalConversionsResult,
+        commissionsResult,
+    ] = await Promise.all([
+        // Count total visits (head: true = no row data, only count)
         supabase
             .from("affiliate_visits")
-            .select("id, converted")
+            .select("id", { count: "exact", head: true })
             .eq("affiliate_id", affiliateId),
+        // Count converted visits only
+        supabase
+            .from("affiliate_visits")
+            .select("id", { count: "exact", head: true })
+            .eq("affiliate_id", affiliateId)
+            .eq("converted", true),
+        // Fetch only commission_amount + status (minimal columns for aggregation)
         supabase
             .from("commissions")
             .select("commission_amount, status")
             .eq("affiliate_id", affiliateId),
     ]);
 
-    if (visitsResult.error) throw visitsResult.error;
+    if (totalVisitsResult.error) throw totalVisitsResult.error;
+    if (totalConversionsResult.error) throw totalConversionsResult.error;
     if (commissionsResult.error) throw commissionsResult.error;
 
-    const visits = visitsResult.data ?? [];
-    const commissions = commissionsResult.data ?? [];
-
-    const totalVisits = visits.length;
-    const totalConversions = visits.filter((v) => v.converted).length;
+    const totalVisits = totalVisitsResult.count ?? 0;
+    const totalConversions = totalConversionsResult.count ?? 0;
     const conversionRate = totalVisits > 0
         ? Math.round((totalConversions / totalVisits) * 100 * 100) / 100
         : 0;
 
+    const commissions = commissionsResult.data ?? [];
     const totalCommissions = commissions.reduce(
         (sum, c) => sum + (c.commission_amount ?? 0),
         0,
@@ -451,7 +463,7 @@ export async function getAffiliateVisits(
 ) {
     const { data, error } = await supabase
         .from("affiliate_visits")
-        .select("*")
+        .select(AFFILIATE_VISIT_COLUMNS)
         .eq("affiliate_id", affiliateId)
         .order("created_at", { ascending: false });
 

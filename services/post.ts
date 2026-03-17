@@ -9,6 +9,7 @@
  */
 
 import { SupabaseClient } from "@supabase/supabase-js";
+import { sanitizeFilterValue } from "./lib/sanitize";
 import type {
     Post,
     PostFilters,
@@ -59,7 +60,7 @@ export async function getPosts(
     filters: PostFilters = {}
 ): Promise<PaginatedResponse<Post>> {
     const page = filters.page || 1;
-    const pageSize = filters.pageSize || 12;
+    const pageSize = Math.min(filters.pageSize || 12, 100);
 
     let query = supabase
         .from("posts")
@@ -75,9 +76,8 @@ export async function getPosts(
         );
     }
 
-    // Search by title
     if (filters.search) {
-        query = query.ilike("title", `%${filters.search}%`);
+        query = query.ilike("title", `%${sanitizeFilterValue(filters.search)}%`);
     }
 
     // Pagination + ordering
@@ -87,17 +87,7 @@ export async function getPosts(
 
     const { data, error, count } = await query;
 
-    if (error) {
-        console.error("[getPosts] Supabase error:", error);
-        // Return empty result instead of throwing — prevents page crash
-        return {
-            data: [],
-            count: 0,
-            page,
-            pageSize,
-            totalPages: 0,
-        };
-    }
+    if (error) throw error;
 
     const totalCount = count ?? 0;
 
@@ -127,22 +117,12 @@ export async function incrementViews(
     supabase: SupabaseClient,
     postId: string
 ): Promise<void> {
-    // Use raw SQL via RPC for atomic increment, fallback to read-update if RPC not available
-    const { data: post, error: readError } = await supabase
-        .from("posts")
-        .select("views")
-        .eq("id", postId)
-        .single();
+    // Atomic increment via Postgres RPC (prevents lost updates under concurrency)
+    const { error } = await supabase.rpc("increment_post_views", {
+        p_post_id: postId,
+    });
 
-    if (readError) throw readError;
-    if (!post) return;
-
-    const { error: updateError } = await supabase
-        .from("posts")
-        .update({ views: (post.views ?? 0) + 1 })
-        .eq("id", postId);
-
-    if (updateError) throw updateError;
+    if (error) throw error;
 }
 
 /**
@@ -168,40 +148,23 @@ export async function ratePost(
         throw new Error("Rating must be between 1 and 5");
     }
 
-    // 1. Get current votes
-    const { data: post, error: readError } = await supabase
-        .from("posts")
-        .select("votes")
-        .eq("id", postId)
-        .single();
+    // Atomic: check duplicate + append vote + calculate average in one Postgres call
+    // Prevents lost votes under concurrent requests
+    const { data, error } = await supabase.rpc("append_post_vote", {
+        p_post_id: postId,
+        p_user_id: userId,
+        p_rate: rate,
+    });
 
-    if (readError) throw readError;
-    if (!post) throw new Error("Post not found");
-
-    const votes: VoteEntry[] = (post.votes as VoteEntry[]) ?? [];
-
-    // 2. Check if user already voted
-    if (votes.some((v) => v.user_id === userId)) {
-        throw new Error("User has already rated this post");
+    if (error) {
+        // RPC raises exceptions for "already rated" and "not found"
+        throw new Error(error.message);
     }
 
-    // 3. Add new vote
-    const updatedVotes: VoteEntry[] = [...votes, { user_id: userId, rate }];
-
-    // 4. Calculate average
-    const totalRate = updatedVotes.reduce((sum, v) => sum + v.rate, 0);
-    const averageRate = totalRate / updatedVotes.length;
-
-    // 5. Update post
-    const { error: updateError } = await supabase
-        .from("posts")
-        .update({ votes: updatedVotes })
-        .eq("id", postId);
-
-    if (updateError) throw updateError;
+    const result = Array.isArray(data) ? data[0] : data;
 
     return {
-        rate: Math.round(averageRate * 10) / 10,
-        count: updatedVotes.length,
+        rate: Number(result?.avg_rate ?? 0),
+        count: Number(result?.vote_count ?? 0),
     };
 }

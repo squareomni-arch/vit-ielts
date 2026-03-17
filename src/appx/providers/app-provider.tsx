@@ -61,6 +61,7 @@ export type MasterData = {
       } | null;
       isPro: boolean;
       proExpirationDate?: string | null;
+      proSkills?: string[] | null;
     };
   } | null;
   // userCredentials removed — Supabase Auth manages session internally

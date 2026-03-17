@@ -186,7 +186,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
         } else {
           const { data: profile } = await supabase
             .from("users")
-            .select("is_pro, pro_expiration_date, roles")
+            .select("is_pro, pro_expiration_date, pro_skills, roles")
             .eq("id", user.id)
             .single();
 
@@ -194,7 +194,9 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
             isAdminRole(profile?.roles) ||
             (profile?.is_pro &&
               profile?.pro_expiration_date &&
-              new Date(profile.pro_expiration_date) > new Date());
+              new Date(profile.pro_expiration_date) > new Date() &&
+              // Skill check: null = all skills (combo), otherwise must include quiz skill
+              (profile.pro_skills === null || profile.pro_skills.includes(quiz.skill)));
 
           hasAccess = !!isPro;
         }

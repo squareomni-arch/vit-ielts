@@ -10,6 +10,7 @@
  */
 
 import { SupabaseClient } from "@supabase/supabase-js";
+import { sanitizeFilterValue } from "./lib/sanitize";
 import type {
     MockTest,
     MockTestCollection,
@@ -27,6 +28,44 @@ import type {
 /** Select columns for quiz summary — includes passages+questions for modal UI */
 const QUIZ_SUMMARY_SELECT =
     "id, title, slug, skill, featured_image, pro_user_only, tests_taken, time_minutes, question_form, source, year, passages(id, sort_order, questions(id, explanations, sort_order))";
+
+// ============================================================================
+// Internal Types (shapes returned by QUIZ_SUMMARY_SELECT)
+// ============================================================================
+
+type QuestionSummary = {
+    id: string;
+    explanations: { content: string }[] | null;
+    sort_order: number;
+};
+
+type PassageSummary = {
+    id: string;
+    sort_order: number;
+    questions: QuestionSummary[];
+};
+
+/** Shape returned by Supabase for QUIZ_SUMMARY_SELECT */
+type QuizSummaryRow = ExamCollectionItem & {
+    passages: PassageSummary[];
+};
+
+/** Shape returned by toExamItemWithQuizFields — used in collection exams arrays */
+type MappedExamItem = {
+    id: string;
+    title: string;
+    slug: string;
+    featuredImage: string | null;
+    link: string;
+    quizFields: {
+        proUserOnly: boolean;
+        testsTaken: number;
+        skill: [string, string];
+        type: [string, string];
+        time: number;
+        passages: { questions: { explanations: { content: string }[] }[] }[];
+    };
+};
 
 // ============================================================================
 // Public Functions
@@ -49,7 +88,7 @@ export async function getExamCollections(
     filters: ExamCollectionFilters = {}
 ): Promise<ExamCollectionResponse> {
     const page = filters.page || 1;
-    const pageSize = filters.pageSize || 10;
+    const pageSize = Math.min(filters.pageSize || 10, 100);
 
     // -----------------------------------------------------------------------
     // Step 1: Query quizzes matching filters (type != 'practice')
@@ -65,13 +104,13 @@ export async function getExamCollections(
         quizQuery = quizQuery.eq("type", filters.type);
     }
     if (filters.search) {
-        quizQuery = quizQuery.ilike("title", `%${filters.search}%`);
+        quizQuery = quizQuery.ilike("title", `%${sanitizeFilterValue(filters.search)}%`);
     }
     if (filters.questionForm) {
         // questionForm is comma-separated in DB; use ilike for partial match
         quizQuery = quizQuery.ilike(
             "question_form",
-            `%${filters.questionForm}%`
+            `%${sanitizeFilterValue(filters.questionForm)}%`
         );
     }
 
@@ -86,46 +125,32 @@ export async function getExamCollections(
     }
 
     // -----------------------------------------------------------------------
-    // Step 2: Find mock_tests containing those quizzes in practice_tests JSONB
+    // Step 2: Find mock_tests containing those quizzes (DB-side JSONB filter)
+    // Uses RPC to avoid loading ALL mock_tests into memory
     // Origin: WP_Query post_type=mock_test, meta_query OR practice_test_$_reading/listening
     // -----------------------------------------------------------------------
-    const { data: allMockTests, error: mockError } = await supabase
-        .from("mock_tests")
-        .select("id, title, slug, practice_tests, created_at");
+    const { data: filteredMockTests, error: mockError } = await supabase
+        .rpc("get_mock_tests_by_quiz_ids", { p_quiz_ids: matchedQuizIds });
 
     if (mockError) throw mockError;
 
-    // Filter mock_tests whose practice_tests reference any matched quiz
-    const matchedQuizIdSet = new Set(matchedQuizIds);
-    const filteredMockTests = (allMockTests ?? []).filter((mt: MockTest) =>
-        mt.practice_tests.some(
-            (pt) =>
-                matchedQuizIdSet.has(pt.reading_test_id) ||
-                matchedQuizIdSet.has(pt.listening_test_id)
-        )
-    );
+    const filteredMockTestIds = (filteredMockTests ?? []).map((mt: MockTest) => mt.id);
 
-    const filteredMockTestIds = new Set(filteredMockTests.map((mt) => mt.id));
-
-    if (filteredMockTestIds.size === 0) {
+    if (filteredMockTestIds.length === 0) {
         return buildEmptyResponse(page, pageSize);
     }
 
     // -----------------------------------------------------------------------
-    // Step 3: Find collections containing those mock_tests (mock_test_ids overlap)
+    // Step 3: Find collections containing those mock_tests (DB-side array overlap)
+    // Uses .overlaps() instead of loading ALL collections into memory
     // Origin: WP_Query post_type=mock-test-collection, meta_query LIKE mock_test_id
     // -----------------------------------------------------------------------
-    const { data: allCollections, error: collError } = await supabase
+    const { data: matchedCollections, error: collError } = await supabase
         .from("mock_test_collections")
-        .select("id, title, slug, mock_test_ids, featured_image, created_at");
+        .select("id, title, slug, mock_test_ids, featured_image, created_at")
+        .overlaps("mock_test_ids", filteredMockTestIds);
 
     if (collError) throw collError;
-
-    // Filter collections whose mock_test_ids array contains any matched mock_test
-    const matchedCollections = (allCollections ?? []).filter(
-        (c: MockTestCollection) =>
-            c.mock_test_ids.some((mtId) => filteredMockTestIds.has(mtId))
-    );
 
     // -----------------------------------------------------------------------
     // Step 4: Paginate collections
@@ -160,7 +185,7 @@ export async function getExamCollections(
     }
 
     // Batch-fetch quiz summaries
-    const quizMap = new Map<string, any>();
+    const quizMap = new Map<string, QuizSummaryRow>();
     // Filter out any null/undefined values that may have slipped in
     const validQuizIds = [...allQuizIdsToFetch].filter(id => id && id !== 'null');
 
@@ -173,20 +198,20 @@ export async function getExamCollections(
         if (detailError) throw detailError;
 
         for (const q of quizDetails ?? []) {
-            quizMap.set(q.id, q as ExamCollectionItem);
+            quizMap.set(q.id, q as QuizSummaryRow);
         }
     }
 
     // -----------------------------------------------------------------------
     // Step 6: Build nested response grouped by reading / listening
-    // Origin: Lặp qua collections → mock_tests → practice_tests → group by skill
+    // Origin: Loop through collections → mock_tests → practice_tests → group by skill
     // -----------------------------------------------------------------------
-    const readingCollections: CollectionWithExams[] = [];
-    const listeningCollections: CollectionWithExams[] = [];
+    const readingCollections: CollectionWithExams<MappedExamItem>[] = [];
+    const listeningCollections: CollectionWithExams<MappedExamItem>[] = [];
 
     for (const coll of paginatedCollections) {
-        const readingExams: any[] = [];
-        const listeningExams: any[] = [];
+        const readingExams: MappedExamItem[] = [];
+        const listeningExams: MappedExamItem[] = [];
 
         for (const mtId of coll.mock_test_ids) {
             const mt = mockTestMap.get(mtId);
@@ -244,7 +269,7 @@ export async function getExamCollections(
 export async function getCollectionDetail(
     supabase: SupabaseClient,
     collectionId: string
-): Promise<{ collection: CollectionWithExams; reading: ExamCollectionItem[]; listening: ExamCollectionItem[] } | null> {
+): Promise<{ collection: CollectionWithExams<MappedExamItem>; reading: MappedExamItem[]; listening: MappedExamItem[] } | null> {
     // 1. Fetch collection
     const { data: collection, error: collError } = await supabase
         .from("mock_test_collections")
@@ -267,29 +292,30 @@ export async function getCollectionDetail(
     const allQuizIds = new Set<string>();
     for (const mt of mockTests ?? []) {
         for (const pt of (mt as MockTest).practice_tests) {
-            allQuizIds.add(pt.reading_test_id);
-            allQuizIds.add(pt.listening_test_id);
+            if (pt.reading_test_id) allQuizIds.add(pt.reading_test_id);
+            if (pt.listening_test_id) allQuizIds.add(pt.listening_test_id);
         }
     }
 
     // 4. Batch-fetch quiz summaries
-    const quizMap = new Map<string, any>();
-    if (allQuizIds.size > 0) {
+    const quizMap = new Map<string, QuizSummaryRow>();
+    const validQuizIds = [...allQuizIds];
+    if (validQuizIds.length > 0) {
         const { data: quizDetails, error: qError } = await supabase
             .from("quizzes")
             .select(QUIZ_SUMMARY_SELECT)
-            .in("id", [...allQuizIds]);
+            .in("id", validQuizIds);
 
         if (qError) throw qError;
         for (const q of quizDetails ?? []) {
-            quizMap.set(q.id, q as ExamCollectionItem);
+            quizMap.set(q.id, q as QuizSummaryRow);
         }
     }
 
     // 5. Build reading / listening arrays
-    const readingExams: any[] = [];
-    const listeningExams: any[] = [];
-    const allExams: any[] = [];
+    const readingExams: MappedExamItem[] = [];
+    const listeningExams: MappedExamItem[] = [];
+    const allExams: MappedExamItem[] = [];
 
     for (const mt of mockTests ?? []) {
         for (const pt of (mt as MockTest).practice_tests) {
@@ -331,14 +357,14 @@ export async function getCollectionDetail(
  * This ensures UI components can access quiz.quizFields.time etc. consistently.
  * Passages are mapped with questions containing explanations for question counting.
  */
-function toExamItemWithQuizFields(item: any) {
+function toExamItemWithQuizFields(item: QuizSummaryRow): MappedExamItem {
     // Sort and map passages + questions to legacy shape expected by ExamModeModal
     const passages = (item.passages ?? [])
-        .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-        .map((p: any) => ({
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+        .map((p) => ({
             questions: (p.questions ?? [])
-                .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-                .map((q: any) => ({
+                .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+                .map((q) => ({
                     explanations: Array.isArray(q.explanations) ? q.explanations : [],
                 })),
         }));

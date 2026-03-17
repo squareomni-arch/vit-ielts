@@ -125,6 +125,7 @@ export type User = {
     avatar_url: string | null;
     is_pro: boolean;
     pro_expiration_date: string | null;
+    pro_skills: string[] | null;  // null = all skills (combo), ['listening'] or ['reading'] = single
     target_score: TargetScore;
     gender: string | null;
     date_of_birth: string | null;
@@ -413,12 +414,13 @@ export type ExamCollectionItem = {
 };
 
 /** Single collection with nested reading/listening quiz arrays */
-export type CollectionWithExams = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type CollectionWithExams<T = any> = {
     id: string;
     title: string;
     slug: string | null;
     featured_image: string | null;
-    exams: ExamCollectionItem[];
+    exams: T[];
 };
 
 /** Grouped exam collection response */
@@ -442,3 +444,27 @@ export type PaginatedResponse<T> = {
     pageSize: number;
     totalPages: number;
 };
+
+// ============================================================================
+// Typed Supabase Client
+// ============================================================================
+
+/**
+ * Typed Supabase client — provides compile-time query validation.
+ *
+ * Usage: Replace bare `SupabaseClient` imports with `TypedSupabaseClient`
+ * in service functions for better type safety on `.from()` table names
+ * and `.select()` column names.
+ *
+ * Progressive adoption: Services can switch one at a time. Both
+ * `SupabaseClient` and `TypedSupabaseClient` are runtime-compatible.
+ *
+ * @example
+ *   import type { TypedSupabaseClient } from "~services/types/database";
+ *
+ *   export async function getUser(supabase: TypedSupabaseClient, id: string) {
+ *     const { data } = await supabase.from("users").select("*").eq("id", id).single();
+ *     // `data` is now typed based on the `users` table definition
+ *   }
+ */
+export type { SupabaseClient as TypedSupabaseClient } from "@supabase/supabase-js";

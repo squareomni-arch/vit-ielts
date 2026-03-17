@@ -75,7 +75,7 @@ describe("Integration: Full quiz scoring", () => {
       matchingStdAnswerCorrect,       // { "0": "0", "1": "1", "2": "2", "3": "3" }
     ];
 
-    const score = calculateScore(answers, quiz, [0, 1]);
+    const { score } = calculateScore(answers, quiz, [0, 1]);
 
     // 10/10 correct → (10/10) × 9 = 9.0
     expect(score).toBe(9);
@@ -83,7 +83,7 @@ describe("Integration: Full quiz scoring", () => {
 
   it("scores a quiz with all 6 question types mixed", () => {
     // Using the mixedQuiz from fixtures
-    const score = calculateScore(mixedAnswersAllCorrect, mixedQuiz, [0, 1, 2]);
+    const { score } = calculateScore(mixedAnswersAllCorrect, mixedQuiz, [0, 1, 2]);
 
     // All correct → 9.0
     expect(score).toBe(9);
@@ -105,7 +105,7 @@ describe("Integration: Full quiz scoring", () => {
       matchingStdAnswerCorrect,
     ];
 
-    const score = calculateScore(answers, quiz, [0, 2]);
+    const { score } = calculateScore(answers, quiz, [0, 2]);
 
     // 7/7 correct → 9.0
     expect(score).toBe(9);
@@ -146,12 +146,12 @@ describe("Integration: Full quiz scoring", () => {
       ...Array(10).fill("0"), // passage 2: all correct
       ...Array(10).fill("1"), // passage 3: all wrong
     ];
-    const score30 = calculateScore(answers30, quiz, [0, 1, 2, 3]);
+    const { score: score30 } = calculateScore(answers30, quiz, [0, 1, 2, 3]);
     expect(score30).toBe(7); // round(6.75 × 2) / 2 = 14/2 = 7.0
 
     // Case 2: 40/40 correct → 9.0
     const answers40 = Array(40).fill("0");
-    const score40 = calculateScore(answers40, quiz, [0, 1, 2, 3]);
+    const { score: score40 } = calculateScore(answers40, quiz, [0, 1, 2, 3]);
     expect(score40).toBe(9);
 
     // Case 3: 20/40 correct → (20/40) × 9 = 4.5
@@ -161,12 +161,12 @@ describe("Integration: Full quiz scoring", () => {
       ...Array(10).fill("1"), // passage 2: all wrong
       ...Array(10).fill("1"), // passage 3: all wrong
     ];
-    const score20 = calculateScore(answers20, quiz, [0, 1, 2, 3]);
+    const { score: score20 } = calculateScore(answers20, quiz, [0, 1, 2, 3]);
     expect(score20).toBe(4.5);
 
     // Case 4: 0/40 → 0
     const answers0 = Array(40).fill("1");
-    const score0 = calculateScore(answers0, quiz, [0, 1, 2, 3]);
+    const { score: score0 } = calculateScore(answers0, quiz, [0, 1, 2, 3]);
     expect(score0).toBe(0);
   });
 });

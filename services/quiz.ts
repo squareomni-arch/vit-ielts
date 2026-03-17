@@ -11,6 +11,7 @@
  */
 
 import { SupabaseClient } from "@supabase/supabase-js";
+import { sanitizeFilterValue } from "./lib/sanitize";
 import type {
     Quiz,
     QuizWithPassages,
@@ -80,7 +81,7 @@ export async function getQuizzes(
     filters: QuizFilters = {}
 ): Promise<PaginatedResponse<Quiz>> {
     const page = filters.page || 1;
-    const pageSize = filters.pageSize || 12;
+    const pageSize = Math.min(filters.pageSize || 12, 100);
 
     let query = supabase
         .from("quizzes")
@@ -98,10 +99,10 @@ export async function getQuizzes(
     if (filters.quarter) query = query.eq("quarter", filters.quarter);
     if (filters.part) query = query.eq("part", filters.part);
     if (filters.questionForm) {
-        query = query.ilike("question_form", `%${filters.questionForm}%`);
+        query = query.ilike("question_form", `%${sanitizeFilterValue(filters.questionForm)}%`);
     }
     if (filters.search) {
-        query = query.ilike("title", `%${filters.search}%`);
+        query = query.ilike("title", `%${sanitizeFilterValue(filters.search)}%`);
     }
 
     // Pagination + ordering
@@ -137,6 +138,10 @@ export async function getQuizFilterOptions(supabase: SupabaseClient): Promise<{
     parts: string[];
     quarters: string[];
 }> {
+    // PostgREST doesn't support DISTINCT, so we fetch all published quiz
+    // metadata (4 lightweight text columns). For ~500 quizzes this is fast.
+    // TODO: If quiz count exceeds ~5k, create a Supabase RPC or materialized
+    //       view for `SELECT DISTINCT year, source, part, quarter FROM quizzes`.
     const { data, error } = await supabase
         .from("quizzes")
         .select("year, source, part, quarter")
@@ -172,7 +177,7 @@ export async function getRelatedQuizzes(
     supabase: SupabaseClient,
     quizId: string
 ): Promise<Quiz[]> {
-    // Step 1: Lấy metadata quiz hiện tại
+    // Step 1: Get current quiz metadata
     const { data: currentQuiz, error: quizError } = await supabase
         .from("quizzes")
         .select("source, year, quarter, skill")
@@ -181,7 +186,7 @@ export async function getRelatedQuizzes(
 
     if (quizError || !currentQuiz) return [];
 
-    // Step 2: Tìm quiz cùng metadata
+    // Step 2: Find quizzes with same metadata
     let query = supabase
         .from("quizzes")
         .select(
@@ -192,7 +197,7 @@ export async function getRelatedQuizzes(
         .eq("skill", currentQuiz.skill)
         .limit(6);
 
-    // Ưu tiên cùng source, year, quarter (best match)
+    // Prioritize same source, year, quarter (best match)
     if (currentQuiz.source) query = query.eq("source", currentQuiz.source);
     if (currentQuiz.year) query = query.eq("year", currentQuiz.year);
 
@@ -200,7 +205,7 @@ export async function getRelatedQuizzes(
 
     if (error) throw error;
 
-    // Nếu không đủ kết quả, fallback: chỉ cùng skill (đã có ở trên, sẽ trả về ít kết quả hơn)
+    // If not enough results, fallback: same skill only (already filtered above, returns fewer results)
     return (data ?? []) as Quiz[];
 }
 
@@ -338,6 +343,11 @@ export async function updateQuiz(
     }
 
     if (passagesInput) {
+        // Guard: prevent accidental data loss from empty passages array
+        if (passagesInput.length === 0) {
+            throw new Error("Cannot update quiz with empty passages array. To delete all passages, omit the passages field.");
+        }
+
         promises.push(
             (async () => {
                 const { error } = await supabase.from("passages").delete().eq("quiz_id", id);
@@ -349,47 +359,59 @@ export async function updateQuiz(
     await Promise.all(promises);
 
     // 2. Re-insert passages + questions (must be sequential: passages first, then questions)
+    // ⚠️ NOTE: This operation is NOT transactional. The delete above already committed.
+    // If the insert below fails, passage data is lost. A proper fix would use a Postgres
+    // RPC with BEGIN...COMMIT, but Supabase JS client doesn't expose transactions.
     if (passagesInput) {
-        const passagesWithQuizId = passagesInput.map((p, index) => ({
-            quiz_id: id,
-            title: p.title ?? null,
-            content: p.content ?? null,
-            sort_order: p.sort_order ?? index,
-            audio_start: p.audio_start ?? null,
-            audio_end: p.audio_end ?? null,
-        }));
+        try {
+            const passagesWithQuizId = passagesInput.map((p, index) => ({
+                quiz_id: id,
+                title: p.title ?? null,
+                content: p.content ?? null,
+                sort_order: p.sort_order ?? index,
+                audio_start: p.audio_start ?? null,
+                audio_end: p.audio_end ?? null,
+            }));
 
-        const { data: passages, error: passageError } = await supabase
-            .from("passages")
-            .insert(passagesWithQuizId)
-            .select();
+            const { data: passages, error: passageError } = await supabase
+                .from("passages")
+                .insert(passagesWithQuizId)
+                .select();
 
-        if (passageError) throw passageError;
+            if (passageError) throw passageError;
 
-        // Re-insert questions (batch)
-        const allQuestions = passagesInput.flatMap((p, pIndex) =>
-            (p.questions ?? []).map((q, qIndex) => ({
-                passage_id: passages[pIndex].id,
-                type: q.type,
-                title: q.title ?? null,
-                question_text: q.question_text ?? null,
-                instructions: q.instructions ?? null,
-                question_form: q.question_form ?? null,
-                list_of_questions: q.list_of_questions ?? null,
-                list_of_options: q.list_of_options ?? null,
-                matching_question: q.matching_question ?? null,
-                matrix_question: q.matrix_question ?? null,
-                explanations: q.explanations ?? null,
-                sort_order: q.sort_order ?? qIndex,
-            }))
-        );
+            // Re-insert questions (batch)
+            const allQuestions = passagesInput.flatMap((p, pIndex) =>
+                (p.questions ?? []).map((q, qIndex) => ({
+                    passage_id: passages[pIndex].id,
+                    type: q.type,
+                    title: q.title ?? null,
+                    question_text: q.question_text ?? null,
+                    instructions: q.instructions ?? null,
+                    question_form: q.question_form ?? null,
+                    list_of_questions: q.list_of_questions ?? null,
+                    list_of_options: q.list_of_options ?? null,
+                    matching_question: q.matching_question ?? null,
+                    matrix_question: q.matrix_question ?? null,
+                    explanations: q.explanations ?? null,
+                    sort_order: q.sort_order ?? qIndex,
+                }))
+            );
 
-        if (allQuestions.length > 0) {
-            const { error: questionError } = await supabase
-                .from("questions")
-                .insert(allQuestions);
+            if (allQuestions.length > 0) {
+                const { error: questionError } = await supabase
+                    .from("questions")
+                    .insert(allQuestions);
 
-            if (questionError) throw questionError;
+                if (questionError) throw questionError;
+            }
+        } catch (err) {
+            // Re-throw with context about potential data loss
+            const msg = err instanceof Error ? err.message : String(err);
+            throw new Error(
+                `Failed to re-insert passages/questions for quiz "${id}" after deleting old data. ` +
+                `The old passages have been lost. Error: ${msg}`
+            );
         }
     }
 

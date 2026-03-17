@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createServerClient } from "@supabase/ssr";
+import { createApiSupabase } from "~supabase/server";
 import { submitTestResult } from "~services/test-flow";
+import { SubmitTestSchema } from "~services/lib/validation";
 
 type ResponseData = {
   success: boolean;
@@ -17,38 +18,17 @@ export default async function handler(
   }
 
   try {
-    // Create Supabase client from request cookies (preserves user session)
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return Object.entries(req.cookies).map(([name, value]) => ({
-              name,
-              value: value || "",
-            }));
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              res.setHeader(
-                "Set-Cookie",
-                `${name}=${value}; Path=/; ${options?.maxAge ? `Max-Age=${options.maxAge}` : ""}`
-              );
-            });
-          },
-        },
-      }
-    );
+    const supabase = createApiSupabase(req, res);
 
-    const { testId, answers, timeLeft } = req.body;
-
-    if (!testId || !answers) {
+    const parsed = SubmitTestSchema.safeParse(req.body);
+    if (!parsed.success) {
       return res.status(400).json({
         success: false,
-        error: "testId and answers are required",
+        error: parsed.error.issues.map((i) => i.message).join(", "),
       });
     }
+
+    const { testId, answers, timeLeft } = parsed.data;
 
     // Parse answers if string
     const parsedAnswers = typeof answers === "string" ? JSON.parse(answers) : answers;

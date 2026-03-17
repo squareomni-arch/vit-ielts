@@ -43,7 +43,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             // If manually confirming, optionally activate Pro
             if (status === "completed" && activatePro && order.user_id) {
-                await activateProAccount(supabaseAdmin, order.user_id, Number(durationMonths));
+                // Fetch order details to get package_type and skill_type
+                const { data: orderDetail } = await supabaseAdmin
+                    .from("orders")
+                    .select("package_type, skill_type")
+                    .eq("order_id", id)
+                    .single();
+
+                const proSkills =
+                    orderDetail?.package_type === "single" && orderDetail?.skill_type
+                        ? [orderDetail.skill_type]
+                        : null;
+
+                await activateProAccount(supabaseAdmin, order.user_id, Number(durationMonths), proSkills);
             }
 
             return res.status(200).json({ success: true, data: order, message: "Order updated" });
