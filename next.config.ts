@@ -50,15 +50,13 @@ const nextConfig: NextConfig = {
     return config;
   },
   eslint: {
-    // Cảnh báo: Điều này cho phép build thành công ngay cả khi có lỗi ESLint.
-    ignoreDuringBuilds: true,
+    // ESLint errors will now fail the build
+    ignoreDuringBuilds: false,
   },
-  // ▼▼▼ THÊM KHỐI NÀY VÀO ▼▼▼
   typescript: {
-    // Cảnh báo: Bỏ qua lỗi TypeScript khi build.
-    ignoreBuildErrors: true,
+    // TypeScript errors will now fail the build
+    ignoreBuildErrors: false,
   },
-  // ▲▲▲ KẾT THÚC KHỐI THÊM ▲▲▲
   transpilePackages: [
     "@ant-design",
     "@rc-component",

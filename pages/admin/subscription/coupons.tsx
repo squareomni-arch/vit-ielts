@@ -13,7 +13,20 @@ import {
   Popconfirm,
 } from "antd";
 import AdminLayout from "../_layout";
-// Coupon mapped type matching the API response shape (camelCase)
+// Coupon type matching the v2 API response shape (snake_case from DB)
+type CouponV2 = {
+  id: string;
+  code: string;
+  type: string;
+  value: number;
+  max_uses: number | null;
+  current_uses: number;
+  is_active: boolean;
+  expires_at: string | null;
+  created_at: string;
+};
+
+// Display-friendly mapped type
 type Coupon = {
   id: string;
   code: string;
@@ -42,8 +55,19 @@ export default function CouponsPage() {
     try {
       const res = await fetch("/api/admin/coupons");
       if (!res.ok) throw new Error("Failed to load coupons");
-      const data = (await res.json()) as Coupon[];
-      setCoupons(data);
+      const json = await res.json();
+      const raw = (json.data || []) as CouponV2[];
+      // Map v2 snake_case to display-friendly camelCase
+      setCoupons(raw.map((c) => ({
+        id: c.id,
+        code: c.code,
+        discountAmount: c.value,
+        maxUses: c.max_uses ?? 0,
+        currentUses: c.current_uses,
+        isActive: c.is_active,
+        createdAt: c.created_at,
+        updatedAt: c.created_at,
+      })));
     } catch {
       message.error("Error loading coupons");
     } finally {

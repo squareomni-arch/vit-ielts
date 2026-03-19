@@ -56,7 +56,7 @@ function toIPracticeSingle(
           altText: quiz.title,
         },
       }
-      : null,
+      : undefined,
     quizFields: {
       testsTaken: quiz.tests_taken ?? 0,
       proUserOnly: quiz.pro_user_only,
@@ -72,12 +72,12 @@ function toIPracticeSingle(
             databaseId: 0,
           },
         }
-        : null,
+        : undefined,
       passages: (quiz.passages ?? []).map((p) => ({
         title: p.title ?? "",
         passage_content: p.content ?? "",
-        audio_start: p.audio_start?.toString() ?? null,
-        audio_end: p.audio_end?.toString() ?? null,
+        audio_start: p.audio_start?.toString() ?? undefined,
+        audio_end: p.audio_end?.toString() ?? undefined,
         questions: (p.questions ?? []).map((q) => {
           const listOfQuestions = safeParseJsonb<any[]>(q.list_of_questions);
           const listOfOptions = safeParseJsonb<any[]>(q.list_of_options);
@@ -94,19 +94,19 @@ function toIPracticeSingle(
             q.type as IPracticeSingle["quizFields"]["passages"][0]["questions"][0]["type"][0],
             q.type,
           ],
-          question: q.question_text ?? null,
-          instructions: q.instructions ?? null,
+          question: q.question_text ?? undefined,
+          instructions: q.instructions ?? undefined,
           list_of_questions: Array.isArray(listOfQuestions) ? listOfQuestions.map((lq) => ({
             question: lq.question,
             correct: typeof lq.correct === "string" ? parseInt(lq.correct, 10) || 0 : Number(lq.correct),
             options: (Array.isArray(lq.options) ? lq.options : []).map((o: any) => ({
               content: o.option_text ?? o.content ?? "",
             })),
-          })) : null,
+          })) : undefined,
           list_of_options: Array.isArray(listOfOptions) ? listOfOptions.map((lo) => ({
             option: lo.option_text ?? lo.option ?? "",
-            correct: lo.correct ?? null,
-          })) : null,
+            correct: lo.correct ?? undefined,
+          })) : undefined,
           explanations: explanations.map((e: any) => ({
             content: e.content ?? "",
           })),
@@ -127,7 +127,7 @@ function toIPracticeSingle(
                 optionText: ao.option_text ?? ao.optionText ?? "",
               })),
             }
-            : null,
+            : undefined,
           matrixQuestion: matrixQ
             ? {
               matrixCategories: (Array.isArray(matrixQ.matrix_categories) ? matrixQ.matrix_categories
@@ -146,7 +146,7 @@ function toIPracticeSingle(
               })(),
               legendTitle: matrixQ.legend_title ?? matrixQ.legendTitle ?? "",
             }
-            : null,
+            : undefined,
         }}),
       })),
       pdf: quiz.pdf_url
@@ -157,7 +157,7 @@ function toIPracticeSingle(
             databaseId: 0,
           },
         }
-        : null,
+        : undefined,
     },
   };
 }

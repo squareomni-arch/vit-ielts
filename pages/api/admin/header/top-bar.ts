@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { readConfig, writeConfig } from "~services/cms-config";
 import { supabaseAdmin } from "~supabase/admin";
 import type { TopBarConfig } from "../../../../src/widgets/layouts/base/ui/header/types";
-import { requireAdmin } from "../../../../lib/admin-auth";
+import { requireAdmin } from "~lib/admin-auth";
 
 export type { TopBarConfig };
 

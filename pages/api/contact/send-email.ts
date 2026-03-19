@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { dbg } from "../../../lib/debug";
-import { SendEmailSchema } from "../../../services/lib/validation";
+import { dbg } from "~lib/debug";
+import { SendEmailSchema } from "~services/lib/validation";
 import { rateLimit } from "~lib/rate-limit";
 
 const log = dbg.email;
@@ -19,7 +19,7 @@ export default async function handler(
   }
 
   // Rate limit: 5 contact emails per minute per IP
-  if (rateLimit(req, res, { windowMs: 60_000, max: 5, keyPrefix: "contact" })) return;
+  if (await rateLimit(req, res, { windowMs: 60_000, max: 5, keyPrefix: "contact" })) return;
 
   try {
     const parsed = SendEmailSchema.safeParse(req.body);

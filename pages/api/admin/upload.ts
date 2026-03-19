@@ -2,9 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import formidable from "formidable";
 import fs from "fs";
 import path from "path";
-import { requireAdmin } from "../../../lib/admin-auth";
-import { supabaseAdmin } from "../../../lib/supabase/admin";
-import { dbg } from "../../../lib/debug";
+import { requireAdmin } from "~lib/admin-auth";
+import { supabaseAdmin } from "~lib/supabase/admin";
+import { dbg } from "~lib/debug";
 
 const log = dbg.upload;
 

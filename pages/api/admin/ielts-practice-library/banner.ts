@@ -5,7 +5,7 @@ import {
 } from "~services/cms-config";
 import { supabaseAdmin } from "~supabase/admin";
 import type { PracticeLibraryBannerConfig } from "@/shared/types/admin-config";
-import { requireAdmin } from "../../../../lib/admin-auth";
+import { requireAdmin } from "~lib/admin-auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const sectionName = "ielts-practice-library/banner";

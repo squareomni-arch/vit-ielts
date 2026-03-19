@@ -17,11 +17,11 @@ export const HorizontalItem = ({
     switch (skill) {
       case "speaking":
         return (
-          post.speakingSampleEssayFields?.questionType?.map((item) => item) ||
+          post.speakingSampleEssayFields?.questionType?.map((item: string) => item) ||
           []
         );
       case "writing":
-        return post.writingSampleEssayFields?.topic?.map((item) => item) || [];
+        return post.writingSampleEssayFields?.topic?.map((item: string) => item) || [];
       default:
         return [];
     }

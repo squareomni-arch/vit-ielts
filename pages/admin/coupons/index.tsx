@@ -34,7 +34,7 @@ export default function AdminCouponsPage() {
     const fetchCoupons = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch("/api/admin/coupons-v2");
+            const res = await fetch("/api/admin/coupons");
             const json = await res.json();
             if (json.success) setCoupons(json.data);
         } catch { message.error("Error loading coupons"); }
@@ -55,7 +55,7 @@ export default function AdminCouponsPage() {
 
     const handleDelete = async (id: string) => {
         try {
-            const res = await fetch(`/api/admin/coupons-v2?id=${id}`, { method: "DELETE" });
+            const res = await fetch(`/api/admin/coupons?id=${id}`, { method: "DELETE" });
             const json = await res.json();
             if (json.success) { message.success("Đã xóa"); fetchCoupons(); }
             else message.error(json.error);
@@ -70,7 +70,7 @@ export default function AdminCouponsPage() {
                 expires_at: values.expires_at ? values.expires_at.toISOString() : null,
                 ...(editing ? { id: editing.id } : {}),
             };
-            const res = await fetch("/api/admin/coupons-v2", {
+            const res = await fetch("/api/admin/coupons", {
                 method: editing ? "PUT" : "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),

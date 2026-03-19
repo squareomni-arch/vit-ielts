@@ -1,10 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { requireAdmin } from "../../../lib/admin-auth";
+import { requireAdmin } from "~lib/admin-auth";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Block in production — debug endpoints should not exist outside development
+  if (process.env.NODE_ENV !== "development") {
+    return res.status(404).json({ error: "Not found" });
+  }
+
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }

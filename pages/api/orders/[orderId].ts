@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
-import { getOrderById, updateOrderStatus } from "../../../services/order";
+import { getOrderById, updateOrderStatus } from "~services/order";
 
 type ResponseData = {
   success: boolean;

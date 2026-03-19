@@ -1,12 +1,11 @@
-﻿import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 import formidable from "formidable";
 import fs from "fs";
 import path from "path";
-// @ts-ignore â€” @vercel/blob@0.0.2 types are outdated; del exists at runtime
 import { put, del } from "@vercel/blob";
 import axios from "axios";
-import { requireAdmin } from "../../../lib/admin-auth";
-import { dbg } from "../../../lib/debug";
+import { requireAdmin } from "~lib/admin-auth";
+import { dbg } from "~lib/debug";
 
 const log = dbg.upload;
 
@@ -71,14 +70,12 @@ async function uploadToBlob(
   }
 
   // Upload file má»›i
-  // @ts-ignore â€” fileBuffer type mismatch with old @vercel/blob types
   const blob = await put(fileName, fileBuffer, {
     access: "public",
     token,
     contentType: file.mimetype || "image/jpeg",
   });
 
-  // @ts-ignore â€” pathname exists in runtime but not in old @vercel/blob@0.0.2 types
   return `/${blob.pathname}`;
 }
 
@@ -103,8 +100,7 @@ async function uploadToImgBB(file: formidable.File): Promise<string> {
   
   try {
     log("Calling ImgBB API...", {
-      apiKeyLength: imgbbApiKey.length,
-      apiKeyPrefix: imgbbApiKey.substring(0, 8),
+      apiKeyPresent: true,
       fileSize: fileBuffer.length,
       base64Length: base64.length,
       mimetype: file.mimetype,
@@ -306,6 +302,15 @@ export default async function handler(
 
     if (!file) {
       return res.status(400).json({ message: "File khÃ´ng há»£p lá»‡" });
+    }
+
+    // Validate file type — only allow safe image formats
+    const ALLOWED_MIMES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!file.mimetype || !ALLOWED_MIMES.includes(file.mimetype)) {
+      return res.status(400).json({
+        message: "File type not allowed",
+        error: `Allowed: ${ALLOWED_MIMES.join(", ")}. Got: ${file.mimetype || "unknown"}`,
+      });
     }
 
     log("Processing file:", {

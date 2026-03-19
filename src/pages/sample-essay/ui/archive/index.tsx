@@ -378,7 +378,7 @@ export const PageArchive = ({
                         : "flex -m-1.5 flex-wrap items-stretch"
                     }
                   >
-                    {sampleEssays.edges.map((item, index) => (
+                    {sampleEssays.edges.map((item: (typeof sampleEssays.edges)[number], index: number) => (
                       <div
                         className={
                           skill === "writing" || skill === "speaking"

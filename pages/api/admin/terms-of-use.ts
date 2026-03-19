@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { readConfig, writeConfig } from "~services/cms-config";
 import { supabaseAdmin } from "~supabase/admin";
 import type { TermsOfUseConfig } from "@/shared/types/admin-config";
-import { requireAdmin } from "../../../lib/admin-auth";
+import { requireAdmin } from "~lib/admin-auth";
 
 export default async function handler(
   req: NextApiRequest,

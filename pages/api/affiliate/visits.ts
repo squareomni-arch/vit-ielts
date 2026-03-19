@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
-import { trackVisit, getAffiliateVisits } from "../../../services/affiliate";
+import { trackVisit, getAffiliateVisits } from "~services/affiliate";
 
 export default async function handler(
   req: NextApiRequest,

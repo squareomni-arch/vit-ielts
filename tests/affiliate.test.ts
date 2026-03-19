@@ -138,7 +138,7 @@ describe("Affiliate Service — createCommission()", () => {
 
         const inserts = supabase._tracking.insertedRows["commissions"];
         if (inserts && inserts.length > 0) {
-            expect(inserts[0].commission_amount).toBe(20000); // 100000 * 0.2
+            expect((inserts[0] as Record<string, unknown>).commission_amount).toBe(20000); // 100000 * 0.2
         }
     });
 
@@ -158,7 +158,7 @@ describe("Affiliate Service — createCommission()", () => {
 
         const inserts = supabase._tracking.insertedRows["commissions"];
         if (inserts && inserts.length > 0) {
-            expect(inserts[0].commission_amount).toBe(15000); // 100000 * 0.15
+            expect((inserts[0] as Record<string, unknown>).commission_amount).toBe(15000); // 100000 * 0.15
         }
     });
 });

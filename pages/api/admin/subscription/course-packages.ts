@@ -5,7 +5,7 @@ import type {
   CoursePackageItem,
   CoursePackagesConfig,
 } from "@/shared/types/admin-config";
-import { requireAdmin } from "../../../../lib/admin-auth";
+import { requireAdmin } from "~lib/admin-auth";
 
 const fixedComboTiers = [
   { months: 1, price: 200000 },

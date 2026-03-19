@@ -89,8 +89,8 @@ function PassageRenderer({ passageContent }: { passageContent: string }) {
         if (isNaN(gapIndex)) return;
 
         const containerId = `gap-${gapIndex}`;
-        const questionNumber = startIndex + gapIndex + 1;
-        const questionAbsoluteIndex = startIndex + gapIndex;
+        const questionNumber = (startIndex ?? 0) + gapIndex + 1;
+        const questionAbsoluteIndex = (startIndex ?? 0) + gapIndex;
 
         return (
           <SortableContext items={items[containerId] || []} id={containerId}>
@@ -322,7 +322,7 @@ export function PageTakeTheTest() {
     // Use originalPartIndex if available (for filtered passages), otherwise use partIndex
     const originalPartIndex = (currentPassage as any).originalPartIndex;
     const partNumber = (originalPartIndex !== undefined ? originalPartIndex : (currentPassage as any).partIndex) + 1;
-    const startQuestion = currentPassage.questions[0]?.startIndex + 1;
+    const startQuestion = (currentPassage.questions[0]?.startIndex ?? 0) + 1;
     const questionCountInPassage = countQuestion(currentPassage);
     const endQuestion = startQuestion + questionCountInPassage - 1;
     const questionRange =
@@ -362,7 +362,7 @@ export function PageTakeTheTest() {
         };
       }
 
-      const options = headingQuestion.matchingQuestion.answerOptions || [];
+      const options = headingQuestion.matchingQuestion?.answerOptions || [];
       // @ts-ignore
       const sIndex = headingQuestion.startIndex || 0;
 
@@ -509,7 +509,7 @@ export function PageTakeTheTest() {
     if (String(overContainerId).startsWith("gap-")) {
       const gapIndex = String(overContainerId).split("-")[1];
       if (gapIndex && !isNaN(parseInt(gapIndex, 10))) {
-        updatedFormAnswers[gapIndex] = active.id as string;
+        updatedFormAnswers[gapIndex as unknown as number] = active.id as string;
         restOfContext.setActiveQuestionIndex(
           startIndex + parseInt(gapIndex, 10)
         );

@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
-import { updateOrderStatus } from "../../../../services/order";
-import { activateProAccount } from "../../../../services/user";
-import { requireAdmin } from "../../../../lib/admin-auth";
+import { updateOrderStatus } from "~services/order";
+import { activateProAccount } from "~services/user";
+import { requireAdmin } from "~lib/admin-auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const user = await requireAdmin(req, res);

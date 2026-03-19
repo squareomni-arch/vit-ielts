@@ -176,7 +176,7 @@ export function createMockSupabase(
           const builder = createQueryBuilder(rows, "update");
 
           // Override .single to return the updated data merged with existing
-          const originalEq = builder.eq as ReturnType<typeof vi.fn>;
+          const originalEq = builder.eq as (...args: unknown[]) => typeof builder;
           const filters: Array<{ field: string; value: unknown }> = [];
 
           builder.eq = vi.fn((field: string, value: unknown) => {

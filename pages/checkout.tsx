@@ -153,11 +153,7 @@ const CheckoutPage = () => {
           packageType: selection.pkgType,
           duration: selection.duration,
           skillType: selection.skillType,
-          amount: finalPrice,
-          originalAmount: selection.price,
-          couponId: appliedCoupon?.id,
-          couponCode: appliedCoupon?.code,
-          discountAmount: appliedCoupon?.discountAmount || 0,
+          couponCode: appliedCoupon?.code || null,
         }),
       });
 

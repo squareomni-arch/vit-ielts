@@ -76,11 +76,11 @@ export const DefaultView = ({
     switch (skill) {
       case "speaking":
         return (
-          post.speakingSampleEssayFields?.questionType?.map((item) => item) ||
+          post.speakingSampleEssayFields?.questionType?.map((item: string) => item) ||
           []
         );
       case "writing":
-        return post.writingSampleEssayFields?.topic?.map((item) => item) || [];
+        return post.writingSampleEssayFields?.topic?.map((item: string) => item) || [];
       default:
         return [];
     }
@@ -136,7 +136,7 @@ export const DefaultView = ({
             {post.title}
           </h4>
           <ul className="text-xs list-disc pl-4">
-            {listItems.slice(0, 3).map((item, index) => (
+            {listItems.slice(0, 3).map((item: string, index: number) => (
               <li key={index}>{_.capitalize(item)}</li>
             ))}
           </ul>
@@ -144,7 +144,7 @@ export const DefaultView = ({
         <div className="absolute inset-0 bg-white z-10 group-hover:opacity-100 opacity-0 duration-200 p-4 space-y-2">
           <h4 className="text-base font-bold font-nunito">{post.title}</h4>
           <ul className="text-xs list-disc pl-4">
-            {listItems.map((item, index) => (
+            {listItems.map((item: string, index: number) => (
               <li key={index}>{_.capitalize(item)}</li>
             ))}
           </ul>

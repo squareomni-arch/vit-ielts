@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
-import { requireAdmin } from "../../../lib/admin-auth";
+import { requireAdmin } from "~lib/admin-auth";
 
 type ResponseData = {
     success: boolean;

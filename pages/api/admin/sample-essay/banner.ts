@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { readConfig, writeConfig } from "~services/cms-config";
 import { supabaseAdmin } from "~supabase/admin";
-import { requireAdmin } from "../../../../lib/admin-auth";
+import { requireAdmin } from "~lib/admin-auth";
 
 export interface SampleEssayBannerConfig {
   writing: {

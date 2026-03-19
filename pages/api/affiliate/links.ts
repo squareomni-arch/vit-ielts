@@ -4,7 +4,7 @@ import {
   getAffiliateLinks,
   createAffiliateLink,
   getAffiliateByUserId,
-} from "../../../services/affiliate";
+} from "~services/affiliate";
 
 function generateRandomCode(length: number = 10): string {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

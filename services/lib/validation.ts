@@ -9,16 +9,13 @@ import { z } from "zod";
 
 // ──────────────────────────────────────────────
 // /api/orders/create
+// Server re-calculates amount — client only sends selection + coupon code
 // ──────────────────────────────────────────────
 export const CreateOrderSchema = z.object({
     packageType: z.enum(["combo", "single"]),
     duration: z.number().int().positive().max(36),
     skillType: z.string().optional(),
-    amount: z.number().positive(),
-    originalAmount: z.number().positive().optional(),
-    couponId: z.string().uuid().optional().nullable(),
     couponCode: z.string().max(50).optional().nullable(),
-    discountAmount: z.number().min(0).optional().default(0),
 });
 
 // ──────────────────────────────────────────────

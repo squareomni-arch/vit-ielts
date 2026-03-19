@@ -1,149 +1,94 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
-import {
-  getCoupons,
-  createCoupon,
-  updateCoupon,
-  deleteCoupon,
-} from "../../../services/coupon";
-import { requireAdmin } from "../../../lib/admin-auth";
+import { requireAdmin } from "~lib/admin-auth";
 
-// Re-export Coupon type for backward compatibility with other imports
-export type { Coupon } from "../../../services/coupon";
+/** Enhanced coupons API supporting type, expires_at fields */
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    const user = await requireAdmin(req, res);
+    if (!user) return;
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const user = await requireAdmin(req, res);
-  if (!user) return;
-
-  if (req.method === "GET") {
-    try {
-      const coupons = await getCoupons(supabaseAdmin);
-
-      // Map to legacy shape for frontend compatibility
-      const mapped = coupons.map((c) => ({
-        id: c.id,
-        code: c.code,
-        discountAmount: c.value,
-        maxUses: c.max_uses ?? 0,
-        currentUses: c.current_uses,
-        isActive: c.is_active,
-        createdAt: c.created_at,
-        updatedAt: c.created_at, // DB doesn't have updated_at, use created_at
-      }));
-
-      return res.status(200).json(mapped);
-    } catch (error) {
-      return res.status(500).json({
-        message: "Không đọc được danh sách mã giảm giá",
-        error: error instanceof Error ? error.message : String(error),
-      });
+    if (req.method === "GET") {
+        try {
+            const { data, error } = await supabaseAdmin
+                .from("coupons")
+                .select("*")
+                .order("created_at", { ascending: false });
+            if (error) throw error;
+            return res.status(200).json({ success: true, data: data ?? [] });
+        } catch (error) {
+            return res.status(500).json({ success: false, error: error instanceof Error ? error.message : "Internal error" });
+        }
     }
-  }
 
-  if (req.method === "POST") {
-    try {
-      const { code, discountAmount, maxUses } = req.body;
+    if (req.method === "POST") {
+        try {
+            const { code, type, value, max_uses, expires_at } = req.body;
+            if (!code || !value) return res.status(400).json({ success: false, error: "code and value are required" });
 
-      if (!code || !discountAmount || !maxUses) {
-        return res.status(400).json({
-          message: "Thiếu thông tin: code, discountAmount, maxUses là bắt buộc",
-        });
-      }
+            const { data, error } = await supabaseAdmin
+                .from("coupons")
+                .insert({
+                    code,
+                    type: type || "fixed",
+                    value: Number(value),
+                    max_uses: max_uses ? Number(max_uses) : null,
+                    expires_at: expires_at || null,
+                    is_active: true,
+                    current_uses: 0,
+                })
+                .select()
+                .single();
 
-      const coupon = await createCoupon(supabaseAdmin, {
-        code,
-        value: Number(discountAmount),
-        maxUses: Number(maxUses),
-        type: "fixed",
-      });
-
-      // Map to legacy shape
-      const mapped = {
-        id: coupon.id,
-        code: coupon.code,
-        discountAmount: coupon.value,
-        maxUses: coupon.max_uses ?? 0,
-        currentUses: coupon.current_uses,
-        isActive: coupon.is_active,
-        createdAt: coupon.created_at,
-        updatedAt: coupon.created_at,
-      };
-
-      return res.status(200).json({ message: "Tạo mã giảm giá thành công", coupon: mapped });
-    } catch (error) {
-      // Handle unique constraint violation (duplicate code)
-      const errMsg = error instanceof Error ? error.message : String(error);
-      if (errMsg.includes("duplicate") || errMsg.includes("unique")) {
-        return res.status(400).json({ message: "Mã giảm giá đã tồn tại" });
-      }
-      return res.status(500).json({
-        message: "Không thể tạo mã giảm giá",
-        error: errMsg,
-      });
+            if (error) throw error;
+            return res.status(200).json({ success: true, data });
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
+            if (msg.includes("duplicate") || msg.includes("unique")) {
+                return res.status(400).json({ success: false, error: "Mã giảm giá đã tồn tại" });
+            }
+            return res.status(500).json({ success: false, error: msg });
+        }
     }
-  }
 
-  if (req.method === "PUT") {
-    try {
-      const { id, code, discountAmount, maxUses, isActive } = req.body;
+    if (req.method === "PUT") {
+        try {
+            const { id, code, type, value, max_uses, is_active, expires_at } = req.body;
+            if (!id) return res.status(400).json({ success: false, error: "Missing id" });
 
-      if (!id) {
-        return res.status(400).json({ message: "Thiếu id" });
-      }
+            const updateData: Record<string, unknown> = {};
+            if (code !== undefined) updateData.code = code;
+            if (type !== undefined) updateData.type = type;
+            if (value !== undefined) updateData.value = Number(value);
+            if (max_uses !== undefined) updateData.max_uses = max_uses ? Number(max_uses) : null;
+            if (is_active !== undefined) updateData.is_active = Boolean(is_active);
+            if (expires_at !== undefined) updateData.expires_at = expires_at;
 
-      const coupon = await updateCoupon(supabaseAdmin, id, {
-        ...(code !== undefined && { code }),
-        ...(discountAmount !== undefined && { value: Number(discountAmount) }),
-        ...(maxUses !== undefined && { maxUses: Number(maxUses) }),
-        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
-      });
+            const { data, error } = await supabaseAdmin
+                .from("coupons")
+                .update(updateData)
+                .eq("id", id)
+                .select()
+                .single();
 
-      // Map to legacy shape
-      const mapped = {
-        id: coupon.id,
-        code: coupon.code,
-        discountAmount: coupon.value,
-        maxUses: coupon.max_uses ?? 0,
-        currentUses: coupon.current_uses,
-        isActive: coupon.is_active,
-        createdAt: coupon.created_at,
-        updatedAt: new Date().toISOString(),
-      };
-
-      return res.status(200).json({ message: "Cập nhật thành công", coupon: mapped });
-    } catch (error) {
-      const errMsg = error instanceof Error ? error.message : String(error);
-      if (errMsg.includes("duplicate") || errMsg.includes("unique")) {
-        return res.status(400).json({ message: "Mã giảm giá đã tồn tại" });
-      }
-      return res.status(500).json({
-        message: "Không thể cập nhật mã giảm giá",
-        error: errMsg,
-      });
+            if (error) throw error;
+            return res.status(200).json({ success: true, data });
+        } catch (error) {
+            return res.status(500).json({ success: false, error: error instanceof Error ? error.message : "Internal error" });
+        }
     }
-  }
 
-  if (req.method === "DELETE") {
-    try {
-      const { id } = req.query;
+    if (req.method === "DELETE") {
+        try {
+            const { id } = req.query;
+            if (!id || typeof id !== "string") return res.status(400).json({ success: false, error: "Missing id" });
 
-      if (!id || typeof id !== "string") {
-        return res.status(400).json({ message: "Thiếu id" });
-      }
-
-      await deleteCoupon(supabaseAdmin, id);
-
-      return res.status(200).json({ message: "Xóa thành công" });
-    } catch (error) {
-      return res.status(500).json({
-        message: "Không thể xóa mã giảm giá",
-        error: error instanceof Error ? error.message : String(error),
-      });
+            const { error } = await supabaseAdmin.from("coupons").delete().eq("id", id);
+            if (error) throw error;
+            return res.status(200).json({ success: true });
+        } catch (error) {
+            return res.status(500).json({ success: false, error: error instanceof Error ? error.message : "Internal error" });
+        }
     }
-  }
 
-  return res.status(405).json({ message: "Method not allowed" });
+    return res.status(405).json({ success: false, error: "Method not allowed" });
 }

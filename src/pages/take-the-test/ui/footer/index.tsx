@@ -209,7 +209,7 @@ function Footer() {
 
         // ▼▼▼ BẮT ĐẦU LOGIC SỬA LỖI MỚI ▼▼▼
         // Tìm đối tượng question tương ứng với startIndex
-        let targetQuestion: (typeof post.quizFields.passages[0]['questions'][0]) | null = null;
+        let targetQuestion: (typeof post.quizFields.passages[0]['questions'][0]) | null | undefined = null;
         for (const p of post.quizFields.passages) {
           targetQuestion = p.questions.find(q => q.startIndex === questionIndex);
           if (targetQuestion) break;
@@ -322,7 +322,7 @@ function Footer() {
     }
 
     if (!element && targetQuestion) {
-      const qElementId = `#question-no-${targetQuestion.startIndex + 1}`;
+      const qElementId = `#question-no-${(targetQuestion.startIndex ?? 0) + 1}`;
       element = document.getElementById(qElementId);
     }
 
@@ -333,7 +333,7 @@ function Footer() {
     const targetTypes = ["fillup", "radio", "select", "checkbox"];
     const currentType = targetQuestion?.type?.[0];
 
-    if (currentType && targetTypes.includes(currentType) && targetQuestion.startIndex !== undefined) {
+    if (currentType && targetTypes.includes(currentType) && targetQuestion && targetQuestion.startIndex !== undefined) {
       const relativeIndex = index - targetQuestion.startIndex;
 
       if (currentType === 'fillup') {

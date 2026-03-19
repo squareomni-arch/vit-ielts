@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
-import { createQuiz } from "../../../../../services/quiz";
-import { requireAdmin } from "../../../../../lib/admin-auth";
+import { createQuiz } from "~services/quiz";
+import { requireAdmin } from "~lib/admin-auth";
 
 export default async function handler(
     req: NextApiRequest,

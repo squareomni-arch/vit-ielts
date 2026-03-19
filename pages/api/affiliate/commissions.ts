@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
-import { getCommissions, createCommission } from "../../../services/affiliate";
+import { getCommissions, createCommission } from "~services/affiliate";
 
 export default async function handler(
   req: NextApiRequest,

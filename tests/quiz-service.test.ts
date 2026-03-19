@@ -348,11 +348,17 @@ describe("Quiz Service — updateQuiz()", () => {
     expect(supabase._tracking.deletedTables).not.toContain("passages");
   });
 
-  it("deletes old passages and re-inserts when passages provided", async () => {
+  it("calls update_quiz_passages RPC when passages provided", async () => {
     const supabase = createMockSupabase({
       quizzes: [sampleQuiz],
       passages: sampleQuiz.passages,
     });
+
+    // Mock the RPC call
+    (supabase as any).rpc = vi.fn(async () => ({
+      data: null,
+      error: null,
+    }));
 
     try {
       await updateQuiz(supabase as any, "quiz-001", {
@@ -374,15 +380,29 @@ describe("Quiz Service — updateQuiz()", () => {
         ],
       });
     } catch {
-      // Expected
+      // Expected due to mock limitations on getQuizBySlug
     }
 
-    // Should have called delete on passages
-    expect(supabase._tracking.deletedTables).toContain("passages");
+    // Should have called RPC with update_quiz_passages
+    expect((supabase as any).rpc).toHaveBeenCalledWith("update_quiz_passages", {
+      p_quiz_id: "quiz-001",
+      p_passages: expect.arrayContaining([
+        expect.objectContaining({
+          title: "New Passage",
+          content: "New Content",
+          sort_order: 0,
+          questions: expect.arrayContaining([
+            expect.objectContaining({
+              type: "fillup",
+              title: "New Q",
+            }),
+          ]),
+        }),
+      ]),
+    });
 
-    // Should have inserted new passages
-    const passageInserts = supabase._tracking.insertedRows["passages"];
-    expect(passageInserts).toBeDefined();
+    // Should NOT have directly deleted passages (old behavior)
+    expect(supabase._tracking.deletedTables).not.toContain("passages");
   });
 });
 

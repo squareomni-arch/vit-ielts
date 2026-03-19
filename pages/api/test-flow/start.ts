@@ -25,7 +25,7 @@ export default async function handler(
   }
 
   // Rate limit: 30 test starts per minute per IP
-  if (rateLimit(req, res, { windowMs: 60_000, max: 30, keyPrefix: "test-start" })) return;
+  if (await rateLimit(req, res, { windowMs: 60_000, max: 30, keyPrefix: "test-start" })) return;
 
   try {
     const supabase = createApiSupabase(req, res);

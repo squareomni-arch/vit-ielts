@@ -138,10 +138,25 @@ export async function getQuizFilterOptions(supabase: SupabaseClient): Promise<{
     parts: string[];
     quarters: string[];
 }> {
-    // PostgREST doesn't support DISTINCT, so we fetch all published quiz
-    // metadata (4 lightweight text columns). For ~500 quizzes this is fast.
-    // TODO: If quiz count exceeds ~5k, create a Supabase RPC or materialized
-    //       view for `SELECT DISTINCT year, source, part, quarter FROM quizzes`.
+    // Try RPC first (efficient DISTINCT at database level)
+    try {
+        const { data: rpcData, error: rpcError } = await supabase.rpc("get_quiz_filter_options");
+        if (!rpcError && rpcData) {
+            const row = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+            if (row) {
+                return {
+                    years: (row.years as string[]) || [],
+                    sources: (row.sources as string[]) || [],
+                    parts: (row.parts as string[]) || [],
+                    quarters: (row.quarters as string[]) || [],
+                };
+            }
+        }
+    } catch {
+        // RPC not deployed yet — fall through to legacy query
+    }
+
+    // Fallback: fetch all published quizzes and deduplicate client-side
     const { data, error } = await supabase
         .from("quizzes")
         .select("year, source, part, quarter")
@@ -150,8 +165,6 @@ export async function getQuizFilterOptions(supabase: SupabaseClient): Promise<{
     if (error) throw error;
 
     const rows = data ?? [];
-
-    // Extract unique non-null values
     const unique = (arr: (string | null)[]) =>
         [...new Set(arr.filter((v): v is string => v != null))].sort();
 
@@ -328,94 +341,55 @@ export async function updateQuiz(
 ): Promise<QuizWithPassages | null> {
     const { passages: passagesInput, ...quizData } = input;
 
-    // 1. Run independent operations in parallel:
-    //    - Update quiz fields
-    //    - Delete old passages (CASCADE deletes questions)
-    const promises: Promise<void>[] = [];
-
+    // 1. Update quiz metadata fields (if any)
     if (Object.keys(quizData).length > 0) {
-        promises.push(
-            (async () => {
-                const { error } = await supabase.from("quizzes").update(quizData).eq("id", id);
-                if (error) throw error;
-            })()
-        );
+        const { error } = await supabase.from("quizzes").update(quizData).eq("id", id);
+        if (error) throw error;
     }
 
+    // 2. Replace passages + questions atomically via RPC
+    //    The RPC wraps DELETE + INSERT in a single Postgres transaction,
+    //    so partial failures roll back and no data is lost.
     if (passagesInput) {
-        // Guard: prevent accidental data loss from empty passages array
         if (passagesInput.length === 0) {
             throw new Error("Cannot update quiz with empty passages array. To delete all passages, omit the passages field.");
         }
 
-        promises.push(
-            (async () => {
-                const { error } = await supabase.from("passages").delete().eq("quiz_id", id);
-                if (error) throw error;
-            })()
-        );
-    }
+        // Build JSONB payload for the RPC
+        const passagesJsonb = passagesInput.map((p, index) => ({
+            title: p.title ?? null,
+            content: p.content ?? null,
+            sort_order: p.sort_order ?? index,
+            audio_start: p.audio_start ?? null,
+            audio_end: p.audio_end ?? null,
+            questions: (p.questions ?? []).map((q, qIndex) => ({
+                type: q.type,
+                title: q.title ?? null,
+                question_text: q.question_text ?? null,
+                instructions: q.instructions ?? null,
+                question_form: q.question_form ?? null,
+                list_of_questions: q.list_of_questions ?? null,
+                list_of_options: q.list_of_options ?? null,
+                matching_question: q.matching_question ?? null,
+                matrix_question: q.matrix_question ?? null,
+                explanations: q.explanations ?? null,
+                sort_order: q.sort_order ?? qIndex,
+            })),
+        }));
 
-    await Promise.all(promises);
+        const { error: rpcError } = await supabase.rpc("update_quiz_passages", {
+            p_quiz_id: id,
+            p_passages: passagesJsonb,
+        });
 
-    // 2. Re-insert passages + questions (must be sequential: passages first, then questions)
-    // ⚠️ NOTE: This operation is NOT transactional. The delete above already committed.
-    // If the insert below fails, passage data is lost. A proper fix would use a Postgres
-    // RPC with BEGIN...COMMIT, but Supabase JS client doesn't expose transactions.
-    if (passagesInput) {
-        try {
-            const passagesWithQuizId = passagesInput.map((p, index) => ({
-                quiz_id: id,
-                title: p.title ?? null,
-                content: p.content ?? null,
-                sort_order: p.sort_order ?? index,
-                audio_start: p.audio_start ?? null,
-                audio_end: p.audio_end ?? null,
-            }));
-
-            const { data: passages, error: passageError } = await supabase
-                .from("passages")
-                .insert(passagesWithQuizId)
-                .select();
-
-            if (passageError) throw passageError;
-
-            // Re-insert questions (batch)
-            const allQuestions = passagesInput.flatMap((p, pIndex) =>
-                (p.questions ?? []).map((q, qIndex) => ({
-                    passage_id: passages[pIndex].id,
-                    type: q.type,
-                    title: q.title ?? null,
-                    question_text: q.question_text ?? null,
-                    instructions: q.instructions ?? null,
-                    question_form: q.question_form ?? null,
-                    list_of_questions: q.list_of_questions ?? null,
-                    list_of_options: q.list_of_options ?? null,
-                    matching_question: q.matching_question ?? null,
-                    matrix_question: q.matrix_question ?? null,
-                    explanations: q.explanations ?? null,
-                    sort_order: q.sort_order ?? qIndex,
-                }))
-            );
-
-            if (allQuestions.length > 0) {
-                const { error: questionError } = await supabase
-                    .from("questions")
-                    .insert(allQuestions);
-
-                if (questionError) throw questionError;
-            }
-        } catch (err) {
-            // Re-throw with context about potential data loss
-            const msg = err instanceof Error ? err.message : String(err);
+        if (rpcError) {
             throw new Error(
-                `Failed to re-insert passages/questions for quiz "${id}" after deleting old data. ` +
-                `The old passages have been lost. Error: ${msg}`
+                `Transactional passage update failed for quiz "${id}": ${rpcError.message}`
             );
         }
     }
 
-    // 3. Return minimal confirmation (client already has the data)
+    // 3. Return updated quiz
     const { data: updatedQuiz } = await supabase
         .from("quizzes")
         .select("slug")

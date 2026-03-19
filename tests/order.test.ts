@@ -85,14 +85,14 @@ describe("Order Service — createOrder()", () => {
 
         const inserts = supabase._tracking.insertedRows["orders"];
         expect(inserts).toBeDefined();
-        expect(inserts[0].order_id).toMatch(/^IELTS PREDICTION \d+/);
+        expect((inserts[0] as Record<string, unknown>).order_id).toMatch(/^IELTS PREDICTION \d+/);
     });
 
     it("includes coupon fields when provided", async () => {
         const supabase = createMockSupabase({});
 
         // RPC mock for increment_coupon_uses — return success
-        supabase.rpc = vi.fn(async () => ({
+        (supabase as any).rpc = vi.fn(async () => ({
             data: [{ id: "coupon-001", code: "SAVE50", current_uses: 1, max_uses: 10, is_active: true }],
             error: null,
         }));

@@ -1,8 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
 import { createApiSupabase } from "~supabase/server";
-import { createOrder } from "../../../services/order";
-import { CreateOrderSchema } from "../../../services/lib/validation";
+import { createOrder } from "~services/order";
+import { CreateOrderSchema } from "~services/lib/validation";
+import { readConfig } from "~services/cms-config";
+import { validateCoupon } from "~services/coupon";
+import { calculatePrice } from "@/pages/subscription/ui/subscription-plans/pricing";
+import type { CoursePackagesConfig } from "@/shared/types/admin-config";
 
 const AFFILIATE_COOKIE_NAME = "affiliate_ref";
 
@@ -21,7 +25,7 @@ export default async function handler(
   }
 
   try {
-    // Validate input with Zod
+    // Validate input with Zod (only packageType, duration, skillType, couponCode)
     const parsed = CreateOrderSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({
@@ -30,16 +34,7 @@ export default async function handler(
       });
     }
 
-    const {
-      packageType,
-      duration,
-      skillType,
-      amount,
-      originalAmount,
-      couponId,
-      couponCode,
-      discountAmount,
-    } = parsed.data;
+    const { packageType, duration, skillType, couponCode } = parsed.data;
 
     // Extract userId from authenticated Supabase session (NOT from client body)
     const supabase = createApiSupabase(req, res);
@@ -54,26 +49,85 @@ export default async function handler(
 
     const finalUserId = user.id;
 
+    // ─── SERVER-SIDE PRICE CALCULATION ─────────────────────────────────
+    // Read pricing config from CMS (same source as the frontend)
+    const config = await readConfig<CoursePackagesConfig>(
+      supabaseAdmin,
+      "subscription/course-packages",
+    );
+
+    // Build price table from CMS config (same logic as checkout.tsx)
+    const pkgConfig = packageType === "combo" ? config?.combo : config?.single;
+    const basePrice = pkgConfig?.basePrice;
+    const monthlyIncrement = pkgConfig?.monthlyIncrementPrice ?? 100000;
+    const priceTable = pkgConfig?.plans?.reduce<Record<number, number>>(
+      (acc, plan) => {
+        acc[plan.months] = plan.price;
+        return acc;
+      },
+      {},
+    );
+
+    const originalAmount = calculatePrice(
+      packageType,
+      duration,
+      basePrice,
+      monthlyIncrement,
+      priceTable,
+    );
+
+    if (originalAmount === null || originalAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Gói đăng ký không hợp lệ. Vui lòng chọn lại.",
+      });
+    }
+
+    // ─── COUPON VALIDATION (SERVER-SIDE) ────────────────────────────────
+    let discountAmount = 0;
+    let validatedCouponId: string | null = null;
+    let validatedCouponCode: string | null = null;
+
+    if (couponCode) {
+      const couponResult = await validateCoupon(supabaseAdmin, couponCode);
+
+      if (couponResult.valid && couponResult.coupon) {
+        validatedCouponId = couponResult.coupon.id;
+        validatedCouponCode = couponResult.coupon.code;
+
+        // Calculate discount based on coupon type
+        if (couponResult.coupon.type === "percent") {
+          discountAmount = Math.round(originalAmount * (couponResult.coupon.value / 100));
+        } else {
+          // "fixed" type — value is the discount amount
+          discountAmount = couponResult.coupon.value;
+        }
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: couponResult.message || "Mã giảm giá không hợp lệ",
+        });
+      }
+    }
+
+    const finalAmount = Math.max(0, originalAmount - discountAmount);
+
     // Affiliate ref từ cookie
     const affiliateRef = req.cookies[AFFILIATE_COOKIE_NAME];
 
-    // Tạo order qua service (bao gồm coupon validation)
+    // Tạo order qua service (bao gồm coupon usage increment)
     const order = await createOrder(supabaseAdmin, {
       userId: finalUserId,
       packageType,
       duration,
       skillType: skillType as "reading" | "listening" | undefined,
-      amount,
+      amount: finalAmount,
       originalAmount,
-      couponId,
-      couponCode,
+      couponId: validatedCouponId ?? undefined,
+      couponCode: validatedCouponCode ?? undefined,
       discountAmount,
       affiliateRef: affiliateRef || undefined,
     });
-
-    // KHÔNG tính hoa hồng affiliate ở đây
-    // Hoa hồng chỉ được tính khi order status = "completed" (sau khi thanh toán thành công)
-    // TODO(task-09): Affiliate commission logic sẽ được migrate sang Supabase
 
     return res.status(200).json({
       success: true,

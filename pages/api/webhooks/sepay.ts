@@ -4,13 +4,13 @@ import { supabaseAdmin } from "~supabase/admin";
 import {
   getOrderByTransferContent,
   completeOrder,
-} from "../../../services/order";
-import { activateProAccount, getUserProfile } from "../../../services/user";
+} from "~services/order";
+import { activateProAccount, getUserProfile } from "~services/user";
 import {
   sendOrderConfirmEmail,
   sendAdminNotificationEmail,
-} from "../../../services/email";
-import { dbg } from "../../../lib/debug";
+} from "~services/email";
+import { dbg } from "~lib/debug";
 
 const log = dbg.webhook;
 

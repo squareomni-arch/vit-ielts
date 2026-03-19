@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
-import { activateProAccount } from "../../../../../services/user";
-import { requireAdmin } from "../../../../../lib/admin-auth";
+import { activateProAccount } from "~services/user";
+import { requireAdmin } from "~lib/admin-auth";
 
 export default async function handler(
     req: NextApiRequest,
