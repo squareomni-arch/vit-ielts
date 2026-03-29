@@ -68,3 +68,23 @@ export function parseOrFail<T extends z.ZodTypeAny>(
     }
     return { success: true, data: result.data };
 }
+
+// ──────────────────────────────────────────────
+// /api/affiliate/bank-info (PUT)
+// ──────────────────────────────────────────────
+export const SaveBankInfoSchema = z.object({
+    affiliateId: z.string().uuid(),
+    accountHolder: z.string().min(1).max(200).trim(),
+    accountNumber: z.string().min(5).max(30).trim(),
+    bankName: z.string().min(1).max(200).trim(),
+    bankCode: z.string().max(20).optional(),
+    bankBranch: z.string().max(200).optional(),
+});
+
+// ──────────────────────────────────────────────
+// /api/affiliate/payouts (POST) — create payout request
+// ──────────────────────────────────────────────
+export const CreatePayoutSchema = z.object({
+    affiliateId: z.string().uuid(),
+    amount: z.number().int().positive(),
+});

@@ -1,5 +1,6 @@
-import { Layout, Menu } from "antd";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/router";
+import { createClient } from "~supabase/client";
 import {
   DashboardOutlined,
   UserOutlined,
@@ -19,436 +20,458 @@ import {
   LogoutOutlined,
   BarChartOutlined,
   EditOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  BellOutlined,
+  SunOutlined,
+  MoonOutlined,
 } from "@ant-design/icons";
-import type { MenuProps } from "antd";
+import { message, Tooltip } from "antd";
 
-const { Sider, Content } = Layout;
+// ═══ Types ═══
+type MenuItemDef = {
+  key: string;
+  icon: React.ReactNode;
+  label: string;
+  children?: { key: string; label: string; icon?: React.ReactNode }[];
+};
 
-type MenuItem = Required<MenuProps>["items"][number];
+type MenuSection = {
+  title: string;
+  items: MenuItemDef[];
+};
 
-const menuItems: MenuItem[] = [
-  // ═══════════════════════════════════════
-  // MANAGEMENT SECTION
-  // ═══════════════════════════════════════
+// ═══ Menu Config ═══
+const MENU_SECTIONS: MenuSection[] = [
   {
-    key: "/admin",
-    icon: <DashboardOutlined />,
-    label: "Dashboard",
-  },
-  {
-    key: "/admin/users",
-    icon: <UserOutlined />,
-    label: "Users",
-  },
-  {
-    key: "quizzes-group",
-    icon: <FormOutlined />,
-    label: "Quizzes",
-    children: [
-      { key: "/admin/quizzes", label: "Danh sách" },
-      { key: "/admin/quizzes/new", label: "Thêm mới" },
+    title: "QUẢN LÝ",
+    items: [
+      { key: "/admin", icon: <DashboardOutlined />, label: "Dashboard" },
+      { key: "/admin/users", icon: <UserOutlined />, label: "Users" },
+      {
+        key: "quizzes-group", icon: <FormOutlined />, label: "Quizzes",
+        children: [
+          { key: "/admin/quizzes", label: "Danh sách" },
+          { key: "/admin/quizzes/new", label: "Thêm mới" },
+        ],
+      },
+      { key: "/admin/test-results", icon: <BarChartOutlined />, label: "Test Results" },
+      { key: "/admin/orders", icon: <ShoppingCartOutlined />, label: "Orders" },
+      { key: "/admin/coupons", icon: <TagOutlined />, label: "Coupons" },
+      { key: "/admin/posts", icon: <EditOutlined />, label: "Blog Posts" },
+      { key: "/admin/sample-essays", icon: <FileSearchOutlined />, label: "Sample Essays" },
+      {
+        key: "affiliate-group", icon: <TeamOutlined />, label: "Affiliate",
+        children: [
+          { key: "/admin/affiliate", icon: <DashboardOutlined />, label: "Tổng quan" },
+          { key: "/admin/affiliate/users", icon: <UserOutlined />, label: "Quản lý users" },
+          { key: "/admin/affiliate/payouts", icon: <DollarOutlined />, label: "Payouts" },
+          { key: "/admin/affiliate/config", icon: <SettingOutlined />, label: "Cấu hình" },
+        ],
+      },
+      { key: "/admin/settings", icon: <SettingOutlined />, label: "Settings" },
     ],
   },
   {
-    key: "/admin/test-results",
-    icon: <BarChartOutlined />,
-    label: "Test Results",
-  },
-  {
-    key: "/admin/orders",
-    icon: <ShoppingCartOutlined />,
-    label: "Orders",
-  },
-  {
-    key: "/admin/coupons",
-    icon: <TagOutlined />,
-    label: "Coupons",
-  },
-  {
-    key: "/admin/posts",
-    icon: <EditOutlined />,
-    label: "Blog Posts",
-  },
-  {
-    key: "/admin/sample-essays",
-    icon: <FileSearchOutlined />,
-    label: "Sample Essays",
-  },
-  {
-    key: "/admin/affiliate",
-    icon: <TeamOutlined />,
-    label: "Affiliate",
-  },
-  {
-    key: "/admin/settings",
-    icon: <SettingOutlined />,
-    label: "Settings",
-  },
-  {
-    type: "divider",
-  },
-  // ═══════════════════════════════════════
-  // CMS CONTENT SECTION
-  // ═══════════════════════════════════════
-  {
-    key: "cms-home",
-    icon: <HomeOutlined />,
-    label: "CMS: Home",
-    children: [
-      { key: "/admin/home/banner", label: "Hero Banner" },
-      { key: "/admin/home/test-platform-intro", label: "Test Platform Intro" },
-      { key: "/admin/home/why-choose-us", label: "Why Choose Us" },
-      { key: "/admin/home/testimonials", label: "Testimonials" },
-      { key: "/admin/home/practice-section", label: "Practice Section" },
-    ],
-  },
-  {
-    key: "cms-exam-library",
-    icon: <FileTextOutlined />,
-    label: "CMS: Exam Library",
-    children: [
-      { key: "/admin/ielts-exam-library/hero-banner", label: "Hero Banner" },
-    ],
-  },
-  {
-    key: "cms-practice-library",
-    icon: <BookOutlined />,
-    label: "CMS: Practice Library",
-    children: [
-      { key: "/admin/ielts-practice-library/banner", label: "Banner" },
-    ],
-  },
-  {
-    key: "cms-subscription",
-    icon: <CreditCardOutlined />,
-    label: "CMS: Subscription",
-    children: [
-      { key: "/admin/subscription/banner", label: "Banner" },
-      { key: "/admin/subscription/course-packages", label: "Course Packages" },
-      { key: "/admin/subscription/coupons", label: "Mã giảm giá (Legacy)" },
-      { key: "/admin/subscription/faq", label: "FAQ" },
-    ],
-  },
-  {
-    key: "cms-sample-essay",
-    icon: <FileSearchOutlined />,
-    label: "CMS: Sample Essay",
-    children: [
-      { key: "/admin/sample-essay/banner", label: "Banner" },
-    ],
-  },
-  {
-    key: "cms-header",
-    icon: <MenuOutlined />,
-    label: "CMS: Header",
-    children: [
-      { key: "/admin/header/top-bar", label: "Top Bar" },
-    ],
-  },
-  {
-    key: "cms-footer",
-    icon: <GlobalOutlined />,
-    label: "CMS: Footer",
-    children: [
-      { key: "/admin/footer/cta-banner", label: "CTA Banner" },
-    ],
-  },
-  {
-    key: "cms-account",
-    icon: <UserOutlined />,
-    label: "CMS: Account Pages",
-    children: [
-      { key: "/admin/account/login", label: "Login Page" },
-      { key: "/admin/account/register", label: "Register Page" },
-    ],
-  },
-  {
-    key: "cms-legal",
-    icon: <FileTextOutlined />,
-    label: "CMS: Legal Pages",
-    children: [
-      { key: "/admin/terms-of-use", label: "Terms of Service" },
-      { key: "/admin/privacy-policy", label: "Privacy Policy" },
+    title: "NỘI DUNG (CMS)",
+    items: [
+      {
+        key: "cms-home", icon: <HomeOutlined />, label: "Home",
+        children: [
+          { key: "/admin/home/banner", label: "Hero Banner" },
+          { key: "/admin/home/test-platform-intro", label: "Test Platform Intro" },
+          { key: "/admin/home/why-choose-us", label: "Why Choose Us" },
+          { key: "/admin/home/testimonials", label: "Testimonials" },
+          { key: "/admin/home/practice-section", label: "Practice Section" },
+        ],
+      },
+      {
+        key: "cms-exam-library", icon: <FileTextOutlined />, label: "Exam Library",
+        children: [{ key: "/admin/ielts-exam-library/hero-banner", label: "Hero Banner" }],
+      },
+      {
+        key: "cms-practice-library", icon: <BookOutlined />, label: "Practice Library",
+        children: [{ key: "/admin/ielts-practice-library/banner", label: "Banner" }],
+      },
+      {
+        key: "cms-subscription", icon: <CreditCardOutlined />, label: "Subscription",
+        children: [
+          { key: "/admin/subscription/banner", label: "Banner" },
+          { key: "/admin/subscription/course-packages", label: "Course Packages" },
+          { key: "/admin/subscription/coupons", label: "Mã giảm giá (Legacy)" },
+          { key: "/admin/subscription/faq", label: "FAQ" },
+        ],
+      },
+      {
+        key: "cms-sample-essay", icon: <FileSearchOutlined />, label: "Sample Essay",
+        children: [{ key: "/admin/sample-essay/banner", label: "Banner" }],
+      },
+      {
+        key: "cms-header", icon: <MenuOutlined />, label: "Header",
+        children: [{ key: "/admin/header/top-bar", label: "Top Bar" }],
+      },
+      {
+        key: "cms-footer", icon: <GlobalOutlined />, label: "Footer",
+        children: [{ key: "/admin/footer/cta-banner", label: "CTA Banner" }],
+      },
+      {
+        key: "cms-account", icon: <UserOutlined />, label: "Account Pages",
+        children: [
+          { key: "/admin/account/login", label: "Login Page" },
+          { key: "/admin/account/register", label: "Register Page" },
+        ],
+      },
+      {
+        key: "cms-legal", icon: <FileTextOutlined />, label: "Legal Pages",
+        children: [
+          { key: "/admin/terms-of-use", label: "Terms of Service" },
+          { key: "/admin/privacy-policy", label: "Privacy Policy" },
+        ],
+      },
     ],
   },
 ];
 
-// Top-level direct links (no children)
-const DIRECT_LINKS = new Set([
-  "/admin",
-  "/admin/users",
-  "/admin/test-results",
-  "/admin/orders",
-  "/admin/coupons",
-  "/admin/posts",
-  "/admin/sample-essays",
-  "/admin/affiliate",
-  "/admin/settings",
-]);
+// ═══ Breadcrumb Map ═══
+const BREADCRUMB_MAP: Record<string, string> = {
+  "/admin": "Dashboard",
+  "/admin/users": "Users",
+  "/admin/quizzes": "Quizzes",
+  "/admin/quizzes/new": "Thêm mới",
+  "/admin/test-results": "Test Results",
+  "/admin/orders": "Orders",
+  "/admin/coupons": "Coupons",
+  "/admin/posts": "Blog Posts",
+  "/admin/sample-essays": "Sample Essays",
+  "/admin/settings": "Settings",
+  "/admin/affiliate": "Affiliate",
+  "/admin/affiliate/users": "Quản lý Users",
+  "/admin/affiliate/payouts": "Payouts",
+  "/admin/affiliate/config": "Cấu hình",
+};
 
+// ═══ Helper: resolve breadcrumbs ═══
+function getBreadcrumbs(path: string): { label: string; href?: string }[] {
+  const crumbs: { label: string; href?: string }[] = [
+    { label: "Admin", href: "/admin" },
+  ];
+  if (path === "/admin") return crumbs;
+
+  const mapped = BREADCRUMB_MAP[path];
+  if (mapped) {
+    crumbs.push({ label: mapped });
+    return crumbs;
+  }
+
+  // Build from path segments
+  const segments = path.replace("/admin/", "").split("/");
+  let built = "/admin";
+  for (const seg of segments) {
+    built += `/${seg}`;
+    const label =
+      BREADCRUMB_MAP[built] || seg.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    crumbs.push({
+      label,
+      href: built === path ? undefined : built,
+    });
+  }
+  return crumbs;
+}
+
+// ═══ Check if menu item is active ═══
+function isItemActive(key: string, currentPath: string): boolean {
+  if (key === "/admin") return currentPath === "/admin";
+  return currentPath === key || currentPath.startsWith(key + "/");
+}
+
+// ═══ Layout Component ═══
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
+  const [collapsed, setCollapsed] = useState(false);
+  const [openSubmenus, setOpenSubmenus] = useState<Set<string>>(new Set());
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleMenuClick: MenuProps["onClick"] = (e) => {
-    if (e.key && typeof e.key === "string") {
-      if (e.key.startsWith("/")) {
-        router.push(e.key);
-      } else if (e.key.startsWith("http")) {
-        window.location.href = e.key;
-      }
-    }
-  };
+  // Load theme from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("admin-theme") as "dark" | "light" | null;
+    if (saved) setTheme(saved);
+    const savedCollapsed = localStorage.getItem("admin-sidebar-collapsed");
+    if (savedCollapsed === "true") setCollapsed(true);
+  }, []);
 
-  const getSelectedKeys = () => {
+  // Apply theme to document
+  useEffect(() => {
+    document.documentElement.setAttribute("data-admin-theme", theme);
+    localStorage.setItem("admin-theme", theme);
+  }, [theme]);
+
+  // Auto-open submenu based on current path
+  useEffect(() => {
     const path = router.asPath;
-
-    // Direct link match
-    if (DIRECT_LINKS.has(path)) return [path];
-
-    // Check for prefix match (e.g. /admin/users/123 → /admin/users)
-    for (const link of DIRECT_LINKS) {
-      if (link !== "/admin" && path.startsWith(link + "/")) return [link];
-    }
-
-    // Nested menu match (quizzes group, CMS sections)
-    for (const item of menuItems) {
-      if (item && "children" in item && item.children) {
-        for (const child of item.children) {
-          if (child?.key === path) return [path];
-          // Prefix match for nested (e.g. /admin/quizzes/123)
-          if (child?.key && typeof child.key === "string" && child.key.startsWith("/") && path.startsWith(child.key + "/")) {
-            return [child.key];
+    for (const section of MENU_SECTIONS) {
+      for (const item of section.items) {
+        if (item.children) {
+          for (const child of item.children) {
+            if (isItemActive(child.key, path)) {
+              setOpenSubmenus((prev) => new Set(prev).add(item.key));
+            }
           }
         }
       }
     }
+  }, [router.asPath]);
 
-    return ["/admin"];
-  };
+  const toggleCollapse = useCallback(() => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem("admin-sidebar-collapsed", String(next));
+      return next;
+    });
+  }, []);
 
-  const getOpenKeys = () => {
-    const path = router.asPath;
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  }, []);
 
-    // Check nested menus
-    for (const item of menuItems) {
-      if (item && "children" in item && item.children) {
-        for (const child of item.children) {
-          if (child?.key === path) return [item.key as string];
-          if (child?.key && typeof child.key === "string" && path.startsWith(child.key as string)) {
-            return [item.key as string];
-          }
-        }
-      }
-    }
+  const toggleSubmenu = useCallback((key: string) => {
+    setOpenSubmenus((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
 
-    return [];
-  };
+  const handleNavigate = useCallback(
+    (path: string) => {
+      router.push(path);
+      setMobileOpen(false);
+    },
+    [router]
+  );
+
+  const handleLogout = useCallback(async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    message.success("Đã đăng xuất");
+    window.location.href = "/admin/login";
+  }, []);
+
+  const breadcrumbs = useMemo(() => getBreadcrumbs(router.asPath), [router.asPath]);
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Sider
-        width={260}
-        theme="light"
-        style={{
-          overflow: "hidden",
-          height: "100vh",
-          position: "fixed",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          boxShadow: "2px 0 8px rgba(0,0,0,0.1)",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <div
-          style={{
-            height: 64,
-            margin: "0 16px 12px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "0 12px",
-            fontWeight: "bold",
-            fontSize: 20,
-            color: "#d94a56",
-            borderBottom: "2px solid #f0f0f0",
-            transition: "all 0.2s",
-            flexShrink: 0,
-          }}
-        >
-          <span style={{ letterSpacing: "0.5px" }}>Admin Panel</span>
-        </div>
-        <div
-          className="admin-sidebar-menu-container"
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            overflowX: "hidden",
-            paddingBottom: 16,
-            minHeight: 0,
-            maxHeight: "calc(100vh - 88px)",
-            height: "calc(100vh - 88px)",
-          }}
-        >
-          <Menu
-            mode="inline"
-            selectedKeys={getSelectedKeys()}
-            defaultOpenKeys={getOpenKeys()}
-            items={menuItems}
-            onClick={handleMenuClick}
-            style={{
-              borderRight: 0,
-              padding: "8px 0",
-            }}
-            theme="light"
-          />
-        </div>
-      </Sider>
-      <Layout
-        style={{
-          marginLeft: 260,
-        }}
-      >
-        <Content
-          style={{
-            margin: "24px 16px",
-            padding: 24,
-            minHeight: 280,
-            background: "#fff",
-            borderRadius: 8,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-          }}
-        >
-          {children}
-        </Content>
-      </Layout>
+    <div className="admin-shell" data-admin-theme={theme}>
+      {/* Mobile overlay */}
+      <div
+        className={`admin-sidebar-overlay ${mobileOpen ? "visible" : ""}`}
+        onClick={() => setMobileOpen(false)}
+      />
 
+      {/* ═══ Sidebar ═══ */}
+      <aside className={`admin-sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`}>
+        {/* Logo */}
+        <div className="admin-sidebar-logo">
+          <div className="admin-sidebar-logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <span className="admin-sidebar-logo-text">IELTS Master</span>
+        </div>
+
+        {/* Menu */}
+        <nav className="admin-sidebar-menu">
+          {MENU_SECTIONS.map((section, sIdx) => (
+            <div key={section.title}>
+              {sIdx > 0 && <div className="admin-menu-divider" />}
+              <div className="admin-menu-section">{section.title}</div>
+
+              {section.items.map((item) => {
+                if (item.children) {
+                  const isOpen = openSubmenus.has(item.key);
+                  const hasActive = item.children.some((c) =>
+                    isItemActive(c.key, router.asPath)
+                  );
+
+                  return (
+                    <div key={item.key}>
+                      {collapsed ? (
+                        <Tooltip title={item.label} placement="right">
+                          <button
+                            className={`admin-submenu-trigger ${hasActive ? "open" : ""}`}
+                            onClick={() => {
+                              if (item.children?.[0]) handleNavigate(item.children[0].key);
+                            }}
+                          >
+                            <span className="admin-menu-item-icon">{item.icon}</span>
+                          </button>
+                        </Tooltip>
+                      ) : (
+                        <>
+                          <button
+                            className={`admin-submenu-trigger ${isOpen ? "open" : ""}`}
+                            onClick={() => toggleSubmenu(item.key)}
+                          >
+                            <span className="admin-menu-item-icon">{item.icon}</span>
+                            <span className="admin-menu-item-label">{item.label}</span>
+                            <span className="admin-submenu-arrow">▾</span>
+                          </button>
+                          <div className={`admin-submenu-list ${isOpen ? "open" : ""}`}>
+                            {item.children.map((child) => (
+                              <button
+                                key={child.key}
+                                className={`admin-menu-item ${
+                                  isItemActive(child.key, router.asPath) ? "active" : ""
+                                }`}
+                                onClick={() => handleNavigate(child.key)}
+                              >
+                                <span className="admin-menu-item-label">{child.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                }
+
+                const isActive = isItemActive(item.key, router.asPath);
+
+                if (collapsed) {
+                  return (
+                    <Tooltip key={item.key} title={item.label} placement="right">
+                      <button
+                        className={`admin-menu-item ${isActive ? "active" : ""}`}
+                        onClick={() => handleNavigate(item.key)}
+                      >
+                        <span className="admin-menu-item-icon">{item.icon}</span>
+                      </button>
+                    </Tooltip>
+                  );
+                }
+
+                return (
+                  <button
+                    key={item.key}
+                    className={`admin-menu-item ${isActive ? "active" : ""}`}
+                    onClick={() => handleNavigate(item.key)}
+                  >
+                    <span className="admin-menu-item-icon">{item.icon}</span>
+                    <span className="admin-menu-item-label">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+
+          {/* Logout */}
+          <div className="admin-menu-divider" />
+          {collapsed ? (
+            <Tooltip title="Đăng xuất" placement="right">
+              <button className="admin-logout-btn" onClick={handleLogout}>
+                <LogoutOutlined />
+              </button>
+            </Tooltip>
+          ) : (
+            <button className="admin-logout-btn" onClick={handleLogout}>
+              <LogoutOutlined />
+              <span>Đăng xuất</span>
+            </button>
+          )}
+        </nav>
+
+        {/* Collapse Button */}
+        <button className="admin-sidebar-collapse-btn" onClick={toggleCollapse}>
+          {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+        </button>
+      </aside>
+
+      {/* ═══ Main ═══ */}
+      <div className={`admin-main ${collapsed ? "sidebar-collapsed" : ""}`}>
+        {/* Header */}
+        <header className="admin-header">
+          <div className="admin-header-left">
+            {/* Mobile menu toggle */}
+            <button
+              className="admin-header-action"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              style={{ display: "none" }}
+              id="admin-mobile-menu-btn"
+            >
+              <MenuOutlined />
+            </button>
+
+            {/* Breadcrumb */}
+            <nav className="admin-breadcrumb">
+              {breadcrumbs.map((crumb, i) => (
+                <span key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  {i > 0 && <span className="admin-breadcrumb-sep">›</span>}
+                  {crumb.href ? (
+                    <a
+                      href={crumb.href}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        router.push(crumb.href!);
+                      }}
+                    >
+                      {crumb.label}
+                    </a>
+                  ) : (
+                    <span className="admin-breadcrumb-current">{crumb.label}</span>
+                  )}
+                </span>
+              ))}
+            </nav>
+          </div>
+
+          <div className="admin-header-right">
+            {/* Theme toggle */}
+            <Tooltip title={theme === "dark" ? "Light mode" : "Dark mode"}>
+              <button className="admin-theme-toggle" onClick={toggleTheme}>
+                {theme === "dark" ? <SunOutlined /> : <MoonOutlined />}
+              </button>
+            </Tooltip>
+
+            {/* Notifications */}
+            <button className="admin-header-action">
+              <BellOutlined />
+              <span className="notification-dot" />
+            </button>
+
+            {/* Admin avatar */}
+            <div className="admin-header-avatar">
+              <div className="admin-header-avatar-fallback">A</div>
+              <div className="admin-header-avatar-info">
+                <span className="admin-header-avatar-name">Admin</span>
+                <span className="admin-header-avatar-role">Administrator</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <div className="admin-content admin-animate-in">{children}</div>
+      </div>
+
+      {/* Mobile responsive styles */}
       <style jsx global>{`
-        /* Custom styles for Admin Menu */
-        .ant-menu-item {
-          margin: 4px 8px !important;
-          border-radius: 6px !important;
-          height: 40px !important;
-          line-height: 40px !important;
-          transition: all 0.2s !important;
-        }
-
-        .ant-menu-item-selected {
-          background-color: #e6f7ff !important;
-          color: #1890ff !important;
-          font-weight: 500 !important;
-        }
-
-        .ant-menu-item-selected::after {
-          display: none !important;
-        }
-
-        .ant-menu-item:hover {
-          background-color: #f5f5f5 !important;
-          color: #1890ff !important;
-        }
-
-        .ant-menu-submenu-title {
-          margin: 4px 8px !important;
-          border-radius: 6px !important;
-          height: 40px !important;
-          line-height: 40px !important;
-          transition: all 0.2s !important;
-        }
-
-        .ant-menu-submenu-title:hover {
-          background-color: #f5f5f5 !important;
-          color: #1890ff !important;
-        }
-
-        .ant-menu-submenu-selected > .ant-menu-submenu-title {
-          color: #1890ff !important;
-          font-weight: 500 !important;
-        }
-
-        .ant-menu-submenu-open > .ant-menu-submenu-title {
-          color: #1890ff !important;
-        }
-
-        .ant-menu-submenu-arrow {
-          color: #666 !important;
-          transition: all 0.3s !important;
-        }
-
-        .ant-menu-submenu-open
-          > .ant-menu-submenu-title
-          .ant-menu-submenu-arrow {
-          color: #1890ff !important;
-        }
-
-        .ant-menu-submenu-inline
-          .ant-menu-submenu-title
-          .ant-menu-submenu-arrow {
-          right: 16px !important;
-        }
-
-        .ant-menu-inline .ant-menu-sub .ant-menu-item {
-          padding-left: 48px !important;
-        }
-
-        .ant-menu-inline .ant-menu-item::before {
-          display: none !important;
-        }
-
-        .ant-menu-item-icon {
-          font-size: 16px !important;
-          margin-right: 12px !important;
-        }
-
-        .ant-menu-submenu-title .ant-menu-item-icon {
-          margin-right: 0px !important;
-        }
-
-        .ant-layout-sider-trigger {
-          background: #fafafa !important;
-          border-top: 1px solid #f0f0f0 !important;
-        }
-
-        .ant-layout-sider-trigger:hover {
-          background: #f0f0f0 !important;
-        }
-
-        /* Custom scrollbar for menu container */
-        .admin-sidebar-menu-container::-webkit-scrollbar {
-          width: 8px;
-        }
-
-        .admin-sidebar-menu-container::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 4px;
-          margin: 8px 0;
-        }
-
-        .admin-sidebar-menu-container::-webkit-scrollbar-thumb {
-          background: #c1c1c1;
-          border-radius: 4px;
-        }
-
-        .admin-sidebar-menu-container::-webkit-scrollbar-thumb:hover {
-          background: #a8a8a8;
-        }
-
-        /* Firefox scrollbar */
-        .admin-sidebar-menu-container {
-          scrollbar-width: thin;
-          scrollbar-color: #c1c1c1 #f1f1f1;
-        }
-
-        /* Ensure menu items are clickable */
-        .ant-menu {
-          padding-bottom: 16px !important;
+        @media (max-width: 768px) {
+          #admin-mobile-menu-btn {
+            display: flex !important;
+          }
         }
       `}</style>
-    </Layout>
+    </div>
   );
 }

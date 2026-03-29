@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
-import { Table, Tag, Card, Button, Space, Input, Select, message, Popconfirm } from "antd";
-import { PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Table, Tag, Button, Space, Input, Select, message, Popconfirm } from "antd";
+import { PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined, FileTextOutlined } from "@ant-design/icons";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 import { withAdmin } from "@/shared/hoc/withAdmin";
+import { AdminPageHeader, AdminGlassCard } from "@/widgets/admin";
 
 type EssayRow = {
     id: string;
@@ -69,11 +70,13 @@ export default function AdminSampleEssaysPage() {
 
     return (
         <AdminLayout>
-            <Card
-                title={<h1 className="text-2xl font-bold m-0">Sample Essays</h1>}
-                extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => router.push("/admin/sample-essays/new")}>Tạo mới</Button>}
-            >
-                <Space className="mb-4" wrap>
+            <AdminPageHeader
+                icon={<FileTextOutlined />}
+                title="Sample Essays"
+                actions={<Button type="primary" icon={<PlusOutlined />} onClick={() => router.push("/admin/sample-essays/new")}>Tạo mới</Button>}
+            />
+            <AdminGlassCard>
+                <Space style={{ marginBottom: 16 }} wrap>
                     <Input.Search placeholder="Tìm tiêu đề..." allowClear onSearch={(v) => { setSearch(v); setPage(1); }} style={{ width: 220 }} prefix={<SearchOutlined />} />
                     <Select value={statusFilter} onChange={(v) => { setStatusFilter(v); setPage(1); }} style={{ width: 130 }} allowClear placeholder="Status">
                         <Select.Option value="published">Published</Select.Option>
@@ -84,7 +87,7 @@ export default function AdminSampleEssaysPage() {
                     onChange={(p: TablePaginationConfig) => { setPage(p.current ?? 1); setPageSize(p.pageSize ?? 20); }}
                     pagination={{ current: page, pageSize, total, showSizeChanger: true, showTotal: (t) => `Tổng ${t} bài` }}
                 />
-            </Card>
+            </AdminGlassCard>
         </AdminLayout>
     );
 }

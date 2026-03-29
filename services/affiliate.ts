@@ -75,6 +75,18 @@ type AffiliateStats = {
 // Default commission rate: 20%
 const DEFAULT_COMMISSION_RATE = 0.2;
 
+// Default waiting period: 7 days before commission becomes eligible
+const DEFAULT_WAITING_PERIOD_DAYS = 7;
+
+// Anti-spam: rate limit clicks per IP per affiliate per N hours
+const DEFAULT_CLICK_RATE_LIMIT_HOURS = 24;
+
+// Bot detection: common bot user-agent patterns
+const BOT_UA_PATTERNS = [
+    /bot/i, /crawl/i, /spider/i, /scrape/i, /curl/i, /wget/i,
+    /python/i, /http/i, /phantomjs/i, /headless/i,
+];
+
 // ============================================================
 // Functions
 // ============================================================
@@ -469,4 +481,313 @@ export async function getAffiliateVisits(
 
     if (error) throw error;
     return (data ?? []) as AffiliateVisit[];
+}
+
+// ============================================================
+// Anti-Fraud Functions
+// ============================================================
+
+/**
+ * Check if a user-agent string looks like a bot
+ */
+function isBot(userAgent?: string): boolean {
+    if (!userAgent) return true; // No UA is suspicious
+    return BOT_UA_PATTERNS.some((pattern) => pattern.test(userAgent));
+}
+
+/**
+ * Track an affiliate visit with anti-spam protections:
+ * 1. Rate limiting: max 1 click per IP per affiliate per 24h
+ * 2. Bot detection: skip bot user-agents
+ * 3. Marks non-unique duplicate visits
+ *
+ * @returns visit record or null if rate-limited/bot
+ */
+export async function trackVisitWithAntiSpam(
+    supabaseAdmin: SupabaseClient,
+    affiliateId: string,
+    linkId: string,
+    ip?: string,
+    userAgent?: string,
+    rateLimitHours: number = DEFAULT_CLICK_RATE_LIMIT_HOURS,
+) {
+    // 1. Bot detection
+    if (isBot(userAgent)) {
+        // Still record for analytics, but flag as bot
+        const { data, error } = await supabaseAdmin
+            .from("affiliate_visits")
+            .insert({
+                affiliate_id: affiliateId,
+                link_id: linkId,
+                ip: ip || null,
+                user_agent: userAgent || null,
+                converted: false,
+                is_unique: false,
+                is_bot: true,
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return { visit: data as AffiliateVisit, tracked: false, reason: "bot" };
+    }
+
+    // 2. Rate limiting: check for existing visit from same IP in last N hours
+    if (ip) {
+        const cutoff = new Date();
+        cutoff.setHours(cutoff.getHours() - rateLimitHours);
+
+        const { data: existing } = await supabaseAdmin
+            .from("affiliate_visits")
+            .select("id")
+            .eq("affiliate_id", affiliateId)
+            .eq("ip", ip)
+            .eq("is_unique", true)
+            .gte("created_at", cutoff.toISOString())
+            .limit(1)
+            .maybeSingle();
+
+        if (existing) {
+            // Record as non-unique (for analytics) but don't count as real visit
+            const { data, error } = await supabaseAdmin
+                .from("affiliate_visits")
+                .insert({
+                    affiliate_id: affiliateId,
+                    link_id: linkId,
+                    ip: ip,
+                    user_agent: userAgent || null,
+                    converted: false,
+                    is_unique: false,
+                    is_bot: false,
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+            return { visit: data as AffiliateVisit, tracked: false, reason: "rate_limited" };
+        }
+    }
+
+    // 3. Unique visit — track normally
+    const { data, error } = await supabaseAdmin
+        .from("affiliate_visits")
+        .insert({
+            affiliate_id: affiliateId,
+            link_id: linkId,
+            ip: ip || null,
+            user_agent: userAgent || null,
+            converted: false,
+            is_unique: true,
+            is_bot: false,
+        })
+        .select()
+        .single();
+
+    if (error) throw error;
+    return { visit: data as AffiliateVisit, tracked: true, reason: null };
+}
+
+/**
+ * Check for self-referral fraud.
+ * Returns a fraud_flag string or null if clean.
+ *
+ * Checks:
+ * - Email match: buyer email === affiliate user email
+ * - Phone match: buyer phone === affiliate user phone
+ * - IP match: buyer IP === affiliate last_login_ip
+ */
+export async function checkSelfReferral(
+    supabaseAdmin: SupabaseClient,
+    affiliateId: string,
+    buyerEmail?: string,
+    buyerPhone?: string,
+    buyerIp?: string,
+): Promise<string | null> {
+    // Get affiliate's user info
+    const { data: affiliate } = await supabaseAdmin
+        .from("affiliates")
+        .select("user_id, last_login_ip")
+        .eq("id", affiliateId)
+        .maybeSingle();
+
+    if (!affiliate) return null;
+
+    const { data: user } = await supabaseAdmin
+        .from("users")
+        .select("email, phone_number")
+        .eq("id", affiliate.user_id)
+        .maybeSingle();
+
+    if (!user) return null;
+
+    // Check email
+    if (buyerEmail && user.email && buyerEmail.toLowerCase() === user.email.toLowerCase()) {
+        return "self_referral";
+    }
+
+    // Check phone
+    if (buyerPhone && user.phone_number && buyerPhone === user.phone_number) {
+        return "self_referral";
+    }
+
+    // Check IP
+    if (buyerIp && affiliate.last_login_ip && buyerIp === affiliate.last_login_ip) {
+        return "ip_match";
+    }
+
+    return null;
+}
+
+// ============================================================
+// Balance & Commission with Waiting Period
+// ============================================================
+
+/**
+ * Atomically adjust affiliate balance using RPC.
+ * @param delta - Positive to add, negative to deduct.
+ * @returns New balance
+ */
+export async function adjustAffiliateBalance(
+    supabaseAdmin: SupabaseClient,
+    affiliateId: string,
+    delta: number,
+): Promise<number> {
+    const { data, error } = await supabaseAdmin
+        .rpc("adjust_affiliate_balance", {
+            p_affiliate_id: affiliateId,
+            p_delta: delta,
+        });
+
+    if (error) throw error;
+    return data as number;
+}
+
+/**
+ * Create a commission with a 7-day waiting period.
+ * The commission is created with status='pending' and eligible_at = now + 7 days.
+ * Balance is NOT added until the commission becomes eligible and is approved.
+ *
+ * Also performs self-referral fraud check.
+ */
+export async function createCommissionWithWaiting(
+    supabaseAdmin: SupabaseClient,
+    params: CreateCommissionParams & {
+        buyerEmail?: string;
+        buyerPhone?: string;
+        buyerIp?: string;
+        waitingPeriodDays?: number;
+    },
+) {
+    const {
+        affiliateId,
+        orderId,
+        amount,
+        commissionRate,
+        buyerEmail,
+        buyerPhone,
+        buyerIp,
+        waitingPeriodDays = DEFAULT_WAITING_PERIOD_DAYS,
+    } = params;
+    const rate = commissionRate ?? DEFAULT_COMMISSION_RATE;
+
+    // Check if commission already exists for this order
+    const { data: existing, error: fetchError } = await supabaseAdmin
+        .from("commissions")
+        .select(COMMISSION_COLUMNS)
+        .eq("affiliate_id", affiliateId)
+        .eq("order_id", orderId)
+        .maybeSingle();
+
+    if (fetchError) throw fetchError;
+    if (existing) {
+        return { commission: existing as Commission, isNew: false };
+    }
+
+    // Anti-fraud check
+    const fraudFlag = await checkSelfReferral(
+        supabaseAdmin,
+        affiliateId,
+        buyerEmail,
+        buyerPhone,
+        buyerIp,
+    );
+
+    const commissionAmount = Math.round(amount * rate);
+
+    // Calculate eligible_at (7 days from now)
+    const eligibleAt = new Date();
+    eligibleAt.setDate(eligibleAt.getDate() + waitingPeriodDays);
+
+    const { data, error } = await supabaseAdmin
+        .from("commissions")
+        .insert({
+            affiliate_id: affiliateId,
+            order_id: orderId,
+            amount,
+            commission_rate: rate,
+            commission_amount: commissionAmount,
+            status: fraudFlag ? "review" : "pending",
+            fraud_flag: fraudFlag,
+            eligible_at: eligibleAt.toISOString(),
+        })
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    return { commission: data as Commission, isNew: true, fraudFlag };
+}
+
+/**
+ * Approve eligible commissions and add to affiliate balance.
+ * Called by a cron job or admin action after the waiting period.
+ *
+ * Finds all commissions where:
+ * - status = 'pending'
+ * - eligible_at <= now
+ * - fraud_flag IS NULL
+ *
+ * Then adds commission_amount to affiliate balance and updates total_earned.
+ */
+export async function processEligibleCommissions(
+    supabaseAdmin: SupabaseClient,
+) {
+    const now = new Date().toISOString();
+
+    // Find eligible commissions
+    const { data: eligible, error: fetchError } = await supabaseAdmin
+        .from("commissions")
+        .select("id, affiliate_id, commission_amount")
+        .eq("status", "pending")
+        .is("fraud_flag", null)
+        .lte("eligible_at", now)
+        .limit(100);
+
+    if (fetchError) throw fetchError;
+    if (!eligible || eligible.length === 0) return { processed: 0 };
+
+    let processed = 0;
+
+    for (const commission of eligible) {
+        try {
+            // Add to affiliate balance
+            await supabaseAdmin
+                .rpc("adjust_affiliate_balance", {
+                    p_affiliate_id: commission.affiliate_id,
+                    p_delta: commission.commission_amount,
+                });
+
+            // Mark commission as approved (eligible and credited to balance)
+            await supabaseAdmin
+                .from("commissions")
+                .update({ status: "approved" })
+                .eq("id", commission.id);
+
+            processed++;
+        } catch (err) {
+            console.error(`[Affiliate] Failed to process commission ${commission.id}:`, err);
+        }
+    }
+
+    return { processed };
 }

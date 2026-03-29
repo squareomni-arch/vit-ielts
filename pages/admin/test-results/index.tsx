@@ -1,17 +1,18 @@
 import { useEffect, useState, useCallback } from "react";
 import {
-    Table, Tag, Card, message, Popconfirm, Button, Input, Space, Select,
+    Table, Tag, message, Popconfirm, Button, Input, Space, Select,
     Tooltip, Badge,
 } from "antd";
 import {
     DeleteOutlined, SearchOutlined, FilterOutlined, ClearOutlined,
-    ReloadOutlined,
+    ReloadOutlined, BarChartOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import type { FilterValue, SorterResult } from "antd/es/table/interface";
 import AdminLayout from "../_layout";
 import dayjs from "dayjs";
 import { withAdmin } from "@/shared/hoc/withAdmin";
+import { AdminPageHeader, AdminGlassCard } from "@/widgets/admin";
 
 type TestResultRow = {
     id: string;
@@ -228,14 +229,16 @@ export default function AdminTestResultsPage() {
 
     return (
         <AdminLayout>
-            <Card
-                title={<h1 className="text-2xl font-bold m-0">Test Results</h1>}
-                extra={
+            <AdminPageHeader
+                icon={<BarChartOutlined />}
+                title="Test Results"
+                actions={
                     <Tooltip title="Tải lại">
                         <Button icon={<ReloadOutlined />} onClick={fetchResults} />
                     </Tooltip>
                 }
-            >
+            />
+            <AdminGlassCard>
                 {/* ── Filter bar ── */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
                     <Input.Search
@@ -290,13 +293,13 @@ export default function AdminTestResultsPage() {
                             flexWrap: "wrap",
                             marginBottom: 16,
                             padding: "14px 16px",
-                            background: "#fafafa",
+                            background: "var(--admin-glass-bg)",
                             borderRadius: 8,
-                            border: "1px solid #f0f0f0",
+                            border: "1px solid var(--admin-border)",
                         }}
                     >
                         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                            <label style={{ fontSize: 12, fontWeight: 500, color: "#666", textTransform: "uppercase", letterSpacing: 0.3 }}>
+                            <label style={{ fontSize: 12, fontWeight: 500, color: "var(--admin-text-muted)", textTransform: "uppercase", letterSpacing: 0.3 }}>
                                 Skill
                             </label>
                             <Select
@@ -312,7 +315,7 @@ export default function AdminTestResultsPage() {
                         </div>
 
                         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                            <label style={{ fontSize: 12, fontWeight: 500, color: "#666", textTransform: "uppercase", letterSpacing: 0.3 }}>
+                            <label style={{ fontSize: 12, fontWeight: 500, color: "var(--admin-text-muted)", textTransform: "uppercase", letterSpacing: 0.3 }}>
                                 Loại bài
                             </label>
                             <Select
@@ -328,7 +331,7 @@ export default function AdminTestResultsPage() {
                         </div>
 
                         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                            <label style={{ fontSize: 12, fontWeight: 500, color: "#666", textTransform: "uppercase", letterSpacing: 0.3 }}>
+                            <label style={{ fontSize: 12, fontWeight: 500, color: "var(--admin-text-muted)", textTransform: "uppercase", letterSpacing: 0.3 }}>
                                 Trạng thái
                             </label>
                             <Select
@@ -390,7 +393,7 @@ export default function AdminTestResultsPage() {
                     scroll={{ x: 1000 }}
                     size="middle"
                 />
-            </Card>
+            </AdminGlassCard>
         </AdminLayout>
     );
 }

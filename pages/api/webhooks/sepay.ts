@@ -10,6 +10,8 @@ import {
   sendOrderConfirmEmail,
   sendAdminNotificationEmail,
 } from "~services/email";
+import { resolveAffiliateRef, createCommissionWithWaiting } from "~services/affiliate";
+import { completePayoutFromWebhook } from "~services/payout";
 import { dbg } from "~lib/debug";
 
 const log = dbg.webhook;
@@ -98,8 +100,10 @@ export default async function handler(
       JSON.stringify(payload, null, 2),
     );
 
+    // ── Parse content to determine type: ORDER or PAYOUT ──
     const amount = Number(payload.transferAmount);
     const content = payload.content || "";
+    const transferType = payload.transferType || "in";
 
     // Validate payload
     if (!amount || !content) {
@@ -109,8 +113,51 @@ export default async function handler(
       });
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // BRANCH 1: PAYOUT AUTO-CONFIRMATION (transferType = "out")
+    // Content format: "PAYOUT {uuid}"
+    // ═══════════════════════════════════════════════════════════
+    const payoutMatch = content.match(/PAYOUT\s+([0-9a-f-]{36})/i);
+    if (payoutMatch && transferType === "out") {
+      const payoutId = payoutMatch[1];
+      log(`[Sepay Webhook] Detected PAYOUT transfer for payout #${payoutId}`);
+
+      try {
+        const { updated, payout } = await completePayoutFromWebhook(
+          supabaseAdmin,
+          payoutId,
+          {
+            sepayId: payload.id ?? 0,
+            amount,
+            referenceCode: payload.referenceCode ?? "",
+            transactionDate: payload.transactionDate ?? new Date().toISOString(),
+          },
+        );
+
+        if (updated) {
+          log(`[Sepay Webhook] ✔ Payout #${payoutId} auto-completed`);
+        } else {
+          log(`[Sepay Webhook] Payout #${payoutId} already processed or not in APPROVED state`);
+        }
+
+        return res.status(200).json({
+          success: true,
+          type: "payout",
+          payoutId,
+          updated,
+        });
+      } catch (error) {
+        log.error(`[Sepay Webhook] Error processing payout #${payoutId}:`, error);
+        return res.status(200).json({ success: true }); // Return 200 to prevent SePay retries
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // BRANCH 2: ORDER PAYMENT (existing logic)
+    // Content format: "IELTS PREDICTION {timestamp}{random}"
+    // ═══════════════════════════════════════════════════════════
+
     // ── Parse orderId from content ──
-    // Format: "IELTS PREDICTION 17691622312585779 FT26023000837022 ..."
     let orderId = "";
 
     const orderIdPattern = /IELTS\s+PREDICTION\s+(\d+)/i;
@@ -190,8 +237,6 @@ export default async function handler(
     }
 
     // ── Blocker #2: Atomically mark order as completed FIRST ──
-    // completeOrder() only transitions pending → completed.
-    // If the order was already completed, updated=false → return early (idempotent).
     const { updated } = await completeOrder(supabaseAdmin, order.order_id);
 
     if (!updated) {
@@ -250,12 +295,52 @@ export default async function handler(
         );
       } catch (updateError) {
         log.error(`[Sepay Webhook] ✗ Error updating ProAccount:`, updateError);
-        // Continue — order is already marked completed
       }
     } else {
       log(
         `[Sepay Webhook] Skipping ProAccount update: invalid userId (${order.user_id})`,
       );
+    }
+
+    // ── AUTO-CREATE COMMISSION (if order has affiliate_ref) ──
+    if (order.affiliate_ref) {
+      try {
+        log(`[Sepay Webhook] Processing affiliate commission for ref: ${order.affiliate_ref}`);
+
+        const resolved = await resolveAffiliateRef(supabaseAdmin, order.affiliate_ref);
+
+        if (resolved) {
+          // Get affiliate's commission rate
+          const { data: affiliateData } = await supabaseAdmin
+            .from("affiliates")
+            .select("commission_rate")
+            .eq("id", resolved.affiliateId)
+            .maybeSingle();
+
+          const result = await createCommissionWithWaiting(supabaseAdmin, {
+            affiliateId: resolved.affiliateId,
+            orderId: order.order_id,
+            amount: order.amount,
+            commissionRate: affiliateData?.commission_rate,
+            buyerEmail: userEmail || undefined,
+            buyerIp: undefined, // Not available from webhook context
+          });
+
+          if (result.isNew) {
+            log(
+              `[Sepay Webhook] ✔ Commission created: ${result.commission.commission_amount}đ` +
+              (result.fraudFlag ? ` (flagged: ${result.fraudFlag})` : " (7-day waiting period)"),
+            );
+          } else {
+            log(`[Sepay Webhook] Commission already exists for order ${order.order_id}`);
+          }
+        } else {
+          log.warn(`[Sepay Webhook] Could not resolve affiliate ref: ${order.affiliate_ref}`);
+        }
+      } catch (commErr) {
+        log.error(`[Sepay Webhook] ✗ Error creating commission:`, commErr);
+        // Continue — order is already marked completed
+      }
     }
 
     // ── Send customer email ──

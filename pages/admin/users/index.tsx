@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { AdminPageHeader } from "@/widgets/admin";
 import {
     Table, Tag, Input, Space, Card, Button, Select, Avatar,
     message, DatePicker, Tooltip, Badge, Dropdown,
@@ -365,32 +366,30 @@ export default function AdminUsersPage() {
         <AdminLayout>
             <div className="admin-users-page">
                 {/* ═══ Page header ═══ */}
-                <div className="admin-users-header">
-                    <div className="admin-users-header-left">
-                        <h1 className="admin-users-title">
-                            <TeamOutlined className="admin-users-title-icon" />
-                            Quản lý Users
-                        </h1>
-                        {stats && (
-                            <span className="admin-users-total-badge">
-                                {stats.total} người dùng
-                            </span>
-                        )}
-                    </div>
-                    <Space>
-                        <Tooltip title="Tải lại">
-                            <Button
-                                icon={<ReloadOutlined />}
-                                onClick={() => { fetchUsers(); fetchStats(); }}
-                            />
-                        </Tooltip>
-                        <Dropdown menu={{ items: bulkMenuItems }} trigger={["click"]}>
-                            <Button>
-                                Hành động <DownOutlined />
-                            </Button>
-                        </Dropdown>
-                    </Space>
-                </div>
+                <AdminPageHeader
+                    icon={<TeamOutlined />}
+                    title="Quản lý Users"
+                    badge={stats && (
+                        <span className="admin-users-total-badge">
+                            {stats.total} người dùng
+                        </span>
+                    )}
+                    actions={
+                        <Space>
+                            <Tooltip title="Tải lại">
+                                <Button
+                                    icon={<ReloadOutlined />}
+                                    onClick={() => { fetchUsers(); fetchStats(); }}
+                                />
+                            </Tooltip>
+                            <Dropdown menu={{ items: bulkMenuItems }} trigger={["click"]}>
+                                <Button>
+                                    Hành động <DownOutlined />
+                                </Button>
+                            </Dropdown>
+                        </Space>
+                    }
+                />
 
                 {/* ═══ WordPress-style quick filter tabs ═══ */}
                 {stats && (
@@ -672,40 +671,16 @@ export default function AdminUsersPage() {
                     gap: 0;
                 }
 
-                /* ── Header ── */
-                .admin-users-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 16px;
-                }
-
-                .admin-users-header-left {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                }
-
-                .admin-users-title {
-                    font-size: 24px;
-                    font-weight: 700;
-                    margin: 0;
-                    color: #1a1a2e;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-
                 .admin-users-total-badge {
                     font-size: 13px;
-                    color: #666;
-                    background: #f0f0f0;
+                    color: var(--admin-text-muted);
+                    background: var(--admin-glass-bg-hover);
                     padding: 2px 10px;
                     border-radius: 12px;
                     font-weight: 500;
                 }
 
-                /* ── WordPress-style quick filter tabs ── */
+                /* ── Quick filter tabs ── */
                 .admin-users-quick-filters {
                     display: flex;
                     align-items: center;
@@ -713,7 +688,7 @@ export default function AdminUsersPage() {
                     gap: 2px;
                     padding: 10px 0;
                     margin-bottom: 12px;
-                    border-bottom: 1px solid #e8e8e8;
+                    border-bottom: 1px solid var(--admin-border);
                 }
 
                 .admin-users-qf-tab {
@@ -721,7 +696,7 @@ export default function AdminUsersPage() {
                     border: none;
                     cursor: pointer;
                     font-size: 13px;
-                    color: #2271b1;
+                    color: var(--admin-accent-blue);
                     padding: 2px 4px;
                     border-radius: 3px;
                     transition: all 0.15s;
@@ -730,26 +705,26 @@ export default function AdminUsersPage() {
                 }
 
                 .admin-users-qf-tab:hover {
-                    color: #135e96;
+                    opacity: 0.8;
                     text-decoration: underline;
                 }
 
                 .admin-users-qf-tab.active {
-                    color: #1a1a2e;
+                    color: var(--admin-text-primary);
                     font-weight: 600;
                     text-decoration: none;
                 }
 
                 .admin-users-qf-tab.admin-users-qf-pro.active {
-                    color: #b7791f;
+                    color: var(--admin-accent-amber);
                 }
 
                 .admin-users-qf-tab.admin-users-qf-expired.active {
-                    color: #c53030;
+                    color: var(--admin-accent-rose, #f43f5e);
                 }
 
                 .admin-users-qf-count {
-                    color: #888;
+                    color: var(--admin-text-muted);
                     font-weight: 400;
                 }
 
@@ -758,10 +733,11 @@ export default function AdminUsersPage() {
                 }
 
                 .admin-users-qf-sep {
-                    color: #ccc;
+                    color: var(--admin-text-muted);
                     user-select: none;
                     font-size: 13px;
                     margin: 0 2px;
+                    opacity: 0.4;
                 }
 
                 /* ── Filter bar ── */
@@ -780,7 +756,7 @@ export default function AdminUsersPage() {
                     flex-wrap: wrap;
                     margin-top: 14px;
                     padding-top: 14px;
-                    border-top: 1px solid #f0f0f0;
+                    border-top: 1px solid var(--admin-border);
                 }
 
                 .admin-users-adv-filter-item {
@@ -792,7 +768,7 @@ export default function AdminUsersPage() {
                 .admin-users-adv-label {
                     font-size: 12px;
                     font-weight: 500;
-                    color: #666;
+                    color: var(--admin-text-muted);
                     text-transform: uppercase;
                     letter-spacing: 0.3px;
                 }
@@ -805,7 +781,7 @@ export default function AdminUsersPage() {
                     flex-wrap: wrap;
                     margin-top: 10px;
                     padding-top: 10px;
-                    border-top: 1px solid #f5f5f5;
+                    border-top: 1px solid var(--admin-border);
                 }
 
                 /* ── Selection bar ── */
@@ -814,12 +790,12 @@ export default function AdminUsersPage() {
                     align-items: center;
                     gap: 12px;
                     padding: 8px 16px;
-                    background: #e6f7ff;
-                    border: 1px solid #91d5ff;
+                    background: rgba(217, 74, 86, 0.1);
+                    border: 1px solid rgba(217, 74, 86, 0.2);
                     border-radius: 6px;
                     margin-top: 12px;
                     font-size: 13px;
-                    color: #0050b3;
+                    color: var(--admin-brand-light);
                 }
             `}</style>
 
@@ -835,28 +811,17 @@ export default function AdminUsersPage() {
                 }
 
                 .admin-users-clear-btn {
-                    color: #888 !important;
+                    color: var(--admin-text-muted) !important;
                     font-size: 13px !important;
                 }
 
                 .admin-users-clear-btn:hover {
-                    color: #d94a56 !important;
+                    color: var(--admin-brand) !important;
                 }
 
                 .admin-users-filter-card {
                     margin-bottom: 12px !important;
                     border-radius: 8px !important;
-                }
-
-                .admin-users-table .ant-table-thead > tr > th {
-                    background-color: #fafafa !important;
-                    font-weight: 600 !important;
-                    font-size: 13px !important;
-                    color: #333 !important;
-                }
-
-                .admin-users-table .ant-table-tbody > tr:hover > td {
-                    background-color: #f5f9ff !important;
                 }
 
                 .admin-users-table .ant-table-tbody > tr > td {

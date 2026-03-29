@@ -1,17 +1,18 @@
 import { useEffect, useState, useCallback } from "react";
 import {
-    Table, Tag, Input, Space, Card, Button, Select, message, Popconfirm,
+    Table, Tag, Input, Space, Button, Select, message, Popconfirm,
     Modal, Form, Switch, InputNumber, Typography,
 } from "antd";
 import {
     PlusOutlined, SearchOutlined, EditOutlined, CopyOutlined,
-    DeleteOutlined, ReadOutlined, CustomerServiceOutlined,
+    DeleteOutlined, ReadOutlined, CustomerServiceOutlined, FormOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 import { withAdmin } from "@/shared/hoc/withAdmin";
+import { AdminPageHeader, AdminGlassCard } from "@/widgets/admin";
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -405,15 +406,17 @@ export default function AdminQuizzesPage() {
 
     return (
         <AdminLayout>
-            <Card
-                title={<h1 className="text-2xl font-bold m-0">Quản lý Quizzes</h1>}
-                extra={
+            <AdminPageHeader
+                icon={<FormOutlined />}
+                title="Quản lý Quizzes"
+                actions={
                     <Button type="primary" icon={<PlusOutlined />} onClick={() => setShowAddModal(true)}>
                         Thêm quiz mới
                     </Button>
                 }
-            >
-                <Space className="mb-4" wrap>
+            />
+            <AdminGlassCard>
+                <Space style={{ marginBottom: 16 }} wrap>
                     <Input.Search
                         placeholder="Tìm theo tiêu đề..."
                         allowClear
@@ -444,7 +447,7 @@ export default function AdminQuizzesPage() {
                     pagination={{ current: page, pageSize, total, showSizeChanger: true, showTotal: (t) => `Tổng ${t} quizzes` }}
                     scroll={{ x: 1000 }}
                 />
-            </Card>
+            </AdminGlassCard>
 
             {/* Add Quiz Modal — BP Quiz style */}
             <AddQuizModal

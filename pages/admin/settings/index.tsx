@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Card, Tabs, Form, Input, Button, message, Spin, Switch, InputNumber, Row, Col } from "antd";
-import { SaveOutlined, SendOutlined } from "@ant-design/icons";
+import { SaveOutlined, SettingOutlined } from "@ant-design/icons";
 import AdminLayout from "../_layout";
 import { withAdmin } from "@/shared/hoc/withAdmin";
+import { AdminPageHeader } from "@/widgets/admin";
 
 const { TextArea } = Input;
 
@@ -56,7 +57,7 @@ export default function AdminSettingsPage() {
 
     return (
         <AdminLayout>
-            <h1 className="text-2xl font-bold mb-4">Cài đặt hệ thống</h1>
+            <AdminPageHeader icon={<SettingOutlined />} title="Cài đặt hệ thống" subtitle="Quản lý cấu hình chung, email, thanh toán và xác thực" />
             <Tabs
                 type="card"
                 items={[

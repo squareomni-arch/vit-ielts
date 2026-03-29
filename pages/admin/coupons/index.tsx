@@ -1,13 +1,14 @@
 import { useEffect, useState, useCallback } from "react";
 import {
-    Table, Tag, Card, Button, Form, Input, InputNumber, Select, Switch,
+    Table, Tag, Button, Form, Input, InputNumber, Select, Switch,
     Modal, Space, message, Popconfirm, DatePicker,
 } from "antd";
-import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { PlusOutlined, DeleteOutlined, EditOutlined, TagOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import AdminLayout from "../_layout";
 import dayjs from "dayjs";
 import { withAdmin } from "@/shared/hoc/withAdmin";
+import { AdminPageHeader, AdminGlassCard } from "@/widgets/admin";
 
 const formatPrice = (amount: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
@@ -123,10 +124,12 @@ export default function AdminCouponsPage() {
 
     return (
         <AdminLayout>
-            <Card
-                title={<h1 className="text-2xl font-bold m-0">Quản lý mã giảm giá</h1>}
-                extra={<Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>Tạo mới</Button>}
-            >
+            <AdminPageHeader
+                icon={<TagOutlined />}
+                title="Quản lý mã giảm giá"
+                actions={<Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>Tạo mới</Button>}
+            />
+            <AdminGlassCard>
                 <Table columns={columns} dataSource={coupons} rowKey="id" loading={loading} pagination={{ pageSize: 15, showSizeChanger: true }} />
                 <Modal
                     title={editing ? "Sửa mã giảm giá" : "Tạo mã giảm giá mới"}
@@ -156,7 +159,7 @@ export default function AdminCouponsPage() {
                         )}
                     </Form>
                 </Modal>
-            </Card>
+            </AdminGlassCard>
         </AdminLayout>
     );
 }

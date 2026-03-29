@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
-import { Table, Tag, Input, Space, Card, Button, Select, message, DatePicker } from "antd";
-import { SearchOutlined, DownloadOutlined } from "@ant-design/icons";
+import { Table, Tag, Input, Space, Button, Select, message } from "antd";
+import { SearchOutlined, DownloadOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 import { withAdmin } from "@/shared/hoc/withAdmin";
+import { AdminPageHeader, AdminGlassCard } from "@/widgets/admin";
 
 const formatPrice = (amount: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
@@ -81,11 +82,13 @@ export default function AdminOrdersPage() {
 
     return (
         <AdminLayout>
-            <Card
-                title={<h1 className="text-2xl font-bold m-0">Quản lý đơn hàng</h1>}
-                extra={<Button icon={<DownloadOutlined />} onClick={handleExport}>Export CSV</Button>}
-            >
-                <Space className="mb-4" wrap>
+            <AdminPageHeader
+                icon={<ShoppingCartOutlined />}
+                title="Quản lý đơn hàng"
+                actions={<Button icon={<DownloadOutlined />} onClick={handleExport}>Export CSV</Button>}
+            />
+            <AdminGlassCard>
+                <Space style={{ marginBottom: 16 }} wrap>
                     <Input.Search placeholder="Tìm Order ID..." allowClear onSearch={(v) => { setSearch(v); setPage(1); }} style={{ width: 220 }} prefix={<SearchOutlined />} />
                     <Select value={statusFilter} onChange={(v) => { setStatusFilter(v); setPage(1); }} style={{ width: 140 }} allowClear placeholder="Trạng thái">
                         <Select.Option value="pending">Pending</Select.Option>
@@ -98,7 +101,7 @@ export default function AdminOrdersPage() {
                     pagination={{ current: page, pageSize, total, showSizeChanger: true, showTotal: (t) => `Tổng ${t} đơn` }}
                     scroll={{ x: 900 }}
                 />
-            </Card>
+            </AdminGlassCard>
         </AdminLayout>
     );
 }

@@ -31,4 +31,12 @@ export const COMMISSION_COLUMNS =
 
 /** columns returned for affiliate visit queries */
 export const AFFILIATE_VISIT_COLUMNS =
-    "id, affiliate_id, link_id, ip, user_agent, converted, order_id, created_at" as const;
+    "id, affiliate_id, link_id, ip, user_agent, converted, order_id, is_unique, is_bot, created_at" as const;
+
+/** columns returned for payout queries */
+export const PAYOUT_COLUMNS =
+    "id, affiliate_id, amount, status, reject_reason, bank_snapshot, sepay_transaction_id, sepay_reference_code, transaction_date, approved_at, completed_at, created_at" as const;
+
+/** columns returned for bank info queries */
+export const BANK_INFO_COLUMNS =
+    "id, affiliate_id, account_holder, account_number, bank_name, bank_code, bank_branch, updated_at, created_at" as const;
