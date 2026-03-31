@@ -22,7 +22,7 @@ const fixedComboTiers = [
   { months: 12, price: 1800000, originalPrice: 2400000, featuredDeal: true, dealNote: "Giảm 600.000đ" },
 ];
 
-const fixedSingleTiers = [
+const fixeingleTiers = [
   { months: 2, price: 200000 },
   { months: 3, price: 300000 },
   { months: 4, price: 400000 },
@@ -55,7 +55,7 @@ function normalizeComboPlans(plans: CoursePackageItem[]): CoursePackageItem[] {
 
 function normalizeSinglePlans(plans: CoursePackageItem[]): CoursePackageItem[] {
   const planMap = new Map(plans.map((plan) => [plan.months, plan]));
-  return fixedSingleTiers.map((tier) => {
+  return fixeingleTiers.map((tier) => {
     const existing = planMap.get(tier.months);
     return {
       name: existing?.name ?? "Single Pack",
@@ -80,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ message: "Config not found" });
       }
       const normalizedComboPlans = normalizeComboPlans(config.combo.plans);
-      const normalizedSinglePlans = normalizeSinglePlans(config.single.plans);
+      const normalizeinglePlans = normalizeSinglePlans(config.single.plans);
       const normalizedConfig = {
         ...config,
         combo: {
@@ -89,12 +89,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         single: {
           ...config.single,
-          plans: normalizedSinglePlans,
+          plans: normalizeinglePlans,
         },
       };
       if (
         JSON.stringify(config.combo.plans) !== JSON.stringify(normalizedComboPlans) ||
-        JSON.stringify(config.single.plans) !== JSON.stringify(normalizedSinglePlans)
+        JSON.stringify(config.single.plans) !== JSON.stringify(normalizeinglePlans)
       ) {
         await writeConfig<CoursePackagesConfig>(supabaseAdmin, sectionName, normalizedConfig as CoursePackagesConfig);
       }
@@ -114,7 +114,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const body = req.body as CoursePackagesConfig;
       const normalizedComboPlans = normalizeComboPlans(body.combo.plans);
-      const normalizedSinglePlans = normalizeSinglePlans(body.single.plans);
+      const normalizeinglePlans = normalizeSinglePlans(body.single.plans);
       const normalizedConfig = {
         ...body,
         combo: {
@@ -123,7 +123,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         single: {
           ...body.single,
-          plans: normalizedSinglePlans,
+          plans: normalizeinglePlans,
         },
       };
       await writeConfig<CoursePackagesConfig>(supabaseAdmin, sectionName, normalizedConfig as CoursePackagesConfig);

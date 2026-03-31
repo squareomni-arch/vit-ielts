@@ -10,8 +10,60 @@ description: Quy trình chuẩn để chuyển đổi Figma design sang code the
 
 ---
 
+## ⭐ MANDATORY FIRST STEP — Đọc Figma Reference
+
+Trước khi implement BẤT KỲ UI nào, agent **PHẢI** đọc file:
+
+```
+_agents/skills/figma-to-code-design-system/FIGMA_REFERENCE.md
+```
+
+File này chứa **tất cả design tokens chính xác** được extract trực tiếp từ Figma API:
+- Color palette (20 colors với hex codes chính xác)
+- Typography scale (font: Noto Sans, 9 text styles)
+- Effects (box-shadow values)
+- Component node IDs (để extract chi tiết khi cần)
+- Page node IDs (để extract layout khi cần)
+- Icon inventory (43 icons với node IDs)
+
+### Figma API Scripts (trong `scripts/`)
+
+| Script | Mục đích | Khi nào dùng |
+|---|---|---|
+| `figma-extract-full.mjs` | Extract toàn bộ file (styles, pages, node trees) | Cần sync lại từ Figma |
+| `figma-extract.mjs node <id>` | Extract chi tiết 1 node cụ thể | Cần specs chính xác cho 1 element |
+| `figma-find-node.mjs <id>` | Tìm node trong data đã download (offline, no API) | Tra cứu nhanh, tránh rate limit |
+| `figma-export-icons.mjs` | Export icons/logos thành SVG riêng lẻ | Cần icon/logo files |
+| `figma-export-images.mjs` | Export frames/pages thành PNG | Cần reference screenshots |
+
+### Dữ liệu đã extract (trong `scripts/figma-data/`)
+
+| File | Nội dung |
+|---|---|
+| `styles.json` | 30 shared styles (colors, typography, effects) — **source of truth** |
+| `pages.json` | Danh sách 9 pages với frame IDs |
+| `page_des_system.json` | Full node tree của Design System page |
+| `page_home_page.json` | Full node tree của Home Page |
+| `components.json` | Danh sách components và component sets |
+
+### Workflow khi implement UI
+
+```
+1. Đọc FIGMA_REFERENCE.md → lấy colors, typography, effects
+2. Xác định node ID của page/component cần implement
+3. Chạy: node scripts/figma-find-node.mjs <node-id>
+   → Nhận chính xác: fills, strokes, effects, typography, layout, spacing
+4. Map values sang design tokens (--ds-*)
+5. Implement component theo specs chính xác
+```
+
+> ⚠️ **KHÔNG BAO GIỜ đoán giá trị** từ screenshot. Luôn dùng API data.
+
+---
+
 ## Mục lục
 
+0. [Figma API Extraction (Phase 0)](#-mandatory-first-step--đọc-figma-reference)
 1. [Tổng quan quy trình](#1-tổng-quan-quy-trình)
 2. [Phase 1 — Design Token Extraction](#2-phase-1--design-token-extraction)
 3. [Phase 2 — Atomic Component Architecture](#3-phase-2--atomic-component-architecture)
@@ -79,16 +131,18 @@ description: Quy trình chuẩn để chuyển đổi Figma design sang code the
 
 ## 2. Phase 1 — Design Token Extraction
 
-### 2.1 Đọc Figma Design
+### 2.1 Đọc Figma Design (via API — KHÔNG đoán từ screenshot)
 
-Khi nhận được Figma design (screenshot, link, hoặc mô tả), agent PHẢI:
+Khi nhận được UI task, agent PHẢI:
 
-1. **Xác định Color Palette**: Liệt kê TẤT CẢ màu sắc xuất hiện trong design
-2. **Xác định Typography Scale**: Font family, font sizes, font weights, line heights
-3. **Xác định Spacing Scale**: Padding, margin, gap values
-4. **Xác định Border Radii**: Corner radius values
-5. **Xác định Shadows**: Box shadow definitions
+1. **Đọc `FIGMA_REFERENCE.md`** — lấy colors, typography, effects đã extract
+2. **Chạy `figma-find-node.mjs <id>`** — lấy specs chi tiết cho node cụ thể
+3. **Xác định Spacing Scale**: Từ API data → padding, margin, gap values
+4. **Xác định Border Radii**: Từ API data → cornerRadius values
+5. **Xác định Shadows**: Từ API data → effects array
 6. **Xác định Breakpoints**: Responsive breakpoints (nếu có multiple viewport designs)
+
+> ⚠️ **KHÔNG BAO GIỜ** dùng screenshot để đoán pixel values. Luôn dùng API data.
 
 ### 2.2 Token File Structure
 
@@ -110,131 +164,132 @@ src/
 /* ── 1. Color Primitives ── */
 :root {
   /* Brand colors — Extracted directly from Figma */
-  --ds-color-primary-50:  oklch(...);
-  --ds-color-primary-100: oklch(...);
-  --ds-color-primary-200: oklch(...);
-  --ds-color-primary-300: oklch(...);
-  --ds-color-primary-400: oklch(...);
-  --ds-color-primary-500: oklch(...);   /* ← Main brand color */
-  --ds-color-primary-600: oklch(...);
-  --ds-color-primary-700: oklch(...);
-  --ds-color-primary-800: oklch(...);
-  --ds-color-primary-900: oklch(...);
-  --ds-color-primary-950: oklch(...);
+  --color-primary-50:  oklch(...);
+  --color-primary-100: oklch(...);
+  --color-primary-200: oklch(...);
+  --color-primary-300: oklch(...);
+  --color-primary-400: oklch(...);
+  --color-primary-500: oklch(...);   /* ← Main brand color */
+  --color-primary-600: oklch(...);
+  --color-primary-700: oklch(...);
+  --color-primary-800: oklch(...);
+  --color-primary-900: oklch(...);
+  --color-primary-950: oklch(...);
 
   /* Neutral / Gray scale */
-  --ds-color-neutral-50:  #fafafa;
-  --ds-color-neutral-100: #f5f5f5;
-  --ds-color-neutral-200: #e5e5e5;
-  --ds-color-neutral-300: #d4d4d4;
-  --ds-color-neutral-400: #a3a3a3;
-  --ds-color-neutral-500: #737373;
-  --ds-color-neutral-600: #525252;
-  --ds-color-neutral-700: #404040;
-  --ds-color-neutral-800: #262626;
-  --ds-color-neutral-900: #171717;
-  --ds-color-neutral-950: #0a0a0a;
+  --color-neutral-50:  #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0a0a0a;
 
   /* Semantic colors */
-  --ds-color-success: #22c55e;
-  --ds-color-warning: #f59e0b;
-  --ds-color-error:   #ef4444;
-  --ds-color-info:    #3b82f6;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error:   #ef4444;
+  --color-info:    #3b82f6;
 
   /* ── 2. Typography ── */
-  --ds-font-primary:   'Nunito', sans-serif;
-  --ds-font-secondary: 'Noto Sans', sans-serif;
-  --ds-font-serif:     'Noto Serif', serif;
+  /* ⚠️ Figma chỉ dùng Noto Sans — KHÔNG có Nunito */
+  --font-primary:   'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-secondary: 'Noto Sans', sans-serif;
+  --font-serif:     'Noto Serif', serif;
 
   /* Font sizes — Mobile-first scale */
-  --ds-text-xs:   0.75rem;    /* 12px */
-  --ds-text-sm:   0.875rem;   /* 14px */
-  --ds-text-base: 1rem;       /* 16px */
-  --ds-text-lg:   1.125rem;   /* 18px */
-  --ds-text-xl:   1.25rem;    /* 20px */
-  --ds-text-2xl:  1.5rem;     /* 24px */
-  --ds-text-3xl:  1.875rem;   /* 30px */
-  --ds-text-4xl:  2.25rem;    /* 36px */
-  --ds-text-5xl:  3rem;       /* 48px */
+  --text-xs:   0.75rem;    /* 12px */
+  --text-sm:   0.875rem;   /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg:   1.125rem;   /* 18px */
+  --text-xl:   1.25rem;    /* 20px */
+  --text-2xl:  1.5rem;     /* 24px */
+  --text-3xl:  1.875rem;   /* 30px */
+  --text-4xl:  2.25rem;    /* 36px */
+  --text-5xl:  3rem;       /* 48px */
 
   /* Font weights */
-  --ds-font-light:    300;
-  --ds-font-regular:  400;
-  --ds-font-medium:   500;
-  --ds-font-semibold: 600;
-  --ds-font-bold:     700;
-  --ds-font-extrabold: 800;
+  --font-light:    300;
+  --font-regular:  400;
+  --font-medium:   500;
+  --font-semibold: 600;
+  --font-bold:     700;
+  --font-extrabold: 800;
 
   /* Line heights */
-  --ds-leading-tight:  1.25;
-  --ds-leading-snug:   1.375;
-  --ds-leading-normal: 1.5;
-  --ds-leading-relaxed: 1.625;
-  --ds-leading-loose:  2;
+  --leading-tight:  1.25;
+  --leading-snug:   1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose:  2;
 
   /* ── 3. Spacing ── */
-  --ds-space-0:   0;
-  --ds-space-1:   0.25rem;    /* 4px */
-  --ds-space-2:   0.5rem;     /* 8px */
-  --ds-space-3:   0.75rem;    /* 12px */
-  --ds-space-4:   1rem;       /* 16px */
-  --ds-space-5:   1.25rem;    /* 20px */
-  --ds-space-6:   1.5rem;     /* 24px */
-  --ds-space-8:   2rem;       /* 32px */
-  --ds-space-10:  2.5rem;     /* 40px */
-  --ds-space-12:  3rem;       /* 48px */
-  --ds-space-16:  4rem;       /* 64px */
-  --ds-space-20:  5rem;       /* 80px */
-  --ds-space-24:  6rem;       /* 96px */
+  --space-0:   0;
+  --space-1:   0.25rem;    /* 4px */
+  --space-2:   0.5rem;     /* 8px */
+  --space-3:   0.75rem;    /* 12px */
+  --space-4:   1rem;       /* 16px */
+  --space-5:   1.25rem;    /* 20px */
+  --space-6:   1.5rem;     /* 24px */
+  --space-8:   2rem;       /* 32px */
+  --space-10:  2.5rem;     /* 40px */
+  --space-12:  3rem;       /* 48px */
+  --space-16:  4rem;       /* 64px */
+  --space-20:  5rem;       /* 80px */
+  --space-24:  6rem;       /* 96px */
 
   /* ── 4. Border Radius ── */
-  --ds-radius-none: 0;
-  --ds-radius-sm:   4px;
-  --ds-radius-md:   8px;
-  --ds-radius-lg:   12px;
-  --ds-radius-xl:   16px;
-  --ds-radius-2xl:  20px;
-  --ds-radius-3xl:  24px;
-  --ds-radius-full: 9999px;
+  --radius-none: 0;
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-2xl:  20px;
+  --radius-3xl:  24px;
+  --radius-full: 9999px;
 
   /* ── 5. Shadows ── */
-  --ds-shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.05);
-  --ds-shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --ds-shadow-md:  0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --ds-shadow-lg:  0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
-  --ds-shadow-xl:  0 20px 25px rgba(0, 0, 0, 0.1), 0 8px 10px rgba(0, 0, 0, 0.04);
-  --ds-shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+  --shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md:  0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg:  0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-xl:  0 20px 25px rgba(0, 0, 0, 0.1), 0 8px 10px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
 
   /* ── 6. Motion / Transitions ── */
-  --ds-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
-  --ds-ease-in:      cubic-bezier(0.4, 0, 1, 1);
-  --ds-ease-out:     cubic-bezier(0, 0, 0.2, 1);
-  --ds-ease-bounce:  cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in:      cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:     cubic-bezier(0, 0, 0.2, 1);
+  --ease-bounce:  cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  --ds-duration-fast:    150ms;
-  --ds-duration-base:    250ms;
-  --ds-duration-slow:    400ms;
-  --ds-duration-slower:  600ms;
+  --duration-fast:    150ms;
+  --duration-base:    250ms;
+  --duration-slow:    400ms;
+  --duration-slower:  600ms;
 
   /* ── 7. Z-Index Scale ── */
-  --ds-z-dropdown:  1000;
-  --ds-z-sticky:    1100;
-  --ds-z-fixed:     1200;
-  --ds-z-overlay:   1300;
-  --ds-z-modal:     1400;
-  --ds-z-popover:   1500;
-  --ds-z-tooltip:   1600;
+  --z-dropdown:  1000;
+  --z-sticky:    1100;
+  --z-fixed:     1200;
+  --z-overlay:   1300;
+  --z-modal:     1400;
+  --z-popover:   1500;
+  --z-tooltip:   1600;
 
   /* ── 8. Layout ── */
-  --ds-container-sm:  640px;
-  --ds-container-md:  768px;
-  --ds-container-lg:  1024px;
-  --ds-container-xl:  1200px;
-  --ds-container-2xl: 1400px;
+  --container-sm:  640px;
+  --container-md:  768px;
+  --container-lg:  1024px;
+  --container-xl:  1200px;
+  --container-2xl: 1400px;
 
-  --ds-header-height: 64px;
-  --ds-footer-height: 60px;
-  --ds-sidebar-width: 260px;
+  --header-height: 64px;
+  --footer-height: 60px;
+  --sidebar-width: 260px;
 }
 ```
 
@@ -244,11 +299,11 @@ src/
 --ds-{category}-{property}-{variant}
 
 Ví dụ:
---ds-color-primary-500
---ds-text-xl
---ds-space-4
---ds-radius-lg
---ds-shadow-md
+--color-primary-500
+--text-xl
+--space-4
+--radius-lg
+--shadow-md
 ```
 
 **Prefix `--ds-`** (Design System) giúp phân biệt với:
@@ -262,29 +317,29 @@ Ngoài primitive tokens, tạo semantic tokens cho từng context:
 ```css
 :root {
   /* Surface / Background */
-  --ds-bg-primary:     var(--ds-color-neutral-50);
-  --ds-bg-secondary:   #ffffff;
-  --ds-bg-tertiary:    var(--ds-color-neutral-100);
-  --ds-bg-inverse:     var(--ds-color-neutral-900);
-  --ds-bg-brand:       var(--ds-color-primary-500);
+  --bg-primary:     var(--color-neutral-50);
+  --bg-secondary:   #ffffff;
+  --bg-tertiary:    var(--color-neutral-100);
+  --bg-inverse:     var(--color-neutral-900);
+  --bg-brand:       var(--color-primary-500);
 
   /* Text */
-  --ds-text-primary:   var(--ds-color-neutral-900);
-  --ds-text-secondary: var(--ds-color-neutral-600);
-  --ds-text-muted:     var(--ds-color-neutral-400);
-  --ds-text-inverse:   #ffffff;
-  --ds-text-brand:     var(--ds-color-primary-500);
+  --text-primary:   var(--color-neutral-900);
+  --text-secondary: var(--color-neutral-600);
+  --text-muted:     var(--color-neutral-400);
+  --text-inverse:   #ffffff;
+  --text-brand:     var(--color-primary-500);
 
   /* Border */
-  --ds-border-default: var(--ds-color-neutral-200);
-  --ds-border-hover:   var(--ds-color-neutral-300);
-  --ds-border-focus:   var(--ds-color-primary-500);
+  --border-default: var(--color-neutral-200);
+  --border-hover:   var(--color-neutral-300);
+  --border-focus:   var(--color-primary-500);
 
   /* Interactive */
-  --ds-interactive-default:  var(--ds-color-primary-500);
-  --ds-interactive-hover:    var(--ds-color-primary-600);
-  --ds-interactive-active:   var(--ds-color-primary-700);
-  --ds-interactive-disabled: var(--ds-color-neutral-300);
+  --interactive-default:  var(--color-primary-500);
+  --interactive-hover:    var(--color-primary-600);
+  --interactive-active:   var(--color-primary-700);
+  --interactive-disabled: var(--color-neutral-300);
 }
 ```
 
@@ -338,18 +393,18 @@ Khi phân tích Figma, agent PHẢI tạo component map:
 ## Component Map — [Page Name]
 
 ### Atoms needed
-- [ ] `DSButton` — CTA buttons (primary, secondary, ghost, link variants)
-- [ ] `DSInput` — Text input fields
-- [ ] `DSBadge` — Status badges (NEW, PRO, POPULAR)
-- [ ] `DSAvatar` — User avatars (sizes: sm, md, lg)
+- [ ] `Button` — CTA buttons (primary, secondary, ghost, link variants)
+- [ ] `Input` — Text input fields
+- [ ] `Badge` — Status badges (NEW, PRO, POPULAR)
+- [ ] `Avatar` — User avatars (sizes: sm, md, lg)
 
 ### Molecules needed
-- [ ] `DSSearchBar` — Search with filter dropdown
-- [ ] `DSNavLink` — Navigation items with icon + label + badge count
+- [ ] `SearchBar` — Search with filter dropdown
+- [ ] `NavLink` — Navigation items with icon + label + badge count
 
 ### Organisms needed
-- [ ] `DSHeader` — Top navigation bar
-- [ ] `DSHeroBanner` — Landing page hero section
+- [ ] `Header` — Top navigation bar
+- [ ] `HeroBanner` — Landing page hero section
 
 ### Existing components to reuse
 - `Container` from `@/shared/ui/container`
@@ -362,20 +417,20 @@ Khi phân tích Figma, agent PHẢI tạo component map:
 src/
 ├── shared/ui/ds/              ← ⭐ Design System components live here
 │   ├── atoms/
-│   │   ├── ds-button/
-│   │   │   ├── ds-button.tsx
-│   │   │   ├── ds-button.css
+│   │   ├── button/
+│   │   │   ├── button.tsx
+│   │   │   ├── button.css
 │   │   │   └── index.ts
-│   │   ├── ds-input/
-│   │   ├── ds-badge/
+│   │   ├── input/
+│   │   ├── badge/
 │   │   └── index.ts          ← Re-exports all atoms
 │   ├── molecules/
-│   │   ├── ds-search-bar/
-│   │   ├── ds-nav-link/
+│   │   ├── search-bar/
+│   │   ├── nav-link/
 │   │   └── index.ts
 │   ├── organisms/
-│   │   ├── ds-header/
-│   │   ├── ds-hero-banner/
+│   │   ├── header/
+│   │   ├── hero-banner/
 │   │   └── index.ts
 │   └── index.ts              ← Master re-export
 │
@@ -388,7 +443,7 @@ src/
 ├── pages/                     ← Pages compose widgets + DS components
 │   ├── home/
 │   │   ├── ui/
-│   │   │   ├── home-page.tsx  ← Composes DSHeroBanner, TestCard grid, etc.
+│   │   │   ├── home-page.tsx  ← Composes HeroBanner, TestCard grid, etc.
 │   │   │   └── home-page.css
 │   │   └── index.ts
 │   └── ...
@@ -403,9 +458,9 @@ src/
 Mỗi DS component PHẢI tuân theo template này:
 
 ```tsx
-// ═══ src/shared/ui/ds/atoms/ds-button/ds-button.tsx ═══
+// ═══ src/shared/ui/ds/atoms/button/button.tsx ═══
 
-import './ds-button.css';
+import './button.css';
 
 /**
  * Design System Button
@@ -415,14 +470,14 @@ import './ds-button.css';
  * @sizes sm | md | lg
  */
 
-type DSButtonVariant = 'primary' | 'secondary' | 'ghost' | 'link' | 'danger';
-type DSButtonSize = 'sm' | 'md' | 'lg';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'link' | 'danger';
+type ButtonSize = 'sm' | 'md' | 'lg';
 
-type DSButtonProps = {
+type ButtonProps = {
   /** Button variant matching Figma design */
-  variant?: DSButtonVariant;
+  variant?: ButtonVariant;
   /** Button size */
-  size?: DSButtonSize;
+  size?: ButtonSize;
   /** Loading state — shows spinner and disables interaction */
   loading?: boolean;
   /** Full width button */
@@ -443,7 +498,7 @@ type DSButtonProps = {
   className?: string;
 };
 
-export const DSButton = ({
+export const Button = ({
   variant = 'primary',
   size = 'md',
   loading = false,
@@ -455,13 +510,13 @@ export const DSButton = ({
   onClick,
   children,
   className = '',
-}: DSButtonProps) => {
+}: ButtonProps) => {
   const classNames = [
-    'ds-button',
-    `ds-button--${variant}`,
-    `ds-button--${size}`,
-    fullWidth && 'ds-button--full',
-    loading && 'ds-button--loading',
+    'button',
+    `button--${variant}`,
+    `button--${size}`,
+    fullWidth && 'button--full',
+    loading && 'button--loading',
     className,
   ].filter(Boolean).join(' ');
 
@@ -472,10 +527,10 @@ export const DSButton = ({
       disabled={disabled || loading}
       onClick={onClick}
     >
-      {loading && <span className="ds-button__spinner" />}
-      {!loading && leftIcon && <span className="ds-button__icon ds-button__icon--left">{leftIcon}</span>}
-      <span className="ds-button__label">{children}</span>
-      {!loading && rightIcon && <span className="ds-button__icon ds-button__icon--right">{rightIcon}</span>}
+      {loading && <span className="button__spinner" />}
+      {!loading && leftIcon && <span className="button__icon button__icon--left">{leftIcon}</span>}
+      <span className="button__label">{children}</span>
+      {!loading && rightIcon && <span className="button__icon button__icon--right">{rightIcon}</span>}
     </button>
   );
 };
@@ -484,138 +539,138 @@ export const DSButton = ({
 ### 4.2 Component CSS Template
 
 ```css
-/* ═══ src/shared/ui/ds/atoms/ds-button/ds-button.css ═══ */
+/* ═══ src/shared/ui/ds/atoms/button/button.css ═══ */
 
 /* ── Base ── */
-.ds-button {
+.button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--ds-space-2);
+  gap: var(--space-2);
   border: none;
-  border-radius: var(--ds-radius-md);
-  font-family: var(--ds-font-primary);
-  font-weight: var(--ds-font-semibold);
+  border-radius: var(--radius-md);
+  font-family: var(--font-primary);
+  font-weight: var(--font-semibold);
   cursor: pointer;
   transition:
-    background-color var(--ds-duration-fast) var(--ds-ease-default),
-    color var(--ds-duration-fast) var(--ds-ease-default),
-    box-shadow var(--ds-duration-fast) var(--ds-ease-default),
-    transform var(--ds-duration-fast) var(--ds-ease-default);
+    background-color var(--duration-fast) var(--ease-default),
+    color var(--duration-fast) var(--ease-default),
+    box-shadow var(--duration-fast) var(--ease-default),
+    transform var(--duration-fast) var(--ease-default);
   white-space: nowrap;
   user-select: none;
-  line-height: var(--ds-leading-tight);
+  line-height: var(--leading-tight);
   position: relative;
   overflow: hidden;
 }
 
-.ds-button:active:not(:disabled) {
+.button:active:not(:disabled) {
   transform: scale(0.98);
 }
 
-.ds-button:disabled {
+.button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* ── Sizes ── */
-.ds-button--sm {
+.button--sm {
   height: 32px;
-  padding: 0 var(--ds-space-3);
-  font-size: var(--ds-text-sm);
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
 }
 
-.ds-button--md {
+.button--md {
   height: 40px;
-  padding: 0 var(--ds-space-4);
-  font-size: var(--ds-text-sm);
+  padding: 0 var(--space-4);
+  font-size: var(--text-sm);
 }
 
-.ds-button--lg {
+.button--lg {
   height: 48px;
-  padding: 0 var(--ds-space-6);
-  font-size: var(--ds-text-base);
+  padding: 0 var(--space-6);
+  font-size: var(--text-base);
 }
 
 /* ── Variants ── */
-.ds-button--primary {
-  background: var(--ds-interactive-default);
-  color: var(--ds-text-inverse);
-  box-shadow: var(--ds-shadow-xs);
+.button--primary {
+  background: var(--interactive-default);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-xs);
 }
 
-.ds-button--primary:hover:not(:disabled) {
-  background: var(--ds-interactive-hover);
-  box-shadow: var(--ds-shadow-sm);
+.button--primary:hover:not(:disabled) {
+  background: var(--interactive-hover);
+  box-shadow: var(--shadow-sm);
 }
 
-.ds-button--secondary {
+.button--secondary {
   background: transparent;
-  color: var(--ds-interactive-default);
-  border: 1px solid var(--ds-border-default);
+  color: var(--interactive-default);
+  border: 1px solid var(--border-default);
 }
 
-.ds-button--secondary:hover:not(:disabled) {
-  background: var(--ds-color-primary-50);
-  border-color: var(--ds-interactive-default);
+.button--secondary:hover:not(:disabled) {
+  background: var(--color-primary-50);
+  border-color: var(--interactive-default);
 }
 
-.ds-button--ghost {
+.button--ghost {
   background: transparent;
-  color: var(--ds-text-secondary);
+  color: var(--text-secondary);
 }
 
-.ds-button--ghost:hover:not(:disabled) {
-  background: var(--ds-color-neutral-100);
-  color: var(--ds-text-primary);
+.button--ghost:hover:not(:disabled) {
+  background: var(--color-neutral-100);
+  color: var(--text-primary);
 }
 
-.ds-button--link {
+.button--link {
   background: transparent;
-  color: var(--ds-interactive-default);
+  color: var(--interactive-default);
   padding: 0;
   height: auto;
 }
 
-.ds-button--link:hover:not(:disabled) {
-  color: var(--ds-interactive-hover);
+.button--link:hover:not(:disabled) {
+  color: var(--interactive-hover);
   text-decoration: underline;
 }
 
-.ds-button--danger {
-  background: var(--ds-color-error);
-  color: var(--ds-text-inverse);
+.button--danger {
+  background: var(--color-error);
+  color: var(--text-inverse);
 }
 
-.ds-button--danger:hover:not(:disabled) {
+.button--danger:hover:not(:disabled) {
   background: #dc2626;
 }
 
 /* ── Modifiers ── */
-.ds-button--full {
+.button--full {
   width: 100%;
 }
 
 /* ── Loading Spinner ── */
-.ds-button--loading {
+.button--loading {
   pointer-events: none;
 }
 
-.ds-button__spinner {
+.button__spinner {
   width: 16px;
   height: 16px;
   border: 2px solid currentColor;
   border-right-color: transparent;
   border-radius: 50%;
-  animation: ds-spin 0.6s linear infinite;
+  animation: spin 0.6s linear infinite;
 }
 
-@keyframes ds-spin {
+@keyframes spin {
   to { transform: rotate(360deg); }
 }
 
 /* ── Icon ── */
-.ds-button__icon {
+.button__icon {
   display: flex;
   align-items: center;
   font-size: 1.1em;
@@ -625,16 +680,16 @@ export const DSButton = ({
 ### 4.3 Component Index Export
 
 ```typescript
-// ═══ src/shared/ui/ds/atoms/ds-button/index.ts ═══
-export { DSButton } from './ds-button';
-export type { DSButtonProps } from './ds-button';
+// ═══ src/shared/ui/ds/atoms/button/index.ts ═══
+export { Button } from './button';
+export type { ButtonProps } from './button';
 ```
 
 ```typescript
 // ═══ src/shared/ui/ds/atoms/index.ts ═══
-export * from './ds-button';
-export * from './ds-input';
-export * from './ds-badge';
+export * from './button';
+export * from './input';
+export * from './badge';
 // ... all atoms
 ```
 
@@ -649,12 +704,12 @@ export * from './organisms';
 
 | Element | Convention | Example |
 |---------|-----------|---------|
-| Component Name | `DS` prefix + PascalCase | `DSButton`, `DSSearchBar`, `DSHeader` |
-| File Name | kebab-case with `ds-` prefix | `ds-button.tsx`, `ds-search-bar.tsx` |
-| CSS Class | BEM with `ds-` prefix | `.ds-button`, `.ds-button--primary`, `.ds-button__icon` |
-| CSS Variable | `--ds-` prefix | `--ds-color-primary-500` |
-| Type Name | `DS` prefix + PascalCase + `Props` | `DSButtonProps` |
-| Folder Name | kebab-case with `ds-` prefix | `ds-button/`, `ds-search-bar/` |
+| Component Name | `DS` prefix + PascalCase | `Button`, `SearchBar`, `Header` |
+| File Name | kebab-case with `ds-` prefix | `button.tsx`, `search-bar.tsx` |
+| CSS Class | BEM with `ds-` prefix | `.button`, `.button--primary`, `.button__icon` |
+| CSS Variable | `--ds-` prefix | `--color-primary-500` |
+| Type Name | `DS` prefix + PascalCase + `Props` | `ButtonProps` |
+| Folder Name | kebab-case with `ds-` prefix | `button/`, `search-bar/` |
 
 ### 4.5 CSS Architecture Rules
 
@@ -681,23 +736,23 @@ export * from './organisms';
 
 ```css
 /* Block */
-.ds-card { }
+.card { }
 
 /* Element (part of the block) */
-.ds-card__header { }
-.ds-card__body { }
-.ds-card__footer { }
-.ds-card__title { }
+.card__header { }
+.card__body { }
+.card__footer { }
+.card__title { }
 
 /* Modifier (variation of block or element) */
-.ds-card--elevated { }
-.ds-card--bordered { }
-.ds-card__header--compact { }
+.card--elevated { }
+.card--bordered { }
+.card__header--compact { }
 
 /* State (interactive states) */
-.ds-card.is-loading { }
-.ds-card.is-selected { }
-.ds-card.is-disabled { }
+.card.is-loading { }
+.card.is-selected { }
+.card.is-disabled { }
 ```
 
 ---
@@ -709,9 +764,9 @@ export * from './organisms';
 ```tsx
 // ═══ src/pages/home/ui/home-page.tsx ═══
 
-import { DSButton } from '@/shared/ui/ds/atoms';
-import { DSSearchBar } from '@/shared/ui/ds/molecules';
-import { DSHeader, DSHeroBanner, DSFooter } from '@/shared/ui/ds/organisms';
+import { Button } from '@/shared/ui/ds/atoms';
+import { SearchBar } from '@/shared/ui/ds/molecules';
+import { Header, HeroBanner, Footer } from '@/shared/ui/ds/organisms';
 import { Container } from '@/shared/ui/container';
 import { TestCard } from './test-card'; // Page-specific component
 import './home-page.css';
@@ -725,10 +780,10 @@ type HomePageProps = {
 export const HomePage = ({ heroBanner, featuredTests, masterData }: HomePageProps) => {
   return (
     <div className="home-page">
-      <DSHeader config={masterData.header} />
+      <Header config={masterData.header} />
 
       <main className="home-page__main">
-        <DSHeroBanner data={heroBanner} />
+        <HeroBanner data={heroBanner} />
 
         <section className="home-page__featured">
           <Container>
@@ -742,7 +797,7 @@ export const HomePage = ({ heroBanner, featuredTests, masterData }: HomePageProp
         </section>
       </main>
 
-      <DSFooter config={masterData.footer} />
+      <Footer config={masterData.footer} />
     </div>
   );
 };
@@ -797,50 +852,50 @@ Sử dụng breakpoints đã define trong `globals.css`:
 /* ═══ Mobile-first approach ═══ */
 
 /* Base = Mobile (< 550px) */
-.ds-hero {
-  padding: var(--ds-space-6) var(--ds-space-4);
+.hero {
+  padding: var(--space-6) var(--space-4);
   text-align: center;
 }
 
-.ds-hero__title {
-  font-size: var(--ds-text-2xl);
-  line-height: var(--ds-leading-tight);
+.hero__title {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
 }
 
-.ds-hero__grid {
+.hero__grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--ds-space-4);
+  gap: var(--space-4);
 }
 
 /* Tablet (≥ 550px) */
 @media (min-width: 550px) {
-  .ds-hero {
-    padding: var(--ds-space-8) var(--ds-space-6);
+  .hero {
+    padding: var(--space-8) var(--space-6);
   }
 
-  .ds-hero__title {
-    font-size: var(--ds-text-3xl);
+  .hero__title {
+    font-size: var(--text-3xl);
   }
 
-  .ds-hero__grid {
+  .hero__grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--ds-space-6);
+    gap: var(--space-6);
   }
 }
 
 /* Desktop (≥ 1024px) */
 @media (min-width: 1024px) {
-  .ds-hero {
-    padding: var(--ds-space-16) var(--ds-space-8);
+  .hero {
+    padding: var(--space-16) var(--space-8);
     text-align: left;
   }
 
-  .ds-hero__title {
-    font-size: var(--ds-text-5xl);
+  .hero__title {
+    font-size: var(--text-5xl);
   }
 
-  .ds-hero__grid {
+  .hero__grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
@@ -854,19 +909,19 @@ Nếu cần responsive nhanh trong page composition, CÓ THỂ dùng Tailwind:
 // ✅ OK: Tailwind cho layout composition ở page level
 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
   {items.map(item => (
-    <DSTestCard key={item.id} data={item} /> // DS component, no Tailwind inside
+    <TestCard key={item.id} data={item} /> // DS component, no Tailwind inside
   ))}
 </div>
 
 // ❌ SAI: Tailwind inside DS component
-// Bên trong <DSTestCard>, KHÔNG dùng Tailwind classes
+// Bên trong <TestCard>, KHÔNG dùng Tailwind classes
 ```
 
 ### 6.4 Responsive Component Props
 
 ```tsx
 // Cho components cần responsive behavior via props:
-type DSContainerProps = {
+type ContainerProps = {
   /** Max width of container */
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
   /** Padding size */
@@ -876,13 +931,13 @@ type DSContainerProps = {
 };
 
 // CSS handles the responsive mapping
-.ds-container--lg {
-  max-width: var(--ds-container-lg);
+.container--lg {
+  max-width: var(--container-lg);
 }
 
 @media (min-width: 1200px) {
-  .ds-container--lg {
-    max-width: var(--ds-container-xl);
+  .container--lg {
+    max-width: var(--container-xl);
   }
 }
 ```
@@ -943,8 +998,8 @@ Format:
 ## Design Tokens
 | Token | Value | Figma Reference |
 |-------|-------|-----------------|
-| --ds-color-primary-500 | oklch(60.987% 0.17833 19.421) | Brand Red |
-| --ds-text-base | 1rem (16px) | Body text |
+| --color-primary-500 | oklch(60.987% 0.17833 19.421) | Brand Red |
+| --text-base | 1rem (16px) | Body text |
 | ... | ... | ... |
 
 ## Components
@@ -952,19 +1007,19 @@ Format:
 ### Atoms
 | Component | Status | Figma | File |
 |-----------|--------|-------|------|
-| DSButton | ✅ Done | Frame "Button" | src/shared/ui/ds/atoms/ds-button/ |
-| DSInput | 🔄 WIP | Frame "Input Field" | src/shared/ui/ds/atoms/ds-input/ |
-| DSBadge | ⬜ TODO | Frame "Badge" | — |
+| Button | ✅ Done | Frame "Button" | src/shared/ui/ds/atoms/button/ |
+| Input | 🔄 WIP | Frame "Input Field" | src/shared/ui/ds/atoms/input/ |
+| Badge | ⬜ TODO | Frame "Badge" | — |
 
 ### Molecules
 | Component | Status | Figma | File |
 |-----------|--------|-------|------|
-| DSSearchBar | ⬜ TODO | Frame "Search" | — |
+| SearchBar | ⬜ TODO | Frame "Search" | — |
 
 ### Organisms
 | Component | Status | Figma | File |
 |-----------|--------|-------|------|
-| DSHeader | ⬜ TODO | Frame "Header" | — |
+| Header | ⬜ TODO | Frame "Header" | — |
 ```
 
 ---
@@ -977,38 +1032,38 @@ Các atoms CẦN THƯỜNG XUYÊN nhất:
 
 | Atom | Variants | Sizes | States |
 |------|----------|-------|--------|
-| `DSButton` | primary, secondary, ghost, link, danger | sm, md, lg | default, hover, active, disabled, loading |
-| `DSInput` | default, search, password, textarea | sm, md, lg | default, focus, error, disabled |
-| `DSBadge` | default, success, warning, error, info, brand | sm, md | — |
-| `DSAvatar` | image, initials, icon | xs, sm, md, lg, xl | — |
-| `DSIcon` | wraps Material Symbols / Lucide | sm, md, lg | — |
-| `DSTag` | default, primary, outlined | sm, md | removable |
-| `DSSkeleton` | text, circular, rectangular | custom | animated |
-| `DSSpinner` | — | sm, md, lg | — |
-| `DSDivider` | horizontal, vertical | — | — |
+| `Button` | primary, secondary, ghost, link, danger | sm, md, lg | default, hover, active, disabled, loading |
+| `Input` | default, search, password, textarea | sm, md, lg | default, focus, error, disabled |
+| `Badge` | default, success, warning, error, info, brand | sm, md | — |
+| `Avatar` | image, initials, icon | xs, sm, md, lg, xl | — |
+| `Icon` | wraps Material Symbols / Lucide | sm, md, lg | — |
+| `Tag` | default, primary, outlined | sm, md | removable |
+| `Skeleton` | text, circular, rectangular | custom | animated |
+| `Spinner` | — | sm, md, lg | — |
+| `Divider` | horizontal, vertical | — | — |
 
 ### 9.2 Core Molecules Specification
 
 | Molecule | Composed of | Purpose |
 |----------|-------------|---------|
-| `DSFormField` | DSInput + Label + HelperText | Form input with label and validation |
-| `DSNavLink` | DSIcon + Text + DSBadge | Navigation item |
-| `DSStatDisplay` | DSIcon + Value + Label + Trend | Dashboard metric |
-| `DSUserChip` | DSAvatar + Name + Role | User identity display |
-| `DSEmptyState` | Illustration + Title + Description + CTA | Empty content placeholder |
-| `DSBreadcrumb` | Links + Separators | Navigation breadcrumb |
+| `FormField` | Input + Label + HelperText | Form input with label and validation |
+| `NavLink` | Icon + Text + Badge | Navigation item |
+| `StatDisplay` | Icon + Value + Label + Trend | Dashboard metric |
+| `UserChip` | Avatar + Name + Role | User identity display |
+| `EmptyState` | Illustration + Title + Description + CTA | Empty content placeholder |
+| `Breadcrumb` | Links + Separators | Navigation breadcrumb |
 
 ### 9.3 Core Organisms Specification
 
 | Organism | Composed of | Purpose |
 |----------|-------------|---------|
-| `DSHeader` | Logo + DSNavLink[] + DSSearchBar + DSUserChip | Top navigation |
-| `DSSidebar` | Logo + DSNavLink[] + DSUserChip | Side navigation |
-| `DSFooter` | Logo + Link groups + Social links | Page footer |
-| `DSHeroBanner` | Title + Description + CTA + Image/Illustration | Landing hero |
-| `DSCard` | Header + Body + Footer (flexible slots) | Content card |
-| `DSModal` | Overlay + Header + Body + Footer + Close | Dialog/modal |
-| `DSTable` | Header + Rows + Pagination | Data table |
+| `Header` | Logo + NavLink[] + SearchBar + UserChip | Top navigation |
+| `Sidebar` | Logo + NavLink[] + UserChip | Side navigation |
+| `Footer` | Logo + Link groups + Social links | Page footer |
+| `HeroBanner` | Title + Description + CTA + Image/Illustration | Landing hero |
+| `Card` | Header + Body + Footer (flexible slots) | Content card |
+| `Modal` | Overlay + Header + Body + Footer + Close | Dialog/modal |
+| `Table` | Header + Rows + Pagination | Data table |
 
 ---
 
@@ -1019,23 +1074,23 @@ Các atoms CẦN THƯỜNG XUYÊN nhất:
 ```css
 /* ❌ Hardcoded values */
 .my-button {
-  background: #d94a56;         /* → Dùng var(--ds-interactive-default) */
-  padding: 12px 24px;          /* → Dùng var(--ds-space-3) var(--ds-space-6) */
-  font-size: 14px;             /* → Dùng var(--ds-text-sm) */
-  border-radius: 8px;          /* → Dùng var(--ds-radius-md) */
-  box-shadow: 0 2px 4px ...;   /* → Dùng var(--ds-shadow-sm) */
+  background: #d94a56;         /* → Dùng var(--interactive-default) */
+  padding: 12px 24px;          /* → Dùng var(--space-3) var(--space-6) */
+  font-size: 14px;             /* → Dùng var(--text-sm) */
+  border-radius: 8px;          /* → Dùng var(--radius-md) */
+  box-shadow: 0 2px 4px ...;   /* → Dùng var(--shadow-sm) */
 }
 
 /* ❌ Non-BEM class names */
-.button-primary { }     /* → .ds-button--primary */
-.cardHeader { }          /* → .ds-card__header */
-.big-title { }           /* → .ds-hero__title */
+.button-primary { }     /* → .button--primary */
+.cardHeader { }          /* → .card__header */
+.big-title { }           /* → .hero__title */
 
 /* ❌ !important overrides */
-.ds-button { color: red !important; }
+.button { color: red !important; }
 
 /* ❌ Deep nesting (> 3 levels) */
-.ds-card .ds-card__header .ds-card__title span { }
+.card .card__header .card__title span { }
 ```
 
 ```tsx
@@ -1046,14 +1101,14 @@ Các atoms CẦN THƯỜNG XUYÊN nhất:
 <button className="bg-red-500 px-4 py-2 rounded-lg">
 
 // ❌ Creating duplicate components
-// Already have DSButton → Don't create PrimaryButton, RedButton, etc.
+// Already have Button → Don't create PrimaryButton, RedButton, etc.
 
 // ❌ Props that bypass design system
-<DSButton color="#ff0000" fontSize={18}> // Don't allow arbitrary values
+<Button color="#ff0000" fontSize={18}> // Don't allow arbitrary values
 
 // ❌ Not using DS prefix
-export const Button = () => { };      // → export const DSButton = () => { };
-export const SearchBar = () => { };   // → export const DSSearchBar = () => { };
+export const Button = () => { };      // → export const Button = () => { };
+export const SearchBar = () => { };   // → export const SearchBar = () => { };
 ```
 
 ---
@@ -1085,9 +1140,9 @@ import Link from 'next/link';
 import { twMerge } from 'tailwind-merge';
 
 // 3. Design System components (⭐ NEW)
-import { DSButton, DSBadge } from '@/shared/ui/ds/atoms';
-import { DSSearchBar } from '@/shared/ui/ds/molecules';
-import { DSHeader } from '@/shared/ui/ds/organisms';
+import { Button, Badge } from '@/shared/ui/ds/atoms';
+import { SearchBar } from '@/shared/ui/ds/molecules';
+import { Header } from '@/shared/ui/ds/organisms';
 
 // 4. Shared utilities
 import { useAuth } from '@/appx/providers';
@@ -1110,40 +1165,40 @@ src/shared/ui/ds/
 ├── REGISTRY.md                ← Component tracking
 │
 ├── atoms/
-│   ├── ds-button/
-│   │   ├── ds-button.tsx
-│   │   ├── ds-button.css
+│   ├── button/
+│   │   ├── button.tsx
+│   │   ├── button.css
 │   │   └── index.ts
-│   ├── ds-input/
-│   │   ├── ds-input.tsx
-│   │   ├── ds-input.css
+│   ├── input/
+│   │   ├── input.tsx
+│   │   ├── input.css
 │   │   └── index.ts
-│   ├── ds-badge/
-│   ├── ds-avatar/
-│   ├── ds-icon/
-│   ├── ds-tag/
-│   ├── ds-skeleton/
-│   ├── ds-spinner/
-│   ├── ds-divider/
+│   ├── badge/
+│   ├── avatar/
+│   ├── icon/
+│   ├── tag/
+│   ├── skeleton/
+│   ├── spinner/
+│   ├── divider/
 │   └── index.ts               ← export * from all atoms
 │
 ├── molecules/
-│   ├── ds-form-field/
-│   ├── ds-nav-link/
-│   ├── ds-stat-display/
-│   ├── ds-user-chip/
-│   ├── ds-empty-state/
-│   ├── ds-breadcrumb/
+│   ├── form-field/
+│   ├── nav-link/
+│   ├── stat-display/
+│   ├── user-chip/
+│   ├── empty-state/
+│   ├── breadcrumb/
 │   └── index.ts
 │
 └── organisms/
-    ├── ds-header/
-    ├── ds-sidebar/
-    ├── ds-footer/
-    ├── ds-hero-banner/
-    ├── ds-card/
-    ├── ds-modal/
-    ├── ds-table/
+    ├── header/
+    ├── sidebar/
+    ├── footer/
+    ├── hero-banner/
+    ├── card/
+    ├── modal/
+    ├── table/
     └── index.ts
 ```
 
@@ -1154,7 +1209,7 @@ src/shared/ui/ds/
 Trước khi agent đánh dấu component là **Done**, PHẢI pass TẤT CẢ:
 
 ```markdown
-### Component: [DSComponentName]
+### Component: [ComponentName]
 
 #### Design
 - [ ] Matches Figma design accurately

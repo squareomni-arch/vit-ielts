@@ -42,7 +42,7 @@ export const PageSubscription = ({ testimonialsConfig, faqConfig, bannerConfig }
         className="relative min-h-[500px] flex items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url('${bannerConfig.backgroundImage}')`,
-          backgroundSize: "cover",
+          backgrounize: "cover",
           backgroundPosition: "center",
         }}
       >

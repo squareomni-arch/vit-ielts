@@ -33,7 +33,7 @@ export default function CoursePackagesPage() {
       if (!res.ok) throw new Error("Failed to load config");
       const data = (await res.json()) as CoursePackagesConfig;
       setConfig(data);
-      form.setFieldsValue(data);
+      form.setFielValue(data);
     } catch {
       message.error("Error loading config");
     }

@@ -1,0 +1,42 @@
+{
+  "components": [
+    {
+      "id": "361:228",
+      "name": "BreadCrumb",
+      "description": "",
+      "key": "c5280bfa7ae4dde94672cdf55c45a730f97ced3e"
+    },
+    {
+      "id": "309:5183",
+      "name": "Footer",
+      "description": "",
+      "key": "1a18366385c6aa107afe17023a6cf8b1b2ebf1fc"
+    },
+    {
+      "id": "412:6730",
+      "name": "CTA",
+      "description": "",
+      "key": "b58cfc33e79205050d9309daf990ab56a7172ea5"
+    },
+    {
+      "id": "827:7254",
+      "name": "Title",
+      "description": "",
+      "key": "0611c471be8d275ed9b20b8ca3e823ece6917942"
+    }
+  ],
+  "componentSets": [
+    {
+      "id": "448:5862",
+      "name": "Header",
+      "description": "",
+      "key": "e75f1fab3115eac2f0ec2272c07f4525f245135a"
+    },
+    {
+      "id": "653:2243",
+      "name": "Frame 25",
+      "description": "",
+      "key": "16031af0212d2ee9cdb80bb84655d619b4a0c267"
+    }
+  ]
+}

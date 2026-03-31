@@ -1,0 +1,17 @@
+.form-field { display: flex; flex-direction: column; gap: var(--space-1-5); }
+
+.form-field__label {
+  font-family: var(--font-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+}
+
+.form-field__required { color: var(--color-error); margin-left: 2px; }
+
+.form-field__helper {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.form-field__helper--error { color: var(--color-error); }

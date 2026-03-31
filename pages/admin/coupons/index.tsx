@@ -44,10 +44,10 @@ export default function AdminCouponsPage() {
 
     useEffect(() => { fetchCoupons(); }, [fetchCoupons]);
 
-    const handleCreate = () => { setEditing(null); form.resetFields(); form.setFieldsValue({ type: "fixed", is_active: true }); setModalVisible(true); };
+    const handleCreate = () => { setEditing(null); form.resetFields(); form.setFielValue({ type: "fixed", is_active: true }); setModalVisible(true); };
     const handleEdit = (c: CouponRow) => {
         setEditing(c);
-        form.setFieldsValue({
+        form.setFielValue({
             code: c.code, type: c.type, value: c.value, max_uses: c.max_uses,
             is_active: c.is_active, expires_at: c.expires_at ? dayjs(c.expires_at) : null,
         });

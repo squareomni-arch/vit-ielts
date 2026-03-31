@@ -1,0 +1,285 @@
+﻿Found in: page_des_system.json
+
+≡ƒôª SECTION: "BUTTONS" (1076:2183) [924├ù519]
+   Fill: #ffffff (20%)
+  ≡ƒôª COMPONENT_SET: "Button1" (29:95) [186├ù160]
+     Stroke: #8a38f5 weight=1px
+     Radius: 5px
+    ≡ƒôª COMPONENT: "Property 1=Default" (29:48) [141├ù49]
+       Layout: HORIZONTAL | gap: 16px | padding: [15, 20, 15, 20]
+       Align: main=CENTER cross=CENTER
+       Sizing: h=HUG v=HUG
+       Fill: #d94a56
+       Radius: 25px
+      ≡ƒôª INSTANCE: "Plus" (29:35) [16├ù16]
+        ≡ƒôª GROUP: "Group" (I29:35;29:31) [16├ù16]
+          ≡ƒôª VECTOR: "Vector" (I29:35;29:32) [16├ù16]
+             Fill: #ffffff
+      ≡ƒôª TEXT: "Texts" (29:6) [37├ù19]
+         Fill: #ffffff
+         Typography: Noto Sans 700 14px / 19.07px align:CENTER
+         Text: "Texts"
+         Style Refs: text=13:67
+      ≡ƒôª INSTANCE: "Plus" (29:39) [16├ù16]
+        ≡ƒôª GROUP: "Group" (I29:39;29:31) [16├ù16]
+          ≡ƒôª VECTOR: "Vector" (I29:39;29:32) [16├ù16]
+             Fill: #ffffff
+    ≡ƒôª COMPONENT: "Property 1=Variant2" (29:96) [141├ù49]
+       Layout: HORIZONTAL | gap: 16px | padding: [15, 20, 15, 20]
+       Align: main=CENTER cross=CENTER
+       Sizing: h=HUG v=HUG
+       Fill: #e3636e
+       Effect: DROP_SHADOW offset(0,0) blur=10 spread=undefined #d94a56
+       Radius: 25px
+      ≡ƒôª INSTANCE: "Plus" (29:97) [16├ù16]
+        ≡ƒôª GROUP: "Group" (I29:97;29:31) [16├ù16]
+          ≡ƒôª VECTOR: "Vector" (I29:97;29:32) [16├ù16]
+             Fill: #ffffff
+      ≡ƒôª TEXT: "Texts" (29:98) [37├ù19]
+         Fill: #ffffff
+         Typography: Noto Sans 700 14px / 19.07px align:CENTER
+         Text: "Texts"
+         Style Refs: text=13:67
+      ≡ƒôª INSTANCE: "Plus" (29:99) [16├ù16]
+        ≡ƒôª GROUP: "Group" (I29:99;29:31) [16├ù16]
+          ≡ƒôª VECTOR: "Vector" (I29:99;29:32) [16├ù16]
+             Fill: #ffffff
+  ≡ƒôª COMPONENT_SET: "Button2" (32:170) [186├ù160]
+     Stroke: #8a38f5 weight=1px
+     Radius: 5px
+    ≡ƒôª COMPONENT: "Property 1=Frame 16" (32:169) [141├ù50]
+       Layout: HORIZONTAL | gap: 16px | padding: [15, 20, 15, 20]
+       Align: main=CENTER cross=CENTER
+       Sizing: h=HUG v=FIXED
+       Fill: #ffffff
+       Radius: 25px
+      ≡ƒôª INSTANCE: "Plus" (32:138) [16├ù15]
+        ≡ƒôª GROUP: "Group" (I32:138;29:31) [16├ù15]
+          ≡ƒôª VECTOR: "Vector" (I32:138;29:32) [16├ù15]
+             Fill: #d94a56
+      ≡ƒôª TEXT: "Texts" (32:136) [37├ù19]
+         Fill: #d94a56
+         Typography: Noto Sans 700 14px / 19.07px align:CENTER
+         Text: "Texts"
+         Style Refs: text=13:67
+      ≡ƒôª INSTANCE: "Plus" (32:139) [16├ù15]
+        ≡ƒôª GROUP: "Group" (I32:139;29:31) [16├ù15]
+          ≡ƒôª VECTOR: "Vector" (I32:139;29:32) [16├ù15]
+             Fill: #d94a56
+    ≡ƒôª COMPONENT: "Property 1=Frame 17" (32:168) [141├ù50]
+       Layout: HORIZONTAL | gap: 16px | padding: [15, 20, 15, 20]
+       Align: main=CENTER cross=CENTER
+       Sizing: h=HUG v=FIXED
+       Fill: #e3636e
+       Stroke: #ffffff weight=2px
+       Effect: DROP_SHADOW offset(0,2) blur=3 spread=undefined #000000
+       Effect: DROP_SHADOW offset(0,6) blur=10 spread=4 #000000
+       Radius: 25px
+       Style Refs: strokes=14:133, stroke=14:133, effect=36:64
+      ≡ƒôª INSTANCE: "Plus" (32:146) [16├ù15]
+        ≡ƒôª GROUP: "Group" (I32:146;29:31) [16├ù15]
+          ≡ƒôª VECTOR: "Vector" (I32:146;29:32) [16├ù15]
+             Fill: #ffffff
+      ≡ƒôª TEXT: "Texts" (32:147) [37├ù19]
+         Fill: #ffffff
+         Typography: Noto Sans 700 14px / 19.07px align:CENTER
+         Text: "Texts"
+         Style Refs: text=13:67
+      ≡ƒôª INSTANCE: "Plus" (32:148) [16├ù15]
+        ≡ƒôª GROUP: "Group" (I32:148;29:31) [16├ù15]
+          ≡ƒôª VECTOR: "Vector" (I32:148;29:32) [16├ù15]
+             Fill: #ffffff
+  ≡ƒôª COMPONENT_SET: "Button4" (623:1137) [186├ù160]
+     Stroke: #8a38f5 weight=1px
+     Radius: 5px
+    ≡ƒôª COMPONENT: "Property 1=Frame 16" (623:1138) [159├ù50]
+       Fill: #ffffff
+       Radius: 25px
+      ≡ƒôª RECTANGLE: "Rectangle 5" (681:1750) [13├ù50]
+         Fill: #ffffff
+         Radius: 25px
+      ≡ƒôª FRAME: "Frame 55" (681:1394) [119├ù25]
+         Layout: HORIZONTAL | gap: 16px | padding: [0, 0, 0, 0]
+         Sizing: h=HUG v=HUG
+        ≡ƒôª INSTANCE: "Plus" (623:1139) [25├ù25]
+          ≡ƒôª GROUP: "Group" (I623:1139;29:31) [25├ù25]
+            ≡ƒôª VECTOR: "Vector" (I623:1139;29:32) [25├ù25]
+               Fill: #d94a56
+        ≡ƒôª TEXT: "Texts" (623:1140) [37├ù19]
+           Fill: #000000
+           Typography: Noto Sans 700 14px / 19.07px align:CENTER
+           Text: "Texts"
+           Style Refs: text=13:67
+        ≡ƒôª INSTANCE: "Plus" (623:1141) [25├ù25]
+          ≡ƒôª GROUP: "Group" (I623:1141;29:31) [25├ù25]
+            ≡ƒôª VECTOR: "Vector" (I623:1141;29:32) [25├ù25]
+               Fill: #d94a56
+    ≡ƒôª COMPONENT: "Property 1=Frame 17" (623:1142) [159├ù50]
+       Fill: #ffffff
+       Stroke: #ffffff weight=2px
+       Effect: DROP_SHADOW offset(0,2) blur=3 spread=undefined #000000
+       Effect: DROP_SHADOW offset(0,6) blur=10 spread=4 #000000
+       Radius: 25px
+       Style Refs: strokes=14:133, stroke=14:133, effect=36:64
+      ≡ƒôª RECTANGLE: "Rectangle 5" (681:1786) [200├ù50]
+         Fill: #e3636e
+         Radius: 25px
+      ≡ƒôª FRAME: "Frame 55" (681:1713) [119├ù25]
+         Layout: HORIZONTAL | gap: 16px | padding: [0, 0, 0, 0]
+         Sizing: h=HUG v=HUG
+        ≡ƒôª INSTANCE: "Plus" (623:1143) [25├ù25]
+          ≡ƒôª GROUP: "Group" (I623:1143;29:31) [25├ù25]
+            ≡ƒôª VECTOR: "Vector" (I623:1143;29:32) [25├ù25]
+               Fill: #ffffff
+        ≡ƒôª TEXT: "Texts" (623:1144) [37├ù19]
+           Fill: #ffffff
+           Typography: Noto Sans 700 14px / 19.07px align:CENTER
+           Text: "Texts"
+           Style Refs: text=13:67
+        ≡ƒôª INSTANCE: "Plus" (623:1145) [25├ù25]
+          ≡ƒôª GROUP: "Group" (I623:1145;29:31) [25├ù25]
+            ≡ƒôª VECTOR: "Vector" (I623:1145;29:32) [25├ù25]
+               Fill: #ffffff
+  ≡ƒôª COMPONENT_SET: "Button3" (41:39) [182├ù159]
+     Stroke: #8a38f5 weight=1px
+     Radius: 5px
+    ≡ƒôª COMPONENT: "Property 1=Default" (41:38) [134├ù49]
+       Layout: HORIZONTAL | gap: 16px | padding: [15, 20, 15, 20]
+       Align: main=CENTER cross=CENTER
+       Sizing: h=HUG v=HUG
+      ≡ƒôª INSTANCE: "Plus" (41:42) [16├ù16]
+        ≡ƒôª GROUP: "Group" (I41:42;29:31) [16├ù16]
+          ≡ƒôª VECTOR: "Vector" (I41:42;29:32) [16├ù16]
+             Fill: #191d24
+             Style Refs: fill=14:116
+      ≡ƒôª TEXT: "Text" (41:37) [30├ù19]
+         Fill: #191d24
+         Typography: Noto Sans 700 14px / 19.07px align:CENTER
+         Text: "Text"
+         Style Refs: fill=14:116, text=13:67
+      ≡ƒôª INSTANCE: "Plus" (41:43) [16├ù16]
+        ≡ƒôª GROUP: "Group" (I41:43;29:31) [16├ù16]
+          ≡ƒôª VECTOR: "Vector" (I41:43;29:32) [16├ù16]
+             Fill: #191d24
+             Style Refs: fill=14:116
+    ≡ƒôª COMPONENT: "Property 1=Variant2" (41:40) [134├ù49]
+       Layout: HORIZONTAL | gap: 16px | padding: [15, 20, 15, 20]
+       Align: main=CENTER cross=CENTER
+       Sizing: h=HUG v=HUG
+       Fill: #000000 (10%)
+       Radius: 25px
+      ≡ƒôª INSTANCE: "Plus" (41:49) [16├ù16]
+        ≡ƒôª GROUP: "Group" (I41:49;29:31) [16├ù16]
+          ≡ƒôª VECTOR: "Vector" (I41:49;29:32) [16├ù16]
+             Fill: #191d24
+             Style Refs: fill=14:116
+      ≡ƒôª TEXT: "Text" (41:41) [30├ù19]
+         Fill: #191d24
+         Typography: Noto Sans 700 14px / 19.07px align:CENTER
+         Text: "Text"
+         Style Refs: fill=14:116, text=13:67
+      ≡ƒôª INSTANCE: "Plus" (41:50) [16├ù16]
+        ≡ƒôª GROUP: "Group" (I41:50;29:31) [16├ù16]
+          ≡ƒôª VECTOR: "Vector" (I41:50;29:32) [16├ù16]
+             Fill: #191d24
+             Style Refs: fill=14:116
+  ≡ƒôª COMPONENT_SET: "Button - Next slide" (50:330) [68├ù107]
+     Stroke: #8a38f5 weight=1px
+     Radius: 5px
+    ≡ƒôª COMPONENT: "Property 1=Default" (50:329) [28├ù28]
+       Fill: #d94a56
+       Radius: 14px
+       Style Refs: fills=14:112, fill=14:112
+      ≡ƒôª VECTOR: "Vector" (50:323) [8├ù14]
+         Fill: #ffffff
+    ≡ƒôª COMPONENT: "Property 1=Default" (50:328) [28├ù28]
+       Fill: #ea8d95
+       Radius: 14px
+       Style Refs: fills=125:794, fill=125:794
+      ≡ƒôª VECTOR: "Vector" (50:326) [8├ù14]
+         Fill: #ffffff
+  ≡ƒôª COMPONENT_SET: "Button - Prev slide" (50:340) [68├ù107]
+     Stroke: #8a38f5 weight=1px
+     Radius: 5px
+    ≡ƒôª COMPONENT: "Property 1=Default" (50:339) [28├ù28]
+       Fill: #d94a56
+       Radius: 14px
+       Style Refs: fills=14:112, fill=14:112
+      ≡ƒôª VECTOR: "Vector" (50:333) [8├ù14]
+         Fill: #ffffff
+    ≡ƒôª COMPONENT: "Property 1=Default" (50:338) [28├ù28]
+       Fill: #ea8d95
+       Radius: 14px
+       Style Refs: fills=125:794, fill=125:794
+      ≡ƒôª VECTOR: "Vector" (50:336) [8├ù14]
+         Fill: #ffffff
+  ≡ƒôª COMPONENT_SET: "Button4" (364:9799) [186├ù222]
+     Stroke: #8a38f5 weight=1px
+     Radius: 5px
+    ≡ƒôª COMPONENT: "Property 1=Frame 18" (364:9798) [146├ù50]
+       Layout: HORIZONTAL | gap: 16px | padding: [15, 20, 15, 20]
+       Align: main=CENTER cross=CENTER
+       Sizing: h=HUG v=FIXED
+       Fill: #ffffff
+       Stroke: #191d24 weight=1px
+       Radius: 25px
+       Style Refs: fills=14:133, strokes=14:116, fill=14:133, stroke=14:116
+      ≡ƒôª INSTANCE: "Plus" (32:158) [20├ù20]
+        ≡ƒôª GROUP: "Group" (I32:158;29:31) [20├ù20]
+          ≡ƒôª VECTOR: "Vector" (I32:158;29:32) [20├ù20]
+             Fill: #191d24
+             Style Refs: fill=14:116
+      ≡ƒôª TEXT: "Texts" (32:159) [34├ù19]
+         Fill: #191d24
+         Typography: Noto Sans 400 14px / 19.07px align:CENTER
+         Text: "Texts"
+         Style Refs: fill=14:116, text=13:53
+      ≡ƒôª INSTANCE: "Plus" (32:160) [20├ù20]
+        ≡ƒôª GROUP: "Group" (I32:160;29:31) [20├ù20]
+          ≡ƒôª VECTOR: "Vector" (I32:160;29:32) [20├ù20]
+             Fill: #191d24
+             Style Refs: fill=14:116
+    ≡ƒôª COMPONENT: "Property 1=Frame 20" (364:9797) [146├ù50]
+       Layout: HORIZONTAL | gap: 16px | padding: [15, 20, 15, 20]
+       Align: main=CENTER cross=CENTER
+       Sizing: h=HUG v=HUG
+       Fill: #d94a56
+       Radius: 25px
+      ≡ƒôª INSTANCE: "Plus" (364:9788) [20├ù20]
+        ≡ƒôª GROUP: "Group" (I364:9788;29:31) [20├ù20]
+          ≡ƒôª VECTOR: "Vector" (I364:9788;29:32) [20├ù20]
+             Fill: #ffffff
+             Style Refs: fill=14:133
+      ≡ƒôª TEXT: "Texts" (364:9789) [34├ù19]
+         Fill: #ffffff
+         Typography: Noto Sans 400 14px / 19.07px align:CENTER
+         Text: "Texts"
+         Style Refs: fill=14:133, text=13:53
+      ≡ƒôª INSTANCE: "Plus" (364:9790) [20├ù20]
+        ≡ƒôª GROUP: "Group" (I364:9790;29:31) [20├ù20]
+          ≡ƒôª VECTOR: "Vector" (I364:9790;29:32) [20├ù20]
+             Fill: #ffffff
+             Style Refs: fill=14:133
+    ≡ƒôª COMPONENT: "Property 1=Frame 19" (364:9796) [146├ù50]
+       Layout: HORIZONTAL | gap: 16px | padding: [15, 20, 15, 20]
+       Align: main=CENTER cross=CENTER
+       Sizing: h=HUG v=FIXED
+       Fill: #b6b6b6
+       Stroke: #191d24 weight=1px
+       Radius: 25px
+       Style Refs: strokes=14:116, stroke=14:116
+      ≡ƒôª INSTANCE: "Plus" (364:9779) [20├ù20]
+        ≡ƒôª GROUP: "Group" (I364:9779;29:31) [20├ù20]
+          ≡ƒôª VECTOR: "Vector" (I364:9779;29:32) [20├ù20]
+             Fill: #191d24
+             Style Refs: fill=14:116
+      ≡ƒôª TEXT: "Texts" (364:9780) [34├ù19]
+         Fill: #191d24
+         Typography: Noto Sans 400 14px / 19.07px align:CENTER
+         Text: "Texts"
+         Style Refs: fill=14:116, text=13:53
+      ≡ƒôª INSTANCE: "Plus" (364:9781) [20├ù20]
+        ≡ƒôª GROUP: "Group" (I364:9781;29:31) [20├ù20]
+          ≡ƒôª VECTOR: "Vector" (I364:9781;29:32) [20├ù20]
+             Fill: #191d24
+             Style Refs: fill=14:116

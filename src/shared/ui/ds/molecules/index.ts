@@ -1,8 +1,8 @@
 // ═══ Molecules — Composed of atoms ═══
-export * from './ds-form-field';
-export * from './ds-nav-link';
-export * from './ds-breadcrumb';
-export * from './ds-test-card';
-export * from './ds-blog-card';
-export * from './ds-stat-card';
-export * from './ds-pricing-card';
+export * from './form-field';
+export * from './nav-link';
+export * from './breadcrumb';
+export * from './test-card';
+export * from './blog-card';
+export * from './stat-card';
+export * from './pricing-card';

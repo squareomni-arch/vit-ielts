@@ -14,32 +14,32 @@
 
 | Component | Status | Figma Ref | Notes |
 |-----------|--------|-----------|-------|
-| DSButton | ✅ | "BUTTONS" frame | primary (gradient), secondary, ghost, link, danger |
-| DSInput | ✅ | Login/Sign Up forms | text, password, email, tel, search |
-| DSBadge | ✅ | "BlogTag" + skill indicators | IELTS skill variants included |
-| DSAvatar | ✅ | Dashboard, Result | image + initials fallback |
-| DSTag | ✅ | Tests Page filter chips | filled, outlined, skill-colored |
-| DSDivider | ✅ | Multiple pages | horizontal, vertical |
-| DSSpinner | ✅ | Loading states | sm, md, lg |
+| Button | ✅ | "BUTTONS" frame | primary (gradient), secondary, ghost, link, danger |
+| Input | ✅ | Login/Sign Up forms | text, password, email, tel, search |
+| Badge | ✅ | "BlogTag" + skill indicators | IELTS skill variants included |
+| Avatar | ✅ | Dashboard, Result | image + initials fallback |
+| Tag | ✅ | Tests Page filter chips | filled, outlined, skill-colored |
+| Divider | ✅ | Multiple pages | horizontal, vertical |
+| Spinner | ✅ | Loading states | sm, md, lg |
 
 ## Molecules
 
 | Component | Status | Composed of | Notes |
 |-----------|--------|-------------|-------|
-| DSFormField | ✅ | Label + DSInput + Helper | Used in auth forms |
-| DSNavLink | ✅ | Icon + Text | Header navigation |
-| DSBreadcrumb | ✅ | Links + Separators | "BreadCrumb" component |
-| DSTestCard | ✅ | Image + Title + Meta + Tags | "HoverBox" + Library cards |
-| DSBlogCard | ✅ | Image + Title + Meta | "BlogCell" |
-| DSStatCard | ✅ | Icon + Value + Label | Dashboard metrics |
-| DSPricingCard | ✅ | Title + Price + Features + CTA | Subscription pricing |
+| FormField | ✅ | Label + Input + Helper | Used in auth forms |
+| NavLink | ✅ | Icon + Text | Header navigation |
+| Breadcrumb | ✅ | Links + Separators | "BreadCrumb" component |
+| TestCard | ✅ | Image + Title + Meta + Tags | "HoverBox" + Library cards |
+| BlogCard | ✅ | Image + Title + Meta | "BlogCell" |
+| StatCard | ✅ | Icon + Value + Label | Dashboard metrics |
+| PricingCard | ✅ | Title + Price + Features + CTA | Subscription pricing |
 
 ## Organisms
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| DSHeader | ✅ | Sticky, responsive, dropdown nav, hamburger menu |
-| DSFooter | ✅ | Dark navy, 4-col, social + newsletter |
-| DSCTABanner | ✅ | Red-orange gradient, mascot, full-width CTA |
-| DSHeroBanner | ⬜ | Home page hero section |
-| DSFAQSection | ⬜ | Subscription page accordion |
+| Header | ✅ | Sticky, responsive, dropdown nav, hamburger menu |
+| Footer | ✅ | Dark navy, 4-col, social + newsletter |
+| CTABanner | ✅ | Red-orange gradient, mascot, full-width CTA |
+| HeroBanner | ⬜ | Home page hero section |
+| FAQSection | ⬜ | Subscription page accordion |

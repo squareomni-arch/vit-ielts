@@ -19,7 +19,7 @@ export default function TopBarAdminPage() {
       const res = await fetch("/api/admin/header/top-bar");
       if (res.ok) {
         const data = await res.json();
-        form.setFieldsValue(data);
+        form.setFielValue(data);
       }
     } catch (error) {
       message.error("Failed to load config");

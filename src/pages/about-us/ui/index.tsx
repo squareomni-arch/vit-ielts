@@ -23,7 +23,7 @@ export const PageAboutUs = ({
         className="relative flex items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: "url('/img-admin/bg-image-11.jpg')",
-          backgroundSize: "cover",
+          backgrounize: "cover",
           backgroundPosition: "center",
         }}
       >

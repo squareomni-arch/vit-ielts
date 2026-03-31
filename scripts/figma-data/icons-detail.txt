@@ -1,0 +1,356 @@
+﻿Found in: page_des_system.json
+
+≡ƒôª FRAME: "ICONS" (29:16) [924├ù696]
+   Fill: #ffffff (20%)
+   Radius: 32px
+  ≡ƒôª COMPONENT: "Plus" (29:34) [50├ù50]
+    ≡ƒôª GROUP: "Group" (29:31) [50├ù50]
+      ≡ƒôª VECTOR: "Vector" (29:32) [50├ù50]
+         Fill: #ffffff
+  ≡ƒôª COMPONENT: "feedback1" (36:36) [50├ù50]
+    ≡ƒôª GROUP: "Review" (36:32) [49├ù49]
+      ≡ƒôª VECTOR: "Vector" (36:33) [44├ù42]
+         Fill: #ffffff
+      ≡ƒôª VECTOR: "Vector" (36:34) [17├ù17]
+         Fill: #ffffff
+  ≡ƒôª COMPONENT: "feedback2" (36:57) [50├ù50]
+    ≡ƒôª GROUP: "Review" (36:51) [50├ù49]
+      ≡ƒôª VECTOR: "Vector" (36:52) [20├ù3]
+         Fill: #ffffff
+      ≡ƒôª VECTOR: "Vector" (36:53) [12├ù3]
+         Fill: #ffffff
+      ≡ƒôª VECTOR: "Vector" (36:54) [43├ù41]
+         Fill: #ffffff
+      ≡ƒôª VECTOR: "Vector" (36:55) [20├ù19]
+         Fill: #ffffff
+  ≡ƒôª COMPONENT: "Arrow1" (41:197) [50├ù50]
+    ≡ƒôª GROUP: "Icon" (41:193) [28├ù46]
+      ≡ƒôª GROUP: "_45" (41:194) [28├ù46]
+        ≡ƒôª VECTOR: "Vector" (41:195) [28├ù46]
+           Fill: #ffffff
+  ≡ƒôª COMPONENT: "Play" (49:329) [50├ù50]
+    ≡ƒôª VECTOR: "Vector" (623:6782) [50├ù50]
+       Fill: #ffffff
+  ≡ƒôª COMPONENT: "LovedbyStudents" (107:323) [50├ù50]
+    ≡ƒôª BOOLEAN_OPERATION: "Union" (107:454) [50├ù49]
+       Fill: #ffffff
+       Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:316) [23├ù20]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:317) [12├ù12]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:318) [50├ù13]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:319) [12├ù12]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:320) [12├ù12]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+  ≡ƒôª COMPONENT: "Legit" (107:373) [50├ù50]
+    ≡ƒôª BOOLEAN_OPERATION: "Union" (107:478) [50├ù50]
+       Fill: #ffffff
+       Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:348) [10├ù8]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:349) [19├ù19]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:350) [50├ù50]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:351) [6├ù6]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:352) [6├ù6]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:353) [6├ù6]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+  ≡ƒôª COMPONENT: "Aim" (107:371) [50├ù50]
+    ≡ƒôª BOOLEAN_OPERATION: "Union" (107:442) [50├ù50]
+       Fill: #ffffff
+       Style Refs: fill=14:133
+      ≡ƒôª GROUP: "Group" (107:356) [20├ù22]
+        ≡ƒôª GROUP: "Group" (107:357) [2├ù2]
+          ≡ƒôª GROUP: "Group" (107:358) [2├ù2]
+            ≡ƒôª VECTOR: "Vector" (107:359) [2├ù2]
+               Fill: #ffffff
+               Style Refs: fill=14:133
+        ≡ƒôª GROUP: "Group" (107:360) [2├ù2]
+          ≡ƒôª GROUP: "Group" (107:361) [2├ù2]
+            ≡ƒôª VECTOR: "Vector" (107:362) [2├ù2]
+               Fill: #ffffff
+               Style Refs: fill=14:133
+      ≡ƒôª GROUP: "Group" (107:363) [50├ù50]
+        ≡ƒôª GROUP: "Group" (107:364) [50├ù50]
+          ≡ƒôª VECTOR: "Vector" (107:365) [50├ù50]
+             Fill: #ffffff
+             Style Refs: fill=14:133
+  ≡ƒôª COMPONENT: "Goal" (107:372) [50├ù50]
+    ≡ƒôª BOOLEAN_OPERATION: "Union" (107:473) [49├ù48]
+       Fill: #ffffff
+       Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:367) [49├ù48]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:368) [12├ù12]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (107:369) [6├ù2]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+  ≡ƒôª COMPONENT: "book (1) 1" (117:643) [50├ù50]
+    ≡ƒôª VECTOR: "Vector" (364:9881) [38├ù48]
+       Fill: #ffffff
+       Style Refs: fill=14:133
+  ≡ƒôª COMPONENT: "search 1" (117:644) [50├ù50]
+    ≡ƒôª VECTOR: "Vector" (117:593) [13├ù13]
+       Fill: #ffffff
+       Style Refs: fill=14:133
+    ≡ƒôª VECTOR: "Vector" (117:594) [25├ù25]
+       Fill: #ffffff
+       Style Refs: fill=14:133
+    ≡ƒôª VECTOR: "Vector" (117:595) [41├ù41]
+       Fill: #ffffff
+       Style Refs: fill=14:133
+  ≡ƒôª COMPONENT: "search 2" (444:8391) [50├ù50]
+    ≡ƒôª VECTOR: "Vector" (444:8395) [47├ù47]
+       Fill: #ffffff
+       Style Refs: fill=14:133
+  ≡ƒôª COMPONENT: "listen 1" (117:645) [50├ù50]
+    ≡ƒôª GROUP: "Group" (117:616) [50├ù44]
+      ≡ƒôª VECTOR: "Vector" (117:617) [50├ù44]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+  ≡ƒôª COMPONENT: "speaking 1" (117:646) [52├ù50]
+    ≡ƒôª GROUP: "Group" (117:627) [52├ù50]
+      ≡ƒôª VECTOR: "Vector" (117:628) [39├ù50]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (117:629) [5├ù17]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (117:630) [4├ù12]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+      ≡ƒôª VECTOR: "Vector" (117:631) [3├ù7]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+  ≡ƒôª COMPONENT: "copywriting (1) 1" (117:647) [50├ù50]
+    ≡ƒôª GROUP: "layer1" (117:633) [49├ù49]
+      ≡ƒôª VECTOR: "path21467" (117:634) [49├ù49]
+         Fill: #ffffff
+         Style Refs: fill=14:133
+  ≡ƒôª COMPONENT: "reading-book 1" (117:648) [50├ù50]
+    ≡ƒôª VECTOR: "Vector" (364:9854) [42├ù50]
+       Fill: #ffffff
+       Style Refs: fill=14:133
+  ≡ƒôª FRAME: "Asset 11 1" (319:10699) [60├ù69]
+    ≡ƒôª GROUP: "BACKGROUND 1" (319:10700) [60├ù69]
+      ≡ƒôª GROUP: "Group" (319:10701) [60├ù69]
+        ≡ƒôª VECTOR: "Vector" (319:10702) [52├ù57]
+           Fill: #81ccff
+        ≡ƒôª VECTOR: "Vector" (319:10703) [60├ù69]
+           Fill: #000000
+  ≡ƒôª FRAME: "Asset 10 1" (319:10692) [54├ù48]
+    ≡ƒôª GROUP: "BACKGROUND 1" (319:10693) [54├ù48]
+      ≡ƒôª GROUP: "Group" (319:10694) [54├ù48]
+        ≡ƒôª VECTOR: "Vector" (319:10695) [47├ù42]
+           Fill: #ff7c6a
+        ≡ƒôª VECTOR: "Vector" (319:10696) [10├ù10]
+           Fill: #ffe100
+        ≡ƒôª VECTOR: "Vector" (319:10697) [54├ù48]
+           Fill: #000000
+        ≡ƒôª VECTOR: "Vector" (319:10698) [16├ù16]
+           Fill: #000000
+  ≡ƒôª FRAME: "Asset 9 1" (319:10687) [55├ù56]
+    ≡ƒôª GROUP: "BACKGROUND 1" (319:10688) [55├ù56]
+      ≡ƒôª GROUP: "Group" (319:10689) [55├ù56]
+        ≡ƒôª VECTOR: "Vector" (319:10690) [49├ù49]
+           Fill: #81ccff
+        ≡ƒôª VECTOR: "Vector" (319:10691) [55├ù56]
+           Fill: #000000
+  ≡ƒôª FRAME: "Asset 8 1" (319:10680) [49├ù50]
+    ≡ƒôª GROUP: "BACKGROUND 1" (319:10681) [49├ù50]
+      ≡ƒôª GROUP: "Group" (319:10682) [49├ù50]
+        ≡ƒôª VECTOR: "Vector" (319:10683) [42├ù43]
+           Fill: #ff7c6a
+        ≡ƒôª VECTOR: "Vector" (319:10684) [10├ù10]
+           Fill: #ffe100
+        ≡ƒôª VECTOR: "Vector" (319:10685) [49├ù50]
+           Fill: #000000
+        ≡ƒôª VECTOR: "Vector" (319:10686) [16├ù15]
+           Fill: #000000
+  ≡ƒôª FRAME: "Asset 7 1" (319:10672) [68├ù69]
+    ≡ƒôª GROUP: "BACKGROUND 1" (319:10673) [68├ù69]
+      ≡ƒôª GROUP: "Group" (319:10674) [68├ù69]
+        ≡ƒôª GROUP: "Group" (319:10675) [62├ù64]
+          ≡ƒôª VECTOR: "Vector" (319:10676) [62├ù64]
+             Fill: #36b5c7
+          ≡ƒôª VECTOR: "Vector" (319:10677) [26├ù18]
+             Fill: #dbf1ff
+        ≡ƒôª VECTOR: "Vector" (319:10678) [68├ù69]
+           Fill: #000000
+        ≡ƒôª VECTOR: "Vector" (319:10679) [30├ù22]
+           Fill: #000000
+  ≡ƒôª FRAME: "Asset 6 1" (319:10654) [116├ù123]
+    ≡ƒôª GROUP: "BACKGROUND 1" (319:10655) [116├ù123]
+      ≡ƒôª GROUP: "Group" (319:10656) [116├ù123]
+        ≡ƒôª GROUP: "Group" (319:10657) [110├ù117]
+          ≡ƒôª VECTOR: "Vector" (319:10658) [79├ù79]
+             Fill: #ff4c48
+          ≡ƒôª VECTOR: "Vector" (319:10659) [38├ù30]
+             Fill: #ff4c48
+          ≡ƒôª VECTOR: "Vector" (319:10660) [32├ù33]
+             Fill: #ff4c48
+          ≡ƒôª VECTOR: "Vector" (319:10661) [11├ù9]
+             Fill: #ff9702
+          ≡ƒôª VECTOR: "Vector" (319:10662) [9├ù11]
+             Fill: #ff9702
+          ≡ƒôª VECTOR: "Vector" (319:10663) [9├ù8]
+             Fill: #ff9702
+          ≡ƒôª VECTOR: "Vector" (319:10664) [57├ù56]
+             Fill: #ffffff
+        ≡ƒôª VECTOR: "Vector" (319:10665) [116├ù123]
+           Fill: #000000
+        ≡ƒôª VECTOR: "Vector" (319:10666) [63├ù62]
+           Fill: #000000
+        ≡ƒôª VECTOR: "Vector" (319:10667) [28├ù15]
+           Fill: #000000
+        ≡ƒôª VECTOR: "Vector" (319:10668) [6├ù6]
+           Fill: #000000
+        ≡ƒôª VECTOR: "Vector" (319:10669) [5├ù5]
+           Fill: #000000
+        ≡ƒôª VECTOR: "Vector" (319:10670) [5├ù5]
+           Fill: #000000
+        ≡ƒôª VECTOR: "Vector" (319:10671) [5├ù5]
+           Fill: #000000
+  ≡ƒôª FRAME: "Asset 5 1" (319:10643) [103├ù79]
+    ≡ƒôª GROUP: "BACKGROUND 1" (319:10644) [103├ù79]
+      ≡ƒôª GROUP: "Group" (319:10645) [103├ù79]
+        ≡ƒôª GROUP: "Group" (319:10646) [99├ù75]
+          ≡ƒôª VECTOR: "Vector" (319:10647) [48├ù63]
+             Fill: #27a9c2
+          ≡ƒôª VECTOR: "Vector" (319:10648) [48├ù63]
+             Fill: #27a9c2
+          ≡ƒôª VECTOR: "Vector" (319:10649) [43├ù23]
+             Fill: #ffffff
+          ≡ƒôª VECTOR: "Vector" (319:10650) [42├ù22]
+             Fill: #ffffff
+          ≡ƒôª VECTOR: "Vector" (319:10651) [39├ù27]
+             Fill: #ffffff
+          ≡ƒôª VECTOR: "Vector" (319:10652) [39├ù26]
+             Fill: #ffffff
+        ≡ƒôª VECTOR: "Vector" (319:10653) [103├ù79]
+           Fill: #000000
+  ≡ƒôª FRAME: "Asset 4 1" (319:10636) [71├ù75]
+    ≡ƒôª GROUP: "BACKGROUND 1" (319:10637) [71├ù75]
+      ≡ƒôª GROUP: "Group" (319:10638) [71├ù75]
+        ≡ƒôª VECTOR: "Vector" (319:10639) [65├ù55]
+           Fill: #ff3b40
+        ≡ƒôª VECTOR: "Vector" (319:10640) [5├ù22]
+           Fill: #bd9500
+        ≡ƒôª VECTOR: "Vector" (319:10641) [71├ù75]
+           Fill: #000000
+        ≡ƒôª VECTOR: "Vector" (319:10642) [19├ù16]
+           Fill: #77d840
+  ≡ƒôª FRAME: "Asset 3 1" (319:10627) [45├ù212]
+    ≡ƒôª GROUP: "BACKGROUND 1" (319:10628) [45├ù212]
+      ≡ƒôª GROUP: "Group" (319:10629) [45├ù212]
+        ≡ƒôª GROUP: "Group" (319:10630) [40├ù203]
+          ≡ƒôª VECTOR: "Vector" (319:10631) [24├ù107]
+             Fill: #f4687e
+          ≡ƒôª VECTOR: "Vector" (319:10632) [36├ù26]
+             Fill: #db8d3b
+          ≡ƒôª VECTOR: "Vector" (319:10633) [18├ù38]
+             Fill: #ced6d3
+          ≡ƒôª VECTOR: "Vector" (319:10634) [27├ù33]
+             Fill: #ff6660
+        ≡ƒôª VECTOR: "Vector" (319:10635) [45├ù212]
+           Fill: #000000
+  ≡ƒôª FRAME: "Asset 2 1" (319:10614) [49├ù207]
+    ≡ƒôª GROUP: "BACKGROUND 1" (319:10615) [49├ù207]
+      ≡ƒôª GROUP: "Group" (319:10616) [49├ù207]
+        ≡ƒôª GROUP: "Group" (319:10617) [45├ù202]
+          ≡ƒôª VECTOR: "Vector" (319:10618) [18├ù133]
+             Fill: #ff5440
+          ≡ƒôª VECTOR: "Vector" (319:10619) [19├ù132]
+             Fill: #ff5440
+          ≡ƒôª VECTOR: "Vector" (319:10620) [14├ù134]
+             Fill: #ff5440
+          ≡ƒôª VECTOR: "Vector" (319:10621) [38├ù26]
+             Fill: #ffead3
+          ≡ƒôª VECTOR: "Vector" (319:10622) [32├ù13]
+             Fill: #ff889f
+          ≡ƒôª VECTOR: "Vector" (319:10623) [36├ù9]
+             Fill: #ced6d3
+          ≡ƒôª VECTOR: "Vector" (319:10624) [37├ù9]
+             Fill: #ced6d3
+          ≡ƒôª VECTOR: "Vector" (319:10625) [16├ù15]
+             Fill: #744c61
+        ≡ƒôª VECTOR: "Vector" (319:10626) [49├ù207]
+           Fill: #000000
+  ≡ƒôª COMPONENT: "calendar-days 1" (391:529) [50├ù50]
+    ≡ƒôª VECTOR: "Vector" (391:527) [50├ù50]
+       Fill: #ffffff
+  ≡ƒôª COMPONENT: "all" (423:7110) [40├ù40]
+    ≡ƒôª VECTOR: "Vector" (423:7111) [38├ù38]
+       Fill: #ffffff
+  ≡ƒôª COMPONENT: "check" (435:1364) [64├ù64]
+    ≡ƒôª VECTOR: "Vector" (435:1363) [64├ù46]
+       Fill: #ffffff
+  ≡ƒôª COMPONENT: "count" (440:7632) [62├ù62]
+    ≡ƒôª VECTOR: "Vector" (440:7630) [56├ù61]
+       Fill: #ffffff
+  ≡ƒôª COMPONENT: "burger" (440:7642) [44├ù44]
+    ≡ƒôª VECTOR: "Vector" (440:7643) [44├ù32]
+       Fill: #ffffff
+  ≡ƒôª COMPONENT: "wifi" (440:7650) [40├ù40]
+    ≡ƒôª VECTOR: "Vector" (440:7648) [40├ù33]
+       Fill: #ffffff
+  ≡ƒôª COMPONENT: "Note" (440:7681) [42├ù42]
+    ≡ƒôª VECTOR: "Vector" (440:7682) [38├ù42]
+       Fill: #ffffff
+  ≡ƒôª COMPONENT: "volume-up 1" (440:7743) [36├ù36]
+    ≡ƒôª VECTOR: "Vector" (440:7724) [32├ù26]
+       Fill: #000000
+  ≡ƒôª COMPONENT: "play 1" (440:7744) [26├ù26]
+    ≡ƒôª GROUP: "Play" (440:7721) [17├ù18]
+      ≡ƒôª VECTOR: "Vector" (440:7722) [17├ù18]
+         Fill: #000000
+  ≡ƒôª COMPONENT: "play 2" (440:7745) [26├ù26]
+    ≡ƒôª VECTOR: "Vector" (440:7732) [23├ù14]
+       Fill: #000000
+  ≡ƒôª COMPONENT: "tryagain" (777:7314) [18├ù18]
+    ≡ƒôª VECTOR: "Vector" (777:7312) [17├ù18]
+       Fill: #000000
+  ≡ƒôª COMPONENT: "Cross" (797:8193) [30├ù30]
+    ≡ƒôª VECTOR: "Vector" (797:8192) [30├ù30]
+       Fill: #ffffff
+  ≡ƒôª COMPONENT: "skip" (797:8202) [24├ù24]
+    ≡ƒôª VECTOR: "Vector" (797:8201) [24├ù22]
+       Fill: #000000
+  ≡ƒôª COMPONENT: "tag" (974:8480) [24├ù24]
+    ≡ƒôª GROUP: "Group" (974:8476) [24├ù24]
+      ≡ƒôª GROUP: "Group" (974:8477) [24├ù24]
+        ≡ƒôª VECTOR: "Vector" (974:8478) [24├ù24]
+           Fill: #000000
+  ≡ƒôª COMPONENT: "mess" (974:9007) [42├ù42]
+    ≡ƒôª VECTOR: "Vector" (974:9004) [42├ù42]
+       Fill: #2196f3
+    ≡ƒôª VECTOR: "Vector" (974:9005) [28├ù12]
+       Fill: #fafafa
+  ≡ƒôª COMPONENT: "logo" (1032:1486) [24├ù24]
+    ≡ƒôª VECTOR: "Vector" (1032:1487) [20├ù16]
+       Fill: #ffffff
+  ≡ƒôª COMPONENT: "share" (1076:3748) [24├ù24]
+    ≡ƒôª VECTOR: "Vector" (1076:3745) [15├ù13]
+       Fill: #000000
+    ≡ƒôª VECTOR: "Vector" (1076:3746) [20├ù17]
+       Fill: #000000

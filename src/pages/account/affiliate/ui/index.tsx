@@ -177,7 +177,7 @@ export const PageAffiliate = () => {
         if (visitsData.success) setVisits(visitsData.visits);
         if (bankData.success && bankData.bankInfo) {
           setBankInfo(bankData.bankInfo);
-          bankForm.setFieldsValue({
+          bankForm.setFielValue({
             accountHolder: bankData.bankInfo.account_holder,
             accountNumber: bankData.bankInfo.account_number,
             bankName: bankData.bankInfo.bank_name,

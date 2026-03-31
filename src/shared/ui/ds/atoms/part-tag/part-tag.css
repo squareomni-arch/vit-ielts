@@ -1,0 +1,32 @@
+/* ═══════════════════════════════════════════════════════════════
+   PartTag — Part Tag (460:738)
+   Exact values extracted from Figma API Reference
+   ═══════════════════════════════════════════════════════════════ */
+
+.part-tag {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* Figma: 10px */
+  padding: 4px 8px; /* Figma: 4px 8px 4px 8px */
+  border-radius: 30px; /* Figma: 30px */
+  font-family: var(--font-primary);
+  font-weight: 700; /* Figma: Noto Sans 700 */
+  font-size: 12px; /* Figma: 12px */
+  line-height: normal; /* Figma uses 16px on 12px, normal or 1.33 */
+  color: #ffffff;
+  white-space: nowrap;
+  
+  /* M3/Elevation Light/3 - Exact from Figma */
+  box-shadow: 
+    0px 4px 8px 3px rgba(0, 0, 0, 0.15), 
+    0px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Variants ─── */
+.part-tag--part1 { background: #fc945a; }
+.part-tag--part2 { background: #565fcc; }
+.part-tag--part3 { background: #f8c800; }
+.part-tag--part4 { background: #219653; }
+.part-tag--part5 { background: #5281f9; }

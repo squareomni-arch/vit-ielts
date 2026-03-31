@@ -1,0 +1,83 @@
+﻿Found in: page_des_system.json
+
+≡ƒôª FRAME: "COLOR PALETTE" (14:137) [924├ù696]
+   Fill: #ffffff (20%)
+   Radius: 32px
+  ≡ƒôª FRAME: "Frame 4" (14:100) [120├ù120]
+     Fill: #d94a56
+     Radius: 60px
+     Style Refs: fills=14:112, fill=14:112
+  ≡ƒôª FRAME: "Frame 9" (14:110) [120├ù120]
+     Fill: #191d24
+     Radius: 60px
+     Style Refs: fills=14:116, fill=14:116
+  ≡ƒôª FRAME: "Frame 14" (14:131) [120├ù120]
+     Fill: #ffffff
+     Radius: 60px
+     Style Refs: fills=14:133, fill=14:133
+  ≡ƒôª FRAME: "Frame 15" (14:134) [120├ù120]
+     Fill: #fff2f2
+     Radius: 60px
+     Style Refs: fills=14:140, fill=14:140
+  ≡ƒôª FRAME: "Frame 8" (14:108) [120├ù120]
+     Fill: #fbdd60
+     Radius: 60px
+     Style Refs: fills=14:115, fill=14:115
+  ≡ƒôª FRAME: "Frame 7" (14:106) [120├ù120]
+     Fill: #5281f9
+     Radius: 60px
+     Style Refs: fills=14:120, fill=14:120
+  ≡ƒôª FRAME: "Frame 6" (14:104) [120├ù120]
+     Fill: #60fb87
+     Radius: 60px
+     Style Refs: fills=14:119, fill=14:119
+  ≡ƒôª FRAME: "Frame 10" (14:121) [120├ù120]
+     Fill: #7ca1ff
+     Radius: 60px
+     Style Refs: fills=14:128, fill=14:128
+  ≡ƒôª FRAME: "Frame 11" (14:122) [120├ù120]
+     Fill: #96ffb0
+     Radius: 60px
+     Style Refs: fills=14:127, fill=14:127
+  ≡ƒôª FRAME: "Frame 12" (14:124) [120├ù120]
+     Fill: #c3d4ff
+     Radius: 60px
+     Style Refs: fills=14:130, fill=14:130
+  ≡ƒôª FRAME: "Frame 13" (14:125) [120├ù120]
+     Fill: #bdffcd
+     Radius: 60px
+     Style Refs: fills=14:129, fill=14:129
+  ≡ƒôª FRAME: "Frame 5" (14:102) [120├ù120]
+     Fill: #fc945a
+     Radius: 60px
+     Style Refs: fills=14:113, fill=14:113
+  ≡ƒôª FRAME: "Frame 19" (125:790) [120├ù120]
+     Fill: #f6cdd0
+     Radius: 60px
+     Style Refs: fills=125:795, fill=125:795
+  ≡ƒôª FRAME: "Frame 20" (125:791) [120├ù120]
+     Fill: #fff5c9
+     Radius: 60px
+     Style Refs: fills=125:799, fill=125:799
+  ≡ƒôª FRAME: "Frame 21" (125:792) [120├ù120]
+     Fill: #fed6c0
+     Radius: 60px
+     Style Refs: fills=125:800, fill=125:800
+  ≡ƒôª FRAME: "Frame 16" (125:774) [120├ù120]
+     Fill: #ea8d95
+     Radius: 60px
+     Style Refs: fills=125:794, fill=125:794
+  ≡ƒôª FRAME: "Frame 17" (125:775) [120├ù120]
+     Fill: #ffe887
+     Radius: 60px
+     Style Refs: fills=125:798, fill=125:798
+  ≡ƒôª FRAME: "Frame 18" (125:776) [120├ù120]
+     Fill: #feb992
+     Radius: 60px
+     Style Refs: fills=125:797, fill=125:797
+  ≡ƒôª TEXT: "COLOR PALETTE" (14:138) [265├ù174]
+     Fill: #ffffff
+     Typography: Noto Sans 700 64px / 87.17px align:LEFT
+     Text: "COLOR
+PALETTE"
+     Style Refs: fill=14:133, text=13:78

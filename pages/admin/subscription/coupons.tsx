@@ -83,7 +83,7 @@ export default function CouponsPage() {
 
   const handleEdit = (coupon: Coupon) => {
     setEditingCoupon(coupon);
-    form.setFieldsValue(coupon);
+    form.setFielValue(coupon);
     setModalVisible(true);
   };
 

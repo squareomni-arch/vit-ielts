@@ -19,7 +19,7 @@ export const PageTermsOfUse = ({ termsOfUseConfig }: PageTermsOfUseProps) => {
         className="relative flex items-center justify-center bg-cover bg-center bg-no-repeat py-20 md:py-30"
         style={{
           backgroundImage: `url('${banner.backgroundImage}')`,
-          backgroundSize: "cover",
+          backgrounize: "cover",
           backgroundPosition: "center",
         }}
       >

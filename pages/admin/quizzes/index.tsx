@@ -66,7 +66,7 @@ function AddQuizModal({
     onCreated: (id: string) => void;
 }) {
     const [form] = Form.useForm();
-    const [selectedSkill, setSelectedSkill] = useState<"reading" | "listening">("reading");
+    const [selectekill, setSelectekill] = useState<"reading" | "listening">("reading");
     const [creating, setCreating] = useState(false);
 
     const handleOk = async () => {
@@ -80,7 +80,7 @@ function AddQuizModal({
             const payload = {
                 title,
                 slug: baseSlug ? `${baseSlug}-${uniqueSuffix}` : `quiz-${uniqueSuffix}`,
-                skill: selectedSkill,
+                skill: selectekill,
                 type: values.type || "practice",
                 pro_user_only: values.pro_user_only || false,
                 excerpt: values.excerpt || "",
@@ -99,7 +99,7 @@ function AddQuizModal({
             if (json.success && json.data?.id) {
                 message.success("Đã tạo quiz mới");
                 form.resetFields();
-                setSelectedSkill("reading");
+                setSelectekill("reading");
                 onCreated(json.data.id);
             } else {
                 message.error(json.error || "Lỗi khi tạo quiz");
@@ -117,7 +117,7 @@ function AddQuizModal({
 
     const handleCancel = () => {
         form.resetFields();
-        setSelectedSkill("reading");
+        setSelectekill("reading");
         onClose();
     };
 
@@ -146,15 +146,15 @@ function AddQuizModal({
             {/* ── Skill Tabs ── */}
             <div className="add-quiz-skill-tabs">
                 <div
-                    className={`add-quiz-skill-tab ${selectedSkill === "reading" ? "active" : ""}`}
-                    onClick={() => setSelectedSkill("reading")}
+                    className={`add-quiz-skill-tab ${selectekill === "reading" ? "active" : ""}`}
+                    onClick={() => setSelectekill("reading")}
                 >
                     <ReadOutlined style={{ fontSize: 28 }} />
                     <span>Reading</span>
                 </div>
                 <div
-                    className={`add-quiz-skill-tab ${selectedSkill === "listening" ? "active" : ""}`}
-                    onClick={() => setSelectedSkill("listening")}
+                    className={`add-quiz-skill-tab ${selectekill === "listening" ? "active" : ""}`}
+                    onClick={() => setSelectekill("listening")}
                 >
                     <CustomerServiceOutlined style={{ fontSize: 28 }} />
                     <span>Listening</span>

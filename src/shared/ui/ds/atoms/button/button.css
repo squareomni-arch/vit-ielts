@@ -1,0 +1,279 @@
+/* ═══════════════════════════════════════════════════════════════
+   Button — Matches Figma BUTTONS node (1076-2183)
+   Exact values extracted from Figma API Reference
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Base ─── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px; /* Figma: gap 16px */
+  border: 1px solid transparent;
+  border-radius: 25px; /* Figma: Radius: 25px */
+  font-family: var(--font-primary); /* Noto Sans */
+  font-weight: 700; /* Figma: Noto Sans 700 */
+  cursor: pointer;
+  transition:
+    background 180ms var(--ease-default),
+    color 180ms var(--ease-default),
+    border-color 180ms var(--ease-default),
+    box-shadow 180ms var(--ease-default),
+    transform 120ms var(--ease-default);
+  white-space: nowrap;
+  user-select: none;
+  line-height: normal; /* Figma uses 19.07px on 14px */
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ─── Sizes ─── */
+.btn--sm {
+  height: 36px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.btn--md {
+  min-height: 49px; /* Figma: 49px */
+  padding: 15px 20px; /* Figma: padding [15, 20, 15, 20] */
+  font-size: 14px; /* Figma: Noto Sans 14px */
+}
+
+.btn--lg {
+  min-height: 56px;
+  padding: 18px 24px;
+  font-size: 16px;
+}
+
+/* ───────────────────────────────────────
+   VARIANT 1 — Primary (Button1)
+   Figma: Default fill #d94a56
+   Figma: Hover fill #e3636e, DROP_SHADOW offset(0,0) blur=10 #d94a56
+   ─────────────────────────────────────── */
+.btn--primary {
+  background: var(--color-primary-500, #d94a56); /* Fallback to exact Figma hex */
+  color: #ffffff;
+}
+.btn--primary svg path { fill: #ffffff; }
+
+.btn--primary:hover:not(:disabled) {
+  background: #e3636e; /* Exact from API */
+  box-shadow: 0 0 10px #d94a56;
+}
+
+/* ───────────────────────────────────────
+   VARIANT 2 — Secondary (Button2)
+   Figma: Default fill #ffffff, text/icon #d94a56
+   Figma: Hover fill #e3636e, stroke #ffffff 2px, text/icon #ffffff
+          DROP_SHADOW offset(0,2) blur=3 #000
+          DROP_SHADOW offset(0,6) blur=10 spread=4 #000
+   ─────────────────────────────────────── */
+.btn--secondary {
+  background: #ffffff;
+  color: var(--color-primary-500, #d94a56);
+  /* The API shows "Stroke: #8a38f5 weight=1px" on the component set, but child uses component styles! */
+  /* For Button2, it's just white bg, red text in default state. So we use border-color transparent or red. */
+  /* We use border red to distinguish if needed, but Figma says fill #ffffff, text #d94a56 */
+  border-color: var(--color-primary-500, #d94a56);
+}
+.btn--secondary svg path { fill: var(--color-primary-500, #d94a56); }
+
+.btn--secondary:hover:not(:disabled) {
+  background: #e3636e;
+  color: #ffffff;
+  border: 2px solid #ffffff; /* stroke=2px */
+  box-shadow: 
+    0 2px 3px rgba(0,0,0,0.5), /* Assuming some opacity, API gave #000000 */
+    0 6px 10px 4px rgba(0,0,0,0.2); 
+}
+.btn--secondary:hover:not(:disabled) svg path { fill: #ffffff; }
+
+/* ───────────────────────────────────────
+   VARIANT 4 — Outlined (Button4)
+   Figma: Default fill #ffffff, stroke #191d24 1px, text #191d24 regular
+   Figma: Hover fill #d94a56, text #ffffff
+   Figma: Disabled (Frame 19) fill #b6b6b6, stroke #191d24
+   ─────────────────────────────────────── */
+.btn--outlined {
+  background: #ffffff;
+  color: var(--color-text, #191d24);
+  border: 1px solid var(--color-text, #191d24);
+  font-weight: 400; /* Figma says 400 for outlined! */
+}
+.btn--outlined svg path { fill: var(--color-text, #191d24); }
+
+.btn--outlined:hover:not(:disabled) {
+  background: var(--color-primary-500, #d94a56);
+  color: #ffffff;
+  border-color: transparent;
+}
+.btn--outlined:hover:not(:disabled) svg path { fill: #ffffff; }
+
+.btn--outlined:disabled {
+  background: #b6b6b6;
+  border-color: var(--color-text, #191d24);
+  color: var(--color-text, #191d24);
+}
+
+/* ───────────────────────────────────────
+   VARIANT 3 — Ghost (Button3)
+   Figma: Default text #191d24, no bg
+   Figma: Hover fill #000000 (10%), text #191d24
+   ─────────────────────────────────────── */
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text, #191d24);
+  border-color: transparent;
+}
+.btn--ghost svg path { fill: var(--color-text, #191d24); }
+
+.btn--ghost:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* ───────────────────────────────────────
+   VARIANT 5 — Accent Outline
+   Similar to Outlined but uses Primary colors
+   ─────────────────────────────────────── */
+.btn--accent {
+  background: #ffffff;
+  color: var(--color-primary-500, #d94a56);
+  border-color: var(--color-primary-500, #d94a56);
+}
+
+.btn--accent:hover:not(:disabled) {
+  background: var(--color-primary-500, #d94a56);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(217, 74, 86, 0.4);
+}
+
+/* ───────────────────────────────────────
+   VARIANT 6 — Link
+   ─────────────────────────────────────── */
+.btn--link {
+  background: transparent;
+  color: var(--color-primary-500, #d94a56);
+  border-color: transparent;
+  padding: 0;
+  min-height: auto;
+  border-radius: 0;
+}
+
+.btn--link:hover:not(:disabled) {
+  color: #e3636e;
+  text-decoration: underline;
+}
+
+/* ───────────────────────────────────────
+   VARIANT 7 — Danger
+   ─────────────────────────────────────── */
+.btn--danger {
+  background: var(--color-error, #ef4444);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+/* ───────────────────────────────────────
+   VARIANT 8 — Icon Circle (Button - Next/Prev slide)
+   Figma: 28x28, Radius 14px. Default #d94a56, white icon
+   ─────────────────────────────────────── */
+.btn--icon-circle {
+  background: var(--color-primary-500, #d94a56);
+  color: #ffffff;
+  border-color: transparent;
+  border-radius: 50%; /* Figma: radius 14px on 28px = 50% */
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  min-height: 28px; /* Override standard min-height */
+}
+.btn--icon-circle svg path { fill: #ffffff; }
+
+.btn--icon-circle.btn--md {
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+}
+
+.btn--icon-circle.btn--lg {
+  width: 56px;
+  height: 56px;
+  min-height: 56px;
+}
+
+.btn--icon-circle:hover:not(:disabled) {
+  background: #e3636e;
+}
+
+/* ───────────────────────────────────────
+   Modifers 
+   ─────────────────────────────────────── */
+.btn--full { width: 100%; }
+
+.btn--loading { pointer-events: none; }
+
+/* ─── Spinner ─── */
+.btn__spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+
+/* ─── Icon slots ─── */
+.btn__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* Figma: Button icons are exactly 16x16 or 20x20 depending on variant. 
+   We default to 20px so they don't look tiny (Lucide defaults to 24px). */
+.btn__icon svg,
+.btn__icon img {
+  width: 20px;
+  height: 20px;
+  max-width: 20px;
+  max-height: 20px;
+}
+
+.btn--sm .btn__icon svg,
+.btn--sm .btn__icon img {
+  width: 16px;
+  height: 16px;
+  max-width: 16px;
+  max-height: 16px;
+}
+
+.btn--lg .btn__icon svg,
+.btn--lg .btn__icon img {
+  width: 24px;
+  height: 24px;
+  max-width: 24px;
+  max-height: 24px;
+}
+
+.btn__label {
+  display: inline-flex;
+  align-items: center;
+}

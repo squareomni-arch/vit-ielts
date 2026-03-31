@@ -1,0 +1,70 @@
+﻿Found in: page_des_system.json
+
+≡ƒôª COMPONENT_SET: "Part Tag" (460:738) [394├ù48]
+   Stroke: #8a38f5 weight=1px
+   Radius: 5px
+  ≡ƒôª COMPONENT: "Property 1=PartTag01" (460:737) [52├ù24]
+     Layout: HORIZONTAL | gap: 10px | padding: [4, 8, 4, 8]
+     Align: main=CENTER cross=CENTER
+     Sizing: h=HUG v=FIXED
+     Fill: #fc945a
+     Effect: DROP_SHADOW offset(0,1) blur=3 spread=undefined #000000
+     Effect: DROP_SHADOW offset(0,4) blur=8 spread=3 #000000
+     Radius: 30px
+     Style Refs: fills=14:113, fill=14:113, effect=50:212
+    ≡ƒôª TEXT: "Part 1" (460:718) [36├ù16]
+       Fill: #ffffff
+       Typography: Noto Sans 700 12px / 16px align:LEFT
+       Text: "Part 1"
+  ≡ƒôª COMPONENT: "Property 1=PartTag02" (460:735) [52├ù24]
+     Layout: HORIZONTAL | gap: 10px | padding: [4, 8, 4, 8]
+     Align: main=CENTER cross=CENTER
+     Sizing: h=HUG v=FIXED
+     Fill: #565fcc
+     Effect: DROP_SHADOW offset(0,1) blur=3 spread=undefined #000000
+     Effect: DROP_SHADOW offset(0,4) blur=8 spread=3 #000000
+     Radius: 30px
+     Style Refs: effect=50:212
+    ≡ƒôª TEXT: "Part 2" (50:73) [36├ù16]
+       Fill: #ffffff
+       Typography: Noto Sans 700 12px / 16px align:LEFT
+       Text: "Part 2"
+  ≡ƒôª COMPONENT: "Property 1=PartTag03" (460:733) [52├ù24]
+     Layout: HORIZONTAL | gap: 10px | padding: [4, 8, 4, 8]
+     Align: main=CENTER cross=CENTER
+     Sizing: h=HUG v=FIXED
+     Fill: #f8c800
+     Effect: DROP_SHADOW offset(0,1) blur=3 spread=undefined #000000
+     Effect: DROP_SHADOW offset(0,4) blur=8 spread=3 #000000
+     Radius: 30px
+     Style Refs: effect=50:212
+    ≡ƒôª TEXT: "Part 3" (460:721) [36├ù16]
+       Fill: #ffffff
+       Typography: Noto Sans 700 12px / 16px align:LEFT
+       Text: "Part 3"
+  ≡ƒôª COMPONENT: "Property 1=PartTag04" (460:734) [52├ù24]
+     Layout: HORIZONTAL | gap: 10px | padding: [4, 8, 4, 8]
+     Align: main=CENTER cross=CENTER
+     Sizing: h=HUG v=FIXED
+     Fill: #219653
+     Effect: DROP_SHADOW offset(0,1) blur=3 spread=undefined #000000
+     Effect: DROP_SHADOW offset(0,4) blur=8 spread=3 #000000
+     Radius: 30px
+     Style Refs: fills=14:146, fill=14:146, effect=50:212
+    ≡ƒôª TEXT: "Part 4" (460:727) [36├ù16]
+       Fill: #ffffff
+       Typography: Noto Sans 700 12px / 16px align:LEFT
+       Text: "Part 4"
+  ≡ƒôª COMPONENT: "Property 1=PartTag05" (460:736) [52├ù24]
+     Layout: HORIZONTAL | gap: 10px | padding: [4, 8, 4, 8]
+     Align: main=CENTER cross=CENTER
+     Sizing: h=HUG v=FIXED
+     Fill: #5281f9
+     Effect: DROP_SHADOW offset(0,1) blur=3 spread=undefined #000000
+     Effect: DROP_SHADOW offset(0,4) blur=8 spread=3 #000000
+     Radius: 30px
+     Style Refs: fills=14:120, fill=14:120, effect=50:212
+    ≡ƒôª TEXT: "Part 5" (460:730) [36├ù16]
+       Fill: #ffffff
+       Typography: Noto Sans 700 12px / 16px align:LEFT
+       Text: "Part 5"

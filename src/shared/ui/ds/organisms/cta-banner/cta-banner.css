@@ -1,0 +1,301 @@
+/* ═══ CTABanner — Figma node 412:6730 ═══ */
+/*
+ * Visual Decomposition (4 layers):
+ *
+ *   Layer 1: .cta-banner          → Transparent full-width wrapper (1920×359)
+ *   Layer 2: .cta-banner__pill    → Red pill shape (#D94A56 + dot pattern), r:150
+ *   Layer 3a: .cta-banner__content → Text group + button (left side)
+ *   Layer 3b: .cta-banner__mascot-area → Mascot image (right side, overflows top)
+ */
+
+/* ── Layer 1: Wrapper ── */
+/* Figma: [COMPONENT] "CTA" 1920×359, no fills (transparent) */
+.cta-banner {
+  position: relative;
+  width: 100%;
+  padding: var(--space-6) var(--space-4);
+  overflow: visible;     /* Mascot overflows top — must be visible */
+}
+
+/* ── Layer 2: Red pill shape ── */
+/* Figma: [FRAME] "Frame 48" 1600×250, fills: SOLID(#d94a56) + PATTERN */
+.cta-banner__pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 1600px;
+  height: 250px;
+  margin: 0 auto;
+  background-color: #D94A56;
+  border-radius: 150px;
+  overflow: visible;     /* Mascot overflows */
+  padding: 0 12.6%;      /* Figma: content starts at x=202 in 1600w → ~12.6% */
+}
+
+/* Dot pattern overlay (Figma: PATTERN fill on Frame 48) */
+.cta-banner__pill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.15) 1px,
+    transparent 1px
+  );
+  background-size: 12px 12px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Layer 3a: Text content group ── */
+/* Figma: [FRAME] "Frame 54" 716×185, vertical layout, gap:32 */
+.cta-banner__content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 32px;
+  max-width: 55%;           /* Figma: 716/1600 = 44.75%, but need room for wrapping */
+  z-index: 2;
+}
+
+/* Figma: [FRAME] "Frame 49" 716×96, vertical, gap:6 */
+.cta-banner__text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Figma: bold, 46px/63px, white */
+.cta-banner__title {
+  font-family: 'Noto Sans', var(--font-primary);
+  font-weight: 700;
+  font-size: clamp(28px, 3.2vw, 46px);  /* Figma: 46px at 1920, scales down gracefully */
+  line-height: 1.37;                     /* Figma: 63/46 ≈ 1.37 */
+  color: #FFFFFF;
+  margin: 0;
+}
+
+/* Figma: weight 500, 20px/27px, white */
+.cta-banner__subtitle {
+  font-family: 'Noto Sans', var(--font-primary);
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 27px;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+/* ── Button ── */
+/* Figma: "Button2" 232×57, fills: #FFFFFF, r:25, text: #D94A56, bold 20px */
+.cta-banner__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 232px;
+  height: 57px;
+  padding: 15px 20px;
+  background: #FFFFFF;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background-color var(--duration-fast, 150ms) var(--ease-default, ease),
+    box-shadow var(--duration-fast, 150ms) var(--ease-default, ease),
+    transform var(--duration-fast, 150ms) var(--ease-default, ease);
+}
+
+.cta-banner__btn:hover {
+  background: #F8F9FA;
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0,0,0,0.07));
+  transform: translateY(-1px);
+}
+
+.cta-banner__btn:active {
+  transform: scale(0.98);
+}
+
+.cta-banner__btn-label {
+  font-family: 'Noto Sans', var(--font-primary);
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 27px;
+  color: #D94A56;
+  white-space: nowrap;
+}
+
+/* ── Layer 3b: Mascot area ── */
+/* Figma: "Component 1" 500×421, positioned right, overflows pill top */
+.cta-banner__mascot-area {
+  position: absolute;
+  right: 2%;                /* Figma: mascot at x=946 in 1600w pill → ~41% from left */
+  bottom: 0;
+  width: 420px;             /* Slightly smaller to fit proportionally */
+  height: 354px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Figma: "5-CỐ LÊN 1" 450×379, centered in wrapper, drop-shadow */
+.cta-banner__mascot {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 380px;
+  height: 320px;
+  object-fit: contain;
+  filter: drop-shadow(4px 0px 4px rgba(0, 0, 0, 0.25));
+}
+
+
+/* ═══════════════════════════════════════════ */
+/* ── Responsive Breakpoints ──               */
+/* ═══════════════════════════════════════════ */
+
+/* Tablet — ≤ 1200px */
+@media (max-width: 1200px) {
+  .cta-banner__pill {
+    height: 220px;
+    padding: 0 8%;
+  }
+
+  .cta-banner__title {
+    font-size: 36px;
+    line-height: 49px;
+  }
+
+  .cta-banner__subtitle {
+    font-size: 16px;
+    line-height: 22px;
+  }
+
+  .cta-banner__btn {
+    min-width: 200px;
+    height: 48px;
+    padding: 12px 18px;
+  }
+
+  .cta-banner__btn-label {
+    font-size: 16px;
+  }
+
+  .cta-banner__content {
+    gap: 20px;
+  }
+
+  .cta-banner__mascot-area {
+    width: 380px;
+    height: 320px;
+    right: 5%;
+  }
+
+  .cta-banner__mascot {
+    width: 340px;
+    height: 287px;
+  }
+}
+
+/* Small tablet — ≤ 850px */
+@media (max-width: 850px) {
+  .cta-banner__pill {
+    height: 200px;
+    border-radius: 100px;
+    padding: 0 6%;
+  }
+
+  .cta-banner__title {
+    font-size: 28px;
+    line-height: 38px;
+  }
+
+  .cta-banner__subtitle {
+    font-size: 14px;
+    line-height: 19px;
+  }
+
+  .cta-banner__content {
+    gap: 16px;
+    max-width: 55%;
+  }
+
+  .cta-banner__btn {
+    min-width: auto;
+    height: 42px;
+    padding: 10px 16px;
+    border-radius: 21px;
+  }
+
+  .cta-banner__btn-label {
+    font-size: 14px;
+  }
+
+  .cta-banner__mascot-area {
+    width: 280px;
+    height: 240px;
+    right: 3%;
+  }
+
+  .cta-banner__mascot {
+    width: 250px;
+    height: 211px;
+  }
+}
+
+/* Mobile — ≤ 550px */
+@media (max-width: 550px) {
+  .cta-banner {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .cta-banner__pill {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    border-radius: 32px;
+    padding: 40px 24px 0;
+    text-align: center;
+    overflow: hidden;     /* On mobile, don't overflow */
+  }
+
+  .cta-banner__content {
+    align-items: center;
+    max-width: 100%;
+    gap: 16px;
+  }
+
+  .cta-banner__text-group {
+    align-items: center;
+  }
+
+  .cta-banner__title {
+    font-size: 22px;
+    line-height: 30px;
+    text-align: center;
+  }
+
+  .cta-banner__subtitle {
+    font-size: 14px;
+    line-height: 19px;
+    text-align: center;
+  }
+
+  .cta-banner__mascot-area {
+    position: relative;
+    right: auto;
+    width: 200px;
+    height: auto;
+    margin-top: 16px;
+  }
+
+  .cta-banner__mascot {
+    position: relative;
+    left: auto;
+    transform: none;
+    width: 200px;
+    height: auto;
+  }
+}

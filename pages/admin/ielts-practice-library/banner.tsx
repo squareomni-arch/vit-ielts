@@ -68,7 +68,7 @@ function PracticeLibraryBannerPage() {
       
       // Chỉ set form values lần đầu tiên khi load
       if (!isFormInitialized) {
-        form.setFieldsValue(normalizedData);
+        form.setFielValue(normalizedData);
         setIsFormInitialized(true);
       }
     } catch {

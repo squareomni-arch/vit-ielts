@@ -1,0 +1,15 @@
+﻿Found in: page_des_system.json
+
+≡ƒôª SECTION: "LOGO" (1076:2185) [399├ù519]
+   Fill: #ffffff (20%)
+  ≡ƒôª RECTANGLE: "image 1" (13:92) [266├ù136]
+     Image: ref=01ca2ce0df0bf4e164ee4a35ab8f405e5e5079e2
+  ≡ƒôª GROUP: "Group 1" (223:615) [176├ù134]
+    ≡ƒôª VECTOR: "Vector" (223:610) [69├ù134]
+       Fill: #ffffff
+    ≡ƒôª VECTOR: "Vector" (223:611) [98├ù100]
+       Fill: #ffffff
+    ≡ƒôª VECTOR: "Vector" (223:612) [35├ù84]
+       Fill: #ffffff
+    ≡ƒôª VECTOR: "Vector" (223:613) [37├ù33]
+       Fill: #ffffff

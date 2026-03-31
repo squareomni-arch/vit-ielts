@@ -1,0 +1,32 @@
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN SYSTEM — ALL COMPONENT STYLES
+   This file aggregates all DS component CSS for Pages Router.
+   (Pages Router forbids CSS imports outside _app.tsx)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Tokens ─── */
+@import "./design-tokens.css";
+
+/* ─── Atoms ─── */
+@import "./atoms/button/button.css";
+@import "./atoms/input/input.css";
+@import "./atoms/badge/badge.css";
+@import "./atoms/avatar/avatar.css";
+@import "./atoms/tag/tag.css";
+@import "./atoms/divider/divider.css";
+@import "./atoms/spinner/spinner.css";
+@import "./atoms/part-tag/part-tag.css";
+
+/* ─── Molecules ─── */
+@import "./molecules/form-field/form-field.css";
+@import "./molecules/nav-link/nav-link.css";
+@import "./molecules/breadcrumb/breadcrumb.css";
+@import "./molecules/test-card/test-card.css";
+@import "./molecules/blog-card/blog-card.css";
+@import "./molecules/stat-card/stat-card.css";
+@import "./molecules/pricing-card/pricing-card.css";
+
+/* ─── Organisms ─── */
+@import "./organisms/header/header.css";
+@import "./organisms/footer/footer.css";
+@import "./organisms/cta-banner/cta-banner.css";

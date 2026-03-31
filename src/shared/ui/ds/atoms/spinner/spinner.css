@@ -1,0 +1,17 @@
+.spinner { display: inline-flex; align-items: center; justify-content: center; }
+.spinner--sm { width: 16px; height: 16px; }
+.spinner--md { width: 24px; height: 24px; }
+.spinner--lg { width: 36px; height: 36px; }
+
+.spinner__circle {
+  width: 100%; height: 100%;
+  border: 2px solid var(--color-neutral-200);
+  border-top-color: var(--color-primary-500);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.spinner--sm .spinner__circle { border-width: 2px; }
+.spinner--lg .spinner__circle { border-width: 3px; }
+
+@keyframes spin { to { transform: rotate(360deg); } }

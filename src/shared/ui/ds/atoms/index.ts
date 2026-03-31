@@ -1,8 +1,9 @@
 // ═══ Atoms — Smallest independent components ═══
-export * from './ds-button';
-export * from './ds-input';
-export * from './ds-badge';
-export * from './ds-avatar';
-export * from './ds-tag';
-export * from './ds-divider';
-export * from './ds-spinner';
+export * from './button';
+export * from './input';
+export * from './badge';
+export * from './avatar';
+export * from './tag';
+export * from './divider';
+export * from './spinner';
+export * from './part-tag';

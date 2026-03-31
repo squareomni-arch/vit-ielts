@@ -32,7 +32,7 @@ import { countQuestion } from "@/shared/lib";
 import {
   DndContext,
   DragOverlay,
-  KeyboardSensor,
+  Keyboarensor,
   PointerSensor,
   useSensor,
   useSensors,
@@ -392,7 +392,7 @@ export function PageTakeTheTest() {
   const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor)
+    useSensor(Keyboarensor)
   );
 
   useEffect(() => {
@@ -700,10 +700,10 @@ export function PageTakeTheTest() {
                                     return isHeadingQ ? (
                                       <div key={index}> {QuestionComponent} </div>
                                     ) : (
-                                      <fieldset key={index} disabled={isFormDisabled}>
+                                      <fielet key={index} disabled={isFormDisabled}>
                                         {" "}
                                         {QuestionComponent}{" "}
-                                      </fieldset>
+                                      </fielet>
                                     );
                                   }
                                 )}

@@ -1202,8 +1202,8 @@ function ReviewExplanation({
       const allParents = document.querySelectorAll('.plyr, .plyr__controls, .plyr__controls__item');
       allParents.forEach((parent: any) => {
         if (parent) {
-          const computedStyle = window.getComputedStyle(parent);
-          if (computedStyle.overflow === 'hidden' || computedStyle.overflowY === 'hidden' || computedStyle.overflowX === 'hidden') {
+          const computetyle = window.getComputetyle(parent);
+          if (computetyle.overflow === 'hidden' || computetyle.overflowY === 'hidden' || computetyle.overflowX === 'hidden') {
             parent.style.overflow = 'visible';
             parent.style.overflowY = 'visible';
             parent.style.overflowX = 'visible';
@@ -1215,8 +1215,8 @@ function ReviewExplanation({
       const splitterPanels = document.querySelectorAll('.ant-split-panel');
       splitterPanels.forEach((panel: any) => {
         if (panel && panel.querySelector('.plyr')) {
-          const computedStyle = window.getComputedStyle(panel);
-          if (computedStyle.overflow === 'hidden' || computedStyle.overflowY === 'hidden') {
+          const computetyle = window.getComputetyle(panel);
+          if (computetyle.overflow === 'hidden' || computetyle.overflowY === 'hidden') {
             panel.style.overflow = 'visible';
             panel.style.overflowY = 'visible';
           }
@@ -1224,8 +1224,8 @@ function ReviewExplanation({
           const panelChildren = panel.querySelectorAll('*');
           panelChildren.forEach((child: any) => {
             if (child && child !== panel.querySelector('.plyr') && !child.closest('.plyr')) {
-              const childStyle = window.getComputedStyle(child);
-              if (childStyle.overflow === 'hidden' && child !== panel.querySelector('.plyr__menu')) {
+              const chiltyle = window.getComputetyle(child);
+              if (chiltyle.overflow === 'hidden' && child !== panel.querySelector('.plyr__menu')) {
                 // Chỉ fix nếu không phải là explanations scrollable area
                 if (!child.classList.contains('ex-right') && !child.closest('.ex-right')) {
                   // Không làm gì, giữ nguyên overflow cho explanations
@@ -1239,8 +1239,8 @@ function ReviewExplanation({
       // Fix Splitter container
       const splitter = document.querySelector('.ant-split') as HTMLElement;
       if (splitter) {
-        const computedStyle = window.getComputedStyle(splitter);
-        if (computedStyle.overflow === 'hidden') {
+        const computetyle = window.getComputetyle(splitter);
+        if (computetyle.overflow === 'hidden') {
           splitter.style.overflow = 'visible';
         }
       }

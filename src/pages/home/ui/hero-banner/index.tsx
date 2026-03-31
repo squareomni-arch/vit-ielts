@@ -58,7 +58,7 @@ export const HeroBanner = ({ config }: HeroBannerProps) => {
       className="relative overflow-hidden py-12 md:py-35"
       style={{
         background: backgroundImage ? `url('${getBackgroundImageUrl()}') no-repeat center center` : 'none',
-        backgroundSize: "cover",
+        backgrounize: "cover",
       }}
     >
       {/* Background Shapes */}

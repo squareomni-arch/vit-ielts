@@ -27,7 +27,7 @@ export default async function handler(
       success: true,
       affiliateId: result.affiliateId,
       linkId: result.linkId ?? `temp_${result.affiliateId}`,
-      ...(result.linkId ? {} : { needsLinkCreation: true }),
+      ...(result.linkId ? {} : { neeLinkCreation: true }),
     });
   } catch (error) {
     console.error("[API /api/affiliate/resolve]", error);

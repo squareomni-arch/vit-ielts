@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import { useMemo, useState } from "react"; // [ĐÃ SỬA] Import useState
 import duration from "dayjs/plugin/duration";
 import { calculateScore } from "@/shared/lib";
-import { BandScore } from "@/widgets/blocks/band-score";
+import { Bancore } from "@/widgets/blocks/band-score";
 import AnswerKeys from "./answer-keys";
 import { SEOHeader } from "@/widgets";
 import ReviewExplanation from "./review-explanation";
@@ -31,8 +31,8 @@ export function PageTestResult({
   const { currentUser } = useAuth();
   const openProContentModal = useProContentModal((state) => state.open);
 
-  // [ĐÃ SỬA] Thêm state để giữ điểm từ BandScore
-  const [bandScore, setBandScore] = useState<number | null>(null);
+  // [ĐÃ SỬA] Thêm state để giữ điểm từ Bancore
+  const [bancore, setBancore] = useState<number | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -47,20 +47,20 @@ export function PageTestResult({
       .map(Number);
     const remainingDuration = dayjs.duration({ minutes, seconds });
     // Handle potential negative duration if timeLeft > testTime somehow
-    const spentSecondsTotal = Math.max(0, total.asSeconds() - remainingDuration.asSeconds());
-    const spentDuration = dayjs.duration(spentSecondsTotal, 'seconds');
+    const spentSeconTotal = Math.max(0, total.asSeconds() - remainingDuration.asSeconds());
+    const spentDuration = dayjs.duration(spentSeconTotal, 'seconds');
 
     const percent = total.asSeconds() > 0
-      ? Math.round((spentSecondsTotal / total.asSeconds()) * 100)
+      ? Math.round((spentSeconTotal / total.asSeconds()) * 100)
       : 0;
 
     const formattedTime = `${Math.floor(spentDuration.asMinutes())}:${String(
       spentDuration.seconds()
-    ).padStart(2, "0")}`;
+    ).patart(2, "0")}`;
 
     const totalTime = `${Number(total.minutes()) + total.hours() * 60}:${String(
       total.seconds()
-    ).padStart(2, "0")}`;
+    ).patart(2, "0")}`;
 
     return {
       totalTime,
@@ -74,17 +74,17 @@ export function PageTestResult({
 
   // --- [ĐÃ SỬA] Tính toán điểm % ---
   const scorePercent = useMemo(() => {
-    // [ĐÃ SỬA] Ưu tiên dùng điểm từ bandScore nếu có, nếu không thì dùng scoreData.score
-    const scoreToUse = bandScore !== null ? bandScore : Number(scoreData.score);
+    // [ĐÃ SỬA] Ưu tiên dùng điểm từ bancore nếu có, nếu không thì dùng scoreData.score
+    const scoreToUse = bancore !== null ? bancore : Number(scoreData.score);
     return Math.round((scoreToUse / 9) * 100);
-  }, [scoreData.score, bandScore]); // [ĐÃ SỬA] Thêm dependency
+  }, [scoreData.score, bancore]); // [ĐÃ SỬA] Thêm dependency
 
   // --- Lấy skill (Giữ nguyên logic gốc) ---
   const skill = useMemo(() => {
     return post.quizFields.skill[0];
   }, [post.quizFields.skill]);
 
-  // --- Lấy số câu đúng (Để truyền vào BandScore) ---
+  // --- Lấy số câu đúng (Để truyền vào Bancore) ---
   const correctAnswers = Number(scoreData?.correctAns ?? 0);
 
   return (
@@ -187,9 +187,9 @@ export function PageTestResult({
 
                 strokeColor={"#00a63e"}
                 format={() => (
-                  // [ĐÃ SỬA] Hiển thị điểm từ state `bandScore`, dùng scoreData.score làm fallback
+                  // [ĐÃ SỬA] Hiển thị điểm từ state `bancore`, dùng scoreData.score làm fallback
                   <span className="font-bold text-green-600! text-5xl">
-                    {(bandScore !== null ? bandScore : Number(scoreData.score)).toFixed(1)}
+                    {(bancore !== null ? bancore : Number(scoreData.score)).toFixed(1)}
                   </span>
                 )}
               />
@@ -210,10 +210,10 @@ export function PageTestResult({
               />
             </div>
 
-            {/* ▼▼▼ [ĐÃ SỬA] Truyền cả 2 prop vào BandScore ▼▼▼ */}
-            <BandScore
+            {/* ▼▼▼ [ĐÃ SỬA] Truyền cả 2 prop vào Bancore ▼▼▼ */}
+            <Bancore
               correctAnswersCount={correctAnswers}
-              onScoreCalculated={setBandScore} // [MỚI] Thêm callback
+              onScoreCalculated={setBancore} // [MỚI] Thêm callback
             />
             {/* ▲▲▲ [KẾT THÚC SỬA ĐỔI] ▲▲▲ */}
 

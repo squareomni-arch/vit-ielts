@@ -1,0 +1,29 @@
+/* ═══ Badge ═══ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-primary);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* ─── Sizes ─── */
+.badge--sm { padding: var(--space-0-5) var(--space-2); font-size: var(--text-xs); }
+.badge--md { padding: var(--space-1) var(--space-3); font-size: var(--text-sm); }
+
+/* ─── Variants ─── */
+.badge--default { background: var(--color-neutral-100); color: var(--text-secondary); }
+.badge--primary { background: var(--color-primary-50); color: var(--color-primary-600); }
+.badge--success { background: var(--color-success-light); color: var(--color-success-dark); }
+.badge--warning { background: var(--color-warning-light); color: var(--color-warning-dark); }
+.badge--error   { background: var(--color-error-light); color: var(--color-error-dark); }
+.badge--info    { background: var(--color-info-light); color: var(--color-info-dark); }
+
+/* IELTS Skill badges */
+.badge--reading   { background: rgba(59, 130, 246, 0.1); color: var(--color-skill-reading); }
+.badge--listening { background: rgba(139, 92, 246, 0.1); color: var(--color-skill-listening); }
+.badge--speaking  { background: rgba(245, 158, 11, 0.1); color: var(--color-skill-speaking); }
+.badge--writing   { background: rgba(34, 197, 94, 0.1); color: var(--color-skill-writing); }

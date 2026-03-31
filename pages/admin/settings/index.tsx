@@ -28,10 +28,10 @@ export default function AdminSettingsPage() {
             const json = await res.json();
             if (json.success) {
                 setSettings(json.data);
-                generalForm.setFieldsValue(json.data.general || {});
-                emailForm.setFieldsValue(json.data.email || {});
-                paymentForm.setFieldsValue(json.data.payment || {});
-                authForm.setFieldsValue(json.data.auth || {});
+                generalForm.setFielValue(json.data.general || {});
+                emailForm.setFielValue(json.data.email || {});
+                paymentForm.setFielValue(json.data.payment || {});
+                authForm.setFielValue(json.data.auth || {});
             }
         } catch { message.error("Error loading settings"); }
         finally { setLoading(false); }

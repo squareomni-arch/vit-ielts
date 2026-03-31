@@ -28,7 +28,7 @@ const AdminAffiliateConfigPage = () => {
       const res = await fetch("/api/admin/affiliate/config");
       const data = await res.json();
       if (data.success && data.config) {
-        form.setFieldsValue({
+        form.setFielValue({
           commission_rate: data.config.commission_rate * 100, // Display as %
           cookie_duration_days: data.config.cookie_duration_days,
           min_payout_amount: data.config.min_payout_amount,
