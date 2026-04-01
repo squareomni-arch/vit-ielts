@@ -31,11 +31,14 @@ export const PageHome = ({
   const { isSignedIn } = useAuth();
   return (
     <>
+      {/* === SECTION: Hero Banner === */}
       <HeroBanner config={heroBannerConfig} />
+      {/* === SECTION: Platform Intro (Category Cards) === */}
       {testPlatformIntroConfig?.badge && (
         <IeltsTestPlatformIntro config={testPlatformIntroConfig} />
       )}
-      <div className="py-10">
+      {/* === SECTION: User Dashboard (Target Score + Practice History) === */}
+      <div data-section="user-dashboard" className="py-10">
         <Container className="space-y-16">
           {isSignedIn && (
             <>
@@ -52,8 +55,8 @@ export const PageHome = ({
           )}
         </Container>
       </div>
-      {/* Section Practice Tests */}
-      <div className="w-full bg-white flex flex-col gap-8 pb-10 pt-4">
+      {/* === SECTION: Practice Tests Carousel === */}
+      <div data-section="practice-tests" className="w-full bg-white flex flex-col gap-8 pb-10 pt-4">
         <PracticeSection
           title="IELTS Online Test"
           viewMoreLink={ROUTES.EXAM.ARCHIVE}
@@ -75,9 +78,11 @@ export const PageHome = ({
           viewMoreLink={ROUTES.EXAM.ARCHIVE}
         />
       </div>
+      {/* === SECTION: Why Choose Us (Statistics) === */}
       {whyChooseUsConfig?.badge && (
         <WhyChooseUs config={whyChooseUsConfig} />
       )}
+      {/* === SECTION: Testimonials (Marquee) === */}
       {testimonialsConfig?.testimonials && (
         <Testimonials config={testimonialsConfig} />
       )}

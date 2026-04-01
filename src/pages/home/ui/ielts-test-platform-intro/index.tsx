@@ -48,7 +48,7 @@ const PREDEFINED_CARDS = [
 
 export const IeltsTestPlatformIntro = ({ config }: IeltsTestPlatformIntroProps) => {
   return (
-    <div className="relative py-16 md:py-24 bg-[#FEF6F5]">
+    <div data-section="platform-intro" className="relative py-16 md:py-24 bg-[#FEF6F5]">
       <Container className="relative z-10">
         <div className="text-center space-y-4 mb-14">
           {/* Badge */}

@@ -26,7 +26,7 @@ export const PracticeSection = ({
   items = MOCK_ONLINE_TESTS,
 }: PracticeSectionProps) => {
   return (
-    <div className="py-[60px] bg-white">
+    <div data-section="practice-carousel" className="py-[60px] bg-white">
       <Container>
         {/* Header */}
         <div className="flex justify-between items-end mb-8 pl-1 pr-1">
@@ -60,20 +60,23 @@ export const PracticeSection = ({
             <div className="splide__arrows absolute top-1/2 left-0 w-full -translate-y-1/2 flex justify-between pointer-events-none z-10 hidden sm:flex" style={{ width: 'calc(100% + 48px)', marginLeft: '-24px' }}>
               <Button 
                 variant="icon-circle"
-                className="splide__arrow splide__arrow--prev !static pointer-events-auto transform-none shadow-md disabled:hidden"
+                className="splide__arrow splide__arrow--prev !static pointer-events-auto shadow-md disabled:hidden"
                 icon={
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-current" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M15 18l-6-6 6-6" />
-                  </svg>
+                  <img 
+                    src="/assets/figma/icons/Arrow1.svg" 
+                    alt="Previous" 
+                    style={{ transform: 'rotate(180deg)' }}
+                  />
                 }
               />
               <Button 
                 variant="icon-circle"
-                className="splide__arrow splide__arrow--next !static pointer-events-auto transform-none shadow-md disabled:hidden"
+                className="splide__arrow splide__arrow--next !static pointer-events-auto shadow-md disabled:hidden"
                 icon={
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-current" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
+                  <img 
+                    src="/assets/figma/icons/Arrow1.svg" 
+                    alt="Next" 
+                  />
                 }
               />
             </div>

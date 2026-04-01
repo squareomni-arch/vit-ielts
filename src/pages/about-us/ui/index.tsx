@@ -18,12 +18,13 @@ export const PageAboutUs = ({
 }: PageAboutUsProps) => {
   return (
     <>
-      {/* Banner Section */}
+      {/* === SECTION: About Banner === */}
       <div
+        data-section="about-banner"
         className="relative flex items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: "url('/img-admin/bg-image-11.jpg')",
-          backgrounize: "cover",
+          backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
@@ -60,17 +61,17 @@ export const PageAboutUs = ({
         </Container>
       </div>
 
-      {/* About Content Section */}
-      <div id="about-content">
+      {/* === SECTION: About Content === */}
+      <div id="about-content" data-section="about-content">
         <AboutContent />
       </div>
 
-      {/* Why Choose Us Section */}
-      <div id="why-choose-us">
+      {/* === SECTION: Why Choose Us === */}
+      <div id="why-choose-us" data-section="about-why-choose-us">
         <WhyChooseUs config={whyChooseUsConfig} />
       </div>
 
-      {/* What Our Learners Say Section */}
+      {/* === SECTION: Testimonials === */}
       <Testimonials config={testimonialsConfig} />
     </>
   );

@@ -714,21 +714,31 @@ export * from './organisms';
 ### 4.5 CSS Architecture Rules
 
 ```
-⚠️ QUAN TRỌNG: Khi nào dùng Vanilla CSS vs Tailwind
+⚠️ QUAN TRỌNG: Styling Strategy — Tailwind v4 + Design Tokens
 
-1. DESIGN SYSTEM components (src/shared/ui/ds/**)
-   → ✅ LUÔN dùng Vanilla CSS (.css files)
-   → ✅ LUÔN dùng design tokens (--ds-*)
-   → ❌ KHÔNG dùng Tailwind inline classes cho DS components
-   → Lý do: DS components phải self-contained, không phụ thuộc Tailwind config
+1. DESIGN TOKENS (globals.css @theme block + design-tokens.css)
+   → Định nghĩa brand colors, fonts, breakpoints dưới dạng CSS custom properties
+   → Tailwind v4 tự generate utility classes từ @theme
+   → Ví dụ: --color-primary-500 → bg-primary-500, text-primary-500
 
-2. PAGE-LEVEL compositions (src/pages/**/ui/*)
-   → ✅ CÓ THỂ dùng Tailwind cho layout (flex, grid, spacing)
+2. ALL COMPONENTS (src/shared/ui/ds/** và pages)
+   → ✅ DÙNG Tailwind classes cho tất cả styling
+   → ✅ Components = Tailwind classes + behavior + typed props API
+   → ✅ Ưu tiên Tailwind theme classes (bg-primary-500) trước hardcoded hex
+   → ✅ LUÔN check REGISTRY.md trước khi tạo component mới
+   → ❌ KHÔNG tạo lại component đã có trong REGISTRY.md
+
+3. LEGACY CSS (button.css, badge.css, input.css, footer.css, etc.)
+   → Một số atoms cũ vẫn dùng BEM CSS files
+   → Sẽ migrate sang Tailwind dần
+   → Component MỚI phải dùng Tailwind only — KHÔNG tạo .css file mới
+
+4. PAGE-LEVEL compositions (src/pages/**/ui/*)
+   → ✅ Dùng Tailwind cho layout (flex, grid, spacing, responsive)
    → ✅ LUÔN dùng DS components cho UI elements
-   → ❌ KHÔNG tạo custom styles cho things DS covers
 
-3. WIDGET compositions (src/widgets/**)
-   → ✅ Mix Tailwind + CSS modules nếu cần
+5. WIDGET compositions (src/widgets/**)
+   → ✅ Dùng Tailwind cho layout
    → ✅ LUÔN dùng DS components cho UI elements
 ```
 

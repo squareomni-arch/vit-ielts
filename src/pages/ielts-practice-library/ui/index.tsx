@@ -1,35 +1,22 @@
-import { Container, Empty } from "@/shared/ui";
-import {
-  Breadcrumb,
-  Button,
-  Divider,
-  Input,
-  Pagination,
-  Select,
-  Skeleton,
-  Space,
-} from "antd";
-import type { InputRef } from "antd/es/input";
 import Link from "next/link";
-import { Filter } from "./filter";
-import { Controller, FormProvider, useForm } from "react-hook-form";
-import { QuizLibraryNav } from "@/widgets";
+import { FormProvider, useForm } from "react-hook-form";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useState, useRef } from "react";
 import _ from "lodash";
-import {
-  IPracticeTestResponses,
-  PracticeTestItem,
-} from "@/entities/practice-test";
-import { QUESTION_FORMS } from "@/shared/constants";
-import { PracticeTest } from "@/widgets/blocks";
-import type { PracticeLibraryBannerConfig } from "./types";
 import { createClient } from "~supabase/client";
 import { getQuizzes } from "~services/quiz";
+import type { Quiz, SkillType } from "~services/types/database";
+import { Container } from "@/shared/ui";
+import { IPracticeTest, IPracticeTestResponses } from "@/entities/practice-test";
+import { QuizLibraryNav } from "@/widgets";
+import type { PracticeLibraryBannerConfig } from "./types";
+import { Filter } from "./filter";
+import { HeroSection } from "./hero-section";
+import { PracticeCard } from "./practice-card";
 
 export type FilterFormValues = {
   progress: "pending" | "completed" | "in-progress";
-  question_form: (typeof QUESTION_FORMS)[number]["value"][];
+  question_form: string[];
   sort: "newest" | "oldest" | "popular" | "a-z" | "z-a";
   search: string;
   page: number;
@@ -41,6 +28,64 @@ export type FilterFormValues = {
 };
 
 const PAGE_SIZE = 9;
+
+const DEFAULT_VALUES: FilterFormValues = {
+  progress: "" as FilterFormValues["progress"],
+  question_form: [],
+  sort: "newest",
+  search: "",
+  page: 1,
+  size: PAGE_SIZE,
+  quarter: "",
+  year: "",
+  source: "",
+  part: "",
+};
+
+const SORT_OPTIONS: Array<{ label: string; value: FilterFormValues["sort"] }> = [
+  { label: "Newest", value: "newest" },
+  { label: "Oldest", value: "oldest" },
+  { label: "Popular", value: "popular" },
+  { label: "A-Z", value: "a-z" },
+  { label: "Z-A", value: "z-a" },
+];
+
+const getSingleQueryValue = (value: string | string[] | undefined) => {
+  if (Array.isArray(value)) return value[0] || "";
+  return value || "";
+};
+
+const getArrayQueryValue = (value: string | string[] | undefined) => {
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => item.split(",")).filter(Boolean);
+  }
+  return value ? value.split(",").filter(Boolean) : [];
+};
+
+const createQueryPayload = (values: FilterFormValues) => {
+  const query: Record<string, string> = {};
+
+  if (values.sort !== "newest") query.sort = values.sort;
+  if (values.search) query.search = values.search;
+  if (values.page > 1) query.page = String(values.page);
+  if (values.size !== PAGE_SIZE) query.size = String(values.size);
+  if (values.quarter) query.quarter = values.quarter;
+  if (values.year) query.year = values.year;
+  if (values.source) query.source = values.source;
+  if (values.part) query.part = values.part;
+  if (values.progress) query.progress = values.progress;
+  if (values.question_form.length) query.question_form = values.question_form.join(",");
+
+  return query;
+};
+
+const buildPages = (current: number, total: number) => {
+  if (total <= 1) return [1];
+  const pages = new Set<number>([1, total, current, current - 1, current + 1]);
+  return Array.from(pages)
+    .filter((page) => page >= 1 && page <= total)
+    .sort((left, right) => left - right);
+};
 
 export const PageIELTSPracticeLibrary = ({
   quizFilterData,
@@ -54,73 +99,74 @@ export const PageIELTSPracticeLibrary = ({
   bannerConfig: PracticeLibraryBannerConfig;
 }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const router = useRouter();
-  const searchInputRef = useRef<InputRef>(null);
-  const methods = useForm<FilterFormValues>({
-    defaultValues: {
-      sort: "newest",
-      search: "",
-      page: 1,
-      size: PAGE_SIZE,
-    },
-  });
-  const {
-    watch,
-    formState: { isDirty },
-    setValue,
-    reset, // <-- ĐÃ THÊM
-    getValues, // <-- ĐÃ THÊM
-  } = methods;
-
-  const handleSearch = () => {
-    if (searchInputRef.current) {
-      setValue("search", searchInputRef.current.input?.value || "", {
-        shouldDirty: true,
-      });
-    }
-  };
-
   const [data, setData] = useState<IPracticeTestResponses | null>(null);
   const [loading, setLoading] = useState(false);
   const [called, setCalled] = useState(false);
   const [currentPageSize, setCurrentPageSize] = useState(PAGE_SIZE);
+  const router = useRouter();
 
-  const getData = useCallback(async (params: any) => {
+  const methods = useForm<FilterFormValues>({
+    defaultValues: DEFAULT_VALUES,
+  });
+
+  const {
+    watch,
+    reset,
+    setValue,
+    getValues,
+    formState: { isDirty },
+  } = methods;
+
+  const skill = useMemo(() => {
+    const routeSkill = router.pathname.split("/").pop();
+    return routeSkill === "listening" ? "listening" : "reading";
+  }, [router.pathname]);
+
+  const bannerData = skill === "listening" ? bannerConfig.listening : bannerConfig.reading;
+
+  const getData = useCallback(async (params: Record<string, unknown>) => {
     setLoading(true);
     setCalled(true);
+
     try {
       const supabase = createClient();
-      const { search, offsetPagination, skill, source, part, quarter, year, question_form, orderby } = params;
-      const page = offsetPagination ? Math.floor(offsetPagination.offset / offsetPagination.size) + 1 : 1;
-      const pageSize = offsetPagination?.size || PAGE_SIZE;
+      const pagination = params.offsetPagination as { offset: number; size: number } | undefined;
+      const page = pagination ? Math.floor(pagination.offset / pagination.size) + 1 : 1;
+      const pageSize = pagination?.size || PAGE_SIZE;
+
       setCurrentPageSize(pageSize);
 
       const result = await getQuizzes(supabase, {
-        skill: skill || undefined,
-        search: search || undefined,
-        source: source || undefined,
-        part: part || undefined,
-        quarter: quarter || undefined,
-        year: year || undefined,
-        questionForm: question_form || undefined,
+        skill: (params.skill as SkillType) || undefined,
+        search: (params.search as string) || undefined,
+        source: (params.source as string) || undefined,
+        part: (params.part as string) || undefined,
+        quarter: (params.quarter as string) || undefined,
+        year: (params.year as string) || undefined,
+        questionForm: ((params.question_form as string[]) || []).join(",") || undefined,
         page,
         pageSize,
       });
 
-      // Map to legacy format expected by components
-      const edges = (result.data || []).map((quiz: any) => ({
+      const edges: Array<{ node: IPracticeTest }> = (result.data || []).map((quiz: Quiz) => ({
         node: {
           id: quiz.id,
           title: quiz.title,
           slug: quiz.slug,
-          link: `/ielts-practice-library/${quiz.skill}/${quiz.slug}`,
           featuredImage: quiz.featured_image
             ? { node: { sourceUrl: quiz.featured_image, altText: quiz.title } }
-            : null,
+            : undefined,
           quizFields: {
-            skill: [quiz.skill],
-            type: [quiz.type || "practice"],
-            part: [quiz.part || "0"],
+            skill: [quiz.skill, quiz.skill] as IPracticeTest["quizFields"]["skill"],
+            type: [
+              quiz.type === "exam" ? "practice" : quiz.type,
+              quiz.type === "exam" ? "practice" : quiz.type,
+            ] as IPracticeTest["quizFields"]["type"],
+            passages: [],
+            part: quiz.part || "0",
+            quarter: quiz.quarter || "",
+            source: quiz.source || "",
+            year: quiz.year || "",
             testsTaken: quiz.tests_taken || 0,
             proUserOnly: quiz.pro_user_only || false,
           },
@@ -136,7 +182,7 @@ export const PageIELTSPracticeLibrary = ({
             },
           },
         },
-      } as any);
+      } as IPracticeTestResponses);
     } catch (error) {
       console.error("Error fetching practice tests:", error);
     } finally {
@@ -144,58 +190,41 @@ export const PageIELTSPracticeLibrary = ({
     }
   }, []);
 
-  // 1. Logic đồng bộ từ URL vào Form
   useEffect(() => {
     if (!router.isReady) return;
-    const { page, ...rest } = router.query;
-    const currentValues = getValues();
+
     reset({
-      ...currentValues,
-      ...rest,
-      page: page ? Number(page) : 1,
-    } as FilterFormValues);
-  }, [router.query, router.isReady, reset, getValues]);
+      progress: getSingleQueryValue(router.query.progress) as FilterFormValues["progress"],
+      question_form: getArrayQueryValue(router.query.question_form),
+      sort: (getSingleQueryValue(router.query.sort) as FilterFormValues["sort"]) || "newest",
+      search: getSingleQueryValue(router.query.search),
+      page: Number(getSingleQueryValue(router.query.page) || 1),
+      size: Number(getSingleQueryValue(router.query.size) || PAGE_SIZE),
+      quarter: getSingleQueryValue(router.query.quarter),
+      year: getSingleQueryValue(router.query.year),
+      source: getSingleQueryValue(router.query.source),
+      part: getSingleQueryValue(router.query.part),
+    });
+  }, [reset, router.isReady, router.query]);
 
-  // 2. Logic gọi API dựa trên router params
   useEffect(() => {
-    const {
-      sort,
-      search,
-      page,
-      size: pageSize,
-      question_form,
-      source,
-      part,
-      quarter,
-      year,
-    } = router.query;
-    const size = Number(pageSize) || PAGE_SIZE;
-    const currentPage = Number(page) || 1;
-    const offset = (currentPage - 1) * size;
-
-    const params: any = {
-      search,
-      offsetPagination: {
-        offset,
-        size,
-      },
-      size: "LARGE",
-      question_form,
-      skill: router.pathname.split("/").pop(),
-      source,
-      part,
-      quarter,
-      year,
+    const size = Number(getSingleQueryValue(router.query.size) || PAGE_SIZE);
+    const page = Number(getSingleQueryValue(router.query.page) || 1);
+    const offset = (page - 1) * size;
+    const params: Record<string, unknown> = {
+      search: getSingleQueryValue(router.query.search),
+      offsetPagination: { offset, size },
+      question_form: getArrayQueryValue(router.query.question_form),
+      skill,
+      source: getSingleQueryValue(router.query.source),
+      part: getSingleQueryValue(router.query.part),
+      quarter: getSingleQueryValue(router.query.quarter),
+      year: getSingleQueryValue(router.query.year),
     };
 
-    switch (sort) {
-      case "newest":
-        _.set(params, "orderby", [{ field: "DATE", order: "DESC" }]);
-        break;
+    switch (getSingleQueryValue(router.query.sort) || "newest") {
       case "oldest":
         _.set(params, "orderby", [{ field: "DATE", order: "ASC" }]);
-        break;
-      case "popular":
         break;
       case "a-z":
         _.set(params, "orderby", [{ field: "TITLE", order: "ASC" }]);
@@ -209,304 +238,251 @@ export const PageIELTSPracticeLibrary = ({
     }
 
     getData(params);
-  }, [getData, router.pathname, router.query]);
+  }, [getData, router.query, skill]);
 
-  const filterValues = watch();
+  const values = watch();
 
-  // 3. Logic Sync Form ra URL (Sửa lỗi Pagination bị hỏng và Reset Page khi filter)
   useEffect(() => {
     if (!isDirty) return;
 
-    const formValues = watch();
-    const currentRouterQuery = router.query;
-
-    // --- BƯỚC 1: KIỂM TRA CÁC FILTER KHÁC PAGE/SIZE CÓ THAY ĐỔI KHÔNG ---
-    let nonPageFilterChanged = false;
-
-    // Các keys cần so sánh (Tất cả trừ page, size)
-    const keysToCheck: Array<keyof FilterFormValues> = [
-      "progress",
-      "question_form",
-      "sort",
-      "search",
-      "quarter",
-      "year",
-      "source",
-      "part",
-    ];
-
-    const normalize = (
-      value: string | string[] | number | undefined,
-      key: string
-    ) => {
-      if (_.isNil(value) || value === "") return undefined;
-      // Xử lý giá trị mặc định/rỗng để không bị coi là thay đổi
-      if (key === "sort" && value === "newest") return undefined;
-      if (key === "search" && value === "") return undefined;
-      if (_.isArray(value) && value.length === 0) return undefined;
-
-      return _.isArray(value) ? value.join(",") : String(value);
-    };
-
-    for (const key of keysToCheck) {
-      const formValue = normalize(formValues[key], key);
-      const urlValue = normalize(currentRouterQuery[key], key);
-
-      // So sánh giá trị đã chuẩn hóa
-      if (formValue !== urlValue) {
-        nonPageFilterChanged = true;
-        break;
-      }
-    }
-
-    // --- BƯỚC 2: TẠO QUERY STRING MỚI VÀ SYNC RA URL ---
-    const queryParams = new URLSearchParams();
-
-    Object.keys(formValues).forEach((key) => {
-      const value = formValues[key as keyof FilterFormValues];
-
-      // Xóa tham số nếu là giá trị mặc định, rỗng, hoặc page=1, hoặc size=PAGE_SIZE
-      if (
-        value === "all" ||
-        !value ||
-        (key === "sort" && value === "newest") ||
-        (key === "page" && value === 1) ||
-        (key === "size" && value === PAGE_SIZE)
-      ) {
-        queryParams.delete(key);
-      } else {
-        if (_.isArray(value)) {
-          if (value.length === 0) {
-            queryParams.delete(key);
-          } else {
-            queryParams.set(key, value.join(","));
-          }
-        } else queryParams.set(key, value.toString());
-      }
+    const nextQuery = createQueryPayload(getValues());
+    const currentQuery = createQueryPayload({
+      progress: getSingleQueryValue(router.query.progress) as FilterFormValues["progress"],
+      question_form: getArrayQueryValue(router.query.question_form),
+      sort: (getSingleQueryValue(router.query.sort) as FilterFormValues["sort"]) || "newest",
+      search: getSingleQueryValue(router.query.search),
+      page: Number(getSingleQueryValue(router.query.page) || 1),
+      size: Number(getSingleQueryValue(router.query.size) || PAGE_SIZE),
+      quarter: getSingleQueryValue(router.query.quarter),
+      year: getSingleQueryValue(router.query.year),
+      source: getSingleQueryValue(router.query.source),
+      part: getSingleQueryValue(router.query.part),
     });
 
-    // 3. ÁP DỤNG NGHIỆP VỤ RESET PAGE
-    // Nếu có filter khác page/size thay đổi VÀ page đang không phải 1
-    if (nonPageFilterChanged && formValues.page !== 1) {
-      // Cập nhật form state để page=1, điều này sẽ kích hoạt useEffect này chạy lại
-      // Lần chạy lại tiếp theo sẽ push router với page=1 (tức là không có param 'page' trên URL)
-      setValue("page", 1, { shouldDirty: true });
-      return; // Thoát để lần chạy tiếp theo mới push router
-    }
+    if (JSON.stringify(nextQuery) === JSON.stringify(currentQuery)) return;
 
-    // Nếu có filter khác page/size thay đổi, VÀ page ĐÃ là 1 (hoặc sau khi đã reset về 1)
-    if (nonPageFilterChanged) {
-      queryParams.delete("page");
-    }
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: nextQuery,
+      },
+      undefined,
+      { shallow: true, scroll: false }
+    );
+  }, [getValues, isDirty, router, values]);
 
-    const newSearch = queryParams.toString();
-    const currentSearch = window.location.search.replace(/^\?/, "");
-
-    // Chỉ push nếu URL thực sự thay đổi để tránh lỗi và vòng lặp vô hạn
-    if (newSearch !== currentSearch) {
-      router.push({ search: newSearch }, undefined, {
-        shallow: true,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterValues, isDirty, router, setValue]);
-
-  const skill = router.pathname.split("/").pop() || "";
-  const isListening = skill === "listening";
-  const isReading = skill === "reading";
-  const showBanner = isListening || isReading;
+  const items = data?.quizzes.edges ?? [];
+  const suggestions = items.slice(0, 4);
+  const currentPage = Number(getSingleQueryValue(router.query.page) || 1);
+  const total = data?.quizzes.pageInfo.offsetPagination.total || 0;
+  const totalPages = Math.max(1, Math.ceil(total / currentPageSize));
+  const visiblePages = buildPages(currentPage, totalPages);
+  const handleSortChange = (nextSort: FilterFormValues["sort"]) => {
+    setValue("sort", nextSort, { shouldDirty: true });
+    setValue("page", 1, { shouldDirty: true });
+  };
 
   return (
     <FormProvider {...methods}>
-      {/* <SEOHeader fullHead={category.seo.fullHead} title={category.seo.title} /> */}
+      <div className="min-h-screen bg-white">
+        <HeroSection
+          title={bannerData.title}
+          skillLabel={skill === "reading" ? "Reading" : "Listening"}
+        />
 
-      {/* Practice Banner Section */}
-      {showBanner &&
-        (() => {
-          const bannerData = isListening
-            ? bannerConfig.listening
-            : bannerConfig.reading;
-
-          return (
-            <div
-              className="relative w-full py-12 md:py-16 flex items-center justify-center overflow-hidden"
-              style={{
-                background:
-                  bannerData.backgroundColor ||
-                  "linear-gradient(180deg, #FFF3F3 0%, #FFF8F0 100%)",
-              }}
-            >
-              <Container className="relative z-10 px-4">
-                <div className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto space-y-4 sm:space-y-6">
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 wrap-break-word w-full px-4">
-                    {bannerData.title}
-                  </h1>
-                  <div className="text-sm sm:text-base md:text-lg text-gray-700 leading-relaxed max-w-3xl space-y-1 w-full px-4">
-                    {bannerData.description.line1 && (
-                      <div className="wrap-break-word">
-                        {bannerData.description.line1}
-                      </div>
-                    )}
-                    {bannerData.description.line2 && (
-                      <div className="wrap-break-word">
-                        {bannerData.description.line2}
-                      </div>
-                    )}
-                    {bannerData.description.line3 && (
-                      <div className="wrap-break-word">
-                        {bannerData.description.line3}
-                      </div>
-                    )}
-                  </div>
-                  <Link href={bannerData.button.link} className="inline-block">
-                    <Button
-                      type="primary"
-                      style={{
-                        background: "#d94a56",
-                        borderColor: "#d94a56",
-                        color: "#ffffff",
-                      }}
-                      className="hover:bg-[#c0394a]! hover:border-[#c0394a]! px-4 sm:px-6 py-2 h-[48px] text-sm md:text-base font-normal rounded-lg w-full sm:w-auto"
-                    >
-                      <span className="truncate max-w-[200px] sm:max-w-none inline-block">
-                        {bannerData.button.text}
-                      </span>
-                    </Button>
-                  </Link>
+        <section className="bg-[var(--color-default)] pb-16 pt-8 sm:pb-20">
+          <Container className="space-y-10 py-0 sm:space-y-12">
+            <div className="space-y-5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/45">
+                    Suggestions for you
+                  </p>
+                  <h2 className="mt-2 font-[var(--font-noto-sans)] text-2xl font-extrabold text-white sm:text-3xl">
+                    Hand-picked practice sets
+                  </h2>
                 </div>
-              </Container>
-            </div>
-          );
-        })()}
-
-      <Container className="space-y-12 pb-5">
-        <div className="space-y-2">
-          <div className="pt-5 pb-3">
-            <Breadcrumb
-              items={[
-                {
-                  title: <Link href="/">Home</Link>,
-                },
-                {
-                  title: "IELTS Practice Library",
-                },
-                {
-                  title: _.capitalize(router.pathname.split("/").pop() || ""),
-                },
-              ]}
-            />
-          </div>
-          <PracticeTest title="Suggestions for you" view_more={false} />
-          <Divider className="my-8!" />
-          <h1 className="pb-4 text-3xl md:text-5xl font-extrabold text-primary">
-            IELTS {_.capitalize(router.pathname.split("/").pop() || "")}{" "}
-            Practice
-          </h1>
-          <QuizLibraryNav />
-        </div>
-        <div className="flex flex-wrap -m-3">
-          <div className="hidden sm:block w-1/3 md:w-1/4 p-3">
-            <Filter
-              filterData={quizFilterData}
-              drawerOpen={drawerOpen}
-              setDrawerOpen={setDrawerOpen}
-            />
-          </div>
-          <div className="w-full sm:w-2/3 md:w-3/4 p-3 space-y-4">
-            {data && (
-              <div className="flex flex-wrap justify-between sm:justify-end gap-4">
-                <div className="w-full sm:hidden">
-                  <Space.Compact style={{ width: "100%" }}>
-                    <Input
-                      ref={searchInputRef}
-                      size="large"
-                      allowClear
-                      onClear={() => {
-                        setValue("search", "", { shouldDirty: true });
-                      }}
-                      defaultValue={router.query.search?.toString() || ""}
-                      placeholder="Search"
-                      onPressEnter={handleSearch}
-                    />
-                    <Button
-                      size="large"
-                      type="primary"
-                      icon={
-                        <span className="material-symbols-rounded flex">
-                          search
-                        </span>
-                      }
-                      onClick={handleSearch}
-                    />
-                  </Space.Compact>
-                </div>
-                <Button
-                  onClick={() => setDrawerOpen(true)}
-                  className="sm:hidden"
-                >
-                  <span className="material-symbols-rounded">filter_alt</span>
-                  <span className="leading-none">Filter</span>
-                </Button>
-                <Controller
-                  name="sort"
-                  control={methods.control}
-                  render={({ field }) => (
-                    <Select<FilterFormValues["sort"]>
-                      options={[
-                        { label: "Newest", value: "newest" },
-                        { label: "Oldest", value: "oldest" },
-                        { label: "Popular", value: "popular" },
-                        { label: "A-Z", value: "a-z" },
-                        { label: "Z-A", value: "z-a" },
-                      ]}
-                      {...field}
-                    />
-                  )}
-                />
               </div>
-            )}
-            <div className="flex flex-wrap -m-3">
-              {loading
-                ? Array.from({ length: 12 }).map((_, index) => (
-                    <div className="w-full sm:w-1/2 md:w-1/3 p-3" key={index}>
-                      <Skeleton active />
-                    </div>
-                  ))
-                : data?.quizzes.edges.map(({ node: item }, index) => (
-                    <div className="w-full sm:w-1/2 md:w-1/3 p-3" key={index}>
-                      <PracticeTestItem item={item} />
-                    </div>
-                  ))}
-              {called && !loading && !data?.quizzes.edges.length && (
-                <div className="w-full p-3">
-                  <Empty title="No practice tests found!" />
-                </div>
-              )}
+
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                {loading
+                  ? Array.from({ length: 4 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="h-[22rem] animate-pulse rounded-[28px] bg-white/10"
+                      />
+                    ))
+                  : suggestions.map(({ node }, index) => (
+                      <PracticeCard key={node.id || index} item={node} priority={index < 2} />
+                    ))}
+              </div>
             </div>
-            {called &&
-              !loading &&
-              data &&
-              data.quizzes.pageInfo.offsetPagination.total > PAGE_SIZE && (
-                <Pagination
-                  // [FIX] Dùng 'current' để đồng bộ với URL/state
-                  current={router.query.page ? Number(router.query.page) : 1}
-                  pageSize={currentPageSize}
-                  total={data.quizzes.pageInfo.offsetPagination.total || 0}
-                  showSizeChanger={false}
-                  onChange={(page, pageSize) => {
-                    setValue("size", pageSize, {
-                      shouldDirty: true,
-                    });
-                    setValue("page", page, {
-                      shouldDirty: true,
-                    });
-                  }}
-                  className="mt-5 justify-center"
-                />
-              )}
+
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/45">
+                  <Link href="/" className="transition-colors hover:text-white">
+                    Home
+                  </Link>
+                  <span>/</span>
+                  <span>IELTS Practice Library</span>
+                  <span>/</span>
+                  <span className="text-secondary-400">
+                    {skill === "reading" ? "Reading" : "Listening"}
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                  <div className="space-y-3">
+                    <h2 className="font-[var(--font-noto-sans)] text-3xl font-extrabold text-white sm:text-4xl">
+                      IELTS {_.capitalize(skill)} Practice
+                    </h2>
+                    <p className="max-w-2xl text-sm leading-7 text-white/60 sm:text-base">
+                      {bannerData.description.line1} {bannerData.description.line2}{" "}
+                      {bannerData.description.line3}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setDrawerOpen(true)}
+                      className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/12 lg:hidden"
+                    >
+                      <span className="material-symbols-rounded text-base">tune</span>
+                      Filter
+                    </button>
+                    <div className="relative min-w-[11rem]">
+                      <select
+                        value={values.sort}
+                        onChange={(event) =>
+                          handleSortChange(event.target.value as FilterFormValues["sort"])
+                        }
+                        className="w-full appearance-none rounded-full border border-white/15 bg-white/8 px-5 py-3 pr-11 text-sm font-semibold text-white outline-none transition hover:bg-white/12"
+                      >
+                        {SORT_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value} className="text-black">
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="material-symbols-rounded pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white/60">
+                        keyboard_arrow_down
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <QuizLibraryNav />
+              </div>
+
+              <div className="grid gap-6 lg:grid-cols-[19rem_minmax(0,1fr)]">
+                <aside className="hidden lg:block">
+                  <div className="sticky top-6">
+                    <Filter filterData={quizFilterData} />
+                  </div>
+                </aside>
+
+                <div className="space-y-6">
+                  {loading ? (
+                    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                      {Array.from({ length: PAGE_SIZE }).map((_, index) => (
+                        <div
+                          key={index}
+                          className="h-[22rem] animate-pulse rounded-[28px] bg-white/10"
+                        />
+                      ))}
+                    </div>
+                  ) : items.length ? (
+                    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                      {items.map(({ node }, index) => (
+                        <PracticeCard key={node.id || index} item={node} />
+                      ))}
+                    </div>
+                  ) : called ? (
+                    <div className="rounded-[32px] border border-dashed border-white/20 bg-white/5 px-6 py-16 text-center">
+                      <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/40">
+                        No results
+                      </p>
+                      <h3 className="mt-3 font-[var(--font-noto-sans)] text-2xl font-extrabold text-white">
+                        No practice tests matched the current filters.
+                      </h3>
+                      <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-white/60">
+                        Clear a few filters or search with a broader keyword to explore more test pages.
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {totalPages > 1 && (
+                    <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                      <button
+                        type="button"
+                        disabled={currentPage <= 1}
+                        onClick={() =>
+                          setValue("page", Math.max(1, currentPage - 1), { shouldDirty: true })
+                        }
+                        className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-35 hover:bg-white/12"
+                      >
+                        Prev
+                      </button>
+                      {visiblePages.map((page) => (
+                        <button
+                          key={page}
+                          type="button"
+                          onClick={() => setValue("page", page, { shouldDirty: true })}
+                          className={`h-11 min-w-11 rounded-full px-4 text-sm font-bold transition ${
+                            page === currentPage
+                              ? "bg-primary text-white shadow-[0_12px_30px_rgba(217,74,86,0.28)]"
+                              : "border border-white/15 bg-white/8 text-white hover:bg-white/12"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        disabled={currentPage >= totalPages}
+                        onClick={() =>
+                          setValue("page", Math.min(totalPages, currentPage + 1), {
+                            shouldDirty: true,
+                          })
+                        }
+                        className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-35 hover:bg-white/12"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Container>
+        </section>
+
+        {drawerOpen && (
+          <div className="fixed inset-0 z-50 bg-default/70 lg:hidden">
+            <div className="absolute inset-y-0 right-0 w-full max-w-sm overflow-y-auto bg-[var(--color-default)] p-5">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/40">
+                    Filters
+                  </p>
+                  <h3 className="mt-2 font-[var(--font-noto-sans)] text-2xl font-extrabold text-white">
+                    Refine results
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDrawerOpen(false)}
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white"
+                >
+                  <span className="material-symbols-rounded">close</span>
+                </button>
+              </div>
+              <Filter filterData={quizFilterData} mobile onClose={() => setDrawerOpen(false)} />
+            </div>
           </div>
-        </div>
-      </Container>
+        )}
+      </div>
     </FormProvider>
   );
 };

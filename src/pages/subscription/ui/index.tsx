@@ -37,12 +37,13 @@ export const PageSubscription = ({ testimonialsConfig, faqConfig, bannerConfig }
   return (
     <>
       <AffiliateTracker />
-      {/* Banner Section */}
+      {/* === SECTION: Subscription Banner === */}
       <div
+        data-section="subscription-banner"
         className="relative min-h-[500px] flex items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url('${bannerConfig.backgroundImage}')`,
-          backgrounize: "cover",
+          backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
@@ -82,21 +83,21 @@ export const PageSubscription = ({ testimonialsConfig, faqConfig, bannerConfig }
         </Container>
       </div>
 
-      {/* Subscription Plans Section */}
-      <div>
+      {/* === SECTION: Subscription Plans === */}
+      <div data-section="subscription-plans">
         <Container>
           <SubscriptionPlans buyProLink={buyProLink} />
         </Container>
       </div>
 
-      {/* Testimonials Section - Fullscreen Background */}
-      <div className="bg-gray-50 w-full">
+      {/* === SECTION: Testimonials === */}
+      <div data-section="subscription-testimonials" className="bg-gray-50 w-full">
         <div className="testimonials-no-padding">
           <Testimonials config={testimonialsConfig} />
         </div>
       </div>
 
-      {/* FAQ Section */}
+      {/* === SECTION: FAQ === */}
       <FAQ config={faqConfig} />
 
       <style jsx global>{`

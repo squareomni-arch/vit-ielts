@@ -1,462 +1,248 @@
-import {
-  Button,
-  Card,
-  Checkbox,
-  ConfigProvider,
-  Divider,
-  Drawer,
-  Input,
-  Space,
-  InputRef,
-} from "antd";
-import { Controller, useForm, useFormContext } from "react-hook-form";
-import { FilterFormValues } from "..";
-import { Dispatch, SetStateAction, useEffect, useMemo, useRef } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import { useRouter } from "next/router";
-import _ from "lodash";
 import { QUESTION_FORMS } from "@/shared/constants";
+import type { FilterFormValues } from "..";
 
-const FILTER_CONFIGS = {
-  quarters: [
-    { slug: "Q1", name: "Quarter 1 T1-T4" },
-    { slug: "Q2", name: "Quarter 2 T5-T8" },
-    { slug: "Q3", name: "Quarter 3 T9-T12" },
-  ],
-  listeningParts: [
-    { slug: "0", name: "Part 1" },
-    { slug: "1", name: "Part 2" },
-    { slug: "2", name: "Part 3" },
-    { slug: "3", name: "Part 4" },
-  ],
-  readingPassages: [
-    { slug: "0", name: "Passage 1" },
-    { slug: "1", name: "Passage 2" },
-    { slug: "2", name: "Passage 3" },
-  ],
-};
-
-export const Filter = ({
-  drawerOpen,
-  setDrawerOpen,
-  filterData,
-}: {
-  drawerOpen: boolean;
-  setDrawerOpen: Dispatch<SetStateAction<boolean>>;
+type FilterProps = {
   filterData: {
     years: Array<string>;
     sources: Array<string>;
     parts: Array<string>;
   };
+  mobile?: boolean;
+  onClose?: () => void;
+};
+
+const FILTER_CONFIGS = {
+  listening: [
+    { slug: "0", name: "Part 1" },
+    { slug: "1", name: "Part 2" },
+    { slug: "2", name: "Part 3" },
+    { slug: "3", name: "Part 4" },
+  ],
+  reading: [
+    { slug: "0", name: "Passage 1" },
+    { slug: "1", name: "Passage 2" },
+    { slug: "2", name: "Passage 3" },
+  ],
+  status: [
+    { value: "pending", label: "Pending" },
+    { value: "in-progress", label: "In Progress" },
+    { value: "completed", label: "Completed" },
+  ],
+} as const;
+
+const DEFAULT_VALUES: FilterFormValues = {
+  progress: "" as FilterFormValues["progress"],
+  question_form: [],
+  sort: "newest",
+  search: "",
+  page: 1,
+  size: 9,
+  quarter: "",
+  year: "",
+  source: "",
+  part: "",
+};
+
+const panelClassName =
+  "rounded-[26px] border border-white/10 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.16)]";
+
+const OptionButton = ({
+  active,
+  children,
+  onClick,
+}: {
+  active: boolean;
+  children: ReactNode;
+  onClick: () => void;
 }) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
+        active
+          ? "border-primary bg-primary text-white shadow-[0_10px_24px_rgba(217,74,86,0.24)]"
+          : "border-black/10 bg-black/[0.03] text-[var(--color-default)] hover:border-primary/40 hover:bg-primary/5"
+      }`}
+    >
+      {children}
+    </button>
+  );
+};
+
+const FilterSection = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) => {
+  return (
+    <section className={panelClassName}>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h3 className="font-[var(--font-noto-sans)] text-base font-extrabold text-[var(--color-default)]">
+          {title}
+        </h3>
+      </div>
+      {children}
+    </section>
+  );
+};
+
+export const Filter = ({ filterData, mobile = false, onClose }: FilterProps) => {
   const router = useRouter();
-  const { control, setValue, reset } = useFormContext<FilterFormValues>();
-  const mobileForm = useForm<FilterFormValues>();
-  const skill = useMemo(() => router.pathname.split("/").pop(), [router]);
-  const searchInputRef = useRef<InputRef>(null);
+  const { watch, setValue, reset } = useFormContext<FilterFormValues>();
+  const values = watch();
+  const skill = useMemo(() => {
+    const routeSkill = router.pathname.split("/").pop();
+    return routeSkill === "listening" ? "listening" : "reading";
+  }, [router.pathname]);
 
-  const { control: mobileControl, getValues, reset: mobileReset } = mobileForm;
-
-  const handleSearch = () => {
-    if (searchInputRef.current) {
-      setValue("search", searchInputRef.current.input?.value || "", {
-        shouldDirty: true,
-      });
-    }
-  };
+  const [searchDraft, setSearchDraft] = useState(values.search ?? "");
 
   useEffect(() => {
-    const queryParams = _.merge(
-      {
-        type: "all",
-        sort: "newest",
-      },
-      router.query
-    );
-    reset(queryParams as unknown as FilterFormValues);
-    mobileReset(queryParams as unknown as FilterFormValues);
-  }, [mobileReset, reset, router.query]);
+    setSearchDraft(values.search ?? "");
+  }, [values.search]);
+
+  const toggleQuestionForm = (value: string) => {
+    const current = values.question_form || [];
+    const next = current.includes(value)
+      ? current.filter((item) => item !== value)
+      : [...current, value];
+    setValue("question_form", next, { shouldDirty: true });
+    setValue("page", 1, { shouldDirty: true });
+  };
+
+  const applySearch = () => {
+    setValue("search", searchDraft.trim(), { shouldDirty: true });
+    setValue("page", 1, { shouldDirty: true });
+    onClose?.();
+  };
+
+  const resetFilters = () => {
+    reset(DEFAULT_VALUES);
+    onClose?.();
+  };
+
+  const updateSingleValue = (
+    key: "source" | "part" | "progress",
+    value: string | FilterFormValues["progress"]
+  ) => {
+    setValue(key, value as never, { shouldDirty: true });
+    setValue("page", 1, { shouldDirty: true });
+  };
 
   return (
-    <>
-      <ConfigProvider
-        theme={{
-          components: {
-            Card: {
-              bodyPadding: 16,
-            },
-            Checkbox: {
-              fontSize: 16,
-              lineHeight: 1,
-            },
-          },
-        }}
-      >
-        <div className="space-y-6">
-          <Card>
-            <h3 className="text-lg md:text-xl font-bold mb-5">Search</h3>
-            <Space.Compact style={{ width: "100%" }}>
-              <Input
-                ref={searchInputRef}
-                allowClear
-                onClear={() => {
-                  setValue("search", "", { shouldDirty: true });
-                }}
-                defaultValue={router.query.search?.toString() || ""}
-                placeholder="Search"
-                onPressEnter={handleSearch}
-              />
-              <Button
-                type="primary"
-                icon={
-                  <span
-                    className="material-symbols-rounded"
-                    style={{ display: "flex" }}
-                  >
-                    search
-                  </span>
+    <div className={`space-y-4 ${mobile ? "pb-24" : ""}`}>
+      <FilterSection title="Search">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 rounded-2xl border border-black/10 bg-black/[0.03] px-4 py-3">
+            <span className="material-symbols-rounded text-black/35">search</span>
+            <input
+              value={searchDraft}
+              onChange={(event) => setSearchDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  applySearch();
                 }
-                onClick={handleSearch}
-              />
-            </Space.Compact>
-          </Card>
-          {filterData.sources.length > 0 && (
-            <Card>
-              <h3 className="text-lg md:text-xl font-bold mb-5">Source</h3>
-              <div className="flex flex-col gap-4">
-                {filterData.sources.map((item, index) => (
-                  <Controller
-                    key={index}
-                    name="source"
-                    control={control}
-                    render={({ field: { onChange, value } }) => (
-                      <Checkbox
-                        checked={value === item}
-                        onChange={(e) => {
-                          onChange(e.target.checked ? item : "");
-                        }}
-                      >
-                        {item}
-                      </Checkbox>
-                    )}
-                  />
-                ))}
-              </div>
-            </Card>
-          )}
-          <Card>
-            <h3 className="text-lg md:text-xl font-bold mb-5">
-              {skill === "reading" ? "Reading Passage" : "Listening Part"}
-            </h3>
-            <div className="flex flex-col gap-4">
-              {(skill === "reading"
-                ? FILTER_CONFIGS.readingPassages
-                : FILTER_CONFIGS.listeningParts
-              ).map((item, index) => (
-                <Controller
-                  key={index}
-                  name="part"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <Checkbox
-                      checked={value === item.slug}
-                      onChange={(e) => {
-                        onChange(e.target.checked ? item.slug : "");
-                      }}
-                    >
-                      {item.name}
-                    </Checkbox>
-                  )}
-                />
-              ))}
-            </div>
-          </Card>
-          <Card>
-            <h3 className="text-lg md:text-xl font-bold mb-5">Status</h3>
-            <div className="flex flex-col gap-4">
-              {[
-                { label: "Pending", value: "pending" },
-                { label: "In Progress", value: "in-progress" },
-                { label: "Completed", value: "completed" },
-              ].map((item) => (
-                <Controller
-                  key={item.value}
-                  name="progress"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <Checkbox
-                      checked={value === item.value}
-                      onChange={(e) => {
-                        onChange(e.target.checked ? item.value : "");
-                      }}
-                    >
-                      {item.label}
-                    </Checkbox>
-                  )}
-                />
-              ))}
-            </div>
-          </Card>
-          {/* <Card>
-            <h3 className="text-lg md:text-xl font-bold mb-5">Quarter</h3>
-            <div className="flex flex-col gap-4">
-              {FILTER_CONFIGS.quarters.map((item, index) => (
-                <Controller
-                  key={index}
-                  name="quarter"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <Checkbox
-                      checked={value === item.slug}
-                      onChange={(e) => {
-                        onChange(e.target.checked ? item.slug : "");
-                      }}
-                    >
-                      {item.name}
-                    </Checkbox>
-                  )}
-                />
-              ))}
-            </div>
-          </Card> */}
-
-          {/* {filterData.years.length > 0 && (
-            <Card>
-              <h3 className="text-lg md:text-xl font-bold mb-5">Year</h3>
-              <div className="flex flex-col gap-4">
-                {filterData.years.map((item, index) => (
-                  <Controller
-                    key={index}
-                    name="year"
-                    control={control}
-                    render={({ field: { onChange, value } }) => (
-                      <Checkbox
-                        checked={value === item}
-                        onChange={(e) => {
-                          onChange(e.target.checked ? item : "");
-                        }}
-                      >
-                        {item}
-                      </Checkbox>
-                    )}
-                  />
-                ))}
-              </div>
-            </Card>
-          )} */}
-
-          <Card>
-            <h3 className="text-lg md:text-xl font-bold mb-5">Question Form</h3>
-            <div className="flex flex-col gap-4">
-              <Controller
-                name="question_form"
-                control={control}
-                render={({ field: { onChange } }) => (
-                  <Checkbox.Group
-                    className="gap-4"
-                    options={[...QUESTION_FORMS]}
-                    defaultValue={(router.query.question_form || "")
-                      .toString()
-                      .split(",")}
-                    onChange={onChange}
-                  />
-                )}
-              />
-            </div>
-          </Card>
+              }}
+              placeholder="Search test name"
+              className="w-full bg-transparent text-sm font-medium text-[var(--color-default)] outline-none placeholder:text-black/30"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={applySearch}
+              className="inline-flex flex-1 items-center justify-center rounded-full bg-primary px-4 py-3 text-sm font-bold text-white transition hover:bg-primary-600"
+            >
+              Apply Search
+            </button>
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="inline-flex items-center justify-center rounded-full border border-black/10 px-4 py-3 text-sm font-bold text-[var(--color-default)] transition hover:border-primary/30 hover:text-primary"
+            >
+              Reset
+            </button>
+          </div>
         </div>
-      </ConfigProvider>
-      <Drawer
-        title="Filter"
-        open={drawerOpen}
-        closeIcon={false}
-        footer={
-          <div className="flex gap-4">
-            <div className="w-1/2">
-              <Button
-                type="primary"
-                size="large"
-                block
-                onClick={() => {
-                  Object.keys(getValues()).forEach((key) => {
-                    const value = getValues()[key as keyof FilterFormValues];
-                    setValue(key as keyof FilterFormValues, value, {
-                      shouldDirty: true,
-                    });
-                  });
-                  setDrawerOpen(false);
-                }}
+      </FilterSection>
+
+      {filterData.sources.length > 0 && (
+        <FilterSection title="Source">
+          <div className="space-y-3">
+            {filterData.sources.map((source) => (
+              <OptionButton
+                key={source}
+                active={values.source === source}
+                onClick={() => updateSingleValue("source", values.source === source ? "" : source)}
               >
-                <span className="text-sm">Apply</span>
-              </Button>
-            </div>
-            <div className="w-1/2">
-              <Button
-                block
-                size="large"
-                onClick={() => {
-                  setDrawerOpen(false);
-                }}
-              >
-                <span className="text-sm">Cancel</span>
-              </Button>
-            </div>
+                {source}
+              </OptionButton>
+            ))}
           </div>
-        }
-      >
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg md:text-xl font-bold mb-5">Question Form</h3>
-            <div className="flex flex-col gap-4">
-              <Controller
-                name="question_form"
-                control={mobileControl}
-                render={({ field: { onChange } }) => (
-                  <Checkbox.Group
-                    className="gap-4 flex flex-col"
-                    options={[...QUESTION_FORMS]}
-                    defaultValue={(router.query.question_form || "")
-                      .toString()
-                      .split(",")}
-                    onChange={onChange}
-                  />
-                )}
-              />
-            </div>
-          </div>
-          <Divider />
-          <div>
-            <h3 className="text-lg md:text-xl font-bold mb-5">Status</h3>
-            <div className="flex flex-col gap-4">
-              {[
-                { label: "Pending", value: "pending" },
-                { label: "In Progress", value: "in-progress" },
-                { label: "Completed", value: "completed" },
-              ].map((item) => (
-                <Controller
-                  key={item.value}
-                  name="progress"
-                  control={mobileControl}
-                  render={({ field: { onChange, value } }) => (
-                    <Checkbox
-                      checked={value === item.value}
-                      onChange={() => {
-                        onChange(item.value);
-                      }}
-                    >
-                      {item.label}
-                    </Checkbox>
-                  )}
-                />
-              ))}
-            </div>
-          </div>
-          <Divider />
-          <div>
-            <h3 className="text-lg md:text-xl font-bold mb-5">Quarter</h3>
-            <div className="flex flex-col gap-4">
-              {FILTER_CONFIGS.quarters.map((item, index) => (
-                <Controller
-                  key={index}
-                  name="quarter"
-                  control={mobileControl}
-                  render={({ field: { onChange, value } }) => (
-                    <Checkbox
-                      checked={value === item.slug}
-                      onChange={(e) => {
-                        onChange(e.target.checked ? item.slug : "");
-                      }}
-                    >
-                      {item.name}
-                    </Checkbox>
-                  )}
-                />
-              ))}
-            </div>
-          </div>
-          <Divider />
-          <div>
-            <h3 className="text-lg md:text-xl font-bold mb-5">
-              {skill === "reading" ? "Reading Passage" : "Listening Part"}
-            </h3>
-            <div className="flex flex-col gap-4">
-              {(skill === "reading"
-                ? FILTER_CONFIGS.readingPassages
-                : FILTER_CONFIGS.listeningParts
-              ).map((item, index) => (
-                <Controller
-                  key={index}
-                  name="part"
-                  control={mobileControl}
-                  render={({ field: { onChange, value } }) => (
-                    <Checkbox
-                      checked={value === item.slug}
-                      onChange={(e) => {
-                        onChange(e.target.checked ? item.slug : "");
-                      }}
-                    >
-                      {item.name}
-                    </Checkbox>
-                  )}
-                />
-              ))}
-            </div>
-          </div>
-          {filterData.years.length > 0 && (
-            <>
-              <Divider />
-              <div>
-                <h3 className="text-lg md:text-xl font-bold mb-5">Year</h3>
-                <div className="flex flex-col gap-4">
-                  {filterData.years.map((item, index) => (
-                    <Controller
-                      key={index}
-                      name="year"
-                      control={mobileControl}
-                      render={({ field: { onChange, value } }) => (
-                        <Checkbox
-                          checked={value === item}
-                          onChange={(e) => {
-                            onChange(e.target.checked ? item : "");
-                          }}
-                        >
-                          {item}
-                        </Checkbox>
-                      )}
-                    />
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-          {filterData.sources.length > 0 && (
-            <>
-              <Divider />
-              <div>
-                <h3 className="text-lg md:text-xl font-bold mb-5">Source</h3>
-                <div className="flex flex-col gap-4">
-                  {filterData.sources.map((item, index) => (
-                    <Controller
-                      key={index}
-                      name="source"
-                      control={mobileControl}
-                      render={({ field: { onChange, value } }) => (
-                        <Checkbox
-                          checked={value === item}
-                          onChange={(e) => {
-                            onChange(e.target.checked ? item : "");
-                          }}
-                        >
-                          {item}
-                        </Checkbox>
-                      )}
-                    />
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
+        </FilterSection>
+      )}
+
+      <FilterSection title={skill === "reading" ? "Reading Passage" : "Listening Part"}>
+        <div className="space-y-3">
+          {FILTER_CONFIGS[skill].map((item) => (
+            <OptionButton
+              key={item.slug}
+              active={values.part === item.slug}
+              onClick={() => updateSingleValue("part", values.part === item.slug ? "" : item.slug)}
+            >
+              {item.name}
+            </OptionButton>
+          ))}
         </div>
-      </Drawer>
-    </>
+      </FilterSection>
+
+      <FilterSection title="Status">
+        <div className="space-y-3">
+          {FILTER_CONFIGS.status.map((item) => (
+            <OptionButton
+              key={item.value}
+              active={values.progress === item.value}
+              onClick={() =>
+                updateSingleValue(
+                  "progress",
+                  values.progress === item.value ? ("" as FilterFormValues["progress"]) : item.value
+                )
+              }
+            >
+              {item.label}
+            </OptionButton>
+          ))}
+        </div>
+      </FilterSection>
+
+      <FilterSection title="Question Form">
+        <div className="flex flex-wrap gap-3">
+          {QUESTION_FORMS.map((item) => {
+            const isActive = (values.question_form || []).includes(item.value);
+            return (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => toggleQuestionForm(item.value)}
+                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  isActive
+                    ? "border-primary bg-primary text-white shadow-[0_10px_24px_rgba(217,74,86,0.24)]"
+                    : "border-black/10 bg-black/[0.03] text-[var(--color-default)] hover:border-primary/40 hover:bg-primary/5"
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      </FilterSection>
+    </div>
   );
 };

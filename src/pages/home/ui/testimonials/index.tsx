@@ -97,7 +97,7 @@ export const Testimonials = ({ config }: TestimonialsProps) => {
   const testimonialsRow2 = [...reversedTestimonials, ...reversedTestimonials];
 
   return (
-    <div className="bg-white py-10 md:py-10 overflow-hidden">
+    <div data-section="testimonials" className="bg-white py-10 md:py-10 overflow-hidden">
       <Container>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Left Side - Introduction */}

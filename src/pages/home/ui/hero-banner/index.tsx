@@ -18,6 +18,7 @@ export type HeroBannerProps = {
 export const HeroBanner = ({ config }: HeroBannerProps) => {
   return (
     <section
+      data-section="hero-banner"
       className="relative w-full overflow-hidden bg-white min-h-[700px] flex items-center pt-24 pb-12 lg:pt-32 lg:pb-20"
       style={{
         backgroundImage:

@@ -8,7 +8,7 @@ interface WhyChooseUsProps {
 export const WhyChooseUs = ({ config }: WhyChooseUsProps) => {
   const { badge, title, description, statistics = [] } = config;
   return (
-    <div className="bg-white">
+    <div data-section="why-choose-us" className="bg-white">
       <Container>
         {/* Header Section */}
         <div className="text-center mb-16">

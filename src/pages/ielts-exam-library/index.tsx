@@ -19,22 +19,28 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
         "ielts-exam-library/hero-banner"
       );
       heroConfig = config ?? {
-        title: "IELTS Exam Library",
-        backgroundColor:
-          "linear-gradient(rgb(255, 255, 255) 0%, rgb(239, 241, 255) 100%)",
+        title: "IELTS Reading Practice Tests",
         breadcrumb: {
-          homeLabel: "Home",
-          currentLabel: "IELTS Exam Library",
+          homeLabel: "Trang chủ",
+          currentLabel: "Reading",
+          items: [
+            { label: "Trang chủ", href: "/" },
+            { label: "Thư viện bài thi thử IELTS", href: "/ielts-exam-library" },
+            { label: "Reading" },
+          ],
         },
       };
     } catch {
       heroConfig = {
-        title: "IELTS Exam Library",
-        backgroundColor:
-          "linear-gradient(rgb(255, 255, 255) 0%, rgb(239, 241, 255) 100%)",
+        title: "IELTS Reading Practice Tests",
         breadcrumb: {
-          homeLabel: "Home",
-          currentLabel: "IELTS Exam Library",
+          homeLabel: "Trang chủ",
+          currentLabel: "Reading",
+          items: [
+            { label: "Trang chủ", href: "/" },
+            { label: "Thư viện bài thi thử IELTS", href: "/ielts-exam-library" },
+            { label: "Reading" },
+          ],
         },
       };
     }

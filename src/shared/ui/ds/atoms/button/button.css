@@ -190,33 +190,44 @@
 /* ───────────────────────────────────────
    VARIANT 8 — Icon Circle (Button - Next/Prev slide)
    Figma: 28x28, Radius 14px. Default #d94a56, white icon
+   Usage: Absolute overlay icons in corners
+   Note: position, top/right based on Figma spec Frame 1085:6835
    ─────────────────────────────────────── */
 .btn--icon-circle {
-  background: var(--color-primary-500, #d94a56);
-  color: #ffffff;
-  border-color: transparent;
-  border-radius: 50%; /* Figma: radius 14px on 28px = 50% */
-  padding: 0;
+  position: absolute;
+  right: 20px;
+  top: 20px;
   width: 28px;
   height: 28px;
   min-height: 28px; /* Override standard min-height */
+  padding: 0;
+  background: #d94a56;
+  border-radius: 14px; /* Figma: Radius: 14px */
+  border-color: transparent;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 180ms ease-in-out;
+  cursor: pointer;
 }
-.btn--icon-circle svg path { fill: #ffffff; }
 
-.btn--icon-circle.btn--md {
-  width: 48px;
-  height: 48px;
-  min-height: 48px;
-}
-
-.btn--icon-circle.btn--lg {
-  width: 56px;
-  height: 56px;
-  min-height: 56px;
+.btn--icon-circle .btn__icon svg path,
+.btn--icon-circle .btn__icon svg,
+.btn--icon-circle .btn__icon img {
+  fill: #ffffff;
+  width: 14px !important; /* Forces 14px inside 28x28 circle */
+  height: auto;
 }
 
 .btn--icon-circle:hover:not(:disabled) {
-  background: #e3636e;
+  background: #ea8d95; /* Figma: Primary2 #ea8d95 */
+  /* Note: Figma variant showed top: 59px, but we keep it static unless specifically animated */
+}
+
+/* Modifiers to override absolute when needed */
+.btn--icon-circle.btn--static {
+  position: static;
 }
 
 /* ───────────────────────────────────────

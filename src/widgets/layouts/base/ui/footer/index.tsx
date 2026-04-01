@@ -115,9 +115,10 @@ export const Footer = () => {
   };
 
   return (
-    <footer className="bg-gray-100">
-      {/* CTA Banner Section */}
+    <footer data-section="footer" className="bg-gray-100">
+      {/* === SECTION: Footer CTA Banner === */}
       <div
+        data-section="footer-cta-banner"
         className="relative py-15 overflow-hidden"
         style={{
           background:
@@ -183,8 +184,8 @@ export const Footer = () => {
         </Container>
       </div>
 
-      {/* Main Footer Content */}
-      <div className="bg-white">
+      {/* === SECTION: Footer Main Content (Links + Newsletter) === */}
+      <div data-section="footer-links" className="bg-white">
         <Container className="py-14">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Left Section - Branding and Social */}
@@ -343,8 +344,8 @@ export const Footer = () => {
         </Container>
       </div>
 
-      {/* Bottom Section - Copyright and Legal Links */}
-      <div className="border-t border-gray-200">
+      {/* === SECTION: Footer Copyright === */}
+      <div data-section="footer-copyright" className="border-t border-gray-200">
         <Container className="py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
             <p>

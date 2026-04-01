@@ -1,6 +1,5 @@
 import { Container } from "@/shared/ui";
-import { Breadcrumb, Empty, Pagination, Spin, Tabs } from "antd";
-import Link from "next/link";
+import { Empty, Pagination, Spin, Tabs } from "antd";
 import { Filter } from "./filter";
 import { FormProvider, useForm } from "react-hook-form";
 import { QuizLibraryNav, SEOHeader } from "@/widgets";
@@ -19,6 +18,7 @@ import _ from "lodash";
 import type { ExamLibraryHeroConfig } from "./types";
 import { createClient } from "~supabase/client";
 import { getExamCollections } from "~services/exam-collection";
+import { ExamLibraryHeroBanner } from "./hero-banner";
 
 export type FilterFormValues = {
   type: "all" | "academic" | "general";
@@ -163,41 +163,10 @@ export const PageIELTSExamLibrary = ({
     <FormProvider {...methods}>
       <SEOHeader fullHead={""} title={"IELTS Exam Library"} />
 
-      {/* Hero Banner Section */}
-      <div
-        className="relative w-full py-12 sm:py-16 md:py-24 flex items-center justify-center"
-        style={{
-          background:
-            heroConfig.backgroundColor ||
-            "linear-gradient(rgb(255, 255, 255) 0%, rgb(239, 241, 255) 100%)",
-        }}
-      >
-        <Container className="flex flex-col items-center justify-center text-center px-4">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-800 mb-4 wrap-break-word max-w-full">
-            {heroConfig.title}
-          </h1>
-          <Breadcrumb
-            items={[
-              {
-                title: (
-                  <Link href="/" className="wrap-break-word">
-                    {heroConfig.breadcrumb.homeLabel}
-                  </Link>
-                ),
-              },
-              {
-                title: (
-                  <span className="wrap-break-word">
-                    {heroConfig.breadcrumb.currentLabel}
-                  </span>
-                ),
-              },
-            ]}
-            className="text-gray-500"
-          />
-        </Container>
-      </div>
-      <Container className="space-y-4 pb-20">
+      {/* === SECTION: Exam Library Hero Banner === */}
+      <ExamLibraryHeroBanner config={heroConfig} />
+      {/* === SECTION: Exam Library Content (Filter + Tabs) === */}
+      <Container data-section="exam-library-content" className="space-y-4 pb-20">
         <div className="space-y-2 mt-4">
           <QuizLibraryNav />
           <Filter />

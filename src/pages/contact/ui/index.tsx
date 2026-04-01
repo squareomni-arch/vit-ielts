@@ -93,11 +93,13 @@ export const PageContact = () => {
   return (
     <>
       <SEOHeader fullHead={""} title={"Contact"} />
+      {/* === SECTION: Contact Breadcrumb === */}
       <Container>
         <div className="py-5">
           <Breadcrumb items={breadcrumbItems} />
         </div>
-        <div className="flex -m-4 flex-wrap pb-5">
+        {/* === SECTION: Contact Form + Social Links === */}
+        <div data-section="contact-form" className="flex -m-4 flex-wrap pb-5">
           <div className="p-4 w-full md:w-8/12">
             <form
               className="space-y-4"

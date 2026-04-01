@@ -297,7 +297,8 @@ export const Header = () => {
 
   return (
     <>
-      <div className="bg-[#192335] text-white text-sm hidden md:block" style={{ backgroundColor: "#192335" }}>
+      {/* === SECTION: Header Top Bar === */}
+      <div data-section="header-topbar" className="bg-[#192335] text-white text-sm hidden md:block" style={{ backgroundColor: "#192335" }}>
         <Container className="py-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
@@ -340,6 +341,7 @@ export const Header = () => {
         </Container>
       </div>
 
+      {/* === SECTION: Header Navigation === */}
       <DSHeader
         logoSrc={logo?.node?.sourceUrl || "/assets/figma/logos/logo-color.png"}
         logoAlt={generalSettingsTitle || "IELTS Prediction"}

@@ -92,10 +92,13 @@ export const BaseLayout = ({ children }: { children: React.ReactNode }) => {
       {/* === Nó sẽ chỉ chạy trên các trang đã đăng nhập, không còn gây lỗi ở trang redirect nữa === */}
       {/* ======================================================================== */}
       <DeviceChecker />
+      {/* === SECTION: Header (Top Bar + Navigation) === */}
       <Header />
-      <main onCopy={handleCopy} onContextMenu={handleContextMenu}>
+      {/* === SECTION: Main Content === */}
+      <main data-section="main-content" onCopy={handleCopy} onContextMenu={handleContextMenu}>
         {children}
       </main>
+      {/* === SECTION: Footer === */}
       <Footer />
       <SaleNotification />
       <FloatingButton />
