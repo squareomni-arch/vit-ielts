@@ -327,14 +327,14 @@ export const Header = () => {
                 </div>
               )}
             </div>
-            {topBarConfig && (
+            {topBarConfig?.promotionalBanner && (
               <div className="flex items-center gap-2 flex-wrap justify-center min-w-0 flex-1">
                 <Button className="bg-[#2563eb] border-none text-white rounded-md h-6 px-2 text-xs font-bold shrink-0" style={{ backgroundColor: "#2563eb" }}>
                   <span className="truncate max-w-[80px]">{topBarConfig.promotionalBanner.buttonText}</span>
                 </Button>
                 <span className="text-xl shrink-0">{topBarConfig.promotionalBanner.emoji}</span>
                 <span className="text-xs wrap-break-word line-clamp-1 min-w-0 flex-1 max-w-[300px]">
-                  {topBarConfig.promotionalBanner.text.replace("{siteName}", generalSettingsTitle || "Histudy")}
+                  {topBarConfig.promotionalBanner.text?.replace("{siteName}", generalSettingsTitle || "Histudy")}
                 </span>
               </div>
             )}

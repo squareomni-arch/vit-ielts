@@ -52,7 +52,7 @@ function HeroBannerPage() {
         
         // Verify form values sau khi set
         setTimeout(() => {
-          const formValues = form.getFielValue();
+          const formValues = form.getFieldsValue();
           
           setIsFormInitialized(true);
         }, 300);
@@ -65,7 +65,7 @@ function HeroBannerPage() {
     if (isFormInitialized && normalizedConfig) {
       // Đợi Form.List được render hoàn toàn
       setTimeout(() => {
-        const formValues = form.getFielValue();
+        const formValues = form.getFieldsValue();
         const featureCards = formValues?.featureCards || normalizedConfig.featureCards || [];
         
         // Check và add avatar fields cho mỗi card nếu cần
@@ -390,7 +390,7 @@ function HeroBannerPage() {
                             { add: addAvatar, remove: removeAvatar }
                           ) => {
                             // Debug: Log avatar fields và form values
-                            const formValues = form.getFielValue();
+                            const formValues = form.getFieldsValue();
                             const cardAvatars = formValues?.featureCards?.[index]?.avatars || [];
                             const initialAvatars = normalizedConfig?.featureCards?.[index]?.avatars || [];
                             
@@ -409,7 +409,7 @@ function HeroBannerPage() {
                                 });
                                 // Sau đó set values với delay để đảm bảo fields đã được add
                                 setTimeout(() => {
-                                  const currentValues = form.getFielValue();
+                                  const currentValues = form.getFieldsValue();
                                   const updatedFeatureCards = [...(currentValues.featureCards || [])];
                                   if (updatedFeatureCards[index]) {
                                     updatedFeatureCards[index] = {
