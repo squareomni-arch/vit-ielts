@@ -1,20 +1,17 @@
-import { Button, Checkbox, Input } from "antd";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Container } from "@/shared/ui";
 import { AuthLayout } from "@/widgets/layouts";
 import { useRouter } from "next/router";
 import { useAuth } from "@/appx/providers";
 import Link from "next/link";
 import { ROUTES } from "@/shared/routes";
-import { useState } from "react";
 import { GoogleIcon } from "@/shared/ui/icons";
-import { Breadcrumb } from "antd";
+import { HeroBanner } from "@/shared/ui/ds/organisms/hero-banner";
 import type { LoginPageConfig } from "@/shared/types/admin-config";
 
 type FormData = {
   email: string;
   password: string;
-  rememberMe: boolean;
 };
 
 interface PageLoginProps {
@@ -31,9 +28,7 @@ export function PageLogin({ loginConfig }: PageLoginProps) {
     setError,
   } = useForm<FormData>();
   const [isLoading, setIsLoading] = useState(false);
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
-  const [isLoginHovered, setIsLoginHovered] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleGoogleLogin = async () => {
     try {
@@ -51,243 +46,153 @@ export function PageLogin({ loginConfig }: PageLoginProps) {
     }).catch(() => {
       setError("email", {
         type: "manual",
-        message:
-          "You entered an invalid Email and/or Password combination. Please verify that you entered this information correctly.",
+        message: "Số điện thoại / email hoặc mật khẩu không đúng.",
       });
     });
-    // signIn() handles redirect internally (admin → /admin, user → / or ?redirect param)
   };
 
   return (
-    <div className="space-y-7">
+    <div className="flex flex-col min-h-screen items-center bg-white">
       {/* Hero Banner Section */}
-      <div
-        className="py-10 md:py-12"
-        style={{
-          background:
-            loginConfig?.backgroundColor ||
-            "linear-gradient(rgb(255, 255, 255) 0%, rgb(239, 241, 255) 100%)",
-        }}
-      >
-        <Container>
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Login & Register
-            </h1>
-            <div className="flex justify-center">
-              <Breadcrumb
-                items={[
-                  {
-                    title: <Link href={ROUTES.HOME}>Home</Link>,
-                  },
-                  {
-                    title: "Login & Register",
-                  },
-                ]}
-              />
-            </div>
-          </div>
-        </Container>
-      </div>
+      <HeroBanner
+        title="Đăng nhập & Đăng ký"
+        breadcrumbs={[
+          { label: "Trang chủ", href: ROUTES.HOME },
+          { label: "Đăng nhập & Đăng ký", href: ROUTES.LOGIN() },
+          { label: "Đăng nhập" },
+        ]}
+      />
 
-      <Container className="max-w-[500px]">
-        <div className="bg-white p-8 rounded-lg shadow-sm">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-8">
-            Login
-          </h1>
-          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-            <div className="space-y-2">
-              <div className="relative">
+      {/* Login Box */}
+      <div className="w-full flex justify-center py-[130px] relative z-30 px-4 max-w-7xl">
+        <div className="w-[562px] bg-white rounded-[32px] shadow-[0px_2px_10px_rgba(0,0,0,0.5)] flex flex-col items-center py-8 px-6 sm:px-[64px]">
+          <h2 className="font-noto-sans font-bold text-[32px] leading-[39px] text-center text-[#D94A56] mb-[30px]">
+            Đăng Nhập
+          </h2>
+
+          <form className="w-full flex flex-col gap-[30px]" onSubmit={handleSubmit(onSubmit)}>
+            
+            <div className="w-full flex flex-col gap-[10px]">
+              {/* Phone Number / Email */}
+              <div className="w-full flex flex-col items-start gap-[10px]">
+                <label htmlFor="email" className="font-noto-sans font-bold text-[16px] leading-[22px] text-[#191D24]">
+                  Số điện thoại
+                </label>
                 <Controller
                   control={control}
                   name="email"
-                  rules={{
-                    required: { value: true, message: "Email is required" },
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: "Invalid email address",
-                    },
-                  }}
-                  render={({ field }) => {
-                    const isFloating = emailFocused || field.value;
-                    return (
-                      <>
-                        <label
-                          htmlFor="email"
-                          className={`absolute left-0 pointer-events-none transition-all duration-200 ease-in-out z-10 ${isFloating
-                              ? `top-0 text-xs -translate-y-1 px-1 bg-white ${emailFocused
-                                ? "text-[#d94a56]"
-                                : "text-gray-700"
-                              }`
-                              : "top-3 text-sm text-gray-900"
-                            }`}
-                        >
-                          Username or email *
-                        </label>
-                        <Input
-                          {...field}
-                          id="email"
-                          placeholder=""
-                          status={errors.email ? "error" : ""}
-                          bordered={false}
-                          className={`!border-b-2 !px-0 !pt-6 !pb-2 !rounded-none !shadow-none !bg-transparent transition-colors ${emailFocused
-                              ? "!border-b-[#d94a56] focus:!border-b-[#d94a56]"
-                              : "!border-b-gray-300 focus:!border-b-[#d94a56]"
-                            }`}
-                          style={{
-                            borderBottom: errors.email
-                              ? "2px solid #ff4d4f"
-                              : emailFocused
-                                ? "2px solid #d94a56"
-                                : "2px solid #d1d5db",
-                            borderRadius: 0,
-                            boxShadow: "none",
-                          }}
-                          onFocus={() => setEmailFocused(true)}
-                          onBlur={() => setEmailFocused(false)}
-                        />
-                      </>
-                    );
-                  }}
-                />
-              </div>
-              {errors.email && (
-                <span className="text-red-500 block mt-1 text-sm">
-                  {errors.email.message}
-                </span>
-              )}
-            </div>
-            <div className="space-y-2">
-              <div className="relative">
-                <Controller
-                  control={control}
-                  name="password"
                   rules={{ required: true }}
-                  render={({ field }) => {
-                    const isFloating = passwordFocused || field.value;
-                    return (
-                      <>
-                        <label
-                          htmlFor="password"
-                          className={`absolute left-0 pointer-events-none transition-all duration-200 ease-in-out z-10 ${isFloating
-                              ? `top-0 text-xs -translate-y-1 px-1 bg-white ${passwordFocused
-                                ? "text-[#d94a56]"
-                                : "text-gray-700"
-                              }`
-                              : "top-3 text-sm text-gray-900"
-                            }`}
-                        >
-                          Password *
-                        </label>
-                        <Input.Password
-                          {...field}
-                          id="password"
-                          placeholder=""
-                          status={errors.password ? "error" : ""}
-                          bordered={false}
-                          className={`!border-b !px-0 !pt-6 !pb-2 !rounded-none !shadow-none !bg-transparent transition-colors ${passwordFocused
-                              ? "!border-b-[#d94a56] focus:!border-b-[#d94a56]"
-                              : "!border-b-gray-300 focus:!border-b-[#d94a56]"
-                            }`}
-                          style={{
-                            borderBottom: errors.password
-                              ? "2px solid #ff4d4f"
-                              : passwordFocused
-                                ? "1px solid #d94a56"
-                                : "1px solid #d1d5db",
-                            borderRadius: 0,
-                            boxShadow: "none",
-                          }}
-                          onFocus={() => setPasswordFocused(true)}
-                          onBlur={() => setPasswordFocused(false)}
-                        />
-                      </>
-                    );
-                  }}
+                  render={({ field }) => (
+                    <input
+                      {...field}
+                      id="email"
+                      type="text"
+                      placeholder="Nhập số điện thoại của bạn"
+                      className="w-full box-border border border-[#BDBDBD] rounded-[12px] h-[40px] px-[18px] font-noto-sans font-normal text-[14px] text-[#374151] outline-none focus:border-[#D94A56] transition-colors"
+                    />
+                  )}
                 />
-              </div>
-              {errors.password && (
-                <span className="text-red-500 block mt-1 text-sm">
-                  Password is required
-                </span>
-              )}
-            </div>
-            <div className="flex items-center justify-between pt-2">
-              <Controller
-                control={control}
-                name="rememberMe"
-                defaultValue={true}
-                render={({ field }) => (
-                  <Checkbox
-                    {...field}
-                    checked={field.value}
-                    className="text-gray-700"
-                  >
-                    Remember me
-                  </Checkbox>
+                {errors.email && (
+                  <span className="text-red-500 text-sm">{errors.email.message || "Vui lòng nhập số điện thoại hoặc email"}</span>
                 )}
-              />
-              <Link
-                href={ROUTES.FORGOT_PASSWORD}
-                className="text-sm text-gray-700 hover:text-[#d94a56] transition-colors"
-              >
-                Lost your password?
+              </div>
+
+              {/* Password */}
+              <div className="w-full flex flex-col items-start gap-[10px]">
+                <label htmlFor="password" className="font-noto-sans font-bold text-[16px] leading-[22px] text-[#191D24]">
+                  Mật khẩu
+                </label>
+                <div className="w-full relative">
+                  <Controller
+                    control={control}
+                    name="password"
+                    rules={{ required: true }}
+                    render={({ field }) => (
+                      <input
+                        {...field}
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Nhập mật khẩu của bạn"
+                        className="w-full box-border border border-[#BDBDBD] rounded-[12px] h-[40px] pl-[18px] pr-[40px] font-noto-sans font-normal text-[14px] text-[#374151] outline-none focus:border-[#D94A56] transition-colors"
+                      />
+                    )}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-[8px] top-[10px] w-[20px] h-[20px] flex items-center justify-center text-[#71717A] hover:text-[#374151] transition-colors bg-transparent border-none cursor-pointer p-0"
+                  >
+                    {/* Eye SVG */}
+                    {showPassword ? (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5C5.63636 5 2 12 2 12C2 12 5.63636 19 12 19C18.3636 19 22 12 22 12C22 12 18.3636 5 12 5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    ) : (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.94 17.94C16.2306 18.6362 14.1436 19 12 19C5.63636 19 2 12 2 12C2 12 3.65158 8.87898 6.06 6.06001M9.9 4.23001C10.5846 4.07842 11.285 4 12 4C18.3636 4 22 11 22 11C22 11 20.3484 14.121 17.9406 16.9406M14.1213 14.1213C13.5582 14.6844 12.8315 15 12 15C10.3431 15 9 13.6569 9 12C9 11.1685 9.31561 10.4418 9.87868 9.87868M3 3L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                {errors.password && (
+                  <span className="text-red-500 text-sm">Vui lòng nhập mật khẩu</span>
+                )}
+              </div>
+            </div>
+
+            {/* Forgot Password */}
+            <div className="w-full text-center">
+              <Link href={ROUTES.FORGOT_PASSWORD} className="font-noto-sans font-medium text-[14px] leading-[17px] text-[#5281F9] hover:underline">
+                Quên mật khẩu?
               </Link>
             </div>
-            <Button
-              htmlType="submit"
-              type="primary"
-              block
-              size="large"
-              loading={isSubmitting || isLoading}
-              className="!h-12 !rounded-lg !text-base !font-medium !border-none transition-all duration-300"
-              style={{
-                background: isLoginHovered
-                  ? "linear-gradient(90deg, #c43a46 0%, #d94a56 100%)"
-                  : "linear-gradient(90deg, #d94a56 0%, rgba(217, 74, 86, 0.8) 100%)",
-                transform: isLoginHovered
-                  ? "translateY(-2px)"
-                  : "translateY(0)",
-                boxShadow: isLoginHovered
-                  ? "0 4px 12px rgba(217, 74, 86, 0.4)"
-                  : "none",
-              }}
-              onMouseEnter={() => setIsLoginHovered(true)}
-              onMouseLeave={() => setIsLoginHovered(false)}
+
+            {/* Login Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting || isLoading}
+              className="w-full h-[55px] flex justify-center items-center py-3 px-3 gap-[15px] bg-[#D94A56] rounded-[10px] shadow-[0px_4px_20px_-8px_rgba(0,0,0,0.11),0px_0px_10px_rgba(0,0,0,0.1)] hover:bg-[#E3636E] transition-colors disabled:opacity-70 disabled:cursor-not-allowed border-none cursor-pointer"
             >
-              <span className="flex items-center justify-center gap-2">
-                Log In
-                <span className="material-symbols-rounded text-lg">
-                  arrow_forward
-                </span>
+              <span className="font-noto-sans font-bold text-[20px] leading-[24px] text-white">
+                Đăng nhập
               </span>
-            </Button>
+            </button>
           </form>
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <Button
-              onClick={handleGoogleLogin}
-              block
-              size="large"
-              loading={isLoading || isSubmitting}
-              className="!h-12 !rounded-lg"
-            >
-              <GoogleIcon />
-              Log in with Google
-            </Button>
+
+          {/* Divider */}
+          <div className="w-full flex flex-row items-center my-[30px]">
+            <div className="flex-1 border-b border-[#374151]"></div>
+            <span className="font-noto-sans font-medium text-[16px] leading-[19px] text-[#374151] px-[10px]">
+              Hoặc đăng nhập bằng
+            </span>
+            <div className="flex-1 border-b border-[#374151]"></div>
+          </div>
+
+          {/* Google Button */}
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={isLoading || isSubmitting}
+            className="w-full h-[55px] flex justify-center items-center py-3 px-3 gap-[15px] bg-white rounded-[10px] shadow-[0px_4px_20px_-8px_rgba(0,0,0,0.11),0px_0px_10px_rgba(0,0,0,0.1)] border border-transparent hover:border-gray-200 transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer mb-[36px]"
+          >
+            <GoogleIcon />
+            <span className="font-noto-sans font-bold text-[16px] leading-[22px] text-[#18181B]">
+              Google
+            </span>
+          </button>
+
+          {/* Register Link */}
+          <div className="w-full text-center">
+            <span className="font-noto-sans font-medium text-[16px] leading-[19px] text-[#374151]">
+              Bạn chưa có tài khoản?{" "}
+            </span>
+            <Link href={ROUTES.REGISTER} className="font-noto-sans font-medium text-[16px] leading-[19px] text-[#D94A56] hover:underline">
+              Đăng ký ngay
+            </Link>
           </div>
         </div>
-        <div className="mt-6">
-          <p className="text-center text-gray-500">
-            Don&apos;t have an account?{" "}
-            <Link
-              href={ROUTES.REGISTER}
-              className="text-[#d94a56] hover:underline font-medium"
-            >
-              Create one now!
-            </Link>
-          </p>
-        </div>
-      </Container>
+      </div>
     </div>
   );
 }

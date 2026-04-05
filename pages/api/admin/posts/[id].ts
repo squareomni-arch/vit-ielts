@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
 import { requireAdmin } from "~lib/admin-auth";
+import { logActivity, getClientIP } from "~services/activity-log";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const user = await requireAdmin(req, res);
@@ -42,6 +43,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             const { data, error } = await supabaseAdmin.from("posts").update(updateData).eq("id", id).select().single();
             if (error) throw error;
+
+            await logActivity(supabaseAdmin, {
+                userId: user.id,
+                userEmail: user.email ?? undefined,
+                action: status === "published" ? "publish" : "update",
+                entityType: "post",
+                entityId: id,
+                entityTitle: title || data?.title,
+                ipAddress: getClientIP(req),
+            });
+
             return res.status(200).json({ success: true, data });
         } catch (error) {
             return res.status(500).json({ success: false, error: error instanceof Error ? error.message : "Internal error" });
@@ -52,6 +64,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
             const { error } = await supabaseAdmin.from("posts").delete().eq("id", id);
             if (error) throw error;
+
+            await logActivity(supabaseAdmin, {
+                userId: user.id,
+                userEmail: user.email ?? undefined,
+                action: "delete",
+                entityType: "post",
+                entityId: id,
+                ipAddress: getClientIP(req),
+            });
+
             return res.status(200).json({ success: true });
         } catch (error) {
             return res.status(500).json({ success: false, error: error instanceof Error ? error.message : "Internal error" });

@@ -40,12 +40,7 @@ function HeroBannerPage() {
   useEffect(() => {
     // Set form values mỗi khi config thay đổi và form chưa được initialized
     if (normalizedConfig && !isFormInitialized) {
-      console.log("Config loaded, initializing form with:", normalizedConfig);
-      console.log("Feature cards with avatars:", normalizedConfig.featureCards.map((c: any, i: number) => ({
-        index: i,
-        avatars: c.avatars,
-        avatarsLength: c.avatars?.length || 0
-      })));
+
       
       // Reset form và set values
       form.resetFields();
@@ -58,12 +53,6 @@ function HeroBannerPage() {
         // Verify form values sau khi set
         setTimeout(() => {
           const formValues = form.getFielValue();
-          console.log("Form values after setFielValue:", formValues);
-          console.log("Feature cards in form:", formValues?.featureCards?.map((c: any, i: number) => ({
-            index: i,
-            avatars: c.avatars,
-            avatarsLength: c.avatars?.length || 0
-          })));
           
           setIsFormInitialized(true);
         }, 300);
@@ -85,7 +74,7 @@ function HeroBannerPage() {
           if (cardAvatars.length > 0 && !avatarSyncDone[cardIndex]) {
             // Get Form.List instance và add fields
             // Note: Không thể access Form.List instance trực tiếp, cần dùng cách khác
-            console.log(`Card ${cardIndex + 1}: Need to add ${cardAvatars.length} avatars, but cannot access Form.List instance directly`);
+
           }
         });
       }, 500);
@@ -97,7 +86,7 @@ function HeroBannerPage() {
       const res = await fetch("/api/admin/home/hero-banner");
       if (!res.ok) throw new Error("Failed to load config");
       const data = await res.json();
-      console.log("Fetched config from API:", data);
+
       setConfig(data);
     } catch (error) {
       console.error("Error fetching config:", error);
@@ -108,7 +97,7 @@ function HeroBannerPage() {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-      console.log("Saving form values:", values);
+
       
       // Đảm bảo featureCards có avatars là array hợp lệ
       const cleanedValues = {
@@ -125,7 +114,7 @@ function HeroBannerPage() {
         })),
       };
       
-      console.log("Cleaned values to save:", cleanedValues);
+
       setSaving(true);
 
       const res = await fetch("/api/admin/home/hero-banner", {
@@ -140,7 +129,7 @@ function HeroBannerPage() {
       }
 
       const result = await res.json();
-      console.log("Save response:", result);
+
       
       message.success("Config saved successfully");
       
@@ -413,7 +402,7 @@ function HeroBannerPage() {
                               
                               // Sử dụng setTimeout để tránh update trong render
                               setTimeout(() => {
-                                console.log(`Card ${index + 1}: Manually adding ${initialAvatars.length} avatars to Form.List`);
+
                                 // Add fields trước
                                 initialAvatars.forEach(() => {
                                   addAvatar();
@@ -430,20 +419,13 @@ function HeroBannerPage() {
                                     form.setFielValue({
                                       featureCards: updatedFeatureCards
                                     });
-                                    console.log(`Card ${index + 1}: Set avatars values:`, initialAvatars);
+
                                   }
                                 }, 100);
                               }, 0);
                             }
                             
-                            console.log(`Card ${index + 1}:`, {
-                              avatarFielCount: avatarFields.length,
-                              avatarFields,
-                              formAvatars: cardAvatars,
-                              formAvatarsLength: cardAvatars.length,
-                              configAvatars: initialAvatars,
-                              configAvatarsLength: initialAvatars.length,
-                            });
+
                             
                             return (
                               <>
@@ -472,10 +454,7 @@ function HeroBannerPage() {
                                 })}
                                 <Button
                                   type="dashed"
-                                  onClick={() => {
-                                    console.log(`Adding avatar to card ${index + 1}`);
-                                    addAvatar();
-                                  }}
+                                  onClick={() => addAvatar()}
                                   className="w-full"
                                 >
                                   + Add Avatar

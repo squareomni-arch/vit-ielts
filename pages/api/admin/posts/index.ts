@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
 import { requireAdmin } from "~lib/admin-auth";
+import { logActivity, getClientIP } from "~services/activity-log";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const user = await requireAdmin(req, res);
@@ -38,6 +39,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 views: 0, votes: [], published_at: status === "published" ? new Date().toISOString() : null,
             }).select().single();
             if (error) throw error;
+
+            await logActivity(supabaseAdmin, {
+                userId: user.id,
+                userEmail: user.email ?? undefined,
+                action: "create",
+                entityType: "post",
+                entityId: data?.id,
+                entityTitle: title,
+                ipAddress: getClientIP(req),
+            });
+
             return res.status(200).json({ success: true, data });
         } catch (error) {
             return res.status(500).json({ success: false, error: error instanceof Error ? error.message : "Internal error" });

@@ -27,7 +27,7 @@ export const ProContentModal = () => {
       footer={
         <div className="space-x-2">
           <Button onClick={close}>Close</Button>
-          <Link href={buyProLink} passHref legacyBehavior>
+          <Link href={typeof buyProLink === 'string' && buyProLink ? buyProLink : "/"} passHref legacyBehavior>
             <LinkButton target="_blank" type="primary">
               Buy Premium
             </LinkButton>

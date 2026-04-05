@@ -3,6 +3,8 @@ import { Container } from "@/shared/ui";
 import { SubscriptionPlans } from "./subscription-plans";
 import { Testimonials } from "@/pages/home/ui/testimonials";
 import { FAQ } from "./faq";
+import { HeroBanner } from "@/shared/ui/ds";
+import { ROUTES } from "@/shared/routes";
 import dynamic from "next/dynamic";
 import type { TestimonialsConfig } from "@/pages/home/ui/testimonials/types";
 import type { FAQConfig } from "@/shared/types/admin-config";
@@ -38,50 +40,13 @@ export const PageSubscription = ({ testimonialsConfig, faqConfig, bannerConfig }
     <>
       <AffiliateTracker />
       {/* === SECTION: Subscription Banner === */}
-      <div
-        data-section="subscription-banner"
-        className="relative min-h-[500px] flex items-center justify-center bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url('${bannerConfig.backgroundImage}')`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        {/* Dark Overlay */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-          }}
-        ></div>
-
-        {/* Content */}
-        <Container className="relative z-10 py-30">
-          <div className="text-center">
-            {/* Subtitle */}
-            <div className="mb-5">
-              <span
-                className="inline-block px-4 py-2 rounded-md text-sm font-semibold text-white"
-                style={{
-                  backgroundColor: "rgba(255, 127, 80, 0.8)",
-                }}
-              >
-                {bannerConfig.subtitle.text}
-              </span>
-            </div>
-
-            {/* Main Title */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              {bannerConfig.title}
-            </h1>
-
-            {/* Description */}
-            <p className="text-lg text-white/90 max-w-2xl mx-auto mb-10">
-              {bannerConfig.description}
-            </p>
-          </div>
-        </Container>
-      </div>
+      <HeroBanner
+        title={bannerConfig.title || "Subscription"}
+        breadcrumbs={[
+          { label: "Trang chủ", href: ROUTES.HOME },
+          { label: "Subscription" },
+        ]}
+      />
 
       {/* === SECTION: Subscription Plans === */}
       <div data-section="subscription-plans">

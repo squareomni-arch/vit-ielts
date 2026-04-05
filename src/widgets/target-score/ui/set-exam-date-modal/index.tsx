@@ -18,22 +18,47 @@ export const SetExamDateModal = ({
     refetch,
   } = useWidgetContext();
   const { currentUser } = useAuth();
-  const { control, getValues, reset, setValue } = useForm<FormData>();
+  const { control, getValues, reset } = useForm<FormData>();
   const [loading, setLoading] = useState(false);
 
+  // When modal opens, pre-fill with existing exam date
   useEffect(() => {
-    reset();
-  }, [props.open, reset]);
+    if (props.open) {
+      reset({
+        examDate: examDate ? dayjs(examDate) : undefined,
+      });
+    }
+  }, [props.open, reset, examDate]);
 
   const handleOk = async (e: React.MouseEvent<HTMLButtonElement>) => {
     setLoading(true);
     try {
-      const ISODate = getValues("examDate").add(1, "day").toISOString();
+      const selectedDate = getValues("examDate");
+      if (!selectedDate) return;
+
+      // exam_date lives inside target_score JSONB — use postgres jsonb merge
+      const ISODate = selectedDate.toISOString();
       const supabase = createClient();
-      await supabase
+
+      // Fetch current target_score first, then merge exam_date into it
+      const { data: userData } = await supabase
         .from("users")
-        .update({ exam_date: ISODate })
+        .select("target_score")
+        .eq("id", currentUser!.id)
+        .single();
+
+      const currentTs = (userData?.target_score as any) || {};
+      const updatedTs = { ...currentTs, exam_date: ISODate };
+
+      const { error } = await supabase
+        .from("users")
+        .update({ target_score: updatedTs })
         .eq("id", currentUser!.id);
+
+      if (error) {
+        console.error("Error updating exam date:", error);
+        return;
+      }
 
       await refetch();
       props.onOk?.(e);
@@ -43,12 +68,6 @@ export const SetExamDateModal = ({
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (examDate) {
-      setValue("examDate", dayjs(examDate));
-    }
-  }, [props.open, setValue, examDate]);
 
   return (
     <Modal

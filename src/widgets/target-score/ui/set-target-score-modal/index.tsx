@@ -18,7 +18,14 @@ export const SetTargetScoreModal = ({
   const { targetScore, refetch } = useWidgetContext();
   const { currentUser } = useAuth();
   const [overallScore, setOverallScore] = useState<string>();
-  const { control, watch, reset, setValue } = useForm<FormData>();
+  const { control, watch, reset, getValues } = useForm<FormData>({
+    defaultValues: {
+      listening: 7.0,
+      reading: 7.0,
+      speaking: 7.0,
+      writing: 7.0,
+    },
+  });
   const [loading, setLoading] = useState(false);
 
   const scoreOptions = Array.from({ length: 17 }, (_, i) => {
@@ -33,29 +40,39 @@ export const SetTargetScoreModal = ({
 
   useEffect(() => {
     const { reading, listening, speaking, writing } = values;
-    const overall = (reading + listening + speaking + writing) / 4;
-    setOverallScore(overall.toFixed(1));
+    if (reading && listening && speaking && writing) {
+      const overall = (Number(reading) + Number(listening) + Number(speaking) + Number(writing)) / 4;
+      setOverallScore(overall.toFixed(1));
+    } else {
+      setOverallScore("0.0");
+    }
   }, [values]);
-
-  useEffect(() => {
-    reset();
-  }, [props.open, reset]);
 
   const handleOk = async (e: React.MouseEvent<HTMLButtonElement>) => {
     setLoading(true);
     try {
+      const currentValues = getValues();
+      const payload = {
+        listening: currentValues.listening != null ? Number(currentValues.listening) : 7.0,
+        reading: currentValues.reading != null ? Number(currentValues.reading) : 7.0,
+        speaking: currentValues.speaking != null ? Number(currentValues.speaking) : 7.0,
+        writing: currentValues.writing != null ? Number(currentValues.writing) : 7.0,
+      };
+
       const supabase = createClient();
-      await supabase
+      const { error } = await supabase
         .from("users")
-        .update({
-          target_score: {
-            listening: values.listening,
-            reading: values.reading,
-            speaking: values.speaking,
-            writing: values.writing,
-          },
-        })
+        .update({ target_score: payload })
         .eq("id", currentUser!.id);
+
+      if (error) {
+        console.error("Supabase update error:", error);
+        Modal.error({
+          title: "Update Failed",
+          content: error.message || "Could not update target score.",
+        });
+        return;
+      }
 
       await refetch();
       props.onOk?.(e);
@@ -67,11 +84,15 @@ export const SetTargetScoreModal = ({
   };
 
   useEffect(() => {
-    setValue("listening", targetScore.listening || 7);
-    setValue("reading", targetScore.reading || 7);
-    setValue("speaking", targetScore.speaking || 7);
-    setValue("writing", targetScore.writing || 7);
-  }, [props.open, setValue, targetScore]);
+    if (props.open) {
+      reset({
+        listening: targetScore.listening != null ? Number(targetScore.listening) : 7.0,
+        reading: targetScore.reading != null ? Number(targetScore.reading) : 7.0,
+        speaking: targetScore.speaking != null ? Number(targetScore.speaking) : 7.0,
+        writing: targetScore.writing != null ? Number(targetScore.writing) : 7.0,
+      });
+    }
+  }, [props.open, reset, targetScore]);
 
   return (
     <Modal

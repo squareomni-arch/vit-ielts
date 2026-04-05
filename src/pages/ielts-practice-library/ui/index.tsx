@@ -290,7 +290,7 @@ export const PageIELTSPracticeLibrary = ({
           skillLabel={skill === "reading" ? "Reading" : "Listening"}
         />
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-12">
+        <Container className="mt-12 px-0">
           {/* === SECTION: Suggestions === */}
           <section id="ipl-suggestions" data-section="suggestions">
             <div className="flex items-center justify-between mb-6">
@@ -372,7 +372,7 @@ export const PageIELTSPracticeLibrary = ({
               </div>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)]">
+            <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-[80px] xl:gap-[100px]">
               <aside className="hidden lg:block">
                 <div className="sticky top-[100px]">
                   <Filter filterData={quizFilterData} />
@@ -410,32 +410,45 @@ export const PageIELTSPracticeLibrary = ({
                 ) : null}
 
                 {totalPages > 1 && (
-                  <div className="flex flex-wrap items-center justify-center gap-2 pt-4">
+                  <div className="flex flex-wrap items-center justify-center gap-[8px] pt-4">
+                    {/* Previous Button */}
                     <button
                       type="button"
                       disabled={currentPage <= 1}
                       onClick={() =>
                         setValue("page", Math.max(1, currentPage - 1), { shouldDirty: true })
                       }
-                      className="flex h-[40px] items-center justify-center rounded-full border border-[rgba(0,0,0,0.1)] px-4 text-sm font-semibold text-[#2D3142] transition disabled:cursor-not-allowed disabled:opacity-35 hover:bg-gray-50"
+                      className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[6px] text-[#2D3142] transition disabled:cursor-not-allowed disabled:text-black/30 hover:bg-gray-50"
                     >
-                      <span className="material-symbols-rounded mr-1 text-sm">chevron_left</span>
-                      Prev
+                      <span className="material-symbols-rounded text-xl">chevron_left</span>
                     </button>
-                    {visiblePages.map((page) => (
-                      <button
-                        key={page}
-                        type="button"
-                        onClick={() => setValue("page", page, { shouldDirty: true })}
-                        className={`flex h-[40px] min-w-[40px] items-center justify-center rounded-full px-2 text-sm font-semibold transition ${
-                          page === currentPage
-                            ? "bg-primary-500 text-white shadow-[0_4px_10px_rgba(217,74,86,0.25)]"
-                            : "text-[#2D3142] hover:bg-gray-100"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
+                    
+                    {/* Page Numbers */}
+                    {visiblePages.map((page, index, array) => {
+                      const isGap = index > 0 && page - array[index - 1] > 1;
+                      return (
+                        <div key={page} className="flex items-center gap-[8px]">
+                          {isGap && (
+                            <div className="flex h-[32px] w-[32px] items-end justify-center pb-1 text-black/30 font-bold tracking-widest leading-none">
+                              ...
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setValue("page", page, { shouldDirty: true })}
+                            className={`flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[6px] text-base font-semibold transition ${
+                              page === currentPage
+                                ? "bg-primary-500 text-white"
+                                : "text-[#2D3142] hover:bg-gray-100"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </div>
+                      );
+                    })}
+
+                    {/* Next Button */}
                     <button
                       type="button"
                       disabled={currentPage >= totalPages}
@@ -444,17 +457,16 @@ export const PageIELTSPracticeLibrary = ({
                           shouldDirty: true,
                         })
                       }
-                      className="flex h-[40px] items-center justify-center rounded-full border border-[rgba(0,0,0,0.1)] px-4 text-sm font-semibold text-[#2D3142] transition disabled:cursor-not-allowed disabled:opacity-35 hover:bg-gray-50"
+                      className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[6px] text-[#2D3142] transition disabled:cursor-not-allowed disabled:text-black/30 hover:bg-gray-50"
                     >
-                      Next
-                      <span className="material-symbols-rounded ml-1 text-sm">chevron_right</span>
+                      <span className="material-symbols-rounded text-xl">chevron_right</span>
                     </button>
                   </div>
                 )}
               </div>
             </div>
           </section>
-        </div>
+        </Container>
 
         {drawerOpen && (
           <div className="fixed inset-0 z-50 bg-black/50 lg:hidden">

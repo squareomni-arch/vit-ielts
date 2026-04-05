@@ -6,23 +6,23 @@ import _ from "lodash";
 export const DetailScore = () => {
   const [isSetTargetScoreDialogOpen, setIsSetTargetScoreDialogOpen] =
     useState(false);
-  const { targetScore, loading } = useWidgetContext();
+  const { targetScore, loading, refetch } = useWidgetContext();
 
   const overallScore = useMemo(() => {
     if (
-      !targetScore.listening ||
-      !targetScore.reading ||
-      !targetScore.speaking ||
-      !targetScore.writing
+      targetScore.listening == null ||
+      targetScore.reading == null ||
+      targetScore.speaking == null ||
+      targetScore.writing == null
     ) {
       return "_";
     }
 
     return (
-      (targetScore.listening +
-        targetScore.reading +
-        targetScore.speaking +
-        targetScore.writing) /
+      (Number(targetScore.listening) +
+        Number(targetScore.reading) +
+        Number(targetScore.speaking) +
+        Number(targetScore.writing)) /
       4
     ).toFixed(1);
   }, [targetScore]);
@@ -32,7 +32,10 @@ export const DetailScore = () => {
       <SetTargetScoreModal
         open={isSetTargetScoreDialogOpen}
         onCancel={() => setIsSetTargetScoreDialogOpen(false)}
-        onOk={() => setIsSetTargetScoreDialogOpen(false)}
+        onOk={() => {
+          setIsSetTargetScoreDialogOpen(false);
+          refetch();
+        }}
       />
       {/* Header */}
       <div className="py-3 px-4 flex items-center gap-2 border-b border-gray-200">
@@ -105,11 +108,9 @@ export const DetailScore = () => {
                   <p className="text-2xl font-bold text-gray-900">
                     {loading
                       ? "_"
-                      : (
-                          targetScore[
-                            item.toLowerCase() as keyof typeof targetScore
-                          ] as number
-                        )?.toFixed(1) || "_"}
+                      : targetScore[item.toLowerCase() as keyof typeof targetScore] != null
+                        ? Number(targetScore[item.toLowerCase() as keyof typeof targetScore]).toFixed(1)
+                        : "_"}
                   </p>
                 </button>
               </div>

@@ -7,6 +7,7 @@ export const ExamDate = () => {
   const {
     targetScore: { examDate },
     loading,
+    refetch,
   } = useWidgetContext();
   const [isSetExamDateDialogOpen, setIsSetExamDateDialogOpen] = useState(false);
 
@@ -37,7 +38,10 @@ export const ExamDate = () => {
       <SetExamDateModal
         open={isSetExamDateDialogOpen}
         onCancel={() => setIsSetExamDateDialogOpen(false)}
-        onOk={() => setIsSetExamDateDialogOpen(false)}
+        onOk={() => {
+          setIsSetExamDateDialogOpen(false);
+          refetch();
+        }}
       />
       {/* Header */}
       <div className="py-3 px-4 flex items-center gap-2 border-b border-gray-200">

@@ -2,134 +2,132 @@
 // Figma: 3 horizontal stat cards — orange, blue, green
 // Geometric: desktop 3-col grid, gap ~24px; mobile 1-col stacked
 //   Each card: icon circle (left) + label + value (right)
-//   Colors: Orange #FC945A, Blue #2F80ED, Green #27AE60
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/appx/providers";
+import { createClient } from "~supabase/client";
 
 type StatItem = {
-  icon: React.ReactNode;
+  iconSrc: string;
   label: string;
   value: string;
   bgColor: string;
-  iconBgColor: string;
 };
 
-const ClockIcon = () => (
-  <svg
-    width="28"
-    height="28"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden="true"
-  >
-    <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="2" />
-    <path
-      d="M12 7v5l3 3"
-      stroke="white"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+export const DashboardStats = () => {
+  const { currentUser } = useAuth();
+  const [totalTime, setTotalTime] = useState("0 Giờ 0 Phút");
+  const [totalTests, setTotalTests] = useState(0);
+  const [totalScore, setTotalScore] = useState<number | string>(0);
 
-const TestIcon = () => (
-  <svg
-    width="28"
-    height="28"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden="true"
-  >
-    <rect x="4" y="3" width="16" height="18" rx="2" stroke="white" strokeWidth="2" />
-    <path
-      d="M8 8h8M8 12h8M8 16h5"
-      stroke="white"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-    <path d="M17 14l1.5 1.5L21 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!currentUser?.id) return;
+      try {
+        const supabase = createClient();
+        const { data: results } = await supabase
+          .from("test_results")
+          .select("quiz_id, time_left, score")
+          .eq("user_id", currentUser.id)
+          .eq("status", "published");
 
-const TrophyIcon = () => (
-  <svg
-    width="28"
-    height="28"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden="true"
-  >
-    <path
-      d="M8 21h8M12 17v4M7 3H5a2 2 0 00-2 2v2a4 4 0 004 4h.2A5 5 0 0012 17a5 5 0 004.8-6H17a4 4 0 004-4V5a2 2 0 00-2-2h-2M7 3h10"
-      stroke="white"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+        if (!results || results.length === 0) return;
 
-type DashboardStatsProps = {
-  totalTime?: string;
-  totalTests?: number;
-  totalScore?: number | string;
-};
+        const quizIds = [...new Set(results.map((r) => r.quiz_id))].filter(Boolean);
+        let quizMap = new Map();
+        
+        if (quizIds.length > 0) {
+          const { data: quizzes } = await supabase
+            .from("quizzes")
+            .select("id, time_minutes")
+            .in("id", quizIds);
+          quizMap = new Map((quizzes || []).map((q) => [q.id, q.time_minutes || 60]));
+        }
 
-export const DashboardStats = ({
-  totalTime = "0 Giờ 0 Phút",
-  totalTests = 0,
-  totalScore = 0,
-}: DashboardStatsProps) => {
+        let totalTimeMin = 0;
+        let totalScoreSum = 0;
+
+        results.forEach((r) => {
+          const timeLimit = quizMap.get(r.quiz_id) || 60;
+          let leftMin = 0;
+          if (r.time_left && typeof r.time_left === "string") {
+            const [m, s] = r.time_left.split(":");
+            leftMin = Number(m) + (Number(s) || 0) / 60;
+          }
+          const spent = timeLimit - leftMin;
+          if (spent > 0) {
+            totalTimeMin += spent;
+          }
+
+          if (r.score) {
+            totalScoreSum += Number(r.score);
+          }
+        });
+
+        const hours = Math.floor(totalTimeMin / 60);
+        const mins = Math.floor(totalTimeMin % 60);
+        setTotalTime(`${hours} Giờ ${mins} Phút`);
+        setTotalTests(results.length);
+        
+        // Show 1 decimal if floating point, else whole number
+        setTotalScore(Number.isInteger(totalScoreSum) ? totalScoreSum : totalScoreSum.toFixed(1));
+      } catch (err) {
+        console.error("Error fetching dashboard stats:", err);
+      }
+    };
+
+    fetchStats();
+  }, [currentUser?.id]);
+
   const stats: StatItem[] = [
     {
-      icon: <ClockIcon />,
+      iconSrc: "/assets/figma/icons/count.svg",
       label: "Tổng thời gian làm test",
       value: totalTime,
       bgColor: "#FC945A",
-      iconBgColor: "#F2994A",
     },
     {
-      icon: <TestIcon />,
+      iconSrc: "/assets/figma/icons/Note.svg",
       label: "Số bài test đã hoàn thành",
       value: String(totalTests),
       bgColor: "#2F80ED",
-      iconBgColor: "#2F80ED",
     },
     {
-      icon: <TrophyIcon />,
+      iconSrc: "/assets/figma/icons/Goal.svg",
       label: "Số điểm đã đạt được",
       value: String(totalScore),
       bgColor: "#27AE60",
-      iconBgColor: "#219653",
     },
   ];
 
   return (
     <div
       data-section="dashboard-stats"
-      className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+      className="grid grid-cols-1 sm:grid-cols-3 gap-6"
     >
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className="flex items-center gap-4 rounded-xl px-5 py-4"
-          style={{ backgroundColor: stat.bgColor }}
+          className="flex items-stretch rounded-[40px] overflow-hidden max-w-full"
+          style={{
+             backgroundColor: stat.bgColor,
+             border: `6px solid ${stat.bgColor}`,
+          }}
         >
-          {/* Icon circle */}
+          {/* Icon block */}
           <div
-            className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: "rgba(0,0,0,0.12)" }}
+            className="flex-shrink-0 flex items-center justify-center p-[26px] aspect-square w-[92px] h-[92px]"
           >
-            {stat.icon}
+            <Image src={stat.iconSrc} alt={stat.label} width={40} height={40} className="w-full h-full object-contain brightness-0 invert" />
           </div>
-          {/* Text */}
-          <div className="min-w-0">
-            <p className="text-white text-sm font-medium leading-snug">
+          {/* Text block */}
+          <div 
+            className="flex flex-col justify-center px-4 sm:px-5 py-2 min-w-0 flex-1 bg-white rounded-r-[34px]"
+          >
+            <p className="text-[#2D3142] font-semibold text-base md:text-lg whitespace-nowrap overflow-hidden text-ellipsis line-clamp-1">
               {stat.label}
             </p>
-            <p className="text-white text-lg font-bold leading-tight mt-0.5">
+            <p className="text-2xl md:text-[28px] font-normal leading-tight mt-1" style={{ color: stat.bgColor }}>
               {stat.value}
             </p>
           </div>

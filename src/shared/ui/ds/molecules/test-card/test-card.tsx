@@ -64,18 +64,12 @@ export const TestCard = ({
         )}
 
         {/* Overlays: Part tag (left), PRO tag (right) */}
-        <div className="absolute top-0 left-0 right-0 flex items-start justify-between p-4 z-10 pointer-events-none">
-          <div className="flex gap-2">
-            {part !== undefined && (
-              <span className="rounded-[8px] bg-tertiary-500 px-3 py-[6px] text-[13px] font-bold text-white shadow-sm">
-                {typeof part === 'number' || (typeof part === 'string' && /^\d+$/.test(part)) ? `Part ${part}` : part}
-              </span>
-            )}
-            {/* Fallback to show skill if part is not given, so layout doesn't break conceptually */}
-            {part === undefined && skill && (
-              <span className="rounded-[8px] bg-tertiary-500 px-3 py-[6px] text-[13px] font-bold text-white shadow-sm capitalize">
-                {skill}
-              </span>
+        <div className="absolute top-4 left-4 right-4 flex justify-between items-start gap-2">
+          <div className="flex flex-wrap gap-2">
+            {part && (
+              <PartTag part={parseInt(String(part).replace(/\D/g, '')) as 1 | 2 | 3 | 4 | 5 || 1}>
+                {part}
+              </PartTag>
             )}
           </div>
           {isPro && (
@@ -89,7 +83,7 @@ export const TestCard = ({
       {/* Body Section */}
       <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
         <div className="space-y-[8px] mb-4">
-          <h3 className="line-clamp-2 overflow-hidden text-ellipsis font-['Noto_Sans'] text-[18px] font-bold leading-normal text-[#242938] transition-colors group-hover:text-primary-500">
+          <h3 className="text-[17px] font-bold text-[#202020] leading-snug mb-3 truncate group-hover:text-primary-500 transition-colors" title={title}>
             {title}
           </h3>
           {(subtitle || attempts !== undefined) && (

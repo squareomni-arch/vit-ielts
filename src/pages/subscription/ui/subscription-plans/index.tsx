@@ -91,13 +91,13 @@ const AutoSlider = ({ children }: { children: React.ReactNode }) => {
         <>
           <button
             onClick={() => scroll("left")}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-white/90 shadow-lg border border-gray-200 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-all opacity-0 group-hover/slider:opacity-100 -translate-x-4 group-hover/slider:translate-x-2"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-primary-500 text-white shadow-lg border border-primary-400 p-3 rounded-full hover:bg-primary-600 transition-all opacity-0 group-hover/slider:opacity-100 -translate-x-4 group-hover/slider:translate-x-2"
           >
             <ChevronLeft className="h-6 w-6" />
           </button>
           <button
             onClick={() => scroll("right")}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-white/90 shadow-lg border border-gray-200 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-all opacity-0 group-hover/slider:opacity-100 translate-x-4 group-hover/slider:-translate-x-2"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-primary-500 text-white shadow-lg border border-primary-400 p-3 rounded-full hover:bg-primary-600 transition-all opacity-0 group-hover/slider:opacity-100 translate-x-4 group-hover/slider:-translate-x-2"
           >
             <ChevronRight className="h-6 w-6" />
           </button>
@@ -280,18 +280,18 @@ export const SubscriptionPlans = ({ buyProLink }: { buyProLink: string }) => {
         className={twMerge(
           // Sửa lỗi ló cột 4: w tính chuẩn 3 card + gaps
           "flex-none w-full md:w-[calc((100%-48px)/3)] snap-start bg-white rounded-[24px] p-8 border border-gray-100 shadow-lg flex flex-col items-center text-center relative transition-all",
-          isFeatured && "border-blue-500 ring-2 ring-blue-500/5"
+          isFeatured && "border-primary-500 ring-2 ring-primary-500/5"
         )}
       >
         {isFeatured && (
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
-            <span className="bg-[#a855f7] text-white px-6 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest shadow-lg whitespace-nowrap">
+            <span className="bg-primary-500 text-white px-6 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest shadow-lg whitespace-nowrap">
               {config?.popularBadgeText || "POPULAR"}
             </span>
           </div>
         )}
 
-        <h4 className="text-xl font-bold text-gray-800 mb-2">{planName}</h4>
+        <h4 className="text-xl font-bold text-[#2D3142] mb-2">{planName}</h4>
 
         <div className="bg-gray-50 px-3 py-2 rounded-md mb-6 flex items-center justify-center gap-3">
           {canAdjustMonths ? (
@@ -331,22 +331,22 @@ export const SubscriptionPlans = ({ buyProLink }: { buyProLink: string }) => {
 
         <div className="mb-6 flex flex-col items-center">
           <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-black text-[#2b6eff]">
+            <span className="text-4xl font-black text-primary-500">
               {formatPrice(price)}
             </span>
-            <span className="text-gray-400 font-bold text-sm">
-              {config?.priceSuffix || "/Monthly"}
+            <span className="text-gray-400 font-bold text-[14px]">
+              {config?.priceSuffix || "/Tài Khoản"}
             </span>
           </div>
           {isDeal && (
-            <div className="mt-2 bg-orange-100 text-orange-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase whitespace-nowrap">
+            <div className="mt-2 bg-[#FAF7EB] text-tertiary-500 px-3 py-1 rounded-full text-[10px] font-black uppercase whitespace-nowrap">
               {dealNote}
             </div>
           )}
         </div>
 
         <Link href={checkoutLink} className="w-full mb-8">
-          <button className="w-full py-4 rounded-xl font-bold bg-[#f0f7ff] text-[#2b6eff] hover:bg-blue-100 transition-all flex items-center justify-center gap-2 border border-blue-100">
+          <button className="w-full py-3 rounded-xl font-bold bg-[#F0F7FF] text-[#2B6EFF] hover:bg-blue-100 transition-all flex items-center justify-center gap-2 border border-blue-100">
             {type === "combo"
               ? config?.combo.ctaText || "Join Course Plan"
               : config?.single.ctaText || "Join Course Plan"}{" "}
@@ -421,8 +421,8 @@ export const SubscriptionPlans = ({ buyProLink }: { buyProLink: string }) => {
       {/* SECTION 1: COMBO */}
       <section className="m-0">
         <div className="text-center">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight block wrap-break-word">
-            {config?.combo.title || "Combo Plans"}
+          <h2 className="text-[#2D3142] text-[32px] sm:text-[40px] font-bold leading-tight block wrap-break-word">
+            {config?.combo.title || "Combo"}
           </h2>
         </div>
         <AutoSlider>
@@ -436,38 +436,38 @@ export const SubscriptionPlans = ({ buyProLink }: { buyProLink: string }) => {
         </AutoSlider>
       </section>
 
-      {/* SECTION 2: SINGLE PACK - HIDDEN */}
-      {/* <section className="m-0">
+      {/* SECTION 2: SINGLE PACK */}
+       <section className="m-0 mt-8">
         <div className="flex flex-col items-center gap-8 text-center">
           <div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight block wrap-break-word">
+            <h2 className="text-[#2D3142] text-[32px] sm:text-[40px] font-bold leading-tight block wrap-break-word">
               {config?.single.title || "Single Pack"}
             </h2>
           </div>
-          <div className="flex p-1.5 bg-gray-100 rounded-2xl w-fit border border-gray-200">
+          <div className="flex p-1.5 bg-gray-50 rounded-full w-fit border border-gray-100">
             <button
               onClick={() => setSingleSkill("listening")}
               className={twMerge(
-                "flex items-center gap-3 px-8 py-3 rounded-xl font-bold text-sm transition-all",
+                "flex items-center gap-3 px-8 py-3 rounded-full font-bold text-sm transition-all",
                 singleSkill === "listening"
-                  ? "bg-white text-[#2b6eff] shadow-md"
-                  : "text-gray-400"
+                  ? "bg-white text-primary-500 shadow-sm border border-primary-100"
+                  : "text-gray-400 hover:text-gray-600"
               )}
             >
               <Headphones className="h-4 w-4" />{" "}
-              {config?.skillLabels?.listening || "LISTENING"}
+              {config?.skillLabels?.listening || "Listening"}
             </button>
             <button
               onClick={() => setSingleSkill("reading")}
               className={twMerge(
-                "flex items-center gap-3 px-8 py-3 rounded-xl font-bold text-sm transition-all",
+                "flex items-center gap-3 px-8 py-3 rounded-full font-bold text-sm transition-all",
                 singleSkill === "reading"
-                  ? "bg-white text-[#2b6eff] shadow-md"
-                  : "text-gray-400"
+                  ? "bg-white text-primary-500 shadow-sm border border-primary-100"
+                  : "text-gray-400 hover:text-gray-600"
               )}
             >
               <BookOpen className="h-4 w-4" />{" "}
-              {config?.skillLabels?.reading || "READING"}
+              {config?.skillLabels?.reading || "Reading"}
             </button>
           </div>
         </div>
@@ -480,7 +480,7 @@ export const SubscriptionPlans = ({ buyProLink }: { buyProLink: string }) => {
             />
           ))}
         </AutoSlider>
-      </section> */}
+      </section>
 
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar {

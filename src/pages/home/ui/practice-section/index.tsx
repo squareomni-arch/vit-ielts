@@ -11,7 +11,7 @@ import { ROUTES } from "@/shared/routes";
 
 const PART_LABELS: Record<string, string> = {
   "0": "Part 1", "1": "Part 2", "2": "Part 3", "3": "Part 4",
-  "passage1": "Passage 1", "passage2": "Passage 2", "passage3": "Passage 3",
+  "passage1": "Part 1", "passage2": "Part 2", "passage3": "Part 3",
 };
 
 export type PracticeSectionProps = {

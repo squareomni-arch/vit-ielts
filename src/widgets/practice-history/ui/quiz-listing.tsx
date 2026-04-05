@@ -183,16 +183,17 @@ export const QuizListing = ({ skill }: { skill: "listening" | "reading" }) => {
         render: (_, record) => (record as NodeWithScore)._scoreResult?.missed ?? 0,
       },
       {
-        title: "Correct Percent",
-        key: "correctPercent",
+        title: "Result",
+        key: "result",
         render: (_, record) => {
-          const percent = (record as NodeWithScore)._scoreResult?.correctPercent ?? 0;
+          const scoreResult = (record as NodeWithScore)._scoreResult;
+          const correct = scoreResult?.correctAns ?? 0;
+          const incorrect = scoreResult?.incorrect ?? 0;
+          const missed = scoreResult?.missed ?? 0;
+          const total = correct + incorrect + missed;
 
           return (
-            <>
-              <span>{Math.round(percent)}%</span>
-              <Progress percent={percent} showInfo={false} />
-            </>
+            <span className="font-medium">{correct}/{total}</span>
           );
         },
       },

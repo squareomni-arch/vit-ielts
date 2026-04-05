@@ -1,5 +1,6 @@
 import { Card, Segmented, Spin } from "antd";
 import { useState } from "react";
+import Image from "next/image";
 import { useStreakData } from "./hooks/useStreakData";
 import {
   StreakSummaryCards,
@@ -38,8 +39,24 @@ export const StudyStreak = () => {
             value={viewMode}
             onChange={(val) => setViewMode(val as ViewMode)}
             options={[
-              { label: "📅 Lịch tháng", value: "calendar" },
-              { label: "📊 Theo tuần", value: "weekly" },
+              { 
+                label: (
+                  <div className="flex items-center gap-2 px-1">
+                    <Image src="/assets/figma/icons/calendar-days 1.svg" alt="calendar" width={16} height={16} className="brightness-0 object-contain opacity-70" />
+                    <span>Lịch tháng</span>
+                  </div>
+                ), 
+                value: "calendar" 
+              },
+              { 
+                label: (
+                  <div className="flex items-center gap-2 px-1">
+                    <Image src="/assets/figma/icons/all.svg" alt="weekly" width={16} height={16} className="brightness-0 object-contain opacity-70" />
+                    <span>Theo tuần</span>
+                  </div>
+                ), 
+                value: "weekly" 
+              },
             ]}
             size="large"
           />

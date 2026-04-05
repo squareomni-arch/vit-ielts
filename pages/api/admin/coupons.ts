@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
 import { requireAdmin } from "~lib/admin-auth";
+import { logActivity, getClientIP } from "~services/activity-log";
 
 /** Enhanced coupons API supporting type, expires_at fields */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -40,6 +41,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 .single();
 
             if (error) throw error;
+
+            await logActivity(supabaseAdmin, {
+                userId: user.id,
+                userEmail: user.email ?? undefined,
+                action: "create",
+                entityType: "coupon",
+                entityId: data?.id,
+                entityTitle: code,
+                metadata: { type: type || "fixed", value: Number(value) },
+                ipAddress: getClientIP(req),
+            });
+
             return res.status(200).json({ success: true, data });
         } catch (error) {
             const msg = error instanceof Error ? error.message : String(error);
@@ -71,6 +84,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 .single();
 
             if (error) throw error;
+
+            await logActivity(supabaseAdmin, {
+                userId: user.id,
+                userEmail: user.email ?? undefined,
+                action: "update",
+                entityType: "coupon",
+                entityId: id,
+                entityTitle: code || data?.code,
+                ipAddress: getClientIP(req),
+            });
+
             return res.status(200).json({ success: true, data });
         } catch (error) {
             return res.status(500).json({ success: false, error: error instanceof Error ? error.message : "Internal error" });
@@ -84,6 +108,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             const { error } = await supabaseAdmin.from("coupons").delete().eq("id", id);
             if (error) throw error;
+
+            await logActivity(supabaseAdmin, {
+                userId: user.id,
+                userEmail: user.email ?? undefined,
+                action: "delete",
+                entityType: "coupon",
+                entityId: id as string,
+                ipAddress: getClientIP(req),
+            });
+
             return res.status(200).json({ success: true });
         } catch (error) {
             return res.status(500).json({ success: false, error: error instanceof Error ? error.message : "Internal error" });

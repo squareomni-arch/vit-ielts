@@ -31,7 +31,7 @@ function AnswerKeys({
 
   return (
     <div className="space-y-6">
-      <h3 className="flex items-center text-lg sm:text-2xl font-semibold text-primary space-x-2">
+      <h3 className="flex items-center text-lg sm:text-2xl font-semibold text-[#374151] space-x-2">
         <span className="material-symbols-rounded sm:text-4xl!">lightbulb</span>
         <span>Answer Keys:</span>
       </h3>
@@ -44,7 +44,7 @@ function AnswerKeys({
 
         return (
           <div key={key} className="space-y-4">
-            <h4 className="text-base font-semibold text-primary">
+            <h4 className="text-base font-semibold text-[#374151]">
               {partLabel} {Number(key) + 1}: {part.questionRange}
             </h4>
             <div className="flex -m-2 flex-wrap">

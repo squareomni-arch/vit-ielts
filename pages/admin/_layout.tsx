@@ -25,8 +25,10 @@ import {
   BellOutlined,
   SunOutlined,
   MoonOutlined,
+  HistoryOutlined,
+  PictureOutlined,
 } from "@ant-design/icons";
-import { message, Tooltip } from "antd";
+import { message, Tooltip, Badge } from "antd";
 
 // ═══ Types ═══
 type MenuItemDef = {
@@ -69,6 +71,9 @@ const MENU_SECTIONS: MenuSection[] = [
           { key: "/admin/affiliate/config", icon: <SettingOutlined />, label: "Cấu hình" },
         ],
       },
+      { key: "/admin/media", icon: <PictureOutlined />, label: "Media Library" },
+      { key: "/admin/activity-log", icon: <HistoryOutlined />, label: "Activity Log" },
+      { key: "/admin/seo", icon: <GlobalOutlined />, label: "SEO Manager" },
       { key: "/admin/settings", icon: <SettingOutlined />, label: "Settings" },
     ],
   },
@@ -148,6 +153,9 @@ const BREADCRUMB_MAP: Record<string, string> = {
   "/admin/affiliate/users": "Quản lý Users",
   "/admin/affiliate/payouts": "Payouts",
   "/admin/affiliate/config": "Cấu hình",
+  "/admin/activity-log": "Activity Log",
+  "/admin/seo": "SEO Manager",
+  "/admin/media": "Media Library",
 };
 
 // ═══ Helper: resolve breadcrumbs ═══
@@ -195,6 +203,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [openSubmenus, setOpenSubmenus] = useState<Set<string>>(new Set());
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  // Fetch unread notification count
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const res = await fetch("/api/admin/notifications?limit=1");
+        const json = await res.json();
+        if (json.success) setUnreadNotifications(json.unreadCount ?? 0);
+      } catch { /* silent */ }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 60_000); // Poll every 60s
+    return () => clearInterval(interval);
+  }, []);
 
   // Load theme from localStorage
   useEffect(() => {
@@ -444,9 +467,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </Tooltip>
 
             {/* Notifications */}
-            <button className="admin-header-action">
-              <BellOutlined />
-              <span className="notification-dot" />
+            <button
+              className="admin-header-action"
+              onClick={() => router.push("/admin/activity-log")}
+            >
+              <Badge count={unreadNotifications} size="small" offset={[2, -2]}>
+                <BellOutlined style={{ fontSize: 18, color: "var(--admin-text-secondary)" }} />
+              </Badge>
             </button>
 
             {/* Admin avatar */}

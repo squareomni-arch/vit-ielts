@@ -8,8 +8,8 @@ type SignUpParams = {
   name: string;
   email: string;
   password: string;
-  date_of_birth: string; // ISO format or "DD/MM/YYYY"
-  gender: "male" | "female";
+  date_of_birth?: string; // ISO format or "DD/MM/YYYY"
+  gender?: "male" | "female" | string;
 };
 
 export const useAuth = () => {
@@ -88,7 +88,7 @@ export const useAuth = () => {
       email,
       password,
       options: {
-        data: { name, date_of_birth, gender },
+        data: { name, date_of_birth: date_of_birth || null, gender: gender || null },
       },
     });
     if (error) throw error;
@@ -99,8 +99,8 @@ export const useAuth = () => {
         id: data.user.id,
         email,
         name,
-        gender,
-        date_of_birth,
+        gender: gender || null,
+        date_of_birth: date_of_birth || null,
       });
     }
 

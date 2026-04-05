@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { SampleEssayProps } from "../..";
 import { ROUTES } from "@/shared/routes";
-import { ProLink } from "@/shared/ui";
+import { TestCard } from "@/shared/ui/ds";
 
 export const HorizontalItem = ({
   post: { node: post },
@@ -73,52 +73,14 @@ export const HorizontalItem = ({
   }
 
   return (
-    <article className="bg-white">
-      <ProLink
-        title={post.title}
-        isPro={post.postMeta.proUserOnly}
-        href={ROUTES.SAMPLE_ESSAY.SINGLE(post.slug)}
-        className="flex gap-4 py-3 text-left"
-      >
-        {/* Thumbnail - Left */}
-        <div className="w-65 h-40 shrink-0 rounded overflow-hidden relative bg-gray-100">
-          {post.postMeta.proUserOnly && (
-            <div className="absolute top-1 right-1 z-10">
-              <div className="rounded py-0.5 px-1.5 text-xs font-semibold text-white shadow bg-primary">
-                PRO
-              </div>
-            </div>
-          )}
-          <Image
-            src={
-              post.featuredImage?.node.sourceUrl ||
-              "https://placehold.co/600x400"
-            }
-            alt={post.featuredImage?.node.altText || post.title}
-            fill
-            className="object-cover"
-            unoptimized
-          />
-        </div>
-
-        {/* Content - Right */}
-        <div className="flex-1 min-w-0 space-y-2 text-left">
-          {/* Metadata */}
-          <div className="text-[14px] text-gray-500 text-left">
-            {quarter} {year} • {topicTypeName}
-          </div>
-
-          {/* Title */}
-          <h4 className="text-base md:text-xl font-bold text-gray-900 leading-tight text-left">
-            {post.title}
-          </h4>
-
-          {/* Description */}
-          <p className="text-sm text-gray-600 leading-relaxed text-left">
-            {description}
-          </p>
-        </div>
-      </ProLink>
-    </article>
+    <TestCard
+      image={post.featuredImage?.node.sourceUrl}
+      title={post.title}
+      skill={skill as 'reading' | 'listening' | 'speaking' | 'writing'}
+      part={topicTypeName}
+      isPro={post.postMeta.proUserOnly}
+      href={ROUTES.SAMPLE_ESSAY.SINGLE(post.slug)}
+      isLocked={post.postMeta.proUserOnly} // Assuming locked if pro only, though typically useAuth is needed
+    />
   );
 };

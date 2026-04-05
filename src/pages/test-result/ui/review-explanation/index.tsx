@@ -1306,7 +1306,7 @@ function ReviewExplanation({
           {/* 1a. NẾU LÀ READING: Hiển thị Passage */}
           {isReading && (
             <div className="prose prose-sm max-w-none p-4 md:p-12 bg-white">
-              <h2 className="text-primary text-2xl font-bold">
+              <h2 className="text-[#374151] text-2xl font-bold">
                 {currentPassage.title}
               </h2>
               <SafeRender name="processedPassageComponent">
@@ -1355,7 +1355,7 @@ function ReviewExplanation({
 
           {/* Footer */}
           <div className="absolute bottom-0 left-0 right-0 bg-gray-100 flex justify-between items-center px-4 py-2 border-t">
-            <p className="font-semibold text-primary line-clamp-1">
+            <p className="font-semibold text-[#374151] line-clamp-1">
               {currentPassage.title}
             </p>
             <div className="flex items-center gap-2">

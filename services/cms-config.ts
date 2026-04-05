@@ -1,7 +1,7 @@
 /**
  * CMS Config Service — Read/write CMS configurations
  *
- * Thay thế lib/server/admin-config-helper.ts (253 dòng → ~30 dòng)
+ * Thay thế lib/server/admin-config-helper.ts (253 dòng → ~60 dòng)
  * Dùng bảng `cms_configs` thay cho filesystem + Vercel KV
  *
  * @see LEGACY_CODEBASE_DOCS.md#8-admin-cms
@@ -9,6 +9,7 @@
  */
 
 import { SupabaseClient } from "@supabase/supabase-js";
+import { validateCmsConfig } from "./cms-schemas";
 
 /**
  * Đọc config từ bảng cms_configs
@@ -29,6 +30,18 @@ export async function readConfig<T>(
 
     if (error) throw error;
     return (data?.data as T) ?? null;
+}
+
+/**
+ * Đọc config với fallback mặc định nếu chưa tồn tại
+ */
+export async function readConfigOrDefault<T>(
+    supabase: SupabaseClient,
+    sectionName: string,
+    defaultConfig: T,
+): Promise<T> {
+    const config = await readConfig<T>(supabase, sectionName);
+    return config ?? defaultConfig;
 }
 
 /**
@@ -57,3 +70,36 @@ export async function writeConfig<T>(
 
     if (error) throw error;
 }
+
+/**
+ * Ghi config với Zod validation trước khi lưu.
+ * Throws ZodError nếu data không hợp lệ.
+ *
+ * @param supabase - Supabase client
+ * @param sectionName - Tên section (phải khớp key trong CMS_SECTION_SCHEMAS)
+ * @param config - Config data
+ */
+export async function writeConfigValidated<T>(
+    supabase: SupabaseClient,
+    sectionName: string,
+    config: T,
+): Promise<void> {
+    validateCmsConfig(sectionName, config);
+    return writeConfig(supabase, sectionName, config);
+}
+
+/**
+ * Liệt kê tất cả CMS config sections đã lưu
+ */
+export async function listConfigSections(
+    supabase: SupabaseClient,
+): Promise<{ section_name: string; updated_at: string }[]> {
+    const { data, error } = await supabase
+        .from("cms_configs")
+        .select("section_name, updated_at")
+        .order("section_name");
+
+    if (error) throw error;
+    return data ?? [];
+}
+

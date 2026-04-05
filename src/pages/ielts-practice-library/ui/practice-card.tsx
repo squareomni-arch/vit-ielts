@@ -36,14 +36,11 @@ export const PracticeCard = ({ item, priority = false }: PracticeCardProps) => {
   }, [item.quizFields.part, skill]);
 
   const requiresUpgrade = item.quizFields.proUserOnly && !currentUser?.userData.isPro;
+  // detailHref: trang giới thiệu/detail bài luyện tập
   const detailHref = ROUTES.PRACTICE.SINGLE(item.slug);
-  const actionHref = currentUser
-    ? ROUTES.TAKE_THE_TEST(item.slug)
-    : ROUTES.LOGIN(ROUTES.TAKE_THE_TEST(item.slug));
 
   const handleProtectedAction = (event?: MouseEvent<any>) => {
     if (!requiresUpgrade) return;
-    
     event?.preventDefault();
     if (!currentUser) {
       window.location.href = ROUTES.LOGIN(detailHref);
@@ -62,7 +59,8 @@ export const PracticeCard = ({ item, priority = false }: PracticeCardProps) => {
       isPro={item.quizFields.proUserOnly}
       isLocked={requiresUpgrade}
       score={"9,0"}
-      href={requiresUpgrade ? undefined : actionHref}
+      // Card luôn link đến trang detail — từ đó user mới nhấn "Start Practice"
+      href={requiresUpgrade ? undefined : detailHref}
       onClick={requiresUpgrade ? handleProtectedAction : undefined}
     />
   );

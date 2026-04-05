@@ -49,20 +49,34 @@ export const WidgetContextProvider = ({
     try {
       setLoading(true);
       const supabase = createClient();
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("users")
-        .select("target_score, exam_date")
+        .select("target_score")
         .eq("id", currentUser.id)
         .single();
 
+      if (error) {
+        console.error("Error fetching target score from DB:", error);
+        return;
+      }
+
       if (data) {
-        const ts = data.target_score as any || {};
+        let ts = data.target_score as any;
+        if (typeof ts === "string") {
+          try {
+            ts = JSON.parse(ts);
+          } catch (e) {
+            ts = {};
+          }
+        }
+        ts = ts || {};
+
         setTargetScore({
-          examDate: data.exam_date || null,
-          listening: ts.listening || null,
-          reading: ts.reading || null,
-          speaking: ts.speaking || null,
-          writing: ts.writing || null,
+          examDate: ts.exam_date || null,
+          listening: ts.listening != null ? Number(ts.listening) : null,
+          reading: ts.reading != null ? Number(ts.reading) : null,
+          speaking: ts.speaking != null ? Number(ts.speaking) : null,
+          writing: ts.writing != null ? Number(ts.writing) : null,
         });
       }
     } catch (error) {

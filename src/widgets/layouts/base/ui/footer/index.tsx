@@ -4,6 +4,7 @@ import { FacebookRoundedIcon, ZaloIcon } from "@/shared/ui/icons";
 import { useAppContext } from "@/appx/providers";
 import { Button, Input } from "antd";
 import { ROUTES } from "@/shared/routes";
+import { useRouter } from "next/router";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import type { FooterCtaBannerConfig } from "./types";
@@ -108,6 +109,12 @@ export const Footer = () => {
     { label: "Login & Register", href: ROUTES.LOGIN() },
   ];
 
+  const router = useRouter();
+  const hideCtaBanner =
+    router.pathname === "/ielts-practice-library/[slug]" ||
+    router.pathname === "/account/login" ||
+    router.pathname === "/account/register";
+
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle newsletter subscription
@@ -118,16 +125,23 @@ export const Footer = () => {
   return (
     <footer data-section="footer" className="bg-gray-100">
       {/* === SECTION: Footer CTA Banner === */}
-      <div data-section="footer-cta-banner" className="pt-16 pb-8 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <CTABanner
-            title={ctaBannerConfig?.title || "Sẵn sàng cho kì thi IELTS máy?"}
-            subtitle={ctaBannerConfig?.description || "Ôn luyện trên các bài thi sát thực đề, xem giải thích chi tiết trước khi bước vào phòng thi!"}
-            ctaText={ctaBannerConfig?.button?.text || "Bắt đầu luyện thi"}
-            ctaHref={ctaBannerConfig?.button?.link || buyProLink || ROUTES.LOGIN()}
-          />
+      {!hideCtaBanner && (
+        <div data-section="footer-cta-banner" className="pt-16 pb-8 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <CTABanner
+              title={ctaBannerConfig?.title || "Sẵn sàng cho kì thi IELTS máy?"}
+              subtitle={
+                ctaBannerConfig?.description ||
+                "Ôn luyện trên các bài thi sát thực đề, xem giải thích chi tiết trước khi bước vào phòng thi!"
+              }
+              ctaText={ctaBannerConfig?.button?.text || "Bắt đầu luyện thi"}
+              ctaHref={
+                ctaBannerConfig?.button?.link || buyProLink || ROUTES.LOGIN()
+              }
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* === SECTION: Footer Main Content (Links + Newsletter) === */}
       <div data-section="footer-links" className="bg-[#374151] pt-16 pb-12">

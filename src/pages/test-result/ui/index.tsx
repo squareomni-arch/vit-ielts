@@ -1,4 +1,5 @@
 import { Container } from "@/shared/ui";
+import { HeroBanner } from "@/shared/ui/ds";
 import { Avatar, Breadcrumb, Button, Progress } from "antd";
 import Link from "next/link";
 import { IPracticeSingle, ITestResult, IUser } from "../api";
@@ -99,62 +100,33 @@ export function PageTestResult({
       <SEOHeader fullHead="" title={"Test Result | IELTS Exam Library"} />
 
       {/* === SECTION: Page Banner (Hero) === */}
-      <section
-        data-section="test-result-banner"
-        className="w-full py-10 lg:py-12 relative overflow-hidden"
-        style={{
-          background: "#F4F6FA",
-          backgroundImage:
-            "linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      >
-        {/* Red accent line at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-500" />
-
-        <Container>
-          <div className="text-center">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2D3142] mb-3">
-              Results
-            </h1>
-            {/* Breadcrumb */}
-            <nav aria-label="Breadcrumb">
-              <ol className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                <li>
-                  <Link href={ROUTES.HOME} className="hover:text-primary-500 transition-colors">
-                    Trang chủ
-                  </Link>
-                </li>
-                <span className="text-gray-400">/</span>
-                <li>
-                  <Link href={ROUTES.TAKE_THE_TEST(post.slug)} className="hover:text-primary-500 transition-colors">
-                    {post.title}
-                  </Link>
-                </li>
-                <span className="text-gray-400">/</span>
-                <li className="text-gray-700 font-medium">Test Result</li>
-              </ol>
-            </nav>
-          </div>
-        </Container>
-      </section>
+      <HeroBanner
+        title="Results"
+        breadcrumbs={[
+          { label: "Trang chủ", href: ROUTES.HOME },
+          { label: post.title, href: ROUTES.TAKE_THE_TEST(post.slug) },
+          { label: "Test Result" }
+        ]}
+      />
 
       {/* Main Page Layout Wrapper */}
       <div className="bg-[#f8f9fb] min-h-screen">
-        <Container className="space-y-6 md:space-y-8 pb-12 pt-8 max-w-7xl">
+        <Container className="space-y-6 md:space-y-8 pb-12 pt-8 max-w-[1600px]">
         
         {/* Banner Section */}
-        <div className="flex flex-col md:flex-row bg-primary-500 rounded-[24px] overflow-hidden shadow-sm">
-          <div className="w-full md:w-[45%] h-[200px] md:h-auto md:aspect-[2/1] relative">
+        <div className="flex flex-col md:flex-row w-full rounded-[24px] overflow-hidden shadow-sm h-auto md:h-[261px]">
+          {/* Thumbnail */}
+          <div className="w-full md:w-1/2 h-[200px] md:h-full relative shrink-0">
             <Image
-              src={post.featuredImage?.node.sourceUrl || "https://placehold.co/600x400"}
+              src={post.featuredImage?.node.sourceUrl || "https://placehold.co/804x261"}
               alt={post.featuredImage?.node.altText || post.title}
               fill
               className="object-cover"
               unoptimized
             />
           </div>
-          <div className="w-full md:w-[55%] p-6 md:p-10 flex flex-col justify-center text-white space-y-4 md:space-y-6">
+          {/* Text Area */}
+          <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center text-white bg-primary-500 space-y-4 md:space-y-6 shrink-0 h-auto md:h-full">
             <h1 className="text-2xl md:text-[32px] font-bold leading-tight"> {post.title} </h1>
             <div className="flex flex-col space-y-2 text-white/90 font-medium">
               <p className="flex items-center space-x-3">
@@ -201,8 +173,8 @@ export function PageTestResult({
             {/* Mascot Image */}
             <div className="w-40 h-40 md:w-56 md:h-56 relative shrink-0 z-0 hidden sm:block">
               <Image 
-                src="/intro-mascot.png" 
-                alt="IELTS Prediction Mascot" 
+                src={scorePercent < 50 ? "/assets/figma/icons/fail.png" : "/assets/figma/icons/pass.png"} 
+                alt="IELTS Prediction Mascot Status" 
                 fill 
                 className="object-contain object-bottom" 
               />
@@ -212,8 +184,8 @@ export function PageTestResult({
           {/* Correct/Wrong/Skip Stats Box */}
           <div className="w-full lg:w-[40%] bg-white rounded-[24px] shadow-sm border-b-[6px] border-primary-500 p-6 md:p-8 flex items-center justify-evenly">
             {/* Correct */}
-            <div className="flex flex-col items-center space-y-3">
-              <div className="w-16 h-16 rounded-full bg-[#1B8C40] flex items-center justify-center text-white shadow-sm">
+            <div className="flex flex-col h-[120px] p-[20px] md:p-[30px] justify-center items-center self-stretch aspect-square space-y-3">
+              <div className="w-16 h-16 rounded-full bg-[#1B8C40] flex items-center justify-center text-white shadow-sm shrink-0">
                 <span className="material-symbols-rounded text-3xl font-bold">check</span>
               </div>
               <div className="text-center">
@@ -222,8 +194,8 @@ export function PageTestResult({
               </div>
             </div>
             {/* Wrong */}
-            <div className="flex flex-col items-center space-y-3">
-              <div className="w-16 h-16 rounded-full bg-primary-500 flex items-center justify-center text-white shadow-sm">
+            <div className="flex flex-col h-[120px] p-[20px] md:p-[30px] justify-center items-center self-stretch aspect-square space-y-3">
+              <div className="w-16 h-16 rounded-full bg-primary-500 flex items-center justify-center text-white shadow-sm shrink-0">
                 <span className="material-symbols-rounded text-3xl font-bold">close</span>
               </div>
               <div className="text-center">
@@ -232,8 +204,8 @@ export function PageTestResult({
               </div>
             </div>
             {/* Skipped */}
-            <div className="flex flex-col items-center space-y-3">
-              <div className="w-16 h-16 rounded-full bg-[#F2994A] flex items-center justify-center text-white shadow-sm">
+            <div className="flex flex-col h-[120px] p-[20px] md:p-[30px] justify-center items-center self-stretch aspect-square space-y-3">
+              <div className="w-16 h-16 rounded-full bg-[#F2994A] flex items-center justify-center text-white shadow-sm shrink-0">
                 <span className="material-symbols-rounded text-3xl font-bold">skip_next</span>
               </div>
               <div className="text-center">
@@ -300,15 +272,15 @@ export function PageTestResult({
       </Container>
       
       {/* Explanation Section */}
-      <Container id="explanation-section" className="max-w-7xl mb-12">
-        <div className="bg-primary-500 p-4 md:p-6 rounded-t-[24px] space-y-3">
-          <h3 className="text-xl md:text-2xl font-bold text-white flex items-center space-x-2">
+      <Container id="explanation-section" className="max-w-[1600px] mb-12">
+        <div className="flex flex-col justify-center items-start gap-3 p-4 md:p-6 rounded-[24px] bg-primary-500 w-full">
+          <h3 className="text-xl md:text-2xl font-bold text-white flex items-center space-x-2 w-full">
             <span className="material-symbols-rounded text-3xl!" aria-hidden> library_books </span>
             <span>Explanation</span>
           </h3>
-        </div>
-        <div className="bg-white p-6 md:p-8 rounded-b-[24px] shadow-sm border border-t-0 border-gray-200">
-          <ReviewExplanation quiz={post} testResult={testResult} />
+          <div className="bg-white p-6 md:p-8 rounded-[16px] shadow-sm w-full self-stretch">
+            <ReviewExplanation quiz={post} testResult={testResult} />
+          </div>
         </div>
       </Container>
       </div>

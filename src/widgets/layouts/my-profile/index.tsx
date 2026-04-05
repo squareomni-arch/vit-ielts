@@ -6,6 +6,7 @@ import { ROUTES } from "@/shared/routes";
 import { useRouter } from "next/router";
 import { ComparePlans } from "@/widgets";
 import Link from "next/link";
+import { HeroBanner } from "@/shared/ui/ds";
 
 export const MyProfileLayout = ({
   children,
@@ -109,51 +110,10 @@ export const MyProfileLayout = ({
 
       {/* === SECTION: Page Banner === */}
       {shouldShowBanner && bannerConfig && (
-        <section
-          data-section="dashboard-banner"
-          className="w-full py-10 lg:py-12 relative overflow-hidden"
-          style={{
-            background: "#F4F6FA",
-            backgroundImage:
-              "linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        >
-          {/* Red accent line at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-500" />
-
-          <Container>
-            <div className="text-center">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2D3142] mb-3">
-                {bannerConfig.title}
-              </h1>
-              {/* Breadcrumb */}
-              <nav aria-label="Breadcrumb">
-                <ol className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                  {bannerConfig.breadcrumbs.map((crumb, i) => (
-                    <React.Fragment key={i}>
-                      {i > 0 && <span className="text-gray-400">/</span>}
-                      {crumb.href ? (
-                        <li>
-                          <Link
-                            href={crumb.href}
-                            className="hover:text-primary-500 transition-colors"
-                          >
-                            {crumb.label}
-                          </Link>
-                        </li>
-                      ) : (
-                        <li className="text-gray-700 font-medium">
-                          {crumb.label}
-                        </li>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </ol>
-              </nav>
-            </div>
-          </Container>
-        </section>
+        <HeroBanner
+          title={bannerConfig.title}
+          breadcrumbs={bannerConfig.breadcrumbs}
+        />
       )}
 
       {/* === SECTION: Main Content === */}

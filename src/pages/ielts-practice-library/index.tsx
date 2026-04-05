@@ -67,7 +67,10 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
           // Keep the skill in the response for UI filtering
           skill: skill || null,
         },
-        bannerConfig: bannerConfig ?? defaultBannerConfig,
+        bannerConfig: {
+          listening: bannerConfig?.listening ?? defaultBannerConfig.listening,
+          reading: bannerConfig?.reading ?? defaultBannerConfig.reading,
+        },
       },
     };
   }

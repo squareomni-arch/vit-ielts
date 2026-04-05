@@ -2,7 +2,6 @@ import { QuizLibraryNav, SEOHeader } from "@/widgets";
 import { SampleEssayProps } from "../..";
 import { Container, Empty } from "@/shared/ui";
 import {
-  Breadcrumb,
   Button,
   Input,
   InputRef,
@@ -10,6 +9,7 @@ import {
   Select,
   Space,
 } from "antd";
+import { HeroBanner as DSHeroBanner } from "@/shared/ui/ds";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { ROUTES } from "@/shared/routes";
@@ -21,6 +21,14 @@ import { DefaultView } from "./single-item";
 import { HorizontalItem } from "./horizontal-item";
 
 const PAGE_SIZE = 18;
+
+const buildPages = (current: number, total: number) => {
+  if (total <= 1) return [1];
+  const pages = new Set<number>([1, total, current, current - 1, current + 1]);
+  return Array.from(pages)
+    .filter((page) => page >= 1 && page <= total)
+    .sort((left, right) => left - right);
+};
 
 export type FilterFormValues = {
   sampleSource: string | string[];
@@ -205,230 +213,171 @@ export const PageArchive = ({
             : bannerConfig.speaking;
 
           return (
-            <div
-              className="relative w-full py-12 md:py-16 flex items-center justify-center overflow-hidden"
-              style={{
-                background:
-                  bannerData.backgroundColor ||
-                  "linear-gradient(180deg, #FFF3F3 0%, #FFF8F0 100%)",
-              }}
-            >
-              <Container className="relative z-10 px-4">
-                <div className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto space-y-4 sm:space-y-6">
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 flex flex-col items-center wrap-break-word w-full">
+            <DSHeroBanner
+              title={bannerData.title}
+              skillLabel={skill === "reading" ? "Reading Sample" : skill === "listening" ? "Listening Sample" : skill === "speaking" ? "Speaking Sample" : "Writing Sample"}
+              description={
+                <div className="text-sm px-4 md:px-0 sm:text-base md:text-lg text-white leading-relaxed max-w-3xl space-y-1 mx-auto w-full">
+                  {bannerData.description.line1 && (
                     <div className="wrap-break-word">
-                      {bannerData.title.line1}
+                      {bannerData.description.line1}
                     </div>
-                    <div className="relative inline-block wrap-break-word">
-                      <span className="relative inline-block">
-                        {bannerData.title.line2Highlighted}
-                        <span
-                          className="absolute bottom-0 left-0 right-0 h-3 opacity-30"
-                          style={{
-                            background:
-                              "linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%)",
-                          }}
-                        ></span>
-                      </span>{" "}
-                      <span className="wrap-break-word">
-                        {bannerData.title.line2After}
-                      </span>
+                  )}
+                  {bannerData.description.line2 && (
+                    <div className="wrap-break-word">
+                      {bannerData.description.line2}
                     </div>
-                  </h1>
-
-                  <div className="text-sm sm:text-base md:text-lg text-gray-700 leading-relaxed max-w-3xl space-y-1 w-full">
-                    {bannerData.description.line1 && (
-                      <div className="wrap-break-word">
-                        {bannerData.description.line1}
-                      </div>
-                    )}
-                    {bannerData.description.line2 && (
-                      <div className="wrap-break-word">
-                        {bannerData.description.line2}
-                      </div>
-                    )}
-                  </div>
-
-                  <Link href={bannerData.button.link} className="inline-block">
-                    <Button
-                      type="primary"
-                      style={{
-                        background: "#d94a56",
-                        borderColor: "#d94a56",
-                        color: "#ffffff",
-                      }}
-                      className="hover:bg-[#c0394a]! hover:border-[#c0394a]! px-4 sm:px-6 py-2 h-[48px] text-sm md:text-base font-normal rounded-lg w-full sm:w-auto"
-                    >
-                      <span className="truncate max-w-[200px] sm:max-w-none inline-block">
-                        {bannerData.button.text}
-                      </span>
-                    </Button>
-                  </Link>
+                  )}
                 </div>
-              </Container>
-            </div>
+              }
+              breadcrumbs={[
+                { label: "Trang chủ", href: "/" },
+                { label: `IELTS ${_.capitalize(skill)} Sample` },
+              ]}
+              background={bannerData.backgroundColor}
+            />
           );
         })()}
 
-      <Container className="pb-10">
-        <div className="py-5">
-          <Breadcrumb
-            items={[
-              {
-                title: <Link href="/">Home</Link>,
-              },
-              {
-                title: `IELTS ${_.capitalize(skill)} Sample`,
-              },
-            ]}
-          />
-        </div>
-        <h1 className="pb-4 sm:pb-6 text-2xl md:text-5xl font-extrabold text-primary">
-          IELTS {_.capitalize(skill)} Sample
-        </h1>
-        <div className="mb-12">
-          <QuizLibraryNav />
-        </div>
-        <div className="flex -m-4 flex-wrap">
-          <div className="p-4 md:w-3/12 w-full hidden sm:block">
-            <div className="h-full">
-              <Filter
-                drawerOpen={drawerOpen}
-                setDrawerOpen={setDrawerOpen}
-                filterData={filterData}
-                skill={skill}
-              />
+      <Container className="mt-12 px-0">
+        {/* === SECTION: Sample Essay === */}
+        <section id="sample-essay" data-section="sample-essay">
+          <div className="mb-10 flex flex-col gap-6">
+            <h2 className="font-noto-sans text-3xl font-extrabold text-[#2D3142]">
+              IELTS {_.capitalize(skill)} Sample
+            </h2>
+            
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <QuizLibraryNav />
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDrawerOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-full border border-[rgba(0,0,0,0.1)] bg-white px-4 py-3 text-sm font-bold text-[#242938] transition hover:bg-gray-50 lg:hidden"
+                >
+                  <span className="material-symbols-rounded text-base">tune</span>
+                  Filter
+                </button>
+                <div className="relative min-w-[11rem]">
+                  <select
+                    value={filterValues.sort}
+                    onChange={(event) => {
+                      setValue("sort", event.target.value as FilterFormValues["sort"], { shouldDirty: true });
+                    }}
+                    className="w-full appearance-none rounded-full border border-[rgba(0,0,0,0.1)] bg-white px-5 py-3 pr-11 text-sm font-semibold text-[#242938] outline-none transition hover:bg-gray-50"
+                  >
+                    <option value="newest">Newest</option>
+                    <option value="oldest">Oldest</option>
+                    <option value="a-z">A-Z</option>
+                    <option value="z-a">Z-A</option>
+                  </select>
+                  <span className="material-symbols-rounded pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#242938]/60">
+                    keyboard_arrow_down
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="p-4 md:w-9/12 w-full">
-            <div className="flex flex-wrap justify-between gap-4 items-center">
-              <div className="flex items-stretch flex-wrap -m-1.5">
-                {/* {skillNav.map((item) => (
-                  <div key={item.name} className="p-1.5 sm:w-auto w-1/2">
-                    <Link
-                      href={item.link}
-                      className={twMerge(
-                        "flex items-center px-2 py-1 bg-gray-200 rounded space-x-2",
-                        skill === item.skill && "bg-primary text-white"
-                      )}
-                    >
-                      <Image
-                        width={20}
-                        height={20}
-                        src={item.icon}
-                        alt={item.name}
-                      />
-                      <span className="font-medium">{item.name}</span>
-                    </Link>
-                  </div>
-                ))} */}
+
+          <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-[80px] xl:gap-[100px]">
+            <aside className="hidden lg:block">
+              <div className="sticky top-[100px]">
+                <Filter
+                  drawerOpen={drawerOpen}
+                  setDrawerOpen={setDrawerOpen}
+                  filterData={filterData}
+                  skill={skill}
+                />
               </div>
-              <div className="w-full sm:hidden">
-                <Space.Compact style={{ width: "100%" }}>
-                  <Input
-                    ref={searchInputRef}
-                    size="large"
-                    allowClear
-                    onClear={() => {
-                      setValue("search", "", { shouldDirty: true });
-                    }}
-                    defaultValue={router.query.search?.toString() || ""}
-                    placeholder="Search"
-                    onPressEnter={handleSearch}
-                  />
-                  <Button
-                    size="large"
-                    type="primary"
-                    icon={
-                      <span className="material-symbols-rounded flex">
-                        search
-                      </span>
-                    }
-                    onClick={handleSearch}
-                  />
-                </Space.Compact>
-              </div>
-              <Button onClick={() => setDrawerOpen(true)} className="sm:hidden">
-                <span className="material-symbols-rounded">filter_alt</span>
-                <span className="leading-none">Filter</span>
-              </Button>
-              <Controller
-                name="sort"
-                control={methods.control}
-                render={({ field }) => (
-                  <Select<FilterFormValues["sort"]>
-                    options={[
-                      { label: "Newest", value: "newest" },
-                      { label: "Oldest", value: "oldest" },
-                      { label: "A-Z", value: "a-z" },
-                      { label: "Z-A", value: "z-a" },
-                    ]}
-                    {...field}
-                  />
-                )}
-              />
-            </div>
+            </aside>
+
+            <div className="space-y-10">
             <div className="pb-5 space-y-4 mt-4">
               {sampleEssays.edges.length > 0 ? (
                 <>
-                  <div
-                    className={
-                      skill === "writing" || skill === "speaking"
-                        ? "space-y-4"
-                        : "flex -m-1.5 flex-wrap items-stretch"
-                    }
-                  >
+                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {sampleEssays.edges.map((item: (typeof sampleEssays.edges)[number], index: number) => (
-                      <div
-                        className={
-                          skill === "writing" || skill === "speaking"
-                            ? "w-full"
-                            : "p-1.5 w-1/2 md:w-1/3"
-                        }
-                        key={index}
-                      >
-                        {skill === "writing" || skill === "speaking" ? (
-                          <HorizontalItem post={item} skill={skill} />
-                        ) : (
-                          <DefaultView post={item} skill={skill} />
-                        )}
-                      </div>
+                      <HorizontalItem post={item} skill={skill} key={index} />
                     ))}
                   </div>
-                  {sampleEssays.pageInfo.offsetPagination.total - pageSize >
-                    0 && (
-                    <Pagination
-                      className="justify-center"
-                      defaultCurrent={paged}
-                      defaultPageSize={pageSize}
-                      total={sampleEssays.pageInfo.offsetPagination.total}
-                      onChange={(page) => {
-                        router.push(
-                          skill === "speaking"
-                            ? `${
-                                ROUTES.SAMPLE_ESSAY.ARCHIVE_SPEAKING
-                              }/page/${page}?${new URLSearchParams(
-                                window.location.search
-                              ).toString()}`
-                            : `${
-                                ROUTES.SAMPLE_ESSAY.ARCHIVE_WRITING
-                              }/page/${page}?${new URLSearchParams(
-                                window.location.search
-                              ).toString()}`
-                        );
-                      }}
-                    />
-                  )}
+                  {sampleEssays.pageInfo.offsetPagination.total > pageSize && (() => {
+                    const totalPages = Math.max(1, Math.ceil(sampleEssays.pageInfo.offsetPagination.total / pageSize));
+                    const currentPage = paged;
+                    const visiblePages = buildPages(currentPage, totalPages);
+                    
+                    const handlePageChange = (page: number) => {
+                      router.push(
+                        skill === "speaking"
+                          ? `${ROUTES.SAMPLE_ESSAY.ARCHIVE_SPEAKING}/page/${page}?${new URLSearchParams(window.location.search).toString()}`
+                          : `${ROUTES.SAMPLE_ESSAY.ARCHIVE_WRITING}/page/${page}?${new URLSearchParams(window.location.search).toString()}`
+                      );
+                    };
+
+                    return (
+                      <div className="flex flex-wrap items-center justify-center gap-[8px] pt-4">
+                        <button
+                          type="button"
+                          disabled={currentPage <= 1}
+                          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                          className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[6px] text-[#2D3142] transition disabled:cursor-not-allowed disabled:text-black/30 hover:bg-gray-50"
+                        >
+                          <span className="material-symbols-rounded text-xl">chevron_left</span>
+                        </button>
+                        
+                        {visiblePages.map((page, index, array) => {
+                          const isGap = index > 0 && page - array[index - 1] > 1;
+                          return (
+                            <div key={page} className="flex items-center gap-[8px]">
+                              {isGap && (
+                                <div className="flex h-[32px] w-[32px] items-end justify-center pb-1 text-black/30 font-bold tracking-widest leading-none">
+                                  ...
+                                </div>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => handlePageChange(page)}
+                                className={`flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[6px] text-base font-semibold transition ${
+                                  page === currentPage
+                                    ? "bg-primary-500 text-white"
+                                    : "text-[#2D3142] hover:bg-gray-100"
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            </div>
+                          );
+                        })}
+
+                        <button
+                          type="button"
+                          disabled={currentPage >= totalPages}
+                          onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                          className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[6px] text-[#2D3142] transition disabled:cursor-not-allowed disabled:text-black/30 hover:bg-gray-50"
+                        >
+                          <span className="material-symbols-rounded text-xl">chevron_right</span>
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </>
               ) : (
-                <Empty
-                  title="There is no sample essay!"
-                  subtitle="We will update as soon as possible."
-                />
+                <div className="rounded-[30px] border border-dashed border-[rgba(0,0,0,0.1)] bg-[#FAF7EB]/50 px-6 py-16 text-center">
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#242938]/40">
+                    No results
+                  </p>
+                  <h3 className="mt-3 font-noto-sans text-2xl font-extrabold text-[#242938]">
+                    Không tìm thấy bài mẫu nào.
+                  </h3>
+                  <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-[#242938]/60">
+                    Thử bỏ bớt filter hoặc tìm kiếm từ khóa khác xem sao bạn nhé.
+                  </p>
+                </div>
               )}
             </div>
+            </div>
           </div>
-        </div>
+        </section>
       </Container>
     </FormProvider>
   );
