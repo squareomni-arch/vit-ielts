@@ -29,34 +29,34 @@ export const HeroBanner = ({ config }: HeroBannerProps) => {
     >
       <Container className="relative z-10 w-full">
         {/* Layout 2 cột: Cột trái (Text) và Cột phải (Hình ảnh) */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-8 w-full">
+        <div className="flex flex-col lg:flex-row items-center lg:justify-center justify-between gap-12 lg:gap-20 w-full">
 
-          {/* CỘT TRÁI: Cụm Text & CTA — width 661px, gap 32px */}
-          <div className="flex flex-col items-start z-20 w-full max-w-[661px] gap-8">
+          {/* CỘT TRÁI: Cụm Text & CTA */}
+          <div className="flex flex-col items-start z-20 w-full lg:max-w-max gap-8">
             {/* Title */}
             <h1 className="text-[40px] leading-[1.2] sm:text-[48px] lg:text-[56px] font-bold tracking-tight text-[var(--color-default)]">
-              IELTS Prediction Test
+              <span className="block whitespace-nowrap">IELTS Prediction Test</span>
               <span className="block">Thi <span className="text-primary-500">Thử Như Thật</span></span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-lg sm:text-xl text-gray-600 leading-[1.6] max-w-[600px]">
+            <p className="text-lg sm:text-xl text-gray-400 leading-[1.6] max-w-[600px] lg:max-w-max">
               Thi thử như thật với giao diện 1:1 và kho đề sát thực tế.
               <span className="hidden sm:block" />
               {' '}Bứt phá band điểm cùng hệ thống giải thích chi tiết.
             </p>
 
             {/* List */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 w-full text-base sm:text-lg text-[var(--color-default)] font-medium">
-              <div className="flex items-center gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 w-full text-base sm:text-lg text-[var(--color-default)] font-semibold">
+              <div className="flex items-center gap-3 whitespace-nowrap">
                 <CheckCircleIcon />
                 <span>Giao diện thi máy</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 whitespace-nowrap">
                 <CheckCircleIcon />
                 <span>Cập nhật xu hướng đề</span>
               </div>
-              <div className="flex items-center gap-3 sm:col-span-2">
+              <div className="flex items-center gap-3 sm:col-span-2 whitespace-nowrap">
                 <CheckCircleIcon />
                 <span>Chấm chữa chi tiết, tối ưu thời gian</span>
               </div>
@@ -71,21 +71,21 @@ export const HeroBanner = ({ config }: HeroBannerProps) => {
           </div>
 
           {/* CỘT PHẢI: Mascots */}
-          <div className="relative w-full max-w-[800px] h-[400px] sm:h-[500px] lg:h-[600px] flex items-center justify-center lg:justify-end shrink-0">
+          <div className="relative w-full max-w-[800px] h-[400px] sm:h-[500px] lg:h-[673px] flex items-center justify-center lg:justify-end shrink-0">
 
             {/* Máy tính (Screen 1) bên phải/phía sau */}
-            <div className="absolute top-[10%] right-0 w-[90%] h-[70%] sm:w-[80%] sm:h-[80%] lg:w-[680px] lg:h-[450px] z-10 transition-transform duration-700 hover:scale-105">
+            <div className="absolute top-0 right-0 w-[90%] h-[70%] sm:w-[80%] sm:h-[80%] lg:w-[800px] lg:min-h-[673px] lg:h-[673px] z-10 transition-transform duration-700 hover:scale-105">
               <Image
                 src="/assets/figma/icons/screen 1.png"
                 alt="IELTS Interface Screen"
                 fill
-                className="object-contain"
+                className="object-contain object-center"
                 priority
               />
             </div>
 
             {/* Vịt (Like 1) đè lên phía trước, lệch trái */}
-            <div className="absolute bottom-0 left-0 sm:left-[5%] lg:left-[5%] w-[200px] h-[260px] sm:w-[280px] sm:h-[350px] lg:w-[320px] lg:h-[400px] z-20 animate-float">
+            <div className="absolute bottom-0 left-0 sm:left-[5%] lg:-left-[10%] w-[200px] h-[260px] sm:w-[280px] sm:h-[350px] lg:w-[320px] lg:h-[400px] z-20 animate-float">
               <Image
                 src="/assets/figma/icons/like 1.png"
                 alt="Like IELTS Mascot"
@@ -105,7 +105,7 @@ export const HeroBanner = ({ config }: HeroBannerProps) => {
 // Component Icon check SVG
 const CheckCircleIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-    <circle cx="12" cy="12" r="12" fill="#27AE60"/>
-    <path d="M7.5 12.5L10.5 15.5L16.5 9" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="12" cy="12" r="12" fill="#27AE60" />
+    <path d="M7.5 12.5L10.5 15.5L16.5 9" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );

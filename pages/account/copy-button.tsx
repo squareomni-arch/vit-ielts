@@ -17,25 +17,30 @@ export default function CopyButton({ text }: CopyButtonProps) {
   };
 
   return (
-    <>
-      <button
-        onClick={handleCopy}
-        className="group relative w-full max-w-md bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
-      >
-        {copied ? (
-          <>
-            <Check className="w-5 h-5" />
-            <span>Đã sao chép!</span>
-          </>
-        ) : (
-          <>
-            <Copy className="w-5 h-5" />
-            <span className="font-mono text-lg tracking-wider">{text}</span>
-          </>
-        )}
-      </button>
-      <p className="text-xs text-gray-500 mt-2"> Nhấn để sao chép nội dung chuyển khoản</p>
-    </>
+    <button
+      onClick={handleCopy}
+      className="group relative w-full max-w-[280px] bg-primary-500 hover:bg-primary-300 text-white font-bold py-3 px-6 rounded-full transition-colors flex items-center justify-center gap-3"
+    >
+      {copied ? (
+        <>
+          <Check className="w-5 h-5 flex-shrink-0" />
+          <span>Đã sao chép!</span>
+        </>
+      ) : (
+        <>
+          <Copy className="w-5 h-5 flex-shrink-0" />
+          <div className="flex flex-col items-center">
+            {/* The string format typically is "IELTS PREDICTION 123456" */}
+            <span className="text-[10px] uppercase font-bold leading-tight">
+              {text.includes(" ") ? text.substring(0, text.lastIndexOf(" ")) : "IELTS PREDICTION"}
+            </span>
+            <span className="text-base font-black tracking-wider leading-tight">
+              {text.includes(" ") ? text.substring(text.lastIndexOf(" ") + 1) : text}
+            </span>
+          </div>
+        </>
+      )}
+    </button>
   );
 }
 

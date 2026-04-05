@@ -142,206 +142,139 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
   const displayNote = order.transferContent;
 
   return (
-    <div className="flex justify-center min-h-[60vh] px-4 py-8">
-      <div className="w-full max-w-4xl space-y-6">
-        {/* Success Header */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-10 h-10 text-green-600" />
-            </div>
+    <div className="flex flex-col items-center pb-12 w-full max-w-[800px] mx-auto space-y-6">
+      {/* 1. Header block */}
+      <div className="text-center pt-8 pb-4">
+        <div className="flex justify-center mb-4">
+          <div className="w-16 h-16 bg-[#EDF7ED] rounded-full flex items-center justify-center">
+            <CheckCircle className="w-8 h-8 text-[#4CAF50]" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Đơn hàng của bạn đã được đặt thành công!
-          </h1>
-          <p className="text-gray-600 text-base leading-relaxed max-w-2xl mx-auto">
-            Vui lòng <span className="font-bold text-gray-900">không tắt trình duyệt</span> cho đến khi
-            nhận được <span className="font-bold text-gray-900">kết quả giao dịch</span> trên website.
-            <br className="hidden sm:block" />
-            <span className="block sm:inline"> Hệ thống sẽ kiểm tra và xử lý sau vào vài phút...</span>
-          </p>
+        </div>
+        <h1 className="text-[28px] font-bold text-[#2D3142] mb-3">
+          Đơn hàng của bạn đã được đặt thành công!
+        </h1>
+        <p className="text-[13px] text-gray-500 max-w-[600px] mx-auto leading-relaxed">
+          Vui lòng <span className="font-bold text-[#2D3142]">không tắt trình duyệt</span> cho đến khi nhận được <span className="font-bold text-[#2D3142]">kết quả giao dịch</span> trên website. Hệ thống sẽ kiểm tra và xử lý sau vào vài phút...
+        </p>
+      </div>
+
+      {/* 2. Bank Transfer Card */}
+      <div className="w-full bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden border border-gray-100 flex flex-col">
+        {/* Red Header */}
+        <div className="bg-primary-500 text-white font-bold text-sm px-6 py-3.5 text-center uppercase tracking-wide">
+          CHUYỂN KHOẢN ĐỂ THANH TOÁN
         </div>
 
-        {/* Bank Transfer Section */}
-        <div className="bg-white rounded-2xl shadow-lg border-2 border-green-600 overflow-hidden">
-          <div className="bg-gradient-to-r from-green-600 to-green-700 text-white font-bold text-lg px-6 py-4 text-center">
-            CHUYỂN KHOẢN ĐỂ THANH TOÁN
+        <div className="p-6">
+          {/* Info Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+            <InfoRow label="TÊN TÀI KHOẢN" value="TRAN PHAN TIEN PHAT" />
+            <InfoRow label="SỐ TÀI KHOẢN" value="2447967" />
+            <InfoRow label="NGÂN HÀNG" value="Thương Mại Cổ Phần Á Châu (ACB)" />
+            <InfoRow label="SỐ TIỀN" value={displayAmount.replace("đ", "₫")} />
+            <InfoRow label="NỘI DUNG CHUYỂN KHOẢN" value={displayNote} className="md:col-span-2" />
+            <InfoRow
+              label="TRẠNG THÁI"
+              value={order.status === "completed" ? "Đã thanh toán thành công" : "Chờ thanh toán"}
+              className="md:col-span-2 font-black"
+            />
           </div>
 
-          <div className="p-6 space-y-4">
-            {/* Bank Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InfoRow label="Tên tài khoản" value="TRAN PHAN TIEN PHAT" />
-              <InfoRow label="Số tài khoản" value="2447967" />
-              <InfoRow label="Ngân hàng" value="Thương Mại Cổ Phần Á Châu (ACB)" />
-              <InfoRow label="Số tiền" value={displayAmount.replace("đ", "vnd")} />
-              <InfoRow label="Nội dung chuyển khoản" value={displayNote} className="md:col-span-2" />
-              <InfoRow
-                label="Trạng thái"
-                value={order.status === "completed" ? "Đã thanh toán thành công" : "Chờ thanh toán"}
-                className="md:col-span-2"
+          {/* Warning Banner */}
+          <div className="bg-[#FFF9E6] rounded-lg px-4 py-3 mb-8 text-center border border-[#FDE68A]">
+            <p className="text-[#D97706] font-bold text-xs">
+              ⚠️ VUI LÒNG NHẬP CHÍNH XÁC NỘI DUNG CHUYỂN KHOẢN ĐỂ HỆ THỐNG KIỂM TRA VÀ KÍCH HOẠT TỰ ĐỘNG
+            </p>
+          </div>
+
+          {/* QR & Copy Section */}
+          <div className="flex flex-col items-center pb-8 border-b border-gray-100">
+            <div className="w-[200px] h-[200px] bg-white rounded-xl shadow-sm border border-gray-200 p-2 mb-6">
+              <img
+                src={`https://qr.sepay.vn/img?acc=2447967&bank=ACB&amount=${order.amount}&des=${encodeURIComponent(order.orderId)}`}
+                alt="QR Code"
+                className="w-full h-full object-contain"
               />
             </div>
-
-            {/* Important Notice */}
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg mt-6">
-              <p className="text-yellow-800 font-bold text-sm leading-relaxed">
-                ⚠️ VUI LÒNG NHẬP CHÍNH XÁC NỘI DUNG CHUYỂN KHOẢN ĐỂ HỆ THỐNG KIỂM TRA VÀ KÍCH HOẠT TỰ ĐỘNG
-              </p>
-            </div>
-
-            {/* QR Code */}
-            <div className="flex flex-col items-center py-6">
-              <div className="w-64 h-64 rounded-xl overflow-hidden mb-4 border-2 border-gray-200">
-                <img
-                  src={`https://qr.sepay.vn/img?acc=2447967&bank=ACB&amount=${order.amount}&des=${encodeURIComponent(order.orderId)}`}
-                  alt="QR Code chuyển khoản"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-
-              {/* Copy Transfer Content Button */}
-              <CopyButton text={displayNote} />
-            </div>
-
-            {/* Footer Instructions */}
-            <div className="border-t border-gray-200 pt-6 space-y-4">
-              <p className="text-center text-gray-600 text-sm leading-relaxed mx-auto max-w-[450px]">
-                Sau khi hoàn tất chuyển khoản, vui lòng <span className="font-semibold">không tắt trình duyệt</span> cho đến khi nhận được
-                kết quả giao dịch trên website. Xin cảm ơn!
-              </p>
-              <div className="flex items-center justify-center gap-2">
-                {order.status === "completed" ? (
-                  <>
-                    <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                    <p className="font-semibold text-green-700">Đã thanh toán thành công</p>
-                  </>
-                ) : (
-                  <>
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <p className="font-semibold text-green-700">
-                      {isPolling ? "Đang kiểm tra thanh toán..." : "Đang chờ chuyển khoản"}
-                    </p>
-                  </>
-                )}
-              </div>
-              <div className="flex justify-center pt-2">
-                <a
-                  href="tel:0927090848"
-                  className="px-6 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold transition text-sm"
-                >
-                  📞 Báo cáo sự cố: 0927090848
-                </a>
-              </div>
-            </div>
+            
+            <CopyButton text={displayNote} />
+            <p className="text-[11px] text-gray-400 mt-3 italic">Nhấn để sao chép nội dung chuyển khoản</p>
           </div>
-        </div>
 
-        {/* Order Summary */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-          <p className="text-center text-gray-600 mb-6">
-            Cảm ơn bạn. Đơn hàng của bạn đã được nhận.
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <SummaryBox label="Mã đơn" value={displayOrderId} />
-            <SummaryBox label="Thời gian" value={displayDate} />
-            <SummaryBox label="Thanh toán" value={displayAmount} />
-            <SummaryBox label="Hình thức" value={displayMethod} />
+          {/* Footer Check Status */}
+          <div className="pt-6 text-center space-y-4">
+            <p className="text-[13px] text-gray-500 max-w-[480px] mx-auto leading-relaxed">
+              Sau khi hoàn tất chuyển khoản, vui lòng <span className="font-bold text-[#2D3142]">không tắt trình duyệt</span> cho đến khi nhận được kết quả giao dịch trên website. Xin cảm ơn!
+            </p>
+            
+            <div className="flex items-center justify-center gap-2 text-sm font-bold">
+              {order.status === "completed" ? (
+                <>
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-green-600">Đã thanh toán thành công</span>
+                </>
+              ) : (
+                <>
+                  <div className="w-2 h-2 bg-[#27AE60] rounded-full animate-pulse"></div>
+                  <span className="text-[#27AE60]">
+                    {isPolling ? "Đang kiểm tra thanh toán..." : "Đang chờ chuyển khoản"}
+                  </span>
+                </>
+              )}
+            </div>
+
+            <a
+              href="tel:0927090848"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#F8F9FA] hover:bg-gray-100 text-[#2D3142] font-semibold transition text-xs border border-gray-100"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              Báo cáo sự cố: 0927090848
+            </a>
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Link
-            href={ROUTES.SUBSCRIPTION}
-            className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-white font-semibold transition shadow-md hover:shadow-lg"
-          >
-            Trở về trang chủ
-          </Link>
-          <Link
-            href={ROUTES.ACCOUNT.ORDER_HISTORY}
-            className="inline-flex items-center justify-center px-6 py-3 rounded-xl border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold transition"
-          >
-            Xem lịch sử đơn hàng
-          </Link>
         </div>
       </div>
 
-      {/* Payment Success Modal */}
-      <Modal
-        open={isPaymentSuccessModalOpen}
-        onCancel={() => setIsPaymentSuccessModalOpen(false)}
-        footer={null}
-        centered
-        closable={true}
-        width={500}
-      >
-        <div className="text-center py-6">
-          <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-12 h-12 text-green-600" />
-            </div>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            Thanh toán thành công!
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Đơn hàng <span className="font-semibold">{displayOrderId}</span> của bạn đã được thanh toán thành công.
-            <br />
-            Tài khoản Pro đã được kích hoạt.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              type="primary"
-              size="large"
-              onClick={() => {
-                setIsPaymentSuccessModalOpen(false);
-                router.push(ROUTES.ACCOUNT.DASHBOARD);
-              }}
-              className="bg-yellow-500 hover:bg-yellow-600 border-none"
-            >
-              Vào Dashboard
-            </Button>
-            <Button
-              size="large"
-              onClick={() => setIsPaymentSuccessModalOpen(false)}
-            >
-              Ở lại trang này
-            </Button>
-          </div>
+      {/* 3. Order Summary Footer */}
+      <div className="w-full text-center mb-2">
+        <p className="text-[13px] text-gray-500 mb-4">Cảm ơn bạn. Đơn hàng của bạn đã được nhận.</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <SummaryBox label="MÃ ĐƠN" value={`#IELTS PRED ${order.orderId.substring(0,6)}`} />
+          <SummaryBox label="THỜI GIAN" value={dayjs(order.createdAt).format("DD Tháng MM, YYYY")} />
+          <SummaryBox label="THANH TOÁN" value={displayAmount} />
+          <SummaryBox label="HÌNH THỨC" value="Ngân hàng ACB (Ngân hàng Á Châu)" />
         </div>
-      </Modal>
+      </div>
+
+      {/* 4. Action Buttons */}
+      <div className="flex items-center gap-3 mt-4">
+        <Link
+          href={ROUTES.SUBSCRIPTION}
+          className="px-6 py-2.5 rounded-lg bg-tertiary-500 hover:bg-[#E08A40] text-white font-bold text-sm transition-colors"
+        >
+          Trở về trang chủ
+        </Link>
+        <Link
+          href={ROUTES.ACCOUNT.ORDER_HISTORY}
+          className="px-6 py-2.5 rounded-lg border border-gray-200 bg-white text-[#2D3142] hover:bg-gray-50 font-bold text-sm transition-colors"
+        >
+          Xem lịch sử đơn hàng
+        </Link>
+      </div>
     </div>
   );
 };
 
-const InfoRow = ({
-  label,
-  value,
-  className = ""
-}: {
-  label: string;
-  value: string;
-  className?: string;
-}) => (
-  <div className={`bg-gray-50 rounded-lg p-4 border border-gray-200 ${className}`}>
-    <div className="text-xs uppercase text-gray-500 font-semibold mb-1 tracking-wide">
-      {label}
-    </div>
-    <div className="text-base font-bold text-gray-900 break-all">
-      {value}
-    </div>
+const InfoRow = ({ label, value, className = "" }: { label: string; value: string; className?: string; }) => (
+  <div className={`bg-[#F8F9FA] rounded-xl p-3 border border-gray-100 flex flex-col justify-center ${className}`}>
+    <div className="text-[10px] text-gray-500 font-bold mb-1 tracking-wide">{label}</div>
+    <div className="text-sm font-bold text-[#2D3142] break-all">{value}</div>
   </div>
 );
 
 const SummaryBox = ({ label, value }: { label: string; value: string }) => (
-  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 p-4 text-center">
-    <p className="text-xs uppercase text-gray-500 font-semibold mb-2 tracking-wide">
-      {label}
-    </p>
-    <p className="text-lg font-bold text-gray-900 break-words">
-      {value}
-    </p>
+  <div className="bg-[#F8F9FA] rounded-xl border border-gray-100 p-4 text-center">
+    <p className="text-[10px] uppercase text-gray-500 font-bold mb-1 tracking-wide">{label}</p>
+    <p className="text-xs font-bold text-[#2D3142] break-words">{value}</p>
   </div>
 );
 
@@ -365,6 +298,21 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
     }
 
     try {
+      if (orderId === "mock") {
+        return {
+          props: {
+            order: {
+              orderId: "17742607371538227",
+              amount: 600000,
+              createdAt: new Date().toISOString(),
+              paymentMethod: "bank_transfer",
+              transferContent: "IELTS PREDICTION 17742607371538227",
+              status: "pending",
+            },
+          },
+        };
+      }
+
       const orderRow = await getOrderById(supabaseAdmin, orderId);
 
       if (!orderRow) {

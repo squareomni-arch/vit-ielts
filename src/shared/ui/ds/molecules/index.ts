@@ -6,3 +6,4 @@ export * from './test-card';
 export * from './blog-card';
 export * from './stat-card';
 export * from './pricing-card';
+export * from './category-card';

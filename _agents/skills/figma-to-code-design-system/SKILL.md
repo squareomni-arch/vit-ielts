@@ -16,15 +16,23 @@ Trước khi implement BẤT KỲ UI nào, agent **PHẢI** đọc file:
 
 ```
 _agents/skills/figma-to-code-design-system/FIGMA_REFERENCE.md
+_agents/skills/figma-to-code-design-system/GEOMETRIC_RESPONSIVE.md   ← ⭐ NEW: Responsive computation
 ```
 
-File này chứa **tất cả design tokens chính xác** được extract trực tiếp từ Figma API:
+**FIGMA_REFERENCE.md** chứa **tất cả design tokens chính xác** được extract trực tiếp từ Figma API:
 - Color palette (20 colors với hex codes chính xác)
 - Typography scale (font: Noto Sans, 9 text styles)
 - Effects (box-shadow values)
 - Component node IDs (để extract chi tiết khi cần)
 - Page node IDs (để extract layout khi cần)
 - Icon inventory (43 icons với node IDs)
+
+**GEOMETRIC_RESPONSIVE.md** chứa **quy trình tính toán hình học** để:
+- Detect layout type (flex/grid/absolute) từ node data
+- Quantize px → Tailwind spacing/font/radius classes (lookup tables)
+- Compute responsive width fractions từ parent/child ratio
+- Scale padding, gap, typography cho mobile breakpoints
+- Output chính xác className string với responsive prefixes
 
 ### Figma API Scripts (trong `scripts/`)
 
@@ -840,7 +848,11 @@ Is this component used on MORE THAN ONE page?
 
 ---
 
-## 6. Phase 5 — Responsive Adaptation
+## 6. Phase 5 — Responsive Adaptation (Geometric Computation)
+
+> ⭐ **BẮT BUỘC**: Agent PHẢI đọc và tuân theo `GEOMETRIC_RESPONSIVE.md` cho mọi responsive decisions.
+> File đó chứa lookup tables, decision trees, và computation template.
+> **KHÔNG ĐƯỢC** đoán responsive behavior — phải **tính toán** từ dữ liệu hình học.
 
 ### 6.1 Breakpoint System
 
@@ -856,75 +868,44 @@ Sử dụng breakpoints đã define trong `globals.css`:
 --breakpoint-xxl: 1536px;
 ```
 
-### 6.2 Mobile-First CSS Pattern
+### 6.2 Responsive Computation Workflow
 
-```css
-/* ═══ Mobile-first approach ═══ */
+Khi implement bất kỳ section/component nào:
 
-/* Base = Mobile (< 550px) */
-.hero {
-  padding: var(--space-6) var(--space-4);
-  text-align: center;
-}
+```
+1. Chạy: node scripts/figma-find-node.mjs <node-id>
+   → Lấy bounds, layout, gap, pad, children
 
-.hero__title {
-  font-size: var(--text-2xl);
-  line-height: var(--leading-tight);
-}
+2. MỞ GEOMETRIC_RESPONSIVE.md → follow steps:
+   Step 1: Detect layout type (flex/grid/absolute)
+   Step 2: Quantize spacing values (px → Tailwind scale)
+   Step 3: Compute width ratios → fraction mapping
+   Step 4: Apply grid responsive column rules
+   Step 5: Scale padding for mobile
+   Step 6: Scale typography for mobile
+   Step 7: Map colors to design tokens
 
-.hero__grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-4);
-}
+3. Ghi computation vào comment block hoặc artifact
+   (dùng Computation Walkthrough Template trong GEOMETRIC_RESPONSIVE.md)
 
-/* Tablet (≥ 550px) */
-@media (min-width: 550px) {
-  .hero {
-    padding: var(--space-8) var(--space-6);
-  }
-
-  .hero__title {
-    font-size: var(--text-3xl);
-  }
-
-  .hero__grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-6);
-  }
-}
-
-/* Desktop (≥ 1024px) */
-@media (min-width: 1024px) {
-  .hero {
-    padding: var(--space-16) var(--space-8);
-    text-align: left;
-  }
-
-  .hero__title {
-    font-size: var(--text-5xl);
-  }
-
-  .hero__grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
+4. Output className string với responsive prefixes
 ```
 
-### 6.3 Responsive Utility Classes (Optional)
+### 6.3 Mobile-First Pattern
 
-Nếu cần responsive nhanh trong page composition, CÓ THỂ dùng Tailwind:
+Tailwind = mobile-first. Base classes = mobile, add breakpoint prefixes for larger screens.
 
 ```tsx
-// ✅ OK: Tailwind cho layout composition ở page level
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-  {items.map(item => (
-    <TestCard key={item.id} data={item} /> // DS component, no Tailwind inside
-  ))}
-</div>
+// ✅ ĐÚNG: Computed từ geometric data
+// Parent: 1440px, gap: 48px, pad: [80,120,80,120]
+// Text: 600/1440 = 0.42 ≈ w-2/5 | Image: 520/1440 = 0.36 ≈ w-1/3
+<section className="flex flex-col lg:flex-row gap-7 lg:gap-12 py-10 lg:py-20 px-4 sm:px-6 lg:px-8 xl:px-[120px]">
+  <div className="w-full lg:w-2/5">...</div>
+  <div className="w-full lg:w-1/3">...</div>
+</section>
 
-// ❌ SAI: Tailwind inside DS component
-// Bên trong <TestCard>, KHÔNG dùng Tailwind classes
+// ❌ SAI: Đoán không có basis
+<section className="flex flex-col md:flex-row gap-8 p-4 md:p-16">
 ```
 
 ### 6.4 Responsive Component Props
@@ -939,17 +920,6 @@ type ContainerProps = {
   children: React.ReactNode;
   className?: string;
 };
-
-// CSS handles the responsive mapping
-.container--lg {
-  max-width: var(--container-lg);
-}
-
-@media (min-width: 1200px) {
-  .container--lg {
-    max-width: var(--container-xl);
-  }
-}
 ```
 
 ---

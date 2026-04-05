@@ -218,7 +218,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
 
       return {
         props: {
-          post,
+          post: JSON.parse(JSON.stringify(post)),
         },
       };
     } catch (error) {

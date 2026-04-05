@@ -13,6 +13,7 @@ export type TestCardProps = {
   attempts?: number;
   part?: 1 | 2 | 3 | 4 | 5 | string;
   isPro?: boolean;
+  isLocked?: boolean;
   score?: string | number;
   actionText?: string;
   href?: string;
@@ -33,6 +34,7 @@ export const TestCard = ({
   attempts,
   part,
   isPro,
+  isLocked,
   score,
   actionText = "Kiểm Tra", // default action
   href,
@@ -43,91 +45,90 @@ export const TestCard = ({
   const linkProps = href ? { href } : {};
 
   return (
-    <Tag 
-      {...linkProps} 
+    <Tag
+      {...linkProps}
       onClick={onClick}
-      className={`group flex flex-col bg-white rounded-[24px] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.1)] hover:-translate-y-[6px] border border-gray-100 transition-all duration-400 cursor-pointer ${className}`}
+      className={`group flex flex-col bg-white rounded-[30px] outline-none shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] transition-transform duration-350 ease-[var(--ease-slide)] hover:-translate-y-3.5 w-full max-w-[356px] h-[400px] ${className} ${!href ? 'cursor-default' : 'cursor-pointer'}`}
     >
-      {/* Upper Image Section */}
-      <div className="relative aspect-[496/340] bg-[#FAF7EB] overflow-hidden">
+      {/* Upper Image Section — Figma spec: 356×220 */}
+      <div className="relative h-[220px] shrink-0 overflow-hidden bg-secondary-50 rounded-t-[30px] rounded-b-[15px]">
         {image ? (
-          <img 
-            src={image} 
-            alt={title} 
-            className="absolute inset-[10%] w-[80%] h-[80%] object-contain transition-transform duration-500 group-hover:scale-105" 
-            loading="lazy" 
+          <img
+            src={image}
+            alt={title}
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="lazy"
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_var(--color-secondary-200),_white_55%,_var(--color-primary-50))]" />
         )}
-        
-        {/* Overlays */}
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none z-10">
-          <div className="flex flex-col gap-2">
+
+        {/* Overlays: Part tag (left), PRO tag (right) */}
+        <div className="absolute top-0 left-0 right-0 flex items-start justify-between p-4 z-10 pointer-events-none">
+          <div className="flex gap-2">
             {part !== undefined && (
-              <div className="inline-flex select-none items-center justify-center rounded-full bg-[#F2994A] px-3 py-1 text-xs font-bold text-white shadow-sm">
-                Part {part}
-              </div>
+              <span className="rounded-[8px] bg-tertiary-500 px-3 py-[6px] text-[13px] font-bold text-white shadow-sm">
+                {typeof part === 'number' || (typeof part === 'string' && /^\d+$/.test(part)) ? `Part ${part}` : part}
+              </span>
             )}
-            {skill && (
-               <Badge variant={skill} size="md">
-                 {skill.charAt(0).toUpperCase() + skill.slice(1)}
-               </Badge>
+            {/* Fallback to show skill if part is not given, so layout doesn't break conceptually */}
+            {part === undefined && skill && (
+              <span className="rounded-[8px] bg-tertiary-500 px-3 py-[6px] text-[13px] font-bold text-white shadow-sm capitalize">
+                {skill}
+              </span>
             )}
           </div>
-          <div>
-             {isPro && <ProBadge />}
-          </div>
+          {isPro && (
+            <span className="rounded-[8px] bg-primary-500 px-3 py-[6px] text-[13px] font-bold uppercase tracking-wide text-white shadow-sm">
+              PRO
+            </span>
+          )}
         </div>
       </div>
-      
+
       {/* Body Section */}
-      <div className="flex flex-col p-6 flex-1 bg-white">
-        <h3 className="font-bold text-[#2D3142] text-[20px] line-clamp-2 title-min-h leading-[1.4] mb-1 group-hover:text-[#D94A56] transition-colors">
-          {title}
-        </h3>
-        {subtitle && <p className="text-sm text-gray-500 line-clamp-1 mb-1">{subtitle}</p>}
-        {attempts !== undefined && <p className="text-[14px] text-gray-500 font-medium">{attempts} attempts</p>}
-        
-        {/* Legacy Meta Component */}
-        {(author || views !== undefined) && (
-          <div className="flex items-center justify-between gap-2 mt-auto pt-4">
-            {author && (
-              <div className="flex items-center gap-2">
-                {authorAvatar && <img src={authorAvatar} alt={author} className="w-5 h-5 rounded-full object-cover" />}
-                <span className="text-xs text-gray-500 font-medium">{author}</span>
-              </div>
-            )}
-            {views !== undefined && (
-              <span className="text-xs text-gray-400 font-medium">👁 {formatViews(views)}</span>
-            )}
-          </div>
-        )}
+      <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+        <div className="space-y-[8px] mb-4">
+          <h3 className="line-clamp-2 overflow-hidden text-ellipsis font-['Noto_Sans'] text-[18px] font-bold leading-normal text-[#242938] transition-colors group-hover:text-primary-500">
+            {title}
+          </h3>
+          {(subtitle || attempts !== undefined) && (
+            <p className="font-['Noto_Sans'] text-[14px] font-normal leading-normal text-[#6A7282]">
+              {attempts !== undefined ? `${attempts.toLocaleString()} attempts` : subtitle}
+            </p>
+          )}
+        </div>
 
         {/* Action Row */}
         {(actionText || score !== undefined) && (
-          <div className="flex items-center justify-between mt-[24px]">
+          <div className="mt-auto flex items-end justify-between gap-3">
             {actionText && (
-               <div className="flex items-center gap-[6px] border border-gray-200 rounded-[30px] px-5 py-2 group-hover/btn:border-[#D94A56] hover:bg-[#FFF5F5] transition-all duration-300 group/btn">
-                 {actionText.toLowerCase().includes('thử lại') ? (
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-[#D94A56] flex-shrink-0" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                      <path d="M3 3v5h5" />
+              <div className="relative flex h-[49px] flex-1 min-w-0 max-w-[190px] items-center gap-[10px] px-4 rounded-[25px] border border-[rgba(128,128,128,0.55)] bg-white overflow-hidden transition-[border-color] duration-300 hover:border-[var(--color-primary-450)] pointer-events-auto group/btn">
+                {/* Left-to-right fill overlay */}
+                <div className="absolute inset-0 translate-x-[-100%] group-hover/btn:translate-x-0 transition-transform duration-300 ease-out bg-[var(--color-primary-450)] rounded-[25px]" />
+                {/* Icon */}
+                <div className="relative z-10 flex-shrink-0 text-[var(--color-primary-500)] group-hover/btn:text-white transition-colors duration-300">
+                  {isLocked ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M18 8H6C4.89543 8 4 8.89543 4 10V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V10C20 8.89543 19.1046 8 18 8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M7 8V6C7 4.67392 7.52678 3.40215 8.46447 2.46447C9.40215 1.52678 10.6739 1 12 1C13.3261 1 14.5979 1.52678 15.5355 2.46447C16.4732 3.40215 17 4.67392 17 6V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                 ) : (
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-[#D94A56] flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="12" cy="12" r="10.5" stroke="currentColor" strokeWidth="2"/>
-                      <path d="M10.5 8.5L15.5 12L10.5 15.5V8.5Z" fill="currentColor"/>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                      <path d="M10 8L16 12L10 16V8Z" fill="currentColor" />
                     </svg>
-                 )}
-                 <span className="font-bold text-[#2D3142] text-[15px] group-hover/btn:text-[#D94A56] transition-colors">{actionText}</span>
-               </div>
+                  )}
+                </div>
+                {/* Label */}
+                <span className="relative z-10 font-['Noto_Sans'] text-[15px] font-bold text-[#242938] group-hover/btn:text-white transition-colors duration-300 truncate">{actionText}</span>
+              </div>
             )}
-            
+
             {score !== undefined && (
-               <div className="flex items-center justify-center w-[52px] h-[52px] rounded-full border border-gray-200 text-[#D94A56] font-bold text-[18px] group-hover:border-[#D94A56] group-hover:bg-[#FFF5F5] transition-colors duration-300">
-                 {score}
-               </div>
+              <div className="flex h-[60px] w-[60px] flex-col items-center justify-center p-[10px] rounded-full border border-[rgba(128,128,128,0.55)] bg-white flex-shrink-0">
+                <span className="text-primary-500 font-['Noto_Sans'] text-[18px] font-bold leading-none">{score}</span>
+              </div>
             )}
           </div>
         )}

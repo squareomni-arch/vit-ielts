@@ -93,7 +93,13 @@ export async function getQuizzes(
 
     // Apply filters
     if (filters.skill) query = query.eq("skill", filters.skill);
-    if (filters.type) query = query.eq("type", filters.type);
+    if (filters.type) {
+        if (filters.type === "exam" as any) {
+            query = query.in("type", ["academic", "general"]);
+        } else {
+            query = query.eq("type", filters.type);
+        }
+    }
     if (filters.year) query = query.eq("year", filters.year);
     if (filters.source) query = query.eq("source", filters.source);
     if (filters.quarter) query = query.eq("quarter", filters.quarter);

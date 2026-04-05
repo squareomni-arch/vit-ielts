@@ -32,7 +32,7 @@ import { countQuestion } from "@/shared/lib";
 import {
   DndContext,
   DragOverlay,
-  Keyboarensor,
+  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
@@ -392,7 +392,7 @@ export function PageTakeTheTest() {
   const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(Keyboarensor)
+    useSensor(KeyboardSensor)
   );
 
   useEffect(() => {

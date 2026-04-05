@@ -36,7 +36,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
     date: quiz.published_at ?? quiz.created_at,
     featuredImage: quiz.featured_image
       ? { node: { sourceUrl: quiz.featured_image, altText: quiz.title } }
-      : undefined,
+      : null,
     quizFields: {
       testsTaken: quiz.tests_taken ?? 0,
       proUserOnly: quiz.pro_user_only,
@@ -46,7 +46,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
       scoreType: [quiz.score_type ?? "band", quiz.score_type ?? "band"],
       audio: quiz.audio_url
         ? { node: { id: quiz.id, mediaItemUrl: quiz.audio_url } }
-        : undefined,
+        : null,
       passages: (quiz.passages ?? []).map((p) => ({
         title: p.title ?? "",
         passage_content: p.content ?? "",
@@ -60,19 +60,19 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
           question_form: [q.question_form ?? "uncategorized", q.question_form ?? "uncategorized"] as [string, string],
           title: q.title ?? "",
           type: [q.type, q.type] as [string, string],
-          question: q.question_text ?? undefined,
-          instructions: q.instructions ?? undefined,
+          question: q.question_text ?? null,
+          instructions: q.instructions ?? null,
           list_of_questions: Array.isArray(listOfQuestions) ? listOfQuestions.map((lq) => ({
             question: lq.question,
             correct: typeof lq.correct === "string" ? parseInt(lq.correct, 10) || 0 : Number(lq.correct),
             options: (Array.isArray(lq.options) ? lq.options : []).map((o: any) => ({
               content: o.option_text ?? o.content ?? "",
             })),
-          })) : undefined,
+          })) : null,
           list_of_options: Array.isArray(listOfOptions) ? listOfOptions.map((lo) => ({
             option: lo.option_text ?? lo.option ?? "",
-            correct: lo.correct ?? undefined,
-          })) : undefined,
+            correct: lo.correct ?? null,
+          })) : null,
           explanations: explanations.map((e: any) => ({ content: e.content ?? "" })),
           matchingQuestion: matchingQ
             ? {
@@ -91,7 +91,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
                 optionText: ao.option_text ?? ao.optionText ?? "",
               })),
             }
-            : undefined,
+            : null,
           matrixQuestion: matrixQ
             ? {
               matrixCategories: (Array.isArray(matrixQ.matrix_categories) ? matrixQ.matrix_categories
@@ -110,7 +110,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
               })(),
               legendTitle: matrixQ.legend_title ?? matrixQ.legendTitle ?? "",
             }
-            : undefined,
+            : null,
         }}),
       })),
     },
@@ -181,7 +181,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
               srcSet: userProfile.avatar_url,
             },
           }
-          : undefined,
+          : null,
       },
     };
 

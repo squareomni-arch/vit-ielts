@@ -42,7 +42,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
     date: quiz.published_at ?? quiz.created_at,
     featuredImage: quiz.featured_image
       ? { node: { sourceUrl: quiz.featured_image, altText: quiz.title } }
-      : undefined,
+      : null,
     quizFields: {
       testsTaken: quiz.tests_taken ?? 0,
       proUserOnly: quiz.pro_user_only,
@@ -52,12 +52,12 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
       scoreType: [(quiz.score_type ?? "band") as "band" | "percentage", quiz.score_type ?? "band"],
       audio: quiz.audio_url
         ? { node: { id: quiz.id, mediaItemUrl: quiz.audio_url, databaseId: 0 } }
-        : undefined,
+        : null,
       passages: (quiz.passages ?? []).map((p) => ({
         title: p.title ?? "",
         passage_content: p.content ?? "",
-        audio_start: p.audio_start?.toString() ?? undefined,
-        audio_end: p.audio_end?.toString() ?? undefined,
+        audio_start: p.audio_start?.toString() ?? null,
+        audio_end: p.audio_end?.toString() ?? null,
         questions: (p.questions ?? []).map((q) => {
           const listOfQuestions = safeParseJsonb<any[]>(q.list_of_questions);
           const listOfOptions = safeParseJsonb<any[]>(q.list_of_options);
@@ -126,7 +126,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
       })) as any,
       pdf: quiz.pdf_url
         ? { node: { id: quiz.id, mediaItemUrl: quiz.pdf_url, databaseId: 0 } }
-        : undefined,
+        : null,
     },
   };
 }
@@ -169,9 +169,9 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
         if (existingResult) {
           return {
             props: {
-              post,
+              post: JSON.parse(JSON.stringify(post)),
               testID: testId,
-              testResult: { testResultFields: toITestResult(existingResult) },
+              testResult: JSON.parse(JSON.stringify({ testResultFields: toITestResult(existingResult) })),
             },
           };
         }
@@ -206,9 +206,9 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
 
       return {
         props: {
-          post,
+          post: JSON.parse(JSON.stringify(post)),
           testID: newTestResult.id,
-          testResult: { testResultFields: toITestResult(newTestResult) },
+          testResult: JSON.parse(JSON.stringify({ testResultFields: toITestResult(newTestResult) })),
         },
       };
     } catch (error) {

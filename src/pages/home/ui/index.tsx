@@ -12,6 +12,7 @@ import type { TestPlatformIntroConfig } from "./ielts-test-platform-intro/types"
 import type { WhyChooseUsConfig } from "./why-choose-us/types";
 import type { TestimonialsConfig } from "./testimonials/types";
 import type { PracticeSectionConfig } from "@/shared/types/admin-config";
+import type { Quiz } from "~services/types/database";
 
 interface PageHomeProps {
   heroBannerConfig: HeroBannerConfig;
@@ -19,6 +20,9 @@ interface PageHomeProps {
   whyChooseUsConfig: WhyChooseUsConfig;
   testimonialsConfig: TestimonialsConfig;
   practiceSectionConfig: PracticeSectionConfig;
+  examQuizzes: Quiz[];
+  listeningQuizzes: Quiz[];
+  readingQuizzes: Quiz[];
 }
 
 export const PageHome = ({
@@ -27,6 +31,9 @@ export const PageHome = ({
   whyChooseUsConfig,
   testimonialsConfig,
   practiceSectionConfig,
+  examQuizzes,
+  listeningQuizzes,
+  readingQuizzes,
 }: PageHomeProps) => {
   const { isSignedIn } = useAuth();
   return (
@@ -60,22 +67,17 @@ export const PageHome = ({
         <PracticeSection
           title="IELTS Online Test"
           viewMoreLink={ROUTES.EXAM.ARCHIVE}
+          items={examQuizzes}
         />
         <PracticeSection
           title="IELTS Listening Practice"
           viewMoreLink={ROUTES.PRACTICE.ARCHIVE_LISTENING}
+          items={listeningQuizzes}
         />
         <PracticeSection
           title="IELTS Reading Practice"
           viewMoreLink={ROUTES.PRACTICE.ARCHIVE_READING}
-        />
-        <PracticeSection
-          title="IELTS Reading Sample"
-          viewMoreLink={ROUTES.EXAM.ARCHIVE}
-        />
-        <PracticeSection
-          title="IELTS Speaking Sample"
-          viewMoreLink={ROUTES.EXAM.ARCHIVE}
+          items={readingQuizzes}
         />
       </div>
       {/* === SECTION: Testimonials (Marquee) === */}

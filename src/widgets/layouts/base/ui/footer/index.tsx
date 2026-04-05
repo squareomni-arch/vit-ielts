@@ -130,53 +130,41 @@ export const Footer = () => {
       </div>
 
       {/* === SECTION: Footer Main Content (Links + Newsletter) === */}
-      <div data-section="footer-links" className="bg-white">
-        <Container className="py-14">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Left Section - Branding and Social */}
-            <div className="space-y-6">
+      <div data-section="footer-links" className="bg-[#374151] pt-16 pb-12">
+        <Container>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-12 gap-y-12">
+            
+            {/* Left Section - Branding, Social & Contact CTA */}
+            <div className="space-y-6 flex flex-col items-start lg:pr-6">
               {/* Logo */}
-              <Link href={ROUTES.HOME} className="block">
-                {logo?.node?.sourceUrl ? (
-                  <div className="relative w-32 h-12">
-                    <Image
-                      src={logo.node.sourceUrl}
-                      alt={generalSettingsTitle || "Logo"}
-                      fill
-                      className="object-contain"
-                      sizes="128px"
-                    />
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 bg-[#d94a56] rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">
-                        {generalSettingsTitle?.charAt(0) || "L"}
-                      </span>
-                    </div>
-                    <span className="text-[#d94a56] font-bold text-xl">
-                      {generalSettingsTitle || "Logo"}
-                    </span>
-                  </div>
-                )}
+              <Link href={ROUTES.HOME} className="block w-full">
+                <div className="relative w-[120px] h-[60px] md:w-[150px] md:h-[70px]">
+                  <Image
+                    src="/assets/figma/logos/logo-white.png"
+                    alt={generalSettingsTitle || "IPT Logo"}
+                    fill
+                    className="object-contain object-left"
+                    sizes="150px"
+                  />
+                </div>
               </Link>
 
               {/* Tagline */}
-              <p className="text-gray-700 text-sm leading-relaxed">
+              <p className="text-white text-[14px] leading-[21px] font-normal font-noto-sans">
                 IELTS PREDICTION Test (IPT) specializes in providing highly
                 accuratte test simulations and forecast sets that closely
                 reflect the real IELTS exam.
               </p>
 
               {/* Social Media Icons */}
-              <div className="flex gap-3">
+              <div className="flex gap-4 items-center">
                 {socialLinks.map((social, index) => (
                   <Link
                     key={index}
                     href={social.url || "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-300 transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+                    className="w-10 h-10 rounded-full bg-[#E5E7EB] flex items-center justify-center text-gray-800 hover:bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
                     title={social.name}
                   >
                     {social.icon}
@@ -185,30 +173,31 @@ export const Footer = () => {
               </div>
 
               {/* Contact Button */}
-              <Link href="/contact">
-                <Button
-                  className="border-[3px] font-semibold text-gray-700 rounded-full h-[50px] px-[16px] pl-[20px] hover:bg-[#d94a56] hover:text-white hover:border-[#d94a56] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-                  style={{
-                    borderColor: "#d94a56",
-                  }}
-                >
-                  Contact With Us{" "}
-                  <span className="material-symbols-rounded text-[20px]">
-                    arrow_forward
-                  </span>
-                </Button>
-              </Link>
+              <div className="pt-2">
+                <Link href="/contact">
+                  <button className="flex flex-row justify-center items-center px-5 py-0 h-[58px] bg-white rounded-[30px] gap-2 lg:gap-4 hover:shadow-lg transition-transform hover:-translate-y-1">
+                    <span className="font-noto-sans font-bold text-[14px] leading-[19px] text-[#D94A56]">
+                      Contact Us
+                    </span>
+                    <span className="material-symbols-rounded text-[#D94A56] text-[20px] font-bold">
+                      chevron_right
+                    </span>
+                  </button>
+                </Link>
+              </div>
             </div>
 
             {/* Middle Section - Useful Links */}
             <div>
-              <h3 className="font-bold text-gray-800 mb-4">Useful Links</h3>
-              <ul className="space-y-3">
+              <h3 className="font-noto-sans font-bold text-[14px] leading-[19px] text-white mb-6">
+                Useful Links
+              </h3>
+              <ul className="space-y-4">
                 {usefulLinks.map((link, index) => (
                   <li key={index}>
                     <Link
                       href={link.href}
-                      className="text-gray-700 hover:text-[#d94a56] transition-colors text-sm"
+                      className="font-noto-sans font-normal text-[14px] leading-[19px] text-white hover:text-gray-300 transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -219,13 +208,15 @@ export const Footer = () => {
 
             {/* Middle Section - Our Company */}
             <div>
-              <h3 className="font-bold text-gray-800 mb-4">Our Company</h3>
-              <ul className="space-y-3">
+              <h3 className="font-noto-sans font-bold text-[14px] leading-[19px] text-white mb-6">
+                Our Company
+              </h3>
+              <ul className="space-y-4">
                 {companyLinks.map((link, index) => (
                   <li key={index}>
                     <Link
                       href={link.href}
-                      className="text-gray-700 hover:text-[#d94a56] transition-colors text-sm"
+                      className="font-noto-sans font-normal text-[14px] leading-[19px] text-white hover:text-gray-300 transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -235,19 +226,21 @@ export const Footer = () => {
             </div>
 
             {/* Right Section - Get Contact & Newsletter */}
-            <div className="space-y-6">
+            <div className="space-y-10">
               {/* Get Contact */}
               <div>
-                <h3 className="font-bold text-gray-800 mb-4">Get Contact</h3>
-                <ul className="space-y-3 text-sm text-gray-700">
-                  <li>Phone: {phoneNumber || "(406) 555-0120"}</li>
+                <h3 className="font-noto-sans font-bold text-[14px] leading-[19px] text-white mb-6">
+                  Get Contact
+                </h3>
+                <ul className="space-y-4 font-noto-sans font-normal text-[14px] leading-[19px] text-white">
+                  <li>Phone: {phoneNumber || "0927090848"}</li>
                   <li>
                     E-mail:{" "}
                     <Link
-                      href={`mailto:${email}`}
-                      className="hover:text-[#d94a56] transition-colors"
+                      href={`mailto:${email || "ieltsprediction9@gmail.com"}`}
+                      className="hover:text-gray-300 transition-colors"
                     >
-                      {email || "admin@example.com"}
+                      {email || "ieltsprediction9@gmail.com"}
                     </Link>
                   </li>
                   <li>Address: 15205 North Kierland Blvd.</li>
@@ -256,31 +249,28 @@ export const Footer = () => {
 
               {/* Newsletter */}
               <div>
-                <h3 className="font-bold text-gray-800 mb-4">Newsletter</h3>
+                <h3 className="font-noto-sans font-bold text-[14px] leading-[19px] text-white mb-6">
+                  Newsletter
+                </h3>
                 <form onSubmit={handleNewsletterSubmit}>
-                  {/* Container chính tạo hình viên thuốc và viền bao quanh */}
-                  <div className="flex items-center justify-between p-1 pl-1 bg-white border border-gray-200 rounded-full shadow-sm focus-within:ring-2 focus-within:ring-blue-100 transition-all">
-                    {/* Input: Loại bỏ viền mặc định, set background trong suốt */}
+                  {/* Form Container */}
+                  <div className="flex items-center justify-between p-[4px] pl-[16px] bg-white border border-[#E5E7EB] rounded-[33.5px] shadow-[0px_1px_3px_rgba(0,0,0,0.1),_0px_1px_2px_-1px_rgba(0,0,0,0.1)] focus-within:ring-2 focus-within:ring-blue-100 transition-all w-full h-[58px]">
                     <Input
                       placeholder="Your Email"
                       value={newsletterEmail}
                       onChange={(e) => setNewsletterEmail(e.target.value)}
-                      bordered={false} // Nếu dùng Ant Design, cái này giúp bỏ viền gốc
-                      className="flex-1 bg-transparent border-none shadow-none focus:shadow-none px-4 text-gray-600 placeholder-gray-400"
+                      bordered={false}
+                      className="flex-1 bg-transparent border-none shadow-none focus:shadow-none p-0 text-gray-800 placeholder-[#99A1AF] font-noto-sans text-[14px] outline-none"
                     />
 
-                    {/* Button: Bo tròn full, gradient màu tím xanh */}
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      className="rounded-full border-none h-12 px-8 font-medium transition-all duration-300 hover:opacity-90 hover:shadow-md"
-                      style={{
-                        background:
-                          "linear-gradient(90deg, #d01414ff 0%, #ff4848ff 100%)", // Gradient từ Xanh sang Tím/Hồng
-                      }}
+                    <button
+                      type="submit"
+                      className="flex items-center justify-center h-[49px] px-[20px] bg-[#D94A56] rounded-[25px] hover:opacity-90 transition-opacity whitespace-nowrap"
                     >
-                      Subscribe
-                    </Button>
+                      <span className="font-noto-sans font-bold text-[14px] leading-[19px] text-white">
+                        Subscribe
+                      </span>
+                    </button>
                   </div>
                 </form>
               </div>
@@ -290,20 +280,20 @@ export const Footer = () => {
       </div>
 
       {/* === SECTION: Footer Copyright === */}
-      <div data-section="footer-copyright" className="border-t border-gray-200">
+      <div data-section="footer-copyright" className="bg-[#374151] border-t border-gray-600">
         <Container className="py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-            <p>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-300">
+            <p className="font-noto-sans text-[14px]">
               Copyright © 2025 {generalSettingsTitle || "Rainbow-Themes"}. All
               Rights Reserved
             </p>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-4">
               {legalLinks.map((link, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  {index > 0 && <span className="text-gray-400">|</span>}
+                <div key={index} className="flex items-center gap-4">
+                  {index > 0 && <span className="text-gray-500">|</span>}
                   <Link
                     href={link.href}
-                    className="hover:text-gray-700 transition-colors"
+                    className="font-noto-sans text-[14px] hover:text-white transition-colors"
                   >
                     {link.label}
                   </Link>

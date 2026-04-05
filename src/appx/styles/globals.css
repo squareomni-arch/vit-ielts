@@ -98,7 +98,7 @@
 
 body {
   color: rgb(36, 41, 56);
-  font-family: Arial, sans-serif;
+  font-family: var(--font-noto-sans, "Noto Sans", sans-serif);
   font-size: 14px;
 }
 

@@ -5,6 +5,8 @@ import type { TestPlatformIntroConfig } from "./ui/ielts-test-platform-intro/typ
 import type { PracticeSectionConfig } from "@/shared/types/admin-config";
 import { createServerSupabase } from "~supabase/server";
 import { readConfig } from "~services/cms-config";
+import { getQuizzes } from "~services/quiz";
+import type { Quiz } from "~services/types/database";
 
 export { PageHome } from "./ui";
 
@@ -76,15 +78,26 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
   async (context: GetServerSidePropsContext) => {
     const supabase = createServerSupabase(context);
 
-    // Parallel fetch of all 5 home page CMS sections
-    const [heroBanner, testPlatformIntro, whyChooseUs, testimonials, practiceSection] =
-      await Promise.all([
-        readConfig<HeroBannerConfig>(supabase, "home/hero-banner").catch(() => null),
-        readConfig<TestPlatformIntroConfig>(supabase, "home/test-platform-intro").catch(() => null),
-        readConfig<WhyChooseUsConfig>(supabase, "home/why-choose-us").catch(() => null),
-        readConfig<TestimonialsConfig>(supabase, "home/testimonials").catch(() => null),
-        readConfig<PracticeSectionConfig>(supabase, "home/practice-section").catch(() => null),
-      ]);
+    // Parallel fetch of all CMS configs + quiz carousels
+    const [
+      heroBanner,
+      testPlatformIntro,
+      whyChooseUs,
+      testimonials,
+      practiceSection,
+      examQuizzes,
+      listeningQuizzes,
+      readingQuizzes,
+    ] = await Promise.all([
+      readConfig<HeroBannerConfig>(supabase, "home/hero-banner").catch(() => null),
+      readConfig<TestPlatformIntroConfig>(supabase, "home/test-platform-intro").catch(() => null),
+      readConfig(supabase, "home/why-choose-us").catch(() => null),
+      readConfig(supabase, "home/testimonials").catch(() => null),
+      readConfig<PracticeSectionConfig>(supabase, "home/practice-section").catch(() => null),
+      getQuizzes(supabase, { type: "exam", pageSize: 8 }).catch(() => ({ data: [] as Quiz[] })),
+      getQuizzes(supabase, { skill: "listening", type: "practice", pageSize: 8 }).catch(() => ({ data: [] as Quiz[] })),
+      getQuizzes(supabase, { skill: "reading", type: "practice", pageSize: 8 }).catch(() => ({ data: [] as Quiz[] })),
+    ]);
 
     return {
       props: {
@@ -93,6 +106,9 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
         whyChooseUsConfig: whyChooseUs ?? {},
         testimonialsConfig: testimonials ?? DEFAULT_TESTIMONIALS,
         practiceSectionConfig: practiceSection ?? {},
+        examQuizzes: examQuizzes.data,
+        listeningQuizzes: listeningQuizzes.data,
+        readingQuizzes: readingQuizzes.data,
       },
     };
   }

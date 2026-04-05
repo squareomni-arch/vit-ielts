@@ -96,6 +96,11 @@ export const Header = () => {
   const { isSignedIn, signOut, currentUser } = useAuth();
   const { masterData } = useAppContext();
   const [topBarConfig, setTopBarConfig] = useState<TopBarConfig | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     websiteOptions: {
@@ -274,31 +279,34 @@ export const Header = () => {
 
   const dsNavItems: HeaderNavItem[] = useMemo(() => {
     if (!masterData?.menuData["main-menu"]) return [];
-    const cmsItems = masterData.menuData["main-menu"].map((item) => {
-      const resolvedHref = resolveMenuUri(item);
-      const isSubUrl = (uri: string) => {
-         try {
-           const itemUrl = new URL(uri, window.location.origin);
-           return itemUrl.pathname === router.pathname;
-         } catch { return false; }
-      }
-      return {
-        label: (item.label || "").toString(),
-        href: resolvedHref,
-        active: activeKey === (item.key ?? resolvedHref ?? "").toString() || isSubUrl(resolvedHref),
-        children: item.children?.map(child => ({
-           label: (child.label || "").toString(),
-           href: resolveMenuUri(child)
-        }))
-      };
-    });
+    const cmsItems = masterData.menuData["main-menu"]
+      .filter((item) => (item.label || "").toString().trim().toLowerCase() !== "home")
+      .map((item) => {
+        const resolvedHref = resolveMenuUri(item);
+        const isSubUrl = (uri: string) => {
+          try {
+            const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+            const itemUrl = new URL(uri, baseUrl);
+            return itemUrl.pathname === router.pathname;
+          } catch { return false; }
+        }
+        return {
+          label: (item.label || "").toString(),
+          href: resolvedHref,
+          active: activeKey === (item.key ?? resolvedHref ?? "").toString() || isSubUrl(resolvedHref),
+          children: item.children?.map(child => ({
+            label: (child.label || "").toString(),
+            href: resolveMenuUri(child)
+          }))
+        };
+      });
     return [...cmsItems, { label: "Subscription", href: ROUTES.SUBSCRIPTION }];
   }, [masterData.menuData, activeKey, router.pathname]);
 
   return (
     <>
       {/* === SECTION: Header Top Bar === */}
-      <div data-section="header-topbar" className="bg-[#192335] text-white text-sm hidden md:block" style={{ backgroundColor: "#192335" }}>
+      <div data-section="header-topbar" className="bg-[#192335] text-white text-sm !hidden" style={{ backgroundColor: "#192335" }}>
         <Container className="py-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
@@ -342,11 +350,43 @@ export const Header = () => {
       </div>
 
       {/* === SECTION: Header Navigation === */}
+      <div className="w-full h-[50px]" />
       <DSHeader
-        logoSrc={logo?.node?.sourceUrl || "/assets/figma/logos/logo-color.png"}
+        logoSrc={"/assets/figma/logos/logo-color.png"}
         logoAlt={generalSettingsTitle || "IELTS Prediction"}
         navItems={dsNavItems}
-        isAuthenticated={isSignedIn}
+        userMenuItems={[
+          {
+            label: "My Dashboard",
+            href: ROUTES.ACCOUNT.DASHBOARD,
+          },
+          {
+            label: "My Profile",
+            href: ROUTES.ACCOUNT.MY_PROFILE,
+          },
+          {
+            label: "Order History",
+            href: ROUTES.ACCOUNT.ORDER_HISTORY,
+          },
+          ...(currentUser?.roles?.nodes?.[0]?.name === "administrator"
+            ? [
+                { divider: true },
+                {
+                  label: "Admin Dashboard",
+                  href: ROUTES.ADMIN.DASHBOARD,
+                  icon: <i className="material-symbols-rounded">home</i>,
+                },
+              ]
+            : []),
+          { divider: true },
+          {
+            label: "Logout",
+            onClick: signOut,
+            icon: <i className="material-symbols-rounded">logout</i>,
+            danger: true,
+          },
+        ]}
+        isAuthenticated={mounted && isSignedIn}
         userName={currentUser?.name || "User"}
         userAvatar={(currentUser?.userData?.avatar?.node as any)?.srcSet}
         onLogin={() => router.push(ROUTES.LOGIN(router.asPath))}
@@ -354,6 +394,7 @@ export const Header = () => {
         onLogout={signOut}
         onLogoClick={() => router.push(ROUTES.HOME)}
       />
+      <div className="w-full -mt-[50px]" />
     </>
   );
 };

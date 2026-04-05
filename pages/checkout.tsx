@@ -187,67 +187,74 @@ const CheckoutPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-green-800">
-        <CheckCircle className="h-5 w-5" />
-        <p className="text-sm font-semibold">
+    <div className="space-y-6" data-section="checkout-main">
+      {/* Target: Success Alert */}
+      <div className="flex items-center gap-2 rounded-xl bg-[#EDF7ED] px-5 py-3 text-[#1E4620]">
+        <CheckCircle className="h-5 w-5 text-[#4CAF50]" />
+        <p className="text-sm font-medium">
           {productName} • {selection.duration} month
           {selection.duration > 1 ? "s" : ""} added to your cart.
         </p>
       </div>
 
-      <h2 className="text-3xl font-black text-gray-900">Cart</h2>
+      <h2 className="text-[24px] font-bold text-[#2D3142] tracking-tight">Cart</h2>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Cart items */}
-        <div className="xl:col-span-2 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-          <div className="grid grid-cols-5 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-700">
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* === Left: Cart Items Table === */}
+        <div className="flex-1 rounded-2xl border border-gray-100 bg-white overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] w-full">
+          {/* Table Header */}
+          <div className="grid grid-cols-4 bg-[#F8F9FA] px-6 py-4 text-sm font-bold text-[#2D3142] border-b border-gray-100">
             <div className="col-span-3">Subscription Plan</div>
-            <div className="col-span-2 text-right">Total</div>
+            <div className="text-right">Total</div>
           </div>
 
-          <div className="grid grid-cols-5 items-center px-4 py-4 border-t border-gray-100">
-            <div className="col-span-3 flex items-center gap-3">
+          {/* Table Body */}
+          <div className="grid grid-cols-4 px-6 py-5 items-center bg-white group">
+            <div className="col-span-3 flex items-center gap-4">
               <button
                 type="button"
-                className="text-red-500 hover:text-red-600"
+                className="text-primary-500 hover:text-primary-300 transition-colors flex-shrink-0"
                 aria-label="Remove item"
                 onClick={() => router.push(ROUTES.SUBSCRIPTION)}
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-5 w-5" />
               </button>
-              <div className="h-14 w-14 rounded-lg border border-gray-200 bg-amber-50 flex items-center justify-center text-xs font-bold text-amber-700">
+
+              <div className="h-16 w-16 rounded-xl border border-gray-100 bg-[#FAF7EB] flex items-center justify-center text-xs font-bold text-[#2D3142] flex-shrink-0" style={{ boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.04)"}}>
                 {selection.pkgType === "combo" ? "COMBO" : "SINGLE"}
               </div>
-              <div>
-                <p className="text-base font-semibold text-gray-900">
+
+              <div className="min-w-0">
+                <p className="text-base font-bold text-[#2D3142]">
                   {selection.pkgType === "combo" ? "Standard Plan" : "Single Pack"}
                 </p>
-                <p className="text-sm text-gray-600">
-                  {productName} · {selection.duration} month
+                <p className="text-sm text-gray-500 mt-0.5 truncate">
+                  {productName} • {selection.duration} month
                   {selection.duration > 1 ? "s" : ""}
                 </p>
               </div>
             </div>
-            <div className="col-span-2 text-right text-base font-semibold text-gray-900">
+
+            <div className="text-right text-base font-bold text-[#2D3142]">
               {formatPrice(selection.price)}
             </div>
           </div>
         </div>
 
-        {/* Order summary */}
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-5 space-y-4">
-          <h3 className="text-lg font-bold text-gray-900">Your order</h3>
+        {/* === Right: Order Summary === */}
+        <div className="w-full lg:w-[360px] flex-shrink-0 rounded-2xl border border-gray-100 bg-[#F8F9FA] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] text-[#2D3142]">
+          <h3 className="text-lg font-bold mb-5">Your order</h3>
 
-          <div className="space-y-3">
-            <label className="text-sm text-gray-700 font-medium">Mã giảm giá</label>
+          {/* Coupon Code section */}
+          <div className="space-y-2 mb-6">
+            <label className="text-sm font-bold block">Mã giảm giá</label>
             {appliedCoupon ? (
-              <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-white border border-green-200 rounded-lg">
                 <div>
-                  <p className="text-sm font-semibold text-green-800">
+                  <p className="text-sm font-bold text-[#27AE60]">
                     {appliedCoupon.code}
                   </p>
-                  <p className="text-xs text-green-600">
+                  <p className="text-xs text-green-600 font-medium">
                     Giảm {formatPrice(appliedCoupon.discountAmount)}
                   </p>
                 </div>
@@ -256,7 +263,7 @@ const CheckoutPage = () => {
                     setAppliedCoupon(null);
                     setCouponCode("");
                   }}
-                  className="text-red-500 hover:text-red-600 text-sm"
+                  className="text-primary-500 hover:text-primary-300 text-sm font-bold"
                 >
                   Xóa
                 </button>
@@ -268,7 +275,7 @@ const CheckoutPage = () => {
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                   placeholder="Nhập mã giảm giá"
-                  className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
+                  className="flex-1 w-full min-w-0 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
                   onKeyPress={(e) => {
                     if (e.key === "Enter") {
                       handleApplyCoupon();
@@ -278,49 +285,53 @@ const CheckoutPage = () => {
                 <button
                   onClick={handleApplyCoupon}
                   disabled={isValidatingCoupon}
-                  className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-semibold hover:bg-black transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-5 py-2.5 rounded-lg bg-[#2D3142] hover:bg-black text-white text-sm font-bold transition-colors disabled:opacity-50 flex-shrink-0"
                 >
-                  {isValidatingCoupon ? "..." : "Áp dụng"}
+                  Áp dụng
                 </button>
               </div>
             )}
           </div>
 
-          <div className="space-y-2 text-sm text-gray-700">
+          {/* Financials */}
+          <div className="space-y-4 text-sm mb-6">
             <div className="flex items-center justify-between">
-              <span>Sub total</span>
-              <span>{formatPrice(selection.price)}</span>
+              <span className="text-gray-600">Sub-total</span>
+              <span className="font-medium text-[#2D3142]">{formatPrice(selection.price)}</span>
             </div>
             {appliedCoupon && (
-              <div className="flex items-center justify-between text-green-600">
+              <div className="flex items-center justify-between text-[#27AE60]">
                 <span>Giảm giá ({appliedCoupon.code})</span>
-                <span>-{formatPrice(appliedCoupon.discountAmount)}</span>
+                <span className="font-bold">-{formatPrice(appliedCoupon.discountAmount)}</span>
               </div>
             )}
             <div className="flex items-center justify-between">
-              <span>Tax</span>
-              <span>0</span>
+              <span className="text-gray-600">Tax</span>
+              <span className="font-medium text-[#2D3142]">0</span>
             </div>
-            <div className="border-t pt-2 flex items-center justify-between text-base font-bold text-gray-900">
-              <span>Total</span>
-              <span>{formatPrice(finalPrice)}</span>
+            
+            <div className="border-t border-gray-200 pt-4 flex items-center justify-between">
+              <span className="text-base font-bold">Total</span>
+              <span className="text-lg font-bold">{formatPrice(finalPrice)}</span>
             </div>
           </div>
 
           <button
             onClick={handleCheckout}
             disabled={isCreatingOrder}
-            className="w-full py-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 rounded-lg bg-tertiary-500 hover:bg-[#E08A40] text-white font-bold text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-4"
           >
-            {isCreatingOrder ? "Đang tạo đơn hàng..." : "Checkout"}
+            {isCreatingOrder ? "Đang xử lý..." : "Checkout"}
           </button>
 
-          <Link
-            href={ROUTES.SUBSCRIPTION}
-            className="block text-center text-sm text-blue-600 hover:underline"
-          >
-            View Subscription Plans
-          </Link>
+          <div className="text-center">
+            <Link
+              href={ROUTES.SUBSCRIPTION}
+              className="text-sm font-medium text-blue-500 hover:text-blue-600 transition-colors"
+            >
+              View Subscription Plans
+            </Link>
+          </div>
         </div>
       </div>
     </div>

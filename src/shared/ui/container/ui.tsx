@@ -10,7 +10,7 @@ export const Container = ({
   return (
     <div
       className={twMerge(
-        "mx-auto px-[15px] sm:px-[30px] md:px-[15px] max-w-[1360px] py-5",
+        "mx-auto max-w-[1600px]",
         className
       )}
     >

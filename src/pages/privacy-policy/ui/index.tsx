@@ -3,6 +3,7 @@ import { Container } from "@/shared/ui";
 import Link from "next/link";
 import Image from "next/image";
 import { Breadcrumb } from "antd";
+import { HeroBanner as DSHeroBanner } from "@/shared/ui/ds";
 import type { PrivacyPolicyConfig } from "@/shared/types/admin-config";
 
 interface PagePrivacyPolicyProps {
@@ -15,50 +16,13 @@ export const PagePrivacyPolicy = ({ privacyPolicyConfig }: PagePrivacyPolicyProp
   return (
     <>
       {/* Banner Section */}
-      <div
-        className="relative flex items-center justify-center bg-cover bg-center bg-no-repeat py-20 md:py-30"
-        style={{
-          backgroundImage: `url('${banner.backgroundImage}')`,
-          backgrounize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        {/* Dark Overlay */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-          }}
-        ></div>
-
-        {/* Content */}
-        <Container className="relative z-10">
-          <div className="text-center">
-            {/* Title */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
-              {banner.title}
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-lg md:text-xl text-gray-200 mb-3">
-              {banner.subtitle}
-            </p>
-
-            {/* Breadcrumbs */}
-            <Breadcrumb
-              className="flex justify-center !text-white [&_.ant-breadcrumb-separator]:!text-white"
-              items={[
-                {
-                  title: <Link className=" text-white" href="/">Home</Link>,
-                },
-                {
-                  title: <span className="text-white">{banner.title}</span>,
-                },
-              ]}
-            />
-          </div>
-        </Container>
-      </div>
+      <DSHeroBanner 
+        title={banner.title}
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: banner.title }
+        ]}
+      />
 
       {/* Content Section */}
       <div className="bg-white py-16">

@@ -1,48 +1,33 @@
-import { Card } from "antd";
 import { WidgetContextProvider } from "./context";
 import { DetailScore, ExamDate } from "./ui";
-import { useEffect, useRef, useState } from "react";
-import { twMerge } from "tailwind-merge";
+
+// === Figma: My IELTS score target + Exam schedule ===
+// Geometric: Desktop = 2-col equal (each ~50%), gap 24px; Mobile = stacked
+// Each section is a white card with header + content
+// DetailScore card: minimal-height ~200px
+// ExamDate card: minimal-height ~200px
 
 export const TargetScore = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [componentWidth, setComponentWidth] = useState(0);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setComponentWidth(containerRef.current?.offsetWidth || 0);
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [containerRef]);
-
   return (
     <WidgetContextProvider>
-      <div className="flex flex-wrap -m-2" ref={containerRef}>
+      <div
+        className="grid grid-cols-1 lg:grid-cols-2 gap-5"
+        data-section="target-score"
+      >
+        {/* My IELTS score target card */}
         <div
-          className={twMerge(
-            "p-2",
-            componentWidth >= 1170 ? "w-full md:w-1/2" : "w-full"
-          )}
+          className="bg-white rounded-xl overflow-hidden"
+          style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
         >
-          <Card classNames={{ body: "p-0" }}>
-            <DetailScore />
-          </Card>
+          <DetailScore />
         </div>
+
+        {/* Exam schedule card */}
         <div
-          className={twMerge(
-            "p-2",
-            componentWidth >= 1170 ? "w-full md:w-1/2" : "w-full"
-          )}
+          className="bg-white rounded-xl overflow-hidden"
+          style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
         >
-          <Card classNames={{ body: "p-0" }}>
-            <ExamDate />
-          </Card>
+          <ExamDate />
         </div>
       </div>
     </WidgetContextProvider>

@@ -284,196 +284,194 @@ export const PageIELTSPracticeLibrary = ({
 
   return (
     <FormProvider {...methods}>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white pb-20">
         <HeroSection
           title={bannerData.title}
           skillLabel={skill === "reading" ? "Reading" : "Listening"}
         />
 
-        <section className="bg-[var(--color-default)] pb-16 pt-8 sm:pb-20">
-          <Container className="space-y-10 py-0 sm:space-y-12">
-            <div className="space-y-5">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/45">
-                    Suggestions for you
-                  </p>
-                  <h2 className="mt-2 font-[var(--font-noto-sans)] text-2xl font-extrabold text-white sm:text-3xl">
-                    Hand-picked practice sets
-                  </h2>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-12">
+          {/* === SECTION: Suggestions === */}
+          <section id="ipl-suggestions" data-section="suggestions">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-noto-sans text-2xl font-bold text-[#2D3142]">
+                Suggestions for you
+              </h2>
+              <div className="hidden sm:flex gap-2">
+                <button
+                  type="button"
+                  className="flex h-[36px] w-[36px] items-center justify-center rounded-full border border-[rgba(0,0,0,0.1)] text-[#2D3142] transition hover:bg-gray-50"
+                  aria-label="Previous"
+                >
+                  <span className="material-symbols-rounded text-lg">chevron_left</span>
+                </button>
+                <button
+                  type="button"
+                  className="flex h-[36px] w-[36px] items-center justify-center rounded-full border border-[rgba(0,0,0,0.1)] text-[#2D3142] transition hover:bg-gray-50"
+                  aria-label="Next"
+                >
+                  <span className="material-symbols-rounded text-lg">chevron_right</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {loading
+                ? Array.from({ length: 4 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-[234px] animate-pulse rounded-[30px] bg-black/5"
+                    />
+                  ))
+                : suggestions.map(({ node }, index) => (
+                    <PracticeCard key={node.id || index} item={node} priority={index < 2} />
+                  ))}
+            </div>
+          </section>
+
+          <hr className="my-14 border-t border-[rgba(0,0,0,0.06)]" />
+
+          {/* === SECTION: IELTS Practice === */}
+          <section id="ipl-practice" data-section="ipl-practice">
+            <div className="mb-10 flex flex-col gap-6">
+              <h2 className="font-noto-sans text-3xl font-extrabold text-[#2D3142]">
+                IELTS Practice
+              </h2>
+              
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                <QuizLibraryNav />
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setDrawerOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-full border border-[rgba(0,0,0,0.1)] bg-white px-4 py-3 text-sm font-bold text-[#242938] transition hover:bg-gray-50 lg:hidden"
+                  >
+                    <span className="material-symbols-rounded text-base">tune</span>
+                    Filter
+                  </button>
+                  <div className="relative min-w-[11rem]">
+                    <select
+                      value={values.sort}
+                      onChange={(event) =>
+                        handleSortChange(event.target.value as FilterFormValues["sort"])
+                      }
+                      className="w-full appearance-none rounded-full border border-[rgba(0,0,0,0.1)] bg-white px-5 py-3 pr-11 text-sm font-semibold text-[#242938] outline-none transition hover:bg-gray-50"
+                    >
+                      {SORT_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="material-symbols-rounded pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#242938]/60">
+                      keyboard_arrow_down
+                    </span>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-                {loading
-                  ? Array.from({ length: 4 }).map((_, index) => (
+            <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)]">
+              <aside className="hidden lg:block">
+                <div className="sticky top-[100px]">
+                  <Filter filterData={quizFilterData} />
+                </div>
+              </aside>
+
+              <div className="space-y-10">
+                {loading ? (
+                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                    {Array.from({ length: PAGE_SIZE }).map((_, index) => (
                       <div
                         key={index}
-                        className="h-[22rem] animate-pulse rounded-[28px] bg-white/10"
+                        className="h-[234px] animate-pulse rounded-[30px] bg-black/5"
                       />
-                    ))
-                  : suggestions.map(({ node }, index) => (
-                      <PracticeCard key={node.id || index} item={node} priority={index < 2} />
                     ))}
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/45">
-                  <Link href="/" className="transition-colors hover:text-white">
-                    Home
-                  </Link>
-                  <span>/</span>
-                  <span>IELTS Practice Library</span>
-                  <span>/</span>
-                  <span className="text-secondary-400">
-                    {skill === "reading" ? "Reading" : "Listening"}
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-                  <div className="space-y-3">
-                    <h2 className="font-[var(--font-noto-sans)] text-3xl font-extrabold text-white sm:text-4xl">
-                      IELTS {_.capitalize(skill)} Practice
-                    </h2>
-                    <p className="max-w-2xl text-sm leading-7 text-white/60 sm:text-base">
-                      {bannerData.description.line1} {bannerData.description.line2}{" "}
-                      {bannerData.description.line3}
+                  </div>
+                ) : items.length ? (
+                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                    {items.map(({ node }, index) => (
+                      <PracticeCard key={node.id || index} item={node} />
+                    ))}
+                  </div>
+                ) : called ? (
+                  <div className="rounded-[30px] border border-dashed border-[rgba(0,0,0,0.1)] bg-[#FAF7EB]/50 px-6 py-16 text-center">
+                    <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#242938]/40">
+                      No results
+                    </p>
+                    <h3 className="mt-3 font-noto-sans text-2xl font-extrabold text-[#242938]">
+                      No practice tests matched the current filters.
+                    </h3>
+                    <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-[#242938]/60">
+                      Clear a few filters or search with a broader keyword to explore more test pages.
                     </p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3">
+                ) : null}
+
+                {totalPages > 1 && (
+                  <div className="flex flex-wrap items-center justify-center gap-2 pt-4">
                     <button
                       type="button"
-                      onClick={() => setDrawerOpen(true)}
-                      className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/12 lg:hidden"
+                      disabled={currentPage <= 1}
+                      onClick={() =>
+                        setValue("page", Math.max(1, currentPage - 1), { shouldDirty: true })
+                      }
+                      className="flex h-[40px] items-center justify-center rounded-full border border-[rgba(0,0,0,0.1)] px-4 text-sm font-semibold text-[#2D3142] transition disabled:cursor-not-allowed disabled:opacity-35 hover:bg-gray-50"
                     >
-                      <span className="material-symbols-rounded text-base">tune</span>
-                      Filter
+                      <span className="material-symbols-rounded mr-1 text-sm">chevron_left</span>
+                      Prev
                     </button>
-                    <div className="relative min-w-[11rem]">
-                      <select
-                        value={values.sort}
-                        onChange={(event) =>
-                          handleSortChange(event.target.value as FilterFormValues["sort"])
-                        }
-                        className="w-full appearance-none rounded-full border border-white/15 bg-white/8 px-5 py-3 pr-11 text-sm font-semibold text-white outline-none transition hover:bg-white/12"
-                      >
-                        {SORT_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value} className="text-black">
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      <span className="material-symbols-rounded pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white/60">
-                        keyboard_arrow_down
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <QuizLibraryNav />
-              </div>
-
-              <div className="grid gap-6 lg:grid-cols-[19rem_minmax(0,1fr)]">
-                <aside className="hidden lg:block">
-                  <div className="sticky top-6">
-                    <Filter filterData={quizFilterData} />
-                  </div>
-                </aside>
-
-                <div className="space-y-6">
-                  {loading ? (
-                    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                      {Array.from({ length: PAGE_SIZE }).map((_, index) => (
-                        <div
-                          key={index}
-                          className="h-[22rem] animate-pulse rounded-[28px] bg-white/10"
-                        />
-                      ))}
-                    </div>
-                  ) : items.length ? (
-                    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                      {items.map(({ node }, index) => (
-                        <PracticeCard key={node.id || index} item={node} />
-                      ))}
-                    </div>
-                  ) : called ? (
-                    <div className="rounded-[32px] border border-dashed border-white/20 bg-white/5 px-6 py-16 text-center">
-                      <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/40">
-                        No results
-                      </p>
-                      <h3 className="mt-3 font-[var(--font-noto-sans)] text-2xl font-extrabold text-white">
-                        No practice tests matched the current filters.
-                      </h3>
-                      <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-white/60">
-                        Clear a few filters or search with a broader keyword to explore more test pages.
-                      </p>
-                    </div>
-                  ) : null}
-
-                  {totalPages > 1 && (
-                    <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    {visiblePages.map((page) => (
                       <button
+                        key={page}
                         type="button"
-                        disabled={currentPage <= 1}
-                        onClick={() =>
-                          setValue("page", Math.max(1, currentPage - 1), { shouldDirty: true })
-                        }
-                        className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-35 hover:bg-white/12"
+                        onClick={() => setValue("page", page, { shouldDirty: true })}
+                        className={`flex h-[40px] min-w-[40px] items-center justify-center rounded-full px-2 text-sm font-semibold transition ${
+                          page === currentPage
+                            ? "bg-primary-500 text-white shadow-[0_4px_10px_rgba(217,74,86,0.25)]"
+                            : "text-[#2D3142] hover:bg-gray-100"
+                        }`}
                       >
-                        Prev
+                        {page}
                       </button>
-                      {visiblePages.map((page) => (
-                        <button
-                          key={page}
-                          type="button"
-                          onClick={() => setValue("page", page, { shouldDirty: true })}
-                          className={`h-11 min-w-11 rounded-full px-4 text-sm font-bold transition ${
-                            page === currentPage
-                              ? "bg-primary text-white shadow-[0_12px_30px_rgba(217,74,86,0.28)]"
-                              : "border border-white/15 bg-white/8 text-white hover:bg-white/12"
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
-                      <button
-                        type="button"
-                        disabled={currentPage >= totalPages}
-                        onClick={() =>
-                          setValue("page", Math.min(totalPages, currentPage + 1), {
-                            shouldDirty: true,
-                          })
-                        }
-                        className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-35 hover:bg-white/12"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  )}
-                </div>
+                    ))}
+                    <button
+                      type="button"
+                      disabled={currentPage >= totalPages}
+                      onClick={() =>
+                        setValue("page", Math.min(totalPages, currentPage + 1), {
+                          shouldDirty: true,
+                        })
+                      }
+                      className="flex h-[40px] items-center justify-center rounded-full border border-[rgba(0,0,0,0.1)] px-4 text-sm font-semibold text-[#2D3142] transition disabled:cursor-not-allowed disabled:opacity-35 hover:bg-gray-50"
+                    >
+                      Next
+                      <span className="material-symbols-rounded ml-1 text-sm">chevron_right</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-          </Container>
-        </section>
+          </section>
+        </div>
 
         {drawerOpen && (
-          <div className="fixed inset-0 z-50 bg-default/70 lg:hidden">
-            <div className="absolute inset-y-0 right-0 w-full max-w-sm overflow-y-auto bg-[var(--color-default)] p-5">
+          <div className="fixed inset-0 z-50 bg-black/50 lg:hidden">
+            <div className="absolute inset-y-0 right-0 w-full max-w-sm overflow-y-auto bg-white p-5 shadow-2xl">
               <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/40">
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#2D3142]/40">
                     Filters
                   </p>
-                  <h3 className="mt-2 font-[var(--font-noto-sans)] text-2xl font-extrabold text-white">
+                  <h3 className="mt-1 font-noto-sans text-2xl font-extrabold text-[#2D3142]">
                     Refine results
                   </h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => setDrawerOpen(false)}
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white"
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(0,0,0,0.1)] text-[#2D3142]"
                 >
                   <span className="material-symbols-rounded">close</span>
                 </button>

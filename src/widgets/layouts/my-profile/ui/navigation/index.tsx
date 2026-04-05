@@ -1,8 +1,17 @@
-import { Card } from "antd";
 import Link from "next/link";
 import { twMerge } from "tailwind-merge";
 import { useRouter } from "next/router";
 import { useAuth } from "@/appx/providers";
+
+// === ICON MAP: material-symbols-rounded icon names ===
+const ICON_MAP: Record<string, string> = {
+  person: "person",
+  home: "grid_view",
+  shopping_cart: "shopping_cart",
+  link: "group",
+  payment: "credit_card",
+  logout: "logout",
+};
 
 export const Navigation = ({
   navigation: ACCOUNT_NAVIGATION,
@@ -20,79 +29,84 @@ export const Navigation = ({
   const userName = currentUser?.name || "User";
 
   return (
-    <Card
-      className="overflow-hidden"
-      classNames={{
-        body: "p-0!",
-      }}
-      style={{
-        background: "#ffffff",
-        border: "2px solid rgba(147, 51, 234, 0.4)",
-      }}
+    <div
+      className="rounded-xl overflow-hidden bg-white"
+      style={{ border: "2px solid #D94A56" }}
+      data-section="sidebar-nav"
     >
-      <div className="p-4 border-b border-gray-200">
-        <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
-          WELCOME, {userName.toUpperCase()}
+      {/* === Profile Header === */}
+      <div className="flex flex-col items-center gap-3 px-6 pt-6 pb-5 border-b border-gray-100">
+        {/* Avatar — yellow circle with initial, matching Figma placeholder */}
+        <div className="w-16 h-16 rounded-full bg-[#F7CA3B] flex items-center justify-center flex-shrink-0">
+          <span className="text-white text-2xl font-bold">
+            {userName.charAt(0).toUpperCase()}
+          </span>
+        </div>
+        {/* Greeting */}
+        <p className="text-sm font-bold text-[#2D3142] uppercase text-center leading-tight tracking-wide">
+          CHÀO MỪNG, {userName.toUpperCase()}
         </p>
       </div>
-      <ul className="font-nunito">
+
+      {/* === Navigation Items === */}
+      <ul className="py-2">
         {ACCOUNT_NAVIGATION.map((item, index) => {
           if (item.type === "divider") {
             return (
               <li key={index}>
-                <div className="border-t border-gray-200"></div>
-                <div className="px-4 py-2">
-                  <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    USER
-                  </p>
-                </div>
+                <div className="my-1 border-t border-gray-100" />
               </li>
             );
           }
+
+          const isActive = router.pathname === item.link;
+          const iconName = item.icon ? (ICON_MAP[item.icon] ?? item.icon) : null;
 
           if (item.danger) {
             return (
               <li key={index}>
                 <Link
                   href={item.link || "#"}
-                  className={twMerge(
-                    "px-6 py-3 flex hover:bg-gray-50 text-gray-700 items-center duration-200 transition-all space-x-2",
-                    item.danger ? "" : ""
-                  )}
+                  className="flex items-center gap-3 px-5 py-3 text-gray-600 hover:bg-gray-50 transition-colors duration-150 group"
                 >
-                  {item.icon && (
-                    <span className="material-symbols-rounded">
-                      {item.icon}
+                  {iconName && (
+                    <span className="material-symbols-rounded text-[18px] text-gray-400 group-hover:text-gray-600">
+                      {iconName}
                     </span>
                   )}
-                  <span>{item.label}</span>
+                  <span className="text-sm font-medium">{item.label}</span>
                 </Link>
               </li>
             );
           }
-
-          const isActive = router.pathname === item.link;
 
           return (
             <li key={index}>
               <Link
                 href={item.link || "#"}
                 className={twMerge(
-                  "px-6 py-3 flex items-center duration-200 transition-all space-x-2",
-                  isActive ? "text-blue-600" : "text-gray-700 hover:bg-gray-50"
+                  "flex items-center gap-3 mx-2 my-0.5 px-4 py-2.5 rounded-lg transition-all duration-150",
+                  isActive
+                    ? "bg-primary-500 text-white"
+                    : "text-[#374151] hover:bg-gray-50"
                 )}
               >
-                {item.icon && (
+                {iconName && (
                   <span
                     className={twMerge(
-                      "material-symbols-rounded",
-                      isActive ? "text-blue-600" : "text-gray-700"
+                      "material-symbols-rounded text-[18px]",
+                      isActive ? "text-white" : "text-gray-500"
                     )}
                   >
-                    {item.icon}
+                    {iconName}
                   </span>
                 )}
-                <span className={isActive ? "text-blue-600" : ""}>
+                <span
+                  className={twMerge(
+                    "text-sm font-medium",
+                    isActive ? "font-semibold" : ""
+                  )}
+                >
                   {item.label}
                 </span>
               </Link>
@@ -100,6 +114,6 @@ export const Navigation = ({
           );
         })}
       </ul>
-    </Card>
+    </div>
   );
 };
