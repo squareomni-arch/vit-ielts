@@ -1,13 +1,11 @@
 export interface WhyChooseUsConfig {
-  badge: {
-    text: string;
-  };
+  badge: string;
   title: string;
   description: string;
-  statistics: Array<{
+  stats: Array<{
     icon: string;
-    value: string;
+    number: string;
     label: string;
+    bgColor: string;
   }>;
 }
-

@@ -4,63 +4,37 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import _ from "lodash";
 import { createClient } from "~supabase/client";
-import { getQuizzes } from "~services/quiz";
-import type { Quiz, SkillType } from "~services/types/database";
+import { TestCard } from "@/shared/ui/ds";
+import type { Post } from "~services/types/database";
+import { getPosts } from "~services/post";
+import dayjs from "dayjs";
 import { Container } from "@/shared/ui";
-import { IPracticeTest, IPracticeTestResponses } from "@/entities/practice-test";
-import { QuizLibraryNav } from "@/widgets";
 import type { PracticeLibraryBannerConfig } from "./types";
 import { Filter } from "./filter";
 import { HeroSection } from "./hero-section";
-import { PracticeCard } from "./practice-card";
 
 export type FilterFormValues = {
-  progress: "pending" | "completed" | "in-progress";
-  question_form: string[];
-  sort: "newest" | "oldest" | "popular" | "a-z" | "z-a";
+  sort: "newest" | "oldest" | "a-z" | "z-a";
   search: string;
   page: number;
   size: number;
-  quarter: string;
-  year: string;
-  source: string;
-  part: string;
 };
 
 const PAGE_SIZE = 9;
 
 const DEFAULT_VALUES: FilterFormValues = {
-  progress: "" as FilterFormValues["progress"],
-  question_form: [],
   sort: "newest",
   search: "",
   page: 1,
   size: PAGE_SIZE,
-  quarter: "",
-  year: "",
-  source: "",
-  part: "",
 };
 
 const SORT_OPTIONS: Array<{ label: string; value: FilterFormValues["sort"] }> = [
   { label: "Newest", value: "newest" },
   { label: "Oldest", value: "oldest" },
-  { label: "Popular", value: "popular" },
   { label: "A-Z", value: "a-z" },
   { label: "Z-A", value: "z-a" },
 ];
-
-const getSingleQueryValue = (value: string | string[] | undefined) => {
-  if (Array.isArray(value)) return value[0] || "";
-  return value || "";
-};
-
-const getArrayQueryValue = (value: string | string[] | undefined) => {
-  if (Array.isArray(value)) {
-    return value.flatMap((item) => item.split(",")).filter(Boolean);
-  }
-  return value ? value.split(",").filter(Boolean) : [];
-};
 
 const createQueryPayload = (values: FilterFormValues) => {
   const query: Record<string, string> = {};
@@ -69,14 +43,13 @@ const createQueryPayload = (values: FilterFormValues) => {
   if (values.search) query.search = values.search;
   if (values.page > 1) query.page = String(values.page);
   if (values.size !== PAGE_SIZE) query.size = String(values.size);
-  if (values.quarter) query.quarter = values.quarter;
-  if (values.year) query.year = values.year;
-  if (values.source) query.source = values.source;
-  if (values.part) query.part = values.part;
-  if (values.progress) query.progress = values.progress;
-  if (values.question_form.length) query.question_form = values.question_form.join(",");
 
   return query;
+};
+
+const getSingleQueryValue = (value: string | string[] | undefined) => {
+  if (Array.isArray(value)) return value[0] || "";
+  return value || "";
 };
 
 const buildPages = (current: number, total: number) => {
@@ -88,18 +61,12 @@ const buildPages = (current: number, total: number) => {
 };
 
 export const PageIELTSPrediction = ({
-  quizFilterData,
   bannerConfig,
 }: {
-  quizFilterData: {
-    years: Array<string>;
-    sources: Array<string>;
-    parts: Array<string>;
-  };
   bannerConfig: PracticeLibraryBannerConfig;
 }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [data, setData] = useState<IPracticeTestResponses | null>(null);
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [called, setCalled] = useState(false);
   const [currentPageSize, setCurrentPageSize] = useState(PAGE_SIZE);
@@ -122,7 +89,7 @@ export const PageIELTSPrediction = ({
     return routeSkill === "listening" ? "listening" : "reading";
   }, [router.pathname]);
 
-  const bannerData = skill === "listening" ? bannerConfig.listening : bannerConfig.reading;
+  const bannerData = bannerConfig.reading || bannerConfig.listening;
 
   const getData = useCallback(async (params: Record<string, unknown>) => {
     setLoading(true);
@@ -136,55 +103,27 @@ export const PageIELTSPrediction = ({
 
       setCurrentPageSize(pageSize);
 
-      const result = await getQuizzes(supabase, {
-        skill: (params.skill as SkillType) || undefined,
+      const result = await getPosts(supabase, {
+        category: "IELTS Prediction",
         search: (params.search as string) || undefined,
-        source: "IELTS Prediction", // Or maybe we should filter by a specific quarter?
-        part: (params.part as string) || undefined,
-        quarter: (params.quarter as string) || undefined,
-        year: (params.year as string) || undefined,
-        questionForm: ((params.question_form as string[]) || []).join(",") || undefined,
         page,
         pageSize,
       });
 
-      const edges: Array<{ node: IPracticeTest }> = (result.data || []).map((quiz: Quiz) => ({
-        node: {
-          id: quiz.id,
-          title: quiz.title,
-          slug: quiz.slug,
-          featuredImage: quiz.featured_image
-            ? { node: { sourceUrl: quiz.featured_image, altText: quiz.title } }
-            : undefined,
-          quizFields: {
-            skill: [quiz.skill, quiz.skill] as IPracticeTest["quizFields"]["skill"],
-            type: [
-              quiz.type === "exam" ? "practice" : quiz.type,
-              quiz.type === "exam" ? "practice" : quiz.type,
-            ] as IPracticeTest["quizFields"]["type"],
-            passages: [],
-            part: quiz.part || "0",
-            quarter: quiz.quarter || "",
-            source: quiz.source || "",
-            year: quiz.year || "",
-            testsTaken: quiz.tests_taken || 0,
-            proUserOnly: quiz.pro_user_only || false,
-          },
-        },
-      }));
-
       setData({
-        quizzes: {
-          edges,
+        posts: {
+          edges: (result.data || []).map((post: Post) => ({
+            node: post,
+          })),
           pageInfo: {
             offsetPagination: {
               total: result.count || 0,
             },
           },
         },
-      } as IPracticeTestResponses);
+      });
     } catch (error) {
-      console.error("Error fetching practice tests:", error);
+      console.error("Error fetching posts:", error);
     } finally {
       setLoading(false);
     }
@@ -194,16 +133,10 @@ export const PageIELTSPrediction = ({
     if (!router.isReady) return;
 
     reset({
-      progress: getSingleQueryValue(router.query.progress) as FilterFormValues["progress"],
-      question_form: getArrayQueryValue(router.query.question_form),
       sort: (getSingleQueryValue(router.query.sort) as FilterFormValues["sort"]) || "newest",
       search: getSingleQueryValue(router.query.search),
       page: Number(getSingleQueryValue(router.query.page) || 1),
       size: Number(getSingleQueryValue(router.query.size) || PAGE_SIZE),
-      quarter: getSingleQueryValue(router.query.quarter),
-      year: getSingleQueryValue(router.query.year),
-      source: getSingleQueryValue(router.query.source),
-      part: getSingleQueryValue(router.query.part),
     });
   }, [reset, router.isReady, router.query]);
 
@@ -214,12 +147,7 @@ export const PageIELTSPrediction = ({
     const params: Record<string, unknown> = {
       search: getSingleQueryValue(router.query.search),
       offsetPagination: { offset, size },
-      question_form: getArrayQueryValue(router.query.question_form),
       skill,
-      source: getSingleQueryValue(router.query.source),
-      part: getSingleQueryValue(router.query.part),
-      quarter: getSingleQueryValue(router.query.quarter),
-      year: getSingleQueryValue(router.query.year),
     };
 
     switch (getSingleQueryValue(router.query.sort) || "newest") {
@@ -247,16 +175,10 @@ export const PageIELTSPrediction = ({
 
     const nextQuery = createQueryPayload(getValues());
     const currentQuery = createQueryPayload({
-      progress: getSingleQueryValue(router.query.progress) as FilterFormValues["progress"],
-      question_form: getArrayQueryValue(router.query.question_form),
       sort: (getSingleQueryValue(router.query.sort) as FilterFormValues["sort"]) || "newest",
       search: getSingleQueryValue(router.query.search),
       page: Number(getSingleQueryValue(router.query.page) || 1),
       size: Number(getSingleQueryValue(router.query.size) || PAGE_SIZE),
-      quarter: getSingleQueryValue(router.query.quarter),
-      year: getSingleQueryValue(router.query.year),
-      source: getSingleQueryValue(router.query.source),
-      part: getSingleQueryValue(router.query.part),
     });
 
     if (JSON.stringify(nextQuery) === JSON.stringify(currentQuery)) return;
@@ -271,10 +193,10 @@ export const PageIELTSPrediction = ({
     );
   }, [getValues, isDirty, router, values]);
 
-  const items = data?.quizzes.edges ?? [];
+  const items = data?.posts?.edges ?? [];
 
   const currentPage = Number(getSingleQueryValue(router.query.page) || 1);
-  const total = data?.quizzes.pageInfo.offsetPagination.total || 0;
+  const total = data?.posts?.pageInfo.offsetPagination.total || 0;
   const totalPages = Math.max(1, Math.ceil(total / currentPageSize));
   const visiblePages = buildPages(currentPage, totalPages);
   const handleSortChange = (nextSort: FilterFormValues["sort"]) => {
@@ -287,7 +209,7 @@ export const PageIELTSPrediction = ({
       <div className="min-h-screen bg-white pb-20">
         <HeroSection
           title={bannerData.title}
-          skillLabel={skill === "reading" ? "Reading" : "Listening"}
+          skillLabel="IELTS Prediction"
         />
 
         <Container className="mt-12 px-0">
@@ -298,8 +220,7 @@ export const PageIELTSPrediction = ({
                 IELTS Prediction
               </h2>
               
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                <QuizLibraryNav />
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-end">
 
                 <div className="flex flex-wrap items-center gap-3">
                   <button
@@ -335,7 +256,7 @@ export const PageIELTSPrediction = ({
             <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-[80px] xl:gap-[100px]">
               <aside className="hidden lg:block">
                 <div className="sticky top-[100px]">
-                  <Filter filterData={quizFilterData} />
+                  <Filter />
                 </div>
               </aside>
 
@@ -345,14 +266,21 @@ export const PageIELTSPrediction = ({
                     {Array.from({ length: PAGE_SIZE }).map((_, index) => (
                       <div
                         key={index}
-                        className="h-[234px] animate-pulse rounded-[30px] bg-black/5"
+                        className="h-[400px] w-full max-w-[356px] animate-pulse rounded-[30px] bg-black/5"
                       />
                     ))}
                   </div>
                 ) : items.length ? (
                   <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                    {items.map(({ node }, index) => (
-                      <PracticeCard key={node.id || index} item={node} />
+                    {items.map(({ node }: { node: Post }, index: number) => (
+                      <TestCard
+                        key={node.id || index}
+                        image={node.featured_image || undefined}
+                        title={node.title}
+                        subtitle={node.published_at ? dayjs(node.published_at).format("DD/MM/YYYY") : undefined}
+                        actionText="Chi tiết"
+                        href={`/${node.slug}`}
+                      />
                     ))}
                   </div>
                 ) : called ? (
@@ -448,7 +376,7 @@ export const PageIELTSPrediction = ({
                   <span className="material-symbols-rounded">close</span>
                 </button>
               </div>
-              <Filter filterData={quizFilterData} mobile onClose={() => setDrawerOpen(false)} />
+              <Filter mobile onClose={() => setDrawerOpen(false)} />
             </div>
           </div>
         )}

@@ -238,7 +238,7 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
       <div className="w-full text-center mb-2">
         <p className="text-[13px] text-gray-500 mb-4">Cảm ơn bạn. Đơn hàng của bạn đã được nhận.</p>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <SummaryBox label="MÃ ĐƠN" value={`#IELTS PRED ${order.orderId.substring(0,6)}`} />
+          <SummaryBox label="MÃ ĐƠN" value={`#IELTS PRED ${order.orderId?.substring(0,6) || ''}`} />
           <SummaryBox label="THỜI GIAN" value={dayjs(order.createdAt).format("DD Tháng MM, YYYY")} />
           <SummaryBox label="THANH TOÁN" value={displayAmount} />
           <SummaryBox label="HÌNH THỨC" value="Ngân hàng ACB (Ngân hàng Á Châu)" />

@@ -10,18 +10,19 @@ export const HorizontalItem = ({
   post: SampleEssayProps["sampleEssays"]["edges"][number];
   skill: "writing" | "speaking";
 }) => {
-  const quarter = post.sampleEssayFields?.quarter?.[1] || "";
-  const year = new Date(post.date).getFullYear();
+  const quarter = post.quarter || post.sampleEssayFields?.quarter?.[1] || "";
+  const year = post.year || new Date(post.date || post.created_at || Date.now()).getFullYear();
 
   const getListItems = () => {
     switch (skill) {
       case "speaking":
         return (
-          post.speakingSampleEssayFields?.questionType?.map((item: string) => item) ||
-          []
+          post.question_type ? post.question_type.split(',') : (post.speakingSampleEssayFields?.questionType?.map((item: string) => item) || [])
         );
       case "writing":
-        return post.writingSampleEssayFields?.topic?.map((item: string) => item) || [];
+        return (
+          post.topic ? post.topic.split(',') : (post.writingSampleEssayFields?.topic?.map((item: string) => item) || [])
+        );
       default:
         return [];
     }
@@ -33,7 +34,7 @@ export const HorizontalItem = ({
   let description = post.title;
 
   if (skill === "writing") {
-    const topicType = listItems[0] || "";
+    const topicType = listItems[0] || post.task || "";
     const topicTypeMap: Record<string, string> = {
       LINE: "Line Graph",
       BAR: "Bar Chart",
@@ -57,8 +58,11 @@ export const HorizontalItem = ({
       ? `[Quý ${quarter}/${year}] Đề thi thật IELTS Writing Task 1 - Dạng ${topicTypeName}, chủ đề ${topicName} kèm bài mẫu band 8.5+, dàn ý chi tiết, từ vựng và bài tập ôn luyện.`
       : post.title;
   } else if (skill === "speaking") {
-    const part = post.speakingSampleEssayFields?.part?.[1] || "Part";
-    topicTypeName = part;
+    const part = post.part || post.speakingSampleEssayFields?.part?.[1] || "Part";
+    topicTypeName = `Part ${part.replace('Part ', '')}`;
+    if (topicTypeName === "Part ") {
+        topicTypeName = "Part";
+    }
 
     // Build description for speaking
     let topicName = "";
@@ -68,19 +72,19 @@ export const HorizontalItem = ({
     }
 
     description = topicName
-      ? `[Quý ${quarter}/${year}] Đề thi thật IELTS Speaking ${part} - Chủ đề ${topicName} kèm bài mẫu band 8.5+, dàn ý chi tiết, từ vựng và bài tập ôn luyện.`
+      ? `[Quý ${quarter}/${year}] Đề thi thật IELTS Speaking ${topicTypeName} - Chủ đề ${topicName} kèm bài mẫu band 8.5+, dàn ý chi tiết, từ vựng và bài tập ôn luyện.`
       : post.title;
   }
 
   return (
     <TestCard
-      image={post.featuredImage?.node.sourceUrl}
+      image={post.featured_image || post.featuredImage?.node?.sourceUrl}
       title={post.title}
       skill={skill as 'reading' | 'listening' | 'speaking' | 'writing'}
       part={topicTypeName}
-      isPro={post.postMeta.proUserOnly}
+      isPro={post.pro_user_only ?? post.postMeta?.proUserOnly ?? false}
       href={ROUTES.SAMPLE_ESSAY.SINGLE(post.slug)}
-      isLocked={post.postMeta.proUserOnly} // Assuming locked if pro only, though typically useAuth is needed
+      isLocked={post.pro_user_only ?? post.postMeta?.proUserOnly ?? false}
     />
   );
 };

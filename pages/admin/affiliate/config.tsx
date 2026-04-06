@@ -81,40 +81,41 @@ const AdminAffiliateConfigPage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <Title level={3} style={{ margin: 0 }}>Cấu hình Affiliate</Title>
-          <Text type="secondary">Quản lý các thiết lập chương trình affiliate</Text>
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Title level={3} style={{ margin: 0 }}>Cấu hình Affiliate</Title>
+            <Text type="secondary">Quản lý các thiết lập chương trình affiliate</Text>
+          </div>
+          <Button icon={<ReloadOutlined />} onClick={fetchConfig}>
+            Tải lại
+          </Button>
         </div>
-        <Button icon={<ReloadOutlined />} onClick={fetchConfig}>
-          Tải lại
-        </Button>
-      </div>
 
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSave}
-        disabled={loading}
-      >
-        {/* Commission Settings */}
-        <Card title="💰 Hoa hồng" className="mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Form.Item
-              name="commission_rate"
-              label="Tỷ lệ hoa hồng (%)"
-              rules={[{ required: true, message: "Bắt buộc" }]}
-              tooltip="Phần trăm hoa hồng affiliate nhận được từ mỗi đơn hàng"
-            >
-              <InputNumber
-                min={1}
-                max={100}
-                step={1}
-                addonAfter="%"
-                style={{ width: "100%" }}
-              />
-            </Form.Item>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSave}
+          disabled={loading}
+        >
+          {/* Commission Settings */}
+          <Card title="💰 Hoa hồng" className="mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Form.Item
+                name="commission_rate"
+                label="Tỷ lệ hoa hồng (%)"
+                rules={[{ required: true, message: "Bắt buộc" }]}
+                tooltip="Phần trăm hoa hồng affiliate nhận được từ mỗi đơn hàng"
+              >
+                <InputNumber
+                  min={1}
+                  max={100}
+                  step={1}
+                  addonAfter="%"
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
 
             <Form.Item
               name="waiting_period_days"
@@ -232,10 +233,9 @@ const AdminAffiliateConfigPage = () => {
         </div>
       </Form>
     </div>
+    </AdminLayout>
   );
 };
-
-AdminAffiliateConfigPage.Layout = AdminLayout;
 
 export default AdminAffiliateConfigPage;
 

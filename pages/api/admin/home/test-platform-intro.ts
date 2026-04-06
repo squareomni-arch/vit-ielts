@@ -8,7 +8,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const sectionName = "test-platform-intro";
+  const sectionName = "home/test-platform-intro";
 
   if (req.method === "GET") {
     try {

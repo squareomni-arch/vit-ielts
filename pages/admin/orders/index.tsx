@@ -53,7 +53,7 @@ export default function AdminOrdersPage() {
     const columns: ColumnsType<OrderRow> = [
         {
             title: "Order ID", dataIndex: "order_id", key: "order_id", width: 180,
-            render: (id: string) => <span className="font-mono text-xs">{id.length > 16 ? id.substring(0, 16) + "..." : id}</span>,
+            render: (id?: string) => <span className="font-mono text-xs">{id?.length && id.length > 16 ? id.substring(0, 16) + "..." : (id || "—")}</span>,
         },
         {
             title: "Khách hàng", key: "user",

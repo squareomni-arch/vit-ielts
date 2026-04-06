@@ -1,73 +1,10 @@
-// Types cho admin config
-export interface TestPlatformIntroConfig {
-  badge: {
-    text: string;
-  };
-  backgroundGradient: string;
-  title: {
-    line1: string;
-    line2: string;
-    line3: string;
-    line4: string;
-  };
-  categories: Array<{
-    name: string;
-    href: string;
-    icon: string;
-  }>;
-}
+// ─── Re-export UI config types (single source of truth) ───────────────────────
+export type { HeroBannerConfig } from "@/pages/home/ui/hero-banner/types";
+export type { TestPlatformIntroConfig } from "@/pages/home/ui/ielts-test-platform-intro/types";
+export type { WhyChooseUsConfig } from "@/pages/home/ui/why-choose-us/types";
+export type { TestimonialsConfig, ReviewItem } from "@/pages/home/ui/testimonials/types";
 
-export interface HeroBannerConfig {
-  trustpilot: {
-    image: string;
-    rating: string;
-  };
-  headline: {
-    line1: string;
-    line2: string;
-    line3: string;
-    line4: string;
-  };
-  description: {
-    text: string;
-    highlightText: string;
-  };
-  buttons: {
-    primary: {
-      text: string;
-      link: string;
-    };
-    secondary?: {
-      text: string;
-      link: string;
-    };
-  };
-  backgroundImage: string;
-  bannerImage: string;
-  featureCards: Array<{
-    icon: string;
-    title?: string;
-    value?: string;
-    subtitle: string;
-    avatars?: string[];
-  }>;
-  decorativeShape: {
-    image: string;
-  };
-}
-
-export interface WhyChooseUsConfig {
-  badge: {
-    text: string;
-  };
-  title: string;
-  description: string;
-  statistics: Array<{
-    icon: string;
-    value: string;
-    label: string;
-  }>;
-}
+// ─── Other config types (not yet refactored — keep as-is) ────────────────────
 
 export interface FooterCtaBannerConfig {
   title: string;
@@ -77,22 +14,6 @@ export interface FooterCtaBannerConfig {
     text: string;
     link: string;
   };
-}
-
-export interface TestimonialsConfig {
-  title: string;
-  description: string;
-  button: {
-    text: string;
-    link: string;
-  };
-  testimonials: Array<{
-    name: string;
-    title: string;
-    company: string;
-    quote: string;
-    avatar: string;
-  }>;
 }
 
 export interface PracticeLibraryBannerConfig {
@@ -167,15 +88,15 @@ export interface CoursePackagesConfig {
   combo: {
     title: string;
     ctaText: string;
-    basePrice?: number; // Giá cơ bản cho tháng đầu tiên
-    monthlyIncrementPrice?: number; // Giá tăng thêm mỗi tháng (mặc định 100000)
+    basePrice?: number;
+    monthlyIncrementPrice?: number;
     plans: CoursePackageItem[];
   };
   single: {
     title: string;
     ctaText: string;
-    basePrice?: number; // Giá cơ bản cho tháng đầu tiên
-    monthlyIncrementPrice?: number; // Giá tăng thêm mỗi tháng (mặc định 100000)
+    basePrice?: number;
+    monthlyIncrementPrice?: number;
     skills: SkillType[];
     plans: CoursePackageItem[];
   };
@@ -246,6 +167,25 @@ export interface SubscriptionBannerConfig {
   };
   title: string;
   description: string;
+}
+
+export interface SampleEssayBannerConfig {
+  writing: {
+    title: string;
+    description: {
+      line1: string;
+      line2: string;
+    };
+    backgroundColor: string;
+  };
+  speaking: {
+    title: string;
+    description: {
+      line1: string;
+      line2: string;
+    };
+    backgroundColor: string;
+  };
 }
 
 // Re-export TopBarConfig từ header types

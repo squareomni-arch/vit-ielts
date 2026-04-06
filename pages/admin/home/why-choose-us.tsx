@@ -1,202 +1,122 @@
 import { useEffect, useState } from "react";
-import { Button, Input, Form, Card, Space, Collapse, message } from "antd";
-import type { WhyChooseUsConfig } from "@/shared/types/admin-config";
+import { Button, Input, Form, Card, Space, message } from "antd";
+import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import AdminLayout from "../_layout";
 import { withAdmin } from "@/shared/hoc/withAdmin";
-
-const { Panel } = Collapse;
-const { TextArea } = Input;
+import { ImageUpload } from "@/shared/ui/image-upload";
+import type { WhyChooseUsConfig } from "@/pages/home/ui/why-choose-us/types";
 
 function WhyChooseUsPage() {
-  const [config, setConfig] = useState<WhyChooseUsConfig | null>(null);
   const [saving, setSaving] = useState(false);
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<WhyChooseUsConfig>();
 
   useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch("/api/admin/home/why-choose-us");
+        if (res.ok) {
+          const data = await res.json();
+          if (data) form.setFieldsValue(data);
+        }
+      } catch {
+        message.error("Error loading config");
+      }
+    };
     fetchConfig();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const fetchConfig = async () => {
-    try {
-      const res = await fetch("/api/admin/home/why-choose-us");
-      if (!res.ok) throw new Error("Failed to load config");
-      const data = await res.json();
-      setConfig(data);
-      form.setFieldsValue(data);
-    } catch {
-      message.error("Error loading config");
-    }
-  };
+  }, [form]);
 
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
       setSaving(true);
-
       const res = await fetch("/api/admin/home/why-choose-us", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
-
-      if (!res.ok) throw new Error("Save failed");
-
-      message.success("Config saved successfully");
-      setConfig(values);
+      if (res.ok) {
+        message.success("Đã lưu thành công!");
+      } else {
+        const err = await res.json();
+        message.error(err.message || "Lưu thất bại");
+      }
     } catch {
-      message.error("Error saving config");
+      message.error("Vui lòng kiểm tra lại các trường bắt buộc");
     } finally {
       setSaving(false);
     }
   };
 
-  if (!config) {
-    return (
-      <AdminLayout>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-gray-600">Loading config...</div>
-        </div>
-      </AdminLayout>
-    );
-  }
-
   return (
     <AdminLayout>
-      <Card
-        title={
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold m-0">Manage Why Choose Us</h1>
-          </div>
-        }
-      >
-        <Form form={form} layout="vertical" initialValues={config}>
-          <Collapse
-            defaultActiveKey={["badge", "title", "description", "statistics"]}
-          >
-            {/* Badge Section */}
-            <Panel header="Badge" key="badge">
-              <Form.Item
-                name={["badge", "text"]}
-                label="Badge Text"
-                rules={[
-                  { required: true, message: "Please enter badge text" },
-                ]}
-              >
-                <Input placeholder="Why Choose Us" />
-              </Form.Item>
-            </Panel>
+      <div style={{ maxWidth: 800, margin: "0 auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+          <h2 style={{ margin: 0 }}>🏆 Why Choose Us</h2>
+          <Button type="primary" onClick={handleSave} loading={saving}>
+            💾 Lưu thay đổi
+          </Button>
+        </div>
 
-            {/* Title Section */}
-            <Panel header="Title" key="title">
-              <Form.Item
-                name="title"
-                label="Title"
-                rules={[{ required: true, message: "Please enter title" }]}
-              >
-                <Input placeholder="Creating A Community Of Life Long Learners." />
-              </Form.Item>
-            </Panel>
+        <Form form={form} layout="vertical" autoComplete="off">
+          {/* ── Badge & Content ── */}
+          <Card title="📝 Nội dung chính" size="small" style={{ marginBottom: 16 }}>
+            <Form.Item label="Badge text" name="badge" rules={[{ required: true }]}>
+              <Input placeholder="Tại sao chọn chúng tôi?" />
+            </Form.Item>
+            <Form.Item label="Title" name="title" rules={[{ required: true }]}>
+              <Input placeholder="Luyện thi IELTS Trên Giao Diện Thi Thật" />
+            </Form.Item>
+            <Form.Item label="Description" name="description" rules={[{ required: true }]}>
+              <Input.TextArea rows={4} placeholder="IPT cung cấp bộ đề thi thật..." />
+            </Form.Item>
+          </Card>
 
-            {/* Description Section */}
-            <Panel header="Description" key="description">
-              <Form.Item
-                name="description"
-                label="Description"
-                rules={[
-                  { required: true, message: "Please enter description" },
-                ]}
-              >
-                <TextArea
-                  rows={4}
-                  placeholder="There are many variations of passages of the Ipsum available, but the majority have suffered alteration in some form, by injected humour."
-                />
-              </Form.Item>
-            </Panel>
-
-            {/* Statistics Section */}
-            <Panel header="Statistics" key="statistics">
-              <Form.List name="statistics">
-                {(fields, { add, remove }) => (
-                  <>
-                    {fields.map((field, index) => (
-                      <Card
-                        key={field.key}
-                        size="small"
-                        title={`Statistic ${index + 1}`}
-                        className="mb-4"
-                        extra={
-                          <Button
-                            type="link"
-                            danger
-                            onClick={() => remove(field.name)}
-                          >
-                            Delete
-                          </Button>
-                        }
-                      >
-                        <Form.Item
-                          name={[field.name, "icon"]}
-                          label="Icon (Material Symbol)"
-                          rules={[
-                            { required: true, message: "Please enter icon" },
-                          ]}
-                        >
-                          <Input placeholder="favorite" />
-                          <p className="text-xs text-gray-500 mt-1">
-                            Icon name from Material Symbols (e.g., favorite,
-                            show_chart, cast, map)
-                          </p>
-                        </Form.Item>
-                        <Form.Item
-                          name={[field.name, "value"]}
-                          label="Value"
-                          rules={[
-                            { required: true, message: "Please enter value" },
-                          ]}
-                        >
-                          <Input placeholder="500+" />
-                        </Form.Item>
-                        <Form.Item
-                          name={[field.name, "label"]}
-                          label="Label"
-                          rules={[
-                            { required: true, message: "Please enter label" },
-                          ]}
-                        >
-                          <Input placeholder="Learners & counting" />
-                        </Form.Item>
-                      </Card>
-                    ))}
-                    <Button
-                      type="dashed"
-                      onClick={() => add()}
-                      className="w-full"
+          {/* ── Stat Cards ── */}
+          <Card title="📊 Thống kê (4 card)" size="small" style={{ marginBottom: 16 }}>
+            <p style={{ color: "#888", marginBottom: 12 }}>
+              Thứ tự: 2 card bên trái, 2 card bên phải. Tổng nên giữ 4 card.
+            </p>
+            <Form.List name="stats">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <Card
+                      key={key}
+                      size="small"
+                      type="inner"
+                      title={`Card ${name + 1} (${name < 2 ? "Trái" : "Phải"})`}
+                      extra={<MinusCircleOutlined onClick={() => remove(name)} style={{ color: "red" }} />}
+                      style={{ marginBottom: 12 }}
                     >
-                      + Add Statistic
-                    </Button>
-                  </>
-                )}
-              </Form.List>
-            </Panel>
-          </Collapse>
-
-          <Space className="mt-6 w-full justify-end">
-            <Button
-              type="primary"
-              onClick={handleSave}
-              loading={saving}
-              size="large"
-            >
-              Save changes
-            </Button>
-          </Space>
+                      <Space direction="vertical" style={{ width: "100%" }}>
+                        {/* Icon SVG — upload + preview */}
+                        <Form.Item {...restField} name={[name, "icon"]} label="Icon SVG" valuePropName="value">
+                          <ImageUpload label="" />
+                        </Form.Item>
+                        <Form.Item {...restField} name={[name, "number"]} label="Số liệu" rules={[{ required: true }]}>
+                          <Input placeholder="5,000+" />
+                        </Form.Item>
+                        <Form.Item {...restField} name={[name, "label"]} label="Label" rules={[{ required: true }]}>
+                          <Input placeholder="HỌC VIÊN YÊU THÍCH" />
+                        </Form.Item>
+                        <Form.Item {...restField} name={[name, "bgColor"]} label="Màu nền hover (hex)">
+                          <Input placeholder="#D94A56" />
+                        </Form.Item>
+                      </Space>
+                    </Card>
+                  ))}
+                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                    Thêm stat card
+                  </Button>
+                </>
+              )}
+            </Form.List>
+          </Card>
         </Form>
-      </Card>
+      </div>
     </AdminLayout>
   );
 }
 
-export default WhyChooseUsPage;
-
 export const getServerSideProps = withAdmin;
+export default WhyChooseUsPage;

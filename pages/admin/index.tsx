@@ -165,7 +165,7 @@ export default function AdminDashboard() {
       width: 160,
       render: (id: string) => (
         <span style={{ fontFamily: "monospace", fontSize: 12, opacity: 0.7 }}>
-          {id.length > 16 ? id.substring(0, 16) + "…" : id}
+          {id?.length > 16 ? id.substring(0, 16) + "…" : id || "—"}
         </span>
       ),
     },

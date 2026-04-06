@@ -95,6 +95,14 @@ export const getServerSidePropsArchive = async (
           topics: [],
         },
       },
+      sampleEssays: {
+        edges: essaysResult.data.map((node: any) => ({ node })),
+        pageInfo: {
+          offsetPagination: {
+            total: essaysResult.count,
+          },
+        },
+      },
       paged: Number(paged),
       pageSize,
       skill,

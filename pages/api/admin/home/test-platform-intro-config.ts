@@ -3,10 +3,6 @@ import { readConfig } from "~services/cms-config";
 import { supabaseAdmin } from "~supabase/admin";
 import type { TestPlatformIntroConfig } from "@/shared/types/admin-config";
 
-/**
- * API route để đọc test platform intro config
- * Chỉ dùng trong getServerSideProps
- */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<TestPlatformIntroConfig | { error: string }>
@@ -16,54 +12,20 @@ export default async function handler(
   }
 
   try {
-    const config = await readConfig<TestPlatformIntroConfig>(supabaseAdmin, "test-platform-intro");
-    // Validate config có đầy đủ properties
-    if (!config || !config.badge || !config.title) {
-      throw new Error("Invalid config structure");
-    }
+    const config = await readConfig<TestPlatformIntroConfig>(supabaseAdmin, "home/test-platform-intro");
+    if (!config) throw new Error("No config found");
     return res.status(200).json(config);
-  } catch (error) {
-    // Trả về config mặc định nếu file không tồn tại
+  } catch {
     const defaultConfig: TestPlatformIntroConfig = {
-      badge: {
-        text: "CATEGORIES",
-      },
-      backgroundGradient: "linear-gradient(180deg, #FB64AD 0%, #C586EE 100%)",
-      title: {
-        line1: "Explore Top Courses Caterories",
-        line2: "That",
-        line3: "Change",
-        line4: "Yourself",
-      },
-      categories: [
-        {
-          name: "FULL TEST",
-          href: "/ielts-exam-library",
-          icon: "/full_test.jpg",
-        },
-        {
-          name: "LISTENING",
-          href: "/ielts-practice-library/listening",
-          icon: "/listening.jpg",
-        },
-        {
-          name: "READING",
-          href: "/ielts-practice-library/reading",
-          icon: "/reading.jpg",
-        },
-        {
-          name: "SAMPLE WRITING",
-          href: "/ielts-writing-sample",
-          icon: "/writing.jpg",
-        },
-        {
-          name: "SAMPLE SPEAKING",
-          href: "/ielts-speaking-sample",
-          icon: "/speaking.jpg",
-        },
+      badge: "PREMIUM",
+      title: "Khám Phá Kho Đề",
+      titleHighlight: "Dự Đoán",
+      cards: [
+        { title: "IELTS Full Test", icon: "/assets/figma/icons/book (1) 1.svg", bg: "/assets/figma/icons/Background-1.png", color: "from-rose-600 to-rose-500", href: "/ielts-exam-library" },
+        { title: "Listening Practice", icon: "/assets/figma/icons/listen 1.svg", bg: "/assets/figma/icons/Background-2.png", color: "from-emerald-600 to-emerald-500", href: "/ielts-practice-library?skill=listening" },
+        { title: "Reading Practice", icon: "/assets/figma/icons/reading-book 1.svg", bg: "/assets/figma/icons/Background-3.png", color: "from-orange-600 to-orange-400", href: "/ielts-practice-library?skill=reading" },
       ],
     };
     return res.status(200).json(defaultConfig);
   }
 }
-

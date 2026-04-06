@@ -1,43 +1,29 @@
 -- ===========================================================================
--- CMS Seed Data — Initial config for all CMS sections
+-- CMS Seed Data — Initial config for all CMS sections (NEW UI schema)
 -- Chạy sau khi đã có bảng cms_configs
+-- Uses ON CONFLICT DO UPDATE = safe to re-run
 -- ===========================================================================
-
--- Helper: upsert on section_name conflict
--- Schema: cms_configs(id, section_name, data jsonb, updated_at)
 
 -- ─── HOME: Hero Banner ────────────────────────────────────────────────────
 INSERT INTO public.cms_configs (section_name, data, updated_at)
 VALUES (
-  'hero-banner',
+  'home/hero-banner',
   '{
-    "trustpilot": {
-      "image": "/img-admin/o-trustpilot.png",
-      "rating": "Excellent 4.9 out of 5"
+    "title": {
+      "line1": "IELTS Prediction Test",
+      "line2": "Thi",
+      "highlight": "Thử Như Thật"
     },
-    "headline": {
-      "line1": "Education Is The Best",
-      "line2": "Key",
-      "line3": "Success",
-      "line4": "In Life"
-    },
-    "description": {
-      "text": "Luyện tập và thi thử IELTS Online trên máy tính miễn phí.",
-      "highlightText": "Start now!"
-    },
-    "buttons": {
-      "primary": { "text": "Start Practicing", "link": "/ielts-practice-library" },
-      "secondary": { "text": "Take a Test", "link": "/ielts-exam-library" }
-    },
-    "backgroundImage": "",
-    "bannerImage": "/img-admin/o-banner.png",
-    "featureCards": [
-      { "icon": "📝", "value": "10K+", "subtitle": "Practice Tests", "avatars": [] },
-      { "icon": "🎯", "value": "98%", "subtitle": "Accuracy Rate", "avatars": [] },
-      { "icon": "👥", "value": "50K+", "subtitle": "Active Users", "avatars": [] }
+    "subtitle": "Thi thử như thật với giao diện 1:1 và kho đề sát thực tế. Bứt phá band điểm cùng hệ thống giải thích chi tiết.",
+    "checklist": [
+      "Giao diện thi máy",
+      "Cập nhật xu hướng đề",
+      "Chấm chữa chi tiết, tối ưu thời gian"
     ],
-    "decorativeShape": {
-      "image": "/img-admin/o-shape-1.png"
+    "cta": { "text": "Khám phá ngay", "link": "/ielts-practice-library" },
+    "images": {
+      "screen": "/assets/figma/icons/screen 1.png",
+      "mascot": "/assets/figma/icons/like 1.png"
     }
   }'::jsonb,
   now()
@@ -47,21 +33,18 @@ ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now(
 -- ─── HOME: Test Platform Intro ────────────────────────────────────────────
 INSERT INTO public.cms_configs (section_name, data, updated_at)
 VALUES (
-  'test-platform-intro',
+  'home/test-platform-intro',
   '{
-    "badge": { "text": "IELTS TEST PLATFORM" },
-    "backgroundGradient": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    "title": {
-      "line1": "Nền tảng luyện thi",
-      "line2": "IELTS",
-      "line3": "hàng đầu",
-      "line4": "Việt Nam"
-    },
-    "categories": [
-      { "name": "Listening", "href": "/ielts-practice-library?skill=listening", "icon": "🎧" },
-      { "name": "Reading", "href": "/ielts-practice-library?skill=reading", "icon": "📖" },
-      { "name": "Writing", "href": "/sample-writing", "icon": "✍️" },
-      { "name": "Speaking", "href": "/sample-speaking", "icon": "🎤" }
+    "badge": "PREMIUM",
+    "title": "Khám Phá Kho Đề",
+    "titleHighlight": "Dự Đoán",
+    "cards": [
+      { "title": "IELTS Full Test", "icon": "/assets/figma/icons/book (1) 1.svg", "bg": "/assets/figma/icons/Background-1.png", "color": "from-rose-600 to-rose-500", "href": "/ielts-exam-library" },
+      { "title": "Listening Practice", "icon": "/assets/figma/icons/listen 1.svg", "bg": "/assets/figma/icons/Background-2.png", "color": "from-emerald-600 to-emerald-500", "href": "/ielts-practice-library?skill=listening" },
+      { "title": "Reading Practice", "icon": "/assets/figma/icons/reading-book 1.svg", "bg": "/assets/figma/icons/Background-3.png", "color": "from-orange-600 to-orange-400", "href": "/ielts-practice-library?skill=reading" },
+      { "title": "Sample Writing", "icon": "/assets/figma/icons/copywriting (1) 1.svg", "bg": "/assets/figma/icons/Background-4.png", "color": "from-indigo-400 to-indigo-300", "href": "/sample-writing" },
+      { "title": "Sample Speaking", "icon": "/assets/figma/icons/speaking 1.svg", "bg": "/assets/figma/icons/Background-5.png", "color": "from-amber-500 to-yellow-400", "href": "/sample-speaking" },
+      { "title": "IELTS Prediction", "icon": "/assets/figma/icons/search 1.svg", "bg": "/assets/figma/icons/Background-6.png", "color": "from-blue-600 to-blue-500", "href": "/ielts-prediction" }
     ]
   }'::jsonb,
   now()
@@ -71,16 +54,16 @@ ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now(
 -- ─── HOME: Why Choose Us ──────────────────────────────────────────────────
 INSERT INTO public.cms_configs (section_name, data, updated_at)
 VALUES (
-  'why-choose-us',
+  'home/why-choose-us',
   '{
-    "badge": { "text": "WHY CHOOSE US" },
-    "title": "Tại sao chọn IELTS Prediction?",
-    "description": "Chúng tôi cung cấp nền tảng luyện thi IELTS toàn diện với công nghệ AI tiên tiến.",
-    "statistics": [
-      { "icon": "📚", "value": "10,000+", "label": "Bài tập" },
-      { "icon": "👤", "value": "50,000+", "label": "Học viên" },
-      { "icon": "⭐", "value": "4.9/5", "label": "Đánh giá" },
-      { "icon": "🏆", "value": "98%", "label": "Hài lòng" }
+    "badge": "Tại sao chọn chúng tôi?",
+    "title": "Luyện thi IELTS Trên Giao Diện Thi Thật",
+    "description": "IPT cung cấp bộ đề thi thật tập trung vào các dạng câu hỏi xuất hiện thường xuyên, chủ đề lặp lại và cấu trúc đề được ghi nhận từ thí sinh thi gần đây, giúp người học luyện tập hiệu quả, tránh học lan man và tiết kiệm thời gian ôn tập.",
+    "stats": [
+      { "icon": "/assets/figma/icons/LovedbyStudents.svg", "number": "5,000+", "label": "HỌC VIÊN YÊU THÍCH", "bgColor": "#D94A56" },
+      { "icon": "/assets/figma/icons/Aim.svg", "number": "1,000+", "label": "HỌC VIÊN ĐẠT AIM", "bgColor": "#219653" },
+      { "icon": "/assets/figma/icons/Legit.svg", "number": "20+", "label": "ĐỀ THI THẬT", "bgColor": "#5281F9" },
+      { "icon": "/assets/figma/icons/Goal.svg", "number": "100+", "label": "HỌC VIÊN ĐẠT 8.0", "bgColor": "#FC945A" }
     ]
   }'::jsonb,
   now()
@@ -90,38 +73,41 @@ ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now(
 -- ─── HOME: Testimonials ───────────────────────────────────────────────────
 INSERT INTO public.cms_configs (section_name, data, updated_at)
 VALUES (
-  'testimonials',
+  'home/testimonials',
   '{
-    "title": "Testimonials",
-    "description": "Họ nói gì về chúng tôi?",
-    "button": { "text": "Đăng ký ngay", "link": "/subscription" },
-    "testimonials": [
-      {
-        "name": "Nguyễn Văn A",
-        "title": "IELTS 7.5",
-        "company": "Đại học Bách Khoa",
-        "quote": "Nền tảng rất hữu ích, giúp tôi cải thiện điểm IELTS đáng kể chỉ sau 2 tháng luyện tập.",
-        "avatar": ""
-      },
-      {
-        "name": "Trần Thị B",
-        "title": "IELTS 8.0",
-        "company": "FPT Software",
-        "quote": "Giao diện thân thiện, bài tập đa dạng và sát đề thi thật. Highly recommended!",
-        "avatar": ""
-      }
+    "title": "Phản hồi từ học viên",
+    "description": "Trải nghiệm thực tế từ học viên đã luyện đề sát cấu trúc thi thật và làm quen giao diện thi máy trước ngày thi.",
+    "cta": { "text": "Xem Thêm Phản Hồi", "link": "/subscription" },
+    "reviews": [
+      { "name": "Nguyễn Thị Lan", "score": "IELTS 7.0", "avatar": "/assets/figma/icons/Background-1.png", "review": "Giao diện thi rất giống thi thật, giúp mình làm quen trước ngày thi. Mình đã đạt band 7.0 sau 2 tháng luyện tập liên tục.", "rating": 5 },
+      { "name": "Trần Văn Minh", "score": "IELTS 6.5", "avatar": "/assets/figma/icons/Background-2.png", "review": "Đề thi sát với cấu trúc thật. Mình thích cách chấm điểm tự động, tiết kiệm rất nhiều thời gian ôn luyện.", "rating": 5 },
+      { "name": "Hoàng Minh Tuấn", "score": "IELTS 7.5", "avatar": "/assets/figma/icons/Background-3.png", "review": "Trang web này giúp mình tập làm quen với format thi thật. Sau khi luyện đủ 30 bài, mình tự tin hơn hẳn khi thi chính thức.", "rating": 5 },
+      { "name": "Bùi Thị Thu", "score": "IELTS 6.0", "avatar": "/assets/figma/icons/Background-4.png", "review": "Phần Listening rất chuẩn, đúng format. Mình từng mua khóa học bên ngoài nhưng giờ luyện ở đây là đủ rồi.", "rating": 5 },
+      { "name": "Lý Thanh Sơn", "score": "IELTS 8.0", "avatar": "/assets/figma/icons/Background-5.png", "review": "Rất hài lòng với chất lượng đề. Hệ thống chấm điểm tức thì giúp mình biết ngay điểm yếu để cải thiện.", "rating": 5 },
+      { "name": "Phạm Thị Hoa", "score": "IELTS 7.5", "avatar": "/assets/figma/icons/Background-2.png", "review": "Platform tốt nhất mình từng dùng để luyện IELTS. Reading và Listening đều rất chất lượng, đề đa dạng.", "rating": 5 },
+      { "name": "Lê Quốc Bảo", "score": "IELTS 6.0", "avatar": "/assets/figma/icons/Background-3.png", "review": "Mình luyện tập mỗi ngày với bộ đề ở đây. Sau 3 tháng đã tăng từ 5.5 lên 6.0, rất hài lòng với kết quả.", "rating": 5 },
+      { "name": "Ngô Thị Mai", "score": "IELTS 7.0", "avatar": "/assets/figma/icons/Background-4.png", "review": "Giao diện rất thân thiện và chuyên nghiệp. Đề thi bám sát thực tế và cập nhật thường xuyên.", "rating": 5 },
+      { "name": "Đinh Văn Khoa", "score": "IELTS 6.5", "avatar": "/assets/figma/icons/Background-5.png", "review": "Trải nghiệm thi thử rất mượt mà, không khác gì thi thật. Mình đã tăng 1.0 band chỉ sau 2 tháng luyện đề đây.", "rating": 5 },
+      { "name": "Vương Thị Liên", "score": "IELTS 7.0", "avatar": "/assets/figma/icons/Background-6.png", "review": "Bộ đề phong phú, giải thích chi tiết. Mình đặc biệt thích tính năng xem lại lỗi sai sau mỗi bài thi.", "rating": 5 },
+      { "name": "Đặng Thu Hương", "score": "IELTS 8.0", "avatar": "/assets/figma/icons/Background-4.png", "review": "Hệ thống giao diện máy tính rất mượt, đúng với format thi thật. Đặc biệt phần Listening rất chuẩn.", "rating": 5 },
+      { "name": "Vũ Thế Dũng", "score": "IELTS 6.5", "avatar": "/assets/figma/icons/Background-5.png", "review": "Luyện đề trên này giúp mình quen với áp lực thời gian. Kết quả thi thật tốt hơn mình mong đợi.", "rating": 5 },
+      { "name": "Trịnh Thị Ngọc", "score": "IELTS 7.0", "avatar": "/assets/figma/icons/Background-6.png", "review": "Mình đã thử nhiều nền tảng luyện IELTS khác nhau. Đây là nơi có đề sát thực nhất và interface đẹp nhất.", "rating": 5 },
+      { "name": "Cao Minh Nhật", "score": "IELTS 6.5", "avatar": "/assets/figma/icons/Background-1.png", "review": "Chất lượng đề thi cao, cập nhật liên tục. Mình học Read và Listen ở đây là chủ yếu và thấy hiệu quả rõ rệt.", "rating": 5 },
+      { "name": "Phan Thị Hải", "score": "IELTS 7.5", "avatar": "/assets/figma/icons/Background-2.png", "review": "Sau khi dùng nền tảng này 3 tháng, mình đạt 7.5 thật sự bất ngờ. Phần thi thật không khác gì luyện ở đây.", "rating": 5 }
     ]
   }'::jsonb,
   now()
 )
 ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
 
--- ─── HOME: Practice Section ───────────────────────────────────────────────
+-- ─── HEADER: Top Bar ──────────────────────────────────────────────────────
 INSERT INTO public.cms_configs (section_name, data, updated_at)
 VALUES (
-  'practice-section',
+  'header/top-bar',
   '{
-    "backgroundGradient": "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)"
+    "text": "🎉 Đăng ký ngay để nhận ưu đãi 50% cho tất cả gói học!",
+    "link": "/subscription",
+    "visible": false
   }'::jsonb,
   now()
 )
@@ -136,19 +122,6 @@ VALUES (
     "description": "Tham gia cùng hàng nghìn học viên đã đạt band điểm mơ ước.",
     "backgroundGradient": "linear-gradient(135deg, #D94A56 0%, #E86B75 100%)",
     "button": { "text": "Bắt đầu miễn phí", "link": "/subscription" }
-  }'::jsonb,
-  now()
-)
-ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
-
--- ─── HEADER: Top Bar ──────────────────────────────────────────────────────
-INSERT INTO public.cms_configs (section_name, data, updated_at)
-VALUES (
-  'header/top-bar',
-  '{
-    "text": "🎉 Đăng ký ngay để nhận ưu đãi 50% cho tất cả gói học!",
-    "link": "/subscription",
-    "visible": true
   }'::jsonb,
   now()
 )
@@ -237,10 +210,7 @@ VALUES (
   '{
     "title": "IELTS Exam Library",
     "backgroundColor": "#D94A56",
-    "breadcrumb": {
-      "homeLabel": "Trang chủ",
-      "currentLabel": "IELTS Exam Library"
-    }
+    "breadcrumb": { "homeLabel": "Trang chủ", "currentLabel": "IELTS Exam Library" }
   }'::jsonb,
   now()
 )
@@ -253,21 +223,13 @@ VALUES (
   '{
     "listening": {
       "title": "IELTS Listening Practice",
-      "description": {
-        "line1": "Luyện tập IELTS Listening với hàng trăm bài tập",
-        "line2": "từ dễ đến khó, sát đề thi thật nhất.",
-        "line3": ""
-      },
+      "description": { "line1": "Luyện tập IELTS Listening với hàng trăm bài tập", "line2": "từ dễ đến khó, sát đề thi thật nhất.", "line3": "" },
       "backgroundColor": "#D94A56",
       "button": { "text": "Bắt đầu luyện tập", "link": "/ielts-practice-library?skill=listening" }
     },
     "reading": {
       "title": "IELTS Reading Practice",
-      "description": {
-        "line1": "Luyện tập IELTS Reading với hàng trăm bài tập",
-        "line2": "từ Academic đến General Training.",
-        "line3": ""
-      },
+      "description": { "line1": "Luyện tập IELTS Reading với hàng trăm bài tập", "line2": "từ Academic đến General Training.", "line3": "" },
       "backgroundColor": "#2D3142",
       "button": { "text": "Bắt đầu luyện tập", "link": "/ielts-practice-library?skill=reading" }
     }
@@ -276,34 +238,32 @@ VALUES (
 )
 ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
 
--- ─── ACCOUNT: Login ───────────────────────────────────────────────────────
+-- ─── SAMPLE ESSAY: Banner ─────────────────────────────────────────────────
 INSERT INTO public.cms_configs (section_name, data, updated_at)
 VALUES (
-  'account/login',
-  '{ "backgroundColor": "#FAF7EB" }'::jsonb,
+  'sample-essay/banner',
+  '{
+    "writing": {
+      "title": "IELTS Writing Samples",
+      "description": { "line1": "Tham khảo hàng trăm bài mẫu Writing Task 1 & Task 2", "line2": "được chấm chi tiết với band score." },
+      "backgroundColor": "#D94A56"
+    },
+    "speaking": {
+      "title": "IELTS Speaking Samples",
+      "description": { "line1": "Tham khảo câu trả lời mẫu cho Part 1, 2, 3", "line2": "với phân tích chi tiết và từ vựng nâng cao." },
+      "backgroundColor": "#2D3142"
+    }
+  }'::jsonb,
   now()
 )
 ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
 
--- ─── ACCOUNT: Register ────────────────────────────────────────────────────
-INSERT INTO public.cms_configs (section_name, data, updated_at)
-VALUES (
-  'account/register',
-  '{ "backgroundColor": "#FAF7EB" }'::jsonb,
-  now()
-)
-ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
-
--- ─── LEGAL: Terms of Use ──────────────────────────────────────────────────
+-- ─── LEGAL ────────────────────────────────────────────────────────────────
 INSERT INTO public.cms_configs (section_name, data, updated_at)
 VALUES (
   'terms-of-use',
   '{
-    "banner": {
-      "title": "Điều khoản sử dụng",
-      "subtitle": "Vui lòng đọc kỹ trước khi sử dụng dịch vụ",
-      "backgroundImage": ""
-    },
+    "banner": { "title": "Điều khoản sử dụng", "subtitle": "Vui lòng đọc kỹ trước khi sử dụng dịch vụ", "backgroundImage": "" },
     "heroImage": "",
     "content": {
       "introTitle": "Điều khoản sử dụng IELTS Prediction",
@@ -318,16 +278,11 @@ VALUES (
 )
 ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
 
--- ─── LEGAL: Privacy Policy ────────────────────────────────────────────────
 INSERT INTO public.cms_configs (section_name, data, updated_at)
 VALUES (
   'privacy-policy',
   '{
-    "banner": {
-      "title": "Chính sách bảo mật",
-      "subtitle": "Chúng tôi cam kết bảo vệ dữ liệu cá nhân của bạn",
-      "backgroundImage": ""
-    },
+    "banner": { "title": "Chính sách bảo mật", "subtitle": "Chúng tôi cam kết bảo vệ dữ liệu cá nhân của bạn", "backgroundImage": "" },
     "heroImage": "",
     "content": {
       "introTitle": "Chính sách bảo mật IELTS Prediction",
@@ -342,87 +297,33 @@ VALUES (
 )
 ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
 
--- ─── SAMPLE ESSAY: Banner ─────────────────────────────────────────────────
-INSERT INTO public.cms_configs (section_name, data, updated_at)
-VALUES (
-  'sample-essay/banner',
-  '{
-    "writing": {
-      "title": "IELTS Writing Samples",
-      "description": {
-        "line1": "Tham khảo hàng trăm bài mẫu Writing Task 1 & Task 2",
-        "line2": "được chấm chi tiết với band score."
-      },
-      "backgroundColor": "#D94A56"
-    },
-    "speaking": {
-      "title": "IELTS Speaking Samples",
-      "description": {
-        "line1": "Tham khảo câu trả lời mẫu cho Part 1, 2, 3",
-        "line2": "với phân tích chi tiết và từ vựng nâng cao."
-      },
-      "backgroundColor": "#2D3142"
-    }
-  }'::jsonb,
-  now()
-)
-ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
-
 -- ─── SEO: Global Config ───────────────────────────────────────────────────
 INSERT INTO public.cms_configs (section_name, data, updated_at)
 VALUES (
   'seo/global',
   '{
     "siteTitle": "IELTS Prediction — Luyện thi IELTS Online",
-    "siteDescription": "Nền tảng luyện thi IELTS Online hàng đầu Việt Nam. Thi thử IELTS miễn phí trên máy tính với hàng nghìn bài tập Listening, Reading, Writing, Speaking.",
-    "siteKeywords": "ielts, luyện thi ielts, thi thử ielts, ielts online, ielts prediction",
+    "siteDescription": "Nền tảng luyện thi IELTS Online hàng đầu Việt Nam.",
+    "siteKeywords": "ielts, luyện thi ielts, thi thử ielts, ielts online",
     "ogImage": "",
-    "robots": "index, follow",
-    "googleAnalyticsId": "",
-    "facebookPixelId": ""
+    "robots": "index, follow"
   }'::jsonb,
   now()
 )
 ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
 
 -- ===========================================================================
--- ALIASES: home/ prefixed sections for frontend SSR compatibility
--- The homepage getServerSideProps reads "home/hero-banner" etc.
--- while admin APIs store as "hero-banner" etc.
--- Both need to exist until naming is unified.
+-- Cleanup: Remove old section names that used to exist without home/ prefix
 -- ===========================================================================
-
--- home/hero-banner (alias of hero-banner)
-INSERT INTO public.cms_configs (section_name, data, updated_at)
-SELECT 'home/hero-banner', data, now()
-FROM public.cms_configs WHERE section_name = 'hero-banner'
-ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
-
--- home/test-platform-intro
-INSERT INTO public.cms_configs (section_name, data, updated_at)
-SELECT 'home/test-platform-intro', data, now()
-FROM public.cms_configs WHERE section_name = 'test-platform-intro'
-ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
-
--- home/why-choose-us
-INSERT INTO public.cms_configs (section_name, data, updated_at)
-SELECT 'home/why-choose-us', data, now()
-FROM public.cms_configs WHERE section_name = 'why-choose-us'
-ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
-
--- home/testimonials
-INSERT INTO public.cms_configs (section_name, data, updated_at)
-SELECT 'home/testimonials', data, now()
-FROM public.cms_configs WHERE section_name = 'testimonials'
-ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
-
--- home/practice-section
-INSERT INTO public.cms_configs (section_name, data, updated_at)
-SELECT 'home/practice-section', data, now()
-FROM public.cms_configs WHERE section_name = 'practice-section'
-ON CONFLICT (section_name) DO UPDATE SET data = EXCLUDED.data, updated_at = now();
+DELETE FROM public.cms_configs WHERE section_name IN (
+  'hero-banner',
+  'test-platform-intro',
+  'why-choose-us',
+  'testimonials',
+  'practice-section'
+);
 
 -- ===========================================================================
--- Verification: List all seeded sections
+-- Verification
 -- ===========================================================================
 SELECT section_name, updated_at FROM public.cms_configs ORDER BY section_name;

@@ -85,19 +85,19 @@ const AutoSlider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="relative group/slider w-full overflow-hidden">
+    <div className="relative group/slider w-full">
       {/* Nút điều hướng Arrow */}
       {showArrows && (
         <>
           <button
             onClick={() => scroll("left")}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-primary-500 text-white shadow-lg border border-primary-400 p-3 rounded-full hover:bg-primary-600 transition-all opacity-0 group-hover/slider:opacity-100 -translate-x-4 group-hover/slider:translate-x-2"
+            className="absolute -left-6 top-1/2 -translate-y-1/2 z-30 bg-primary-500 text-white shadow-lg border border-primary-400 p-3 rounded-full hover:bg-primary-600 transition-all opacity-0 group-hover/slider:opacity-100 -translate-x-2 group-hover/slider:translate-x-0"
           >
             <ChevronLeft className="h-6 w-6" />
           </button>
           <button
             onClick={() => scroll("right")}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-primary-500 text-white shadow-lg border border-primary-400 p-3 rounded-full hover:bg-primary-600 transition-all opacity-0 group-hover/slider:opacity-100 translate-x-4 group-hover/slider:-translate-x-2"
+            className="absolute -right-6 top-1/2 -translate-y-1/2 z-30 bg-primary-500 text-white shadow-lg border border-primary-400 p-3 rounded-full hover:bg-primary-600 transition-all opacity-0 group-hover/slider:opacity-100 translate-x-2 group-hover/slider:translate-x-0"
           >
             <ChevronRight className="h-6 w-6" />
           </button>

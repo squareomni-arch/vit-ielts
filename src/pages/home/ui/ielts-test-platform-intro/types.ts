@@ -1,17 +1,12 @@
 export interface TestPlatformIntroConfig {
-  badge: {
-    text: string;
-  };
-  backgroundGradient: string;
-  title: {
-    line1: string;
-    line2: string;
-    line3: string;
-    line4: string;
-  };
-  categories: Array<{
-    name: string;
-    href: string;
+  badge: string;
+  title: string;
+  titleHighlight: string;
+  cards: Array<{
+    title: string;
     icon: string;
+    bg: string;
+    color: string;
+    href: string;
   }>;
 }

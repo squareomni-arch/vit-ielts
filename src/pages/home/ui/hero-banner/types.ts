@@ -1,39 +1,17 @@
 export interface HeroBannerConfig {
-  trustpilot: {
-    image: string;
-    rating: string;
+  title: {
+    line1: string;       // "IELTS Prediction Test"
+    line2: string;       // "Thi"
+    highlight: string;   // "Thử Như Thật"
   };
-  headline: {
-    line1: string;
-    line2: string;
-    line3: string;
-    line4: string;
-  };
-  description: {
+  subtitle: string;
+  checklist: string[];
+  cta: {
     text: string;
-    highlightText: string;
+    link: string;
   };
-  buttons: {
-    primary: {
-      text: string;
-      link: string;
-    };
-    secondary?: {
-      text: string;
-      link: string;
-    };
-  };
-  backgroundImage: string;
-  bannerImage: string;
-  featureCards: Array<{
-    icon: string;
-    title?: string;
-    value?: string;
-    subtitle: string;
-    avatars?: string[];
-  }>;
-  decorativeShape: {
-    image: string;
+  images: {
+    screen: string;      // "/assets/figma/icons/screen 1.png"
+    mascot: string;      // "/assets/figma/icons/like 1.png"
   };
 }
-

@@ -3,10 +3,6 @@ import { readConfig } from "~services/cms-config";
 import { supabaseAdmin } from "~supabase/admin";
 import type { TestimonialsConfig } from "@/shared/types/admin-config";
 
-/**
- * API route để đọc testimonials config
- * Chỉ dùng trong getServerSideProps
- */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<TestimonialsConfig | { error: string }>
@@ -16,90 +12,19 @@ export default async function handler(
   }
 
   try {
-    const config = await readConfig<TestimonialsConfig>(supabaseAdmin, "testimonials");
-    // Validate config có đầy đủ properties
-    if (!config || !config.title) {
-      throw new Error("Invalid config structure");
-    }
+    const config = await readConfig<TestimonialsConfig>(supabaseAdmin, "home/testimonials");
+    if (!config || !config.title) throw new Error("No config found");
     return res.status(200).json(config);
   } catch {
-    // Trả về config mặc định nếu file không tồn tại
     const defaultConfig: TestimonialsConfig = {
-      title: "What Our Learners Say",
-      description:
-        "Learning communicate to global world and build a bright future with our histudy.",
-      button: {
-        text: "Marquee Y",
-        link: "#",
-      },
-      testimonials: [
-        {
-          name: "Martha Maldonado",
-          title: "Executive Chairman",
-          company: "@ Google",
-          quote:
-            "After the launch, vulputate at sapien sit amet, auctor iaculis lorem. In vel hend rerit nisi. Vestibulum eget risus velit.",
-          avatar: "/img-admin/art-stu-1.png",
-        },
-        {
-          name: "Michael D. Lovelady",
-          title: "CEO",
-          company: "@ Google",
-          quote:
-            "Histudy education, vulputate at sapien sit amet, auctor iaculis lorem. In vel hend rerit nisi. Vestibulum eget risus velit.",
-          avatar: "/img-admin/art-stu-2.png",
-        },
-        {
-          name: "Valerie J. Creasman",
-          title: "Executive Designer",
-          company: "@ Google",
-          quote:
-            "Our educational, vulputate at sapien sit amet, auctor iaculis lorem. In vel hend rerit nisi. Vestibulum eget risus velit.",
-          avatar: "/img-admin/art-stu-3.png",
-        },
-        {
-          name: "Hannah R. Sutton",
-          title: "Executive Chairman",
-          company: "@ Facebook",
-          quote:
-            "People says about, vulputate at sapien sit amet, auctor iaculis lorem. In vel hend rerit nisi. Vestibulum eget risus velit.",
-          avatar: "/img-admin/i-team.png",
-        },
-        {
-          name: "Pearl B. Hill",
-          title: "Chairman SR",
-          company: "@ Facebook",
-          quote:
-            "Like this histudy, vulputate at sapien sit amet, auctor iaculis lorem. In vel hend rerit nisi. Vestibulum eget risus velit.",
-          avatar: "/img-admin/art-stu-1.png",
-        },
-        {
-          name: "Mandy F. Wood",
-          title: "SR Designer",
-          company: "@ Google",
-          quote:
-            "Educational template, vulputate at sapien sit amet, auctor iaculis lorem. In vel hend rerit nisi. Vestibulum eget risus velit.",
-          avatar: "/img-admin/art-stu-2.png",
-        },
-        {
-          name: "Mildred W. Diaz",
-          title: "Executive Officer",
-          company: "@ Yelp",
-          quote:
-            "Online leaning, vulputate at sapien sit amet, auctor iaculis lorem. In vel hend rerit nisi. Vestibulum eget risus velit.",
-          avatar: "/img-admin/art-stu-3.png",
-        },
-        {
-          name: "Christopher H. Win",
-          title: "Product Designer",
-          company: "@ Google",
-          quote:
-            "Remote learning, vulputate at sapien sit amet, auctor iaculis lorem. In vel hend rerit nisi. Vestibulum eget risus velit.",
-          avatar: "/img-admin/i-team.png",
-        },
+      title: "Phản hồi từ học viên",
+      description: "Trải nghiệm thực tế từ học viên đã luyện đề sát cấu trúc thi thật.",
+      cta: { text: "Xem Thêm Phản Hồi", link: "#" },
+      reviews: [
+        { name: "Nguyễn Thị Lan", score: "IELTS 7.0", avatar: "/assets/figma/icons/Background-1.png", review: "Giao diện thi rất giống thi thật.", rating: 5 },
+        { name: "Trần Văn Minh", score: "IELTS 6.5", avatar: "/assets/figma/icons/Background-2.png", review: "Đề thi sát với cấu trúc thật.", rating: 5 },
       ],
     };
     return res.status(200).json(defaultConfig);
   }
 }
-

@@ -404,20 +404,20 @@ export const PageAffiliate = () => {
   const commissionColumns: ColumnsType<Commission> = [
     {
       title: "Mã đơn",
-      dataIndex: "orderId",
-      key: "orderId",
-      render: (orderId: string) => `#${orderId.substring(0, 8)}`,
+      dataIndex: "order_id",
+      key: "order_id",
+      render: (orderId?: string) => orderId ? `#${orderId.substring(0, 8)}` : "-",
     },
     {
       title: "Giá trị đơn",
       dataIndex: "amount",
       key: "amount",
-      render: (amount: number) => formatPrice(amount),
+      render: (amount: number) => formatPrice(amount || 0),
     },
     {
       title: "Hoa hồng",
-      dataIndex: "commissionAmount",
-      key: "commissionAmount",
+      dataIndex: "commission_amount",
+      key: "commission_amount",
       render: (amount: number) => (
         <span className="font-bold text-green-600">{formatPrice(amount)}</span>
       ),
@@ -445,9 +445,9 @@ export const PageAffiliate = () => {
         return (
           <Space direction="vertical" size={0}>
             <Tag color={colors[status]}>{labels[status] || status}</Tag>
-            {status === "pending" && record.eligibleAt && (
+            {status === "pending" && record.eligible_at && (
               <span className="text-xs text-gray-400">
-                Đủ điều kiện: {dayjs(record.eligibleAt).format("DD/MM/YYYY")}
+                Đủ điều kiện: {dayjs(record.eligible_at).format("DD/MM/YYYY")}
               </span>
             )}
           </Space>
@@ -456,8 +456,8 @@ export const PageAffiliate = () => {
     },
     {
       title: "Ngày tạo",
-      dataIndex: "createdAt",
-      key: "createdAt",
+      dataIndex: "created_at",
+      key: "created_at",
       render: (date: string) => dayjs(date).format("DD/MM/YYYY"),
     },
   ];
@@ -465,14 +465,14 @@ export const PageAffiliate = () => {
   const visitColumns: ColumnsType<Visit> = [
     {
       title: "Link",
-      dataIndex: "linkId",
-      key: "linkId",
-      render: (linkId: string) => `Link ${linkId.substring(0, 8)}`,
+      dataIndex: "link_id",
+      key: "link_id",
+      render: (linkId?: string) => linkId ? `Link ${linkId.substring(0, 8)}` : "-",
     },
     {
       title: "Thời gian",
-      dataIndex: "visitedAt",
-      key: "visitedAt",
+      dataIndex: "created_at",
+      key: "created_at",
       render: (date: string) => dayjs(date).format("DD/MM/YYYY HH:mm"),
     },
     {
@@ -485,8 +485,8 @@ export const PageAffiliate = () => {
     },
     {
       title: "Mã đơn",
-      dataIndex: "orderId",
-      key: "orderId",
+      dataIndex: "order_id",
+      key: "order_id",
       render: (orderId?: string) => (orderId ? `#${orderId.substring(0, 8)}` : "-"),
     },
   ];

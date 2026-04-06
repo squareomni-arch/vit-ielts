@@ -272,81 +272,82 @@ const AdminPayoutsPage = () => {
     .reduce((sum, p) => sum + p.amount, 0);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <Title level={3} style={{ margin: 0 }}>Quản lý Payouts</Title>
-          <Text type="secondary">Duyệt và quản lý yêu cầu rút tiền affiliate</Text>
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Title level={3} style={{ margin: 0 }}>Quản lý Payouts</Title>
+            <Text type="secondary">Duyệt và quản lý yêu cầu rút tiền affiliate</Text>
+          </div>
+          <Button icon={<ReloadOutlined />} onClick={fetchPayouts}>
+            Làm mới
+          </Button>
         </div>
-        <Button icon={<ReloadOutlined />} onClick={fetchPayouts}>
-          Làm mới
-        </Button>
-      </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-orange-600">{pendingCount}</div>
-            <div className="text-gray-500">Chờ duyệt</div>
-          </div>
-        </Card>
-        <Card>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-orange-600">{formatVND(pendingAmount)}</div>
-            <div className="text-gray-500">Tổng tiền chờ duyệt</div>
-          </div>
-        </Card>
-        <Card>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{total}</div>
-            <div className="text-gray-500">Tổng payouts</div>
-          </div>
-        </Card>
-      </div>
+        {/* Summary cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">{pendingCount}</div>
+              <div className="text-gray-500">Chờ duyệt</div>
+            </div>
+          </Card>
+          <Card>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">{formatVND(pendingAmount)}</div>
+              <div className="text-gray-500">Tổng tiền chờ duyệt</div>
+            </div>
+          </Card>
+          <Card>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{total}</div>
+              <div className="text-gray-500">Tổng payouts</div>
+            </div>
+          </Card>
+        </div>
 
-      {/* Filters */}
-      <Card>
-        <Space wrap>
-          <Select
-            placeholder="Trạng thái"
-            allowClear
-            style={{ width: 160 }}
-            value={statusFilter}
-            onChange={setStatusFilter}
-            options={Object.entries(STATUS_CONFIG).map(([value, cfg]) => ({
-              value,
-              label: cfg.label,
-            }))}
+        {/* Filters */}
+        <Card>
+          <Space wrap>
+            <Select
+              placeholder="Trạng thái"
+              allowClear
+              style={{ width: 160 }}
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={Object.entries(STATUS_CONFIG).map(([value, cfg]) => ({
+                value,
+                label: cfg.label,
+              }))}
+            />
+            <Input.Search
+              placeholder="Tìm kiếm..."
+              style={{ width: 300 }}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onSearch={() => fetchPayouts()}
+              allowClear
+            />
+          </Space>
+        </Card>
+
+        {/* Table */}
+        <Card>
+          <Table
+            columns={columns}
+            dataSource={payouts}
+            rowKey="id"
+            loading={loading}
+            pagination={{
+              current: page,
+              pageSize,
+              total,
+              onChange: setPage,
+              showSizeChanger: false,
+            }}
+            scroll={{ x: 1100 }}
           />
-          <Input.Search
-            placeholder="Tìm kiếm..."
-            style={{ width: 300 }}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onSearch={() => fetchPayouts()}
-            allowClear
-          />
-        </Space>
-      </Card>
-
-      {/* Table */}
-      <Card>
-        <Table
-          columns={columns}
-          dataSource={payouts}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            current: page,
-            pageSize,
-            total,
-            onChange: setPage,
-            showSizeChanger: false,
-          }}
-          scroll={{ x: 1100 }}
-        />
-      </Card>
+        </Card>
 
       {/* ═══ APPROVE MODAL ═══ */}
       <Modal
@@ -467,7 +468,7 @@ const AdminPayoutsPage = () => {
               <ExclamationCircleOutlined className="text-yellow-600 mr-2" />
               <Text type="warning">
                 Sau khi duyệt, hệ thống sẽ tự động xác nhận hoàn thành khi phát hiện giao dịch
-                từ SePay với nội dung "PAYOUT {approveModal.id.substring(0, 8)}...".
+                từ SePay với nội dung "PAYOUT {approveModal.id?.substring(0, 8)}...".
               </Text>
             </div>
           </div>
@@ -565,10 +566,9 @@ const AdminPayoutsPage = () => {
         )}
       </Modal>
     </div>
+    </AdminLayout>
   );
 };
-
-AdminPayoutsPage.Layout = AdminLayout;
 
 export default AdminPayoutsPage;
 

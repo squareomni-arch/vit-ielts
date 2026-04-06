@@ -204,7 +204,7 @@ export const Filter: React.FC<FilterProps> = ({
       <div>
         <h3 className="text-lg md:text-xl font-bold mb-5">Year</h3>
         <FilterCheckboxGroup
-          options={filterData.annualPeriods.nodes}
+          options={filterData?.annualPeriods?.nodes || filterData?.sampleEssayFilterData?.years?.map((y: any) => ({ slug: y, name: y })) || []}
           name="year"
           control={control}
         />
@@ -213,7 +213,7 @@ export const Filter: React.FC<FilterProps> = ({
       <div>
         <h3 className="text-lg md:text-xl font-bold mb-5">Sample Source</h3>
         <FilterCheckboxGroup
-          options={filterData.sampleSources.nodes}
+          options={filterData?.sampleSources?.nodes || filterData?.sampleEssayFilterData?.sources?.map((s: any) => ({ slug: s, name: s })) || []}
           name="sampleSource"
           control={control}
         />
@@ -341,14 +341,14 @@ export const Filter: React.FC<FilterProps> = ({
         <SearchCard setValue={setValue} />
         <FilterCard title="Year">
           <FilterCheckboxGroup
-            options={filterData.annualPeriods.nodes}
+            options={filterData?.annualPeriods?.nodes || filterData?.sampleEssayFilterData?.years?.map((y: any) => ({ slug: y, name: y })) || []}
             name="year"
             control={control}
           />
         </FilterCard>
         <FilterCard title="Sample Source">
           <FilterCheckboxGroup
-            options={filterData.sampleSources.nodes}
+            options={filterData?.sampleSources?.nodes || filterData?.sampleEssayFilterData?.sources?.map((s: any) => ({ slug: s, name: s })) || []}
             name="sampleSource"
             control={control}
           />

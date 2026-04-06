@@ -5,7 +5,7 @@ import type { HeroBannerConfig } from "@/shared/types/admin-config";
 import { requireAdmin } from "~lib/admin-auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const sectionName = "hero-banner";
+  const sectionName = "home/hero-banner";
 
   if (req.method === "GET") {
     try {

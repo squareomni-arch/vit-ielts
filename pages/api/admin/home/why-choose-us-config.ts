@@ -3,10 +3,6 @@ import { readConfig } from "~services/cms-config";
 import { supabaseAdmin } from "~supabase/admin";
 import type { WhyChooseUsConfig } from "@/shared/types/admin-config";
 
-/**
- * API route để đọc why choose us config
- * Chỉ dùng trong getServerSideProps
- */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<WhyChooseUsConfig | { error: string }>
@@ -16,42 +12,19 @@ export default async function handler(
   }
 
   try {
-    const config = await readConfig<WhyChooseUsConfig>(supabaseAdmin, "why-choose-us");
-    // Validate config có đầy đủ properties
-    if (!config || !config.title) {
-      throw new Error("Invalid config structure");
-    }
+    const config = await readConfig<WhyChooseUsConfig>(supabaseAdmin, "home/why-choose-us");
+    if (!config || !config.title) throw new Error("No config found");
     return res.status(200).json(config);
   } catch {
-    // Trả về config mặc định nếu file không tồn tại
     const defaultConfig: WhyChooseUsConfig = {
-      badge: {
-        text: "Why Choose Us",
-      },
-      title: "Creating A Community Of Life Long Learners.",
-      description:
-        "There are many variations of passages of the Ipsum available, but the majority have suffered alteration in some form, by injected humour.",
-      statistics: [
-        {
-          icon: "favorite",
-          value: "500+",
-          label: "Learners & counting",
-        },
-        {
-          icon: "show_chart",
-          value: "800+",
-          label: "Courses & Video",
-        },
-        {
-          icon: "cast",
-          value: "1,000+",
-          label: "Certified Students",
-        },
-        {
-          icon: "map",
-          value: "100+",
-          label: "Certified Students",
-        },
+      badge: "Tại sao chọn chúng tôi?",
+      title: "Luyện thi IELTS Trên Giao Diện Thi Thật",
+      description: "IPT cung cấp bộ đề thi thật tập trung vào các dạng câu hỏi xuất hiện thường xuyên.",
+      stats: [
+        { icon: "/assets/figma/icons/LovedbyStudents.svg", number: "5,000+", label: "HỌC VIÊN YÊU THÍCH", bgColor: "#D94A56" },
+        { icon: "/assets/figma/icons/Aim.svg", number: "1,000+", label: "HỌC VIÊN ĐẠT AIM", bgColor: "#219653" },
+        { icon: "/assets/figma/icons/Legit.svg", number: "20+", label: "ĐỀ THI THẬT", bgColor: "#5281F9" },
+        { icon: "/assets/figma/icons/Goal.svg", number: "100+", label: "HỌC VIÊN ĐẠT 8.0", bgColor: "#FC945A" },
       ],
     };
     return res.status(200).json(defaultConfig);

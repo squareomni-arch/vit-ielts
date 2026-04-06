@@ -310,7 +310,7 @@ export default function AffiliateUsersPage() {
       render: (userId: string, record: AffiliateUser) => (
         <div className="flex flex-col">
           <Tooltip title={userId}>
-            <span className="font-mono text-xs text-gray-500">{userId.substring(0, 12)}...</span>
+            <span className="font-mono text-xs text-gray-500">{userId?.substring(0, 12)}...</span>
           </Tooltip>
           {record.email && (
             <span className="text-xs font-semibold text-blue-600">{record.email}</span>
@@ -658,12 +658,12 @@ export default function AffiliateUsersPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="font-semibold text-sm">
-                                Order: #{commission.orderId.substring(0, 12)}...
+                                Order: #{(commission.orderId || commission.order_id)?.substring(0, 12)}...
                               </div>
                               <div className="text-xs text-gray-600">
                                 Amount: {formatPrice(commission.amount)} | Commission:{" "}
                                 <strong className="text-green-600">
-                                  {formatPrice(commission.commissionAmount)}
+                                  {formatPrice(commission.commissionAmount || commission.commission_amount)}
                                 </strong>
                               </div>
                               <div className="text-xs text-gray-500 mt-1 flex items-center gap-2">

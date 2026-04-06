@@ -8,7 +8,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const sectionName = "why-choose-us";
+  const sectionName = "home/why-choose-us";
 
   if (req.method === "GET") {
     try {

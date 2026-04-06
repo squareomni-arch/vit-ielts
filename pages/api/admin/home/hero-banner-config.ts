@@ -4,8 +4,8 @@ import { supabaseAdmin } from "~supabase/admin";
 import type { HeroBannerConfig } from "@/shared/types/admin-config";
 
 /**
- * API route để đọc hero banner config
- * Chỉ dùng trong getServerSideProps
+ * GET /api/admin/home/hero-banner-config
+ * Returns hero banner config — used by admin preview or SSR fallback
  */
 export default async function handler(
   req: NextApiRequest,
@@ -16,45 +16,16 @@ export default async function handler(
   }
 
   try {
-    const config = await readConfig<HeroBannerConfig>(supabaseAdmin, "hero-banner");
-    // Validate config có đầy đủ properties
-    if (!config || !config.trustpilot || !config.trustpilot.image) {
-      throw new Error("Invalid config structure");
-    }
+    const config = await readConfig<HeroBannerConfig>(supabaseAdmin, "home/hero-banner");
+    if (!config) throw new Error("No config found");
     return res.status(200).json(config);
-  } catch (error) {
-    // Trả về config mặc định nếu file không tồn tại
+  } catch {
     const defaultConfig: HeroBannerConfig = {
-      trustpilot: {
-        image: "/img-admin/o-trustpilot.png",
-        rating: "Excellent 4.9 out of 5",
-      },
-      headline: {
-        line1: "Education Is The Best",
-        line2: "Key",
-        line3: "Success",
-        line4: "In Life",
-      },
-      description: {
-        text: "Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.",
-        highlightText: "Velit officia consequat.",
-      },
-      buttons: {
-        primary: {
-          text: "Get Started",
-          link: "/account/register",
-        },
-        secondary: {
-          text: "Watch Video",
-          link: "#",
-        },
-      },
-      bannerImage: "/img-admin/o-banner.png",
-      backgroundImage: "",
-      featureCards: [],
-      decorativeShape: {
-        image: "/img-admin/o-shape-1.png",
-      },
+      title: { line1: "IELTS Prediction Test", line2: "Thi", highlight: "Thử Như Thật" },
+      subtitle: "Thi thử như thật với giao diện 1:1 và kho đề sát thực tế.",
+      checklist: ["Giao diện thi máy", "Cập nhật xu hướng đề", "Chấm chữa chi tiết"],
+      cta: { text: "Khám phá ngay", link: "/ielts-practice-library" },
+      images: { screen: "/assets/figma/icons/screen 1.png", mascot: "/assets/figma/icons/like 1.png" },
     };
     return res.status(200).json(defaultConfig);
   }

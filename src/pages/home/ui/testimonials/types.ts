@@ -1,16 +1,17 @@
+export interface ReviewItem {
+  name: string;
+  score: string;
+  avatar: string;
+  review: string;
+  rating: number;
+}
+
 export interface TestimonialsConfig {
   title: string;
   description: string;
-  button: {
+  cta: {
     text: string;
     link: string;
   };
-  testimonials: Array<{
-    name: string;
-    title: string;
-    company: string;
-    quote: string;
-    avatar: string;
-  }>;
+  reviews: ReviewItem[];
 }
-

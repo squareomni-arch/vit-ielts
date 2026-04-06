@@ -28,8 +28,7 @@ import {
   HistoryOutlined,
   PictureOutlined,
 } from "@ant-design/icons";
-import { message, Tooltip, Badge } from "antd";
-
+import { message, Tooltip, Badge, ConfigProvider, theme as antdTheme } from "antd";
 // ═══ Types ═══
 type MenuItemDef = {
   key: string;
@@ -187,9 +186,32 @@ function getBreadcrumbs(path: string): { label: string; href?: string }[] {
 }
 
 // ═══ Check if menu item is active ═══
+// Extract all keys from MENU_SECTIONS to compute the "best match"
+const ALL_MENU_KEYS = MENU_SECTIONS.flatMap((section) =>
+  section.items.flatMap((item) =>
+    item.children ? item.children.map((c) => c.key) : [item.key]
+  )
+).filter((key) => key.startsWith("/"));
+
+function getBestMatch(currentPath: string): string | null {
+  const path = currentPath.split("?")[0].split("#")[0];
+  let bestMatch: string | null = null;
+  let maxLen = 0;
+  for (const key of ALL_MENU_KEYS) {
+    if (path === key || path.startsWith(key + "/")) {
+      if (key.length > maxLen) {
+        maxLen = key.length;
+        bestMatch = key;
+      }
+    }
+  }
+  return bestMatch;
+}
+
 function isItemActive(key: string, currentPath: string): boolean {
-  if (key === "/admin") return currentPath === "/admin";
-  return currentPath === key || currentPath.startsWith(key + "/");
+  const path = currentPath.split("?")[0].split("#")[0];
+  if (key === "/admin") return path === "/admin";
+  return key === getBestMatch(currentPath);
 }
 
 // ═══ Layout Component ═══
@@ -222,16 +244,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   // Load theme from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("admin-theme") as "dark" | "light" | null;
-    if (saved) setTheme(saved);
+    if (saved) {
+      setTheme(saved);
+      document.documentElement.setAttribute("data-admin-theme", saved);
+    } else {
+      document.documentElement.setAttribute("data-admin-theme", "dark");
+    }
     const savedCollapsed = localStorage.getItem("admin-sidebar-collapsed");
     if (savedCollapsed === "true") setCollapsed(true);
   }, []);
-
-  // Apply theme to document
-  useEffect(() => {
-    document.documentElement.setAttribute("data-admin-theme", theme);
-    localStorage.setItem("admin-theme", theme);
-  }, [theme]);
 
   // Auto-open submenu based on current path
   useEffect(() => {
@@ -258,7 +279,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    setTheme((prev) => {
+      const next = prev === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-admin-theme", next);
+      localStorage.setItem("admin-theme", next);
+      return next;
+    });
   }, []);
 
   const toggleSubmenu = useCallback((key: string) => {
@@ -288,8 +314,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const breadcrumbs = useMemo(() => getBreadcrumbs(router.asPath), [router.asPath]);
 
   return (
-    <div className="admin-shell" data-admin-theme={theme}>
-      {/* Mobile overlay */}
+    <ConfigProvider
+      theme={{
+        algorithm: theme === "dark" ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
+      }}
+    >
+      <div className="admin-shell" data-admin-theme={theme}>
+        {/* Mobile overlay */}
       <div
         className={`admin-sidebar-overlay ${mobileOpen ? "visible" : ""}`}
         onClick={() => setMobileOpen(false)}
@@ -500,5 +531,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         }
       `}</style>
     </div>
+    </ConfigProvider>
   );
 }

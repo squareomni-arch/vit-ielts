@@ -11,15 +11,13 @@ import type { HeroBannerConfig } from "./hero-banner/types";
 import type { TestPlatformIntroConfig } from "./ielts-test-platform-intro/types";
 import type { WhyChooseUsConfig } from "./why-choose-us/types";
 import type { TestimonialsConfig } from "./testimonials/types";
-import type { PracticeSectionConfig } from "@/shared/types/admin-config";
 import type { Quiz } from "~services/types/database";
 
 interface PageHomeProps {
-  heroBannerConfig: HeroBannerConfig;
-  testPlatformIntroConfig: TestPlatformIntroConfig;
-  whyChooseUsConfig: WhyChooseUsConfig;
-  testimonialsConfig: TestimonialsConfig;
-  practiceSectionConfig: PracticeSectionConfig;
+  heroBannerConfig?: HeroBannerConfig;
+  testPlatformIntroConfig?: TestPlatformIntroConfig;
+  whyChooseUsConfig?: WhyChooseUsConfig;
+  testimonialsConfig?: TestimonialsConfig;
   examQuizzes: Quiz[];
   listeningQuizzes: Quiz[];
   readingQuizzes: Quiz[];
@@ -30,7 +28,6 @@ export const PageHome = ({
   testPlatformIntroConfig,
   whyChooseUsConfig,
   testimonialsConfig,
-  practiceSectionConfig,
   examQuizzes,
   listeningQuizzes,
   readingQuizzes,
@@ -41,9 +38,7 @@ export const PageHome = ({
       {/* === SECTION: Hero Banner === */}
       <HeroBanner config={heroBannerConfig} />
       {/* === SECTION: Platform Intro (Category Cards) === */}
-      {testPlatformIntroConfig?.badge && (
-        <IeltsTestPlatformIntro config={testPlatformIntroConfig} />
-      )}
+      <IeltsTestPlatformIntro config={testPlatformIntroConfig} />
       {/* === SECTION: User Dashboard (Target Score + Practice History) === */}
       <div data-section="user-dashboard" className="py-10">
         <Container className="space-y-16">
@@ -81,13 +76,9 @@ export const PageHome = ({
         />
       </div>
       {/* === SECTION: Testimonials (Marquee) === */}
-      {testimonialsConfig?.testimonials && (
-        <Testimonials config={testimonialsConfig} />
-      )}
+      <Testimonials config={testimonialsConfig} />
       {/* === SECTION: Why Choose Us (Statistics) === */}
-      {whyChooseUsConfig?.badge && (
-        <WhyChooseUs config={whyChooseUsConfig} />
-      )}
+      <WhyChooseUs config={whyChooseUsConfig} />
     </>
   );
 };
