@@ -7,8 +7,13 @@ interface CopyButtonProps {
   text: string;
 }
 
-export default function CopyButton({ text }: CopyButtonProps) {
+export default function CopyButton({ text = "" }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
+
+  // Return early or handle empty text if it is prerendered as a page without props.
+  if (!text) {
+    return null;
+  }
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(text);
