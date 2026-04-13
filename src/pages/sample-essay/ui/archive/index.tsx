@@ -17,7 +17,6 @@ import _ from "lodash";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { useEffect, useState, useRef } from "react";
 import { Filter } from "./filter";
-import { DefaultView } from "./single-item";
 import { HorizontalItem } from "./horizontal-item";
 
 const PAGE_SIZE = 18;

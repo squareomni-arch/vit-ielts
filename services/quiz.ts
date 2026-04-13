@@ -199,7 +199,7 @@ export async function getRelatedQuizzes(
     // Step 1: Get current quiz metadata
     const { data: currentQuiz, error: quizError } = await supabase
         .from("quizzes")
-        .select("source, year, quarter, skill")
+        .select("source, year, quarter, skill, type")
         .eq("id", quizId)
         .single();
 
@@ -215,6 +215,13 @@ export async function getRelatedQuizzes(
         .neq("id", quizId)
         .eq("skill", currentQuiz.skill)
         .limit(6);
+
+    // Apply type filter according to MockTest/Practice separation
+    if (currentQuiz.type === "practice") {
+        query = query.eq("type", "practice");
+    } else {
+        query = query.in("type", ["academic", "general"]);
+    }
 
     // Prioritize same source, year, quarter (best match)
     if (currentQuiz.source) query = query.eq("source", currentQuiz.source);
