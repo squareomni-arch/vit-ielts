@@ -1,89 +1,61 @@
-import { memo, useCallback, useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
-
-const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
-
-const MODULES = {
-    toolbar: [
-        ["bold", "italic", "underline", "strike"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["link"],
-        ["clean"],
-    ],
-};
-
-const FORMATS = [
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "list",
-    "link",
-];
+import { memo, useRef } from "react";
+import { Editor } from "@tinymce/tinymce-react";
+import type { Editor as TinyMCEEditor } from "tinymce";
+// Removed Next.js dynamic for Tinymce since it works well inside useEffect/component lifecycle with explicit script source.
 
 type RichTextEditorProps = {
     value: string;
     onChange: (html: string) => void;
     placeholder?: string;
+    height?: number;
 };
 
-/**
- * RichTextEditor with internal local state + debounced propagation.
- *
- * Problem: Quill fires onChange on every keystroke. If onChange immediately
- * calls setPassages (parent state), the entire quiz editor tree re-renders,
- * causing visible input lag.
- *
- * Solution: Keep a local copy of the HTML. On each keystroke, update local
- * state only (cheap). After 300ms of idle, propagate to parent (expensive).
- * External value changes (e.g. loading data) are synced back via useEffect.
- */
 function RichTextEditorInner({
     value,
     onChange,
     placeholder,
+    height = 500,
 }: RichTextEditorProps) {
-    const [localValue, setLocalValue] = useState(value);
-    const onChangeRef = useRef(onChange);
-    onChangeRef.current = onChange;
-    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    // Track whether we are actively editing to avoid external value overwriting local edits
-    const isEditingRef = useRef(false);
+    const editorRef = useRef<TinyMCEEditor>(null);
 
-    // Sync external value → local (only when not actively editing)
-    useEffect(() => {
-        if (!isEditingRef.current) {
-            setLocalValue(value);
+    const setRef = (_evt: unknown, editor: null | TinyMCEEditor) => {
+        if (editorRef) {
+            editorRef.current = editor as TinyMCEEditor;
         }
-    }, [value]);
-
-    const handleChange = useCallback((html: string) => {
-        isEditingRef.current = true;
-        setLocalValue(html);
-
-        // Debounce propagation to parent
-        if (timerRef.current) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(() => {
-            isEditingRef.current = false;
-            onChangeRef.current(html);
-        }, 300);
-    }, []);
-
-    // Flush on unmount
-    useEffect(() => {
-        return () => {
-            if (timerRef.current) clearTimeout(timerRef.current);
-        };
-    }, []);
+    };
 
     return (
-        <ReactQuill
-            theme="snow"
-            value={localValue}
-            onChange={handleChange}
-            modules={MODULES}
-            formats={FORMATS}
-            placeholder={placeholder}
+        <Editor
+            tinymceScriptSrc="/libs/tinymce/tinymce.min.js"
+            licenseKey="gpl"
+            onInit={setRef}
+            init={{
+                promotion: false,
+                height,
+                menubar: true,
+                placeholder: placeholder || "",
+                plugins:
+                    "preview importcss searchreplace autolink autosave save directionality code visualblocks visualchars fullscreen image link media codesample table charmap pagebreak nonbreaking anchor insertdatetime advlist lists wordcount help charmap quickbars emoticons accordion",
+                toolbar:
+                    "undo redo | blocks | " +
+                    "bold italic backcolor | alignleft aligncenter " +
+                    "alignright alignjustify | bullist numlist outdent indent | " +
+                    "removeformat | help",
+                content_style:
+                    "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+                inline_styles: true,
+                entity_encoding: "raw",
+                image_advtab: true,
+                image_caption: true,
+                min_height: 300,
+                branding: false,
+                paste_as_text: true,
+                setup: (editor) => {
+                    // You can define custom buttons or setups here (e.g., custom file picker)
+                }
+            }}
+            value={value}
+            onEditorChange={onChange}
         />
     );
 }

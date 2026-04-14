@@ -185,8 +185,9 @@ function AddQuizModal({
                     <Select
                         size="large"
                         options={[
+                            { value: "academic", label: "Academic" },
+                            { value: "general", label: "General" },
                             { value: "practice", label: "Practice" },
-                            { value: "exam", label: "Exam" },
                         ]}
                     />
                 </Form.Item>
@@ -429,8 +430,10 @@ export default function AdminQuizzesPage() {
                         <Select.Option value="listening">Listening</Select.Option>
                     </Select>
                     <Select value={typeFilter} onChange={(v) => { setTypeFilter(v); setPage(1); }} style={{ width: 120 }} allowClear placeholder="Type">
+                        <Select.Option value="academic">Academic</Select.Option>
+                        <Select.Option value="general">General</Select.Option>
                         <Select.Option value="practice">Practice</Select.Option>
-                        <Select.Option value="exam">Exam</Select.Option>
+                        <Select.Option value="exam">Exam (All)</Select.Option>
                     </Select>
                     <Select value={statusFilter} onChange={(v) => { setStatusFilter(v); setPage(1); }} style={{ width: 120 }} allowClear placeholder="Status">
                         <Select.Option value="published">Published</Select.Option>

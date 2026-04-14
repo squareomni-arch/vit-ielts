@@ -57,6 +57,20 @@ const MENU_SECTIONS: MenuSection[] = [
           { key: "/admin/quizzes/new", label: "Thêm mới" },
         ],
       },
+      {
+        key: "mock-tests-group", icon: <FileTextOutlined />, label: "Mock Tests",
+        children: [
+          { key: "/admin/mock-tests", label: "Danh sách" },
+          { key: "/admin/mock-tests/new", label: "Thêm mới" },
+        ],
+      },
+      {
+        key: "mock-collections-group", icon: <BookOutlined />, label: "Mock Collections",
+        children: [
+          { key: "/admin/mock-test-collections", label: "Danh sách" },
+          { key: "/admin/mock-test-collections/new", label: "Thêm mới" },
+        ],
+      },
       { key: "/admin/test-results", icon: <BarChartOutlined />, label: "Test Results" },
       { key: "/admin/orders", icon: <ShoppingCartOutlined />, label: "Orders" },
       { key: "/admin/coupons", icon: <TagOutlined />, label: "Coupons" },
@@ -151,6 +165,10 @@ const BREADCRUMB_MAP: Record<string, string> = {
   "/admin/users": "Users",
   "/admin/quizzes": "Quizzes",
   "/admin/quizzes/new": "Thêm mới",
+  "/admin/mock-tests": "Mock Tests",
+  "/admin/mock-tests/new": "Thêm mới",
+  "/admin/mock-test-collections": "Mock Collections",
+  "/admin/mock-test-collections/new": "Thêm mới",
   "/admin/test-results": "Test Results",
   "/admin/orders": "Orders",
   "/admin/coupons": "Coupons",
