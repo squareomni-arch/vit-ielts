@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Form, Input, Select, Switch, Button, message, Spin, Popover, Space } from "antd";
-import { ArrowLeftOutlined, SaveOutlined, SendOutlined, GlobalOutlined, PictureOutlined } from "@ant-design/icons";
+import { Form, Input, Select, Switch, Button, message, Spin, Popover, Space, Tag } from "antd";
+import { ArrowLeftOutlined, SaveOutlined, SendOutlined, GlobalOutlined, PictureOutlined, TagsOutlined } from "@ant-design/icons";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
 import { withAdmin } from "@/shared/hoc/withAdmin";
@@ -27,6 +27,27 @@ export default function AdminPostEditorPage() {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(!isNew && !!id);
     const [saving, setSaving] = useState(false);
+    const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([]);
+
+    // Fetch existing categories for suggestions
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch("/api/admin/posts/categories");
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.success && Array.isArray(json.data)) {
+                        setCategoryOptions(
+                            json.data.map((cat: string) => ({ value: cat, label: cat }))
+                        );
+                    }
+                }
+            } catch {
+                // Non-critical — silently fail
+            }
+        };
+        fetchCategories();
+    }, []);
 
     // Watch values for live preview
     const title = Form.useWatch("title", form);
@@ -204,11 +225,45 @@ export default function AdminPostEditorPage() {
                         </AdminGlassCard>
 
                         <AdminGlassCard title="Phân loại">
-                            <Form.Item name="categories" label="Danh mục / Thẻ (Tags)" className="mb-0" extra="Gõ để thêm tag mới, nhấn Enter.">
-                                <Select 
-                                    mode="tags" 
-                                    placeholder="Thêm tag ví dụ: IELTS Reading, Tips..." 
+                            <Form.Item
+                                name="categories"
+                                label={
+                                    <span>
+                                        <TagsOutlined style={{ marginRight: 6 }} />
+                                        Danh mục / Thẻ (Tags)
+                                    </span>
+                                }
+                                className="mb-0"
+                                extra="Chọn gợi ý hoặc gõ tự do rồi nhấn Enter để tạo tag mới."
+                            >
+                                <Select
+                                    mode="tags"
+                                    placeholder="Tìm hoặc thêm tag: IELTS Reading, Tips..."
                                     style={{ width: '100%' }}
+                                    options={categoryOptions}
+                                    filterOption={(input, option) =>
+                                        (option?.label as string ?? '')
+                                            .toLowerCase()
+                                            .includes(input.toLowerCase())
+                                    }
+                                    notFoundContent={
+                                        <span style={{ color: '#888', fontSize: 13 }}>
+                                            Nhấn Enter để tạo tag mới
+                                        </span>
+                                    }
+                                    tagRender={(props) => {
+                                        const { label, closable, onClose } = props;
+                                        return (
+                                            <Tag
+                                                color="red"
+                                                closable={closable}
+                                                onClose={onClose}
+                                                style={{ marginInlineEnd: 4, borderRadius: 4 }}
+                                            >
+                                                {label}
+                                            </Tag>
+                                        );
+                                    }}
                                 />
                             </Form.Item>
                         </AdminGlassCard>

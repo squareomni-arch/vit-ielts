@@ -1,12 +1,26 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     Form, Button, Spin, Typography, message, Alert, Space,
-    Input, Select, Tag, Tooltip, Popconfirm,
+    Input, Select, Tag, Tooltip, Popconfirm, Empty,
 } from "antd";
 import {
     ArrowLeftOutlined, SaveOutlined, PlusOutlined,
-    DeleteOutlined,
+    DeleteOutlined, HolderOutlined, BookOutlined,
 } from "@ant-design/icons";
+import {
+    DndContext, closestCenter, KeyboardSensor, PointerSensor,
+    useSensor, useSensors, type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+    SortableContext, sortableKeyboardCoordinates,
+    verticalListSortingStrategy, useSortable,
+} from "@dnd-kit/sortable";
+import {
+    restrictToVerticalAxis, restrictToWindowEdges,
+    restrictToFirstScrollableAncestor,
+} from "@dnd-kit/modifiers";
+import { arrayMove } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
 import { withAdmin } from "@/shared/hoc/withAdmin";
@@ -22,12 +36,15 @@ type QuizOption = {
 };
 
 type PracticeTestRow = {
+    _uid: string;
     reading_test_id: string;
     listening_test_id: string;
 };
 
-type MockTestEditorPageProps = {
-    mockTestId?: string;
+type ParentCollection = {
+    id: string;
+    title: string;
+    slug: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -49,10 +66,127 @@ function slugify(text: string): string {
         .replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
 
+let _uidSeq = 0;
+function newUid() { return `pt-${++_uidSeq}-${Date.now()}`; }
+
+// ---------------------------------------------------------------------------
+// Sortable Practice Test Pair
+// ---------------------------------------------------------------------------
+function PracticeTestPairItem({
+    pair,
+    index,
+    readingOptions,
+    listeningOptions,
+    quizOptionsLoading,
+    onChange,
+    onRemove,
+}: {
+    pair: PracticeTestRow;
+    index: number;
+    readingOptions: { value: string; label: string }[];
+    listeningOptions: { value: string; label: string }[];
+    quizOptionsLoading: boolean;
+    onChange: (field: "reading_test_id" | "listening_test_id", value: string) => void;
+    onRemove: () => void;
+}) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pair._uid });
+
+    const style: React.CSSProperties = {
+        transform: CSS.Translate.toString(transform),
+        transition,
+        opacity: isDragging ? 0.45 : 1,
+        zIndex: isDragging ? 100 : 1,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} {...attributes}>
+            <div style={{
+                display: "grid",
+                gridTemplateColumns: "auto auto 1fr 1fr auto",
+                gap: 12,
+                alignItems: "center",
+                padding: "12px 16px",
+                background: "var(--admin-bg, #f9fafb)",
+                borderRadius: 8,
+                border: isDragging
+                    ? "2px dashed var(--admin-primary, #1677ff)"
+                    : "1px solid var(--admin-border, #e5e7eb)",
+                marginBottom: 10,
+            }}>
+                {/* Drag handle */}
+                <span
+                    {...listeners}
+                    style={{ cursor: "grab", color: "#bbb", padding: "0 2px" }}
+                    title="Kéo để sắp xếp"
+                >
+                    <HolderOutlined />
+                </span>
+
+                {/* Index */}
+                <span style={{
+                    fontSize: 11, fontWeight: 700,
+                    background: "var(--admin-surface, #fff)",
+                    border: "1px solid var(--admin-border, #e5e7eb)",
+                    borderRadius: 4, padding: "2px 8px",
+                    color: "var(--admin-text-secondary, #6b7280)",
+                    minWidth: 28, textAlign: "center",
+                }}>
+                    {index + 1}
+                </span>
+
+                {/* Reading */}
+                <div>
+                    <Text type="secondary" style={{ fontSize: 11, display: "block", marginBottom: 4 }}>
+                        📖 Reading Quiz
+                    </Text>
+                    <Select
+                        style={{ width: "100%" }}
+                        placeholder="Chọn Reading quiz..."
+                        value={pair.reading_test_id || undefined}
+                        onChange={(v) => onChange("reading_test_id", v)}
+                        options={readingOptions}
+                        showSearch
+                        filterOption={(input, option) =>
+                            (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
+                        }
+                        loading={quizOptionsLoading}
+                        allowClear
+                    />
+                </div>
+
+                {/* Listening */}
+                <div>
+                    <Text type="secondary" style={{ fontSize: 11, display: "block", marginBottom: 4 }}>
+                        🎧 Listening Quiz
+                    </Text>
+                    <Select
+                        style={{ width: "100%" }}
+                        placeholder="Chọn Listening quiz..."
+                        value={pair.listening_test_id || undefined}
+                        onChange={(v) => onChange("listening_test_id", v)}
+                        options={listeningOptions}
+                        showSearch
+                        filterOption={(input, option) =>
+                            (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
+                        }
+                        loading={quizOptionsLoading}
+                        allowClear
+                    />
+                </div>
+
+                {/* Remove */}
+                <Tooltip title="Xóa cặp này">
+                    <Button danger icon={<DeleteOutlined />} onClick={onRemove} />
+                </Tooltip>
+            </div>
+        </div>
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Editor component
 // ---------------------------------------------------------------------------
-function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
+function MockTestEditor({ mockTestId }: { mockTestId?: string }) {
     const router = useRouter();
     const [form] = Form.useForm();
     const isNew = !mockTestId;
@@ -62,28 +196,36 @@ function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
     const [saveError, setSaveError] = useState<string | null>(null);
     const [isDirty, setIsDirty] = useState(false);
     const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+    const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
     const [practiceTests, setPracticeTests] = useState<PracticeTestRow[]>([]);
     const [quizOptions, setQuizOptions] = useState<QuizOption[]>([]);
     const [quizOptionsLoading, setQuizOptionsLoading] = useState(false);
 
+    // Parent collections that contain this mock test
+    const [parentCollections, setParentCollections] = useState<ParentCollection[]>([]);
+
     const isDirtyRef = useRef(false);
     isDirtyRef.current = isDirty;
 
     const currentTitle = Form.useWatch("title", form);
-    const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    );
+
+    const sortableIds = useMemo(() => practiceTests.map(pt => pt._uid), [practiceTests]);
 
     // Auto-generate slug from title
     useEffect(() => {
         if (!slugManuallyEdited && currentTitle) {
-            const baseSlug = slugify(currentTitle);
-            if (baseSlug && isNew) {
-                form.setFieldValue("slug", baseSlug);
-            }
+            const s = slugify(currentTitle);
+            if (s && isNew) form.setFieldValue("slug", s);
         }
     }, [currentTitle, slugManuallyEdited, isNew, form]);
 
-    // Load quiz options for Select (reading + listening)
+    // Load quiz options
     const loadQuizOptions = useCallback(async () => {
         setQuizOptionsLoading(true);
         try {
@@ -94,6 +236,25 @@ function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
             // silent
         } finally {
             setQuizOptionsLoading(false);
+        }
+    }, []);
+
+    // Load parent collections (which collections reference this mock test)
+    const loadParentCollections = useCallback(async (id: string) => {
+        try {
+            const res = await fetch("/api/admin/mock-test-collections?pageSize=500");
+            const json = await res.json();
+            if (json.success) {
+                const parents = json.data.filter(
+                    (c: { id: string; title: string; slug: string; mock_test_ids: string[] }) =>
+                        (c.mock_test_ids ?? []).includes(id)
+                );
+                setParentCollections(parents.map((c: { id: string; title: string; slug: string }) => ({
+                    id: c.id, title: c.title, slug: c.slug,
+                })));
+            }
+        } catch {
+            // silent
         }
     }, []);
 
@@ -110,7 +271,12 @@ function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
                 if (json.success) {
                     const mt = json.data;
                     form.setFieldsValue({ title: mt.title, slug: mt.slug });
-                    setPracticeTests(mt.practice_tests ?? []);
+                    setPracticeTests(
+                        (mt.practice_tests ?? []).map((pt: { reading_test_id: string; listening_test_id: string }) => ({
+                            ...pt,
+                            _uid: newUid(),
+                        }))
+                    );
                     if (mt.slug) setSlugManuallyEdited(true);
                     setIsDirty(false);
                 }
@@ -121,7 +287,8 @@ function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
             }
         };
         fetchData();
-    }, [mockTestId, isNew, form]);
+        loadParentCollections(mockTestId!);
+    }, [mockTestId, isNew, form, loadParentCollections]);
 
     // Warn before leave
     useEffect(() => {
@@ -157,7 +324,7 @@ function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
             const payload = {
                 title: values.title,
                 slug: values.slug,
-                practice_tests: practiceTests,
+                practice_tests: practiceTests.map(({ _uid, ...pt }) => pt),
             };
 
             const url = isNew ? "/api/admin/mock-tests" : `/api/admin/mock-tests/${mockTestId}`;
@@ -199,7 +366,7 @@ function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
             const json = await res.json();
             if (json.success) {
                 message.success("Đã xóa Mock Test");
-                router.push("/admin/mock-tests");
+                router.push("/admin/mock-test-collections");
             } else {
                 message.error(json.error);
             }
@@ -208,27 +375,32 @@ function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
         }
     };
 
-    // Practice tests management
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+        const oldIndex = sortableIds.indexOf(String(active.id));
+        const newIndex = sortableIds.indexOf(String(over.id));
+        if (oldIndex !== -1 && newIndex !== -1) {
+            setPracticeTests(prev => arrayMove(prev, oldIndex, newIndex));
+            setIsDirty(true);
+        }
+    };
+
     const addPracticeTestRow = () => {
         setIsDirty(true);
-        setPracticeTests(prev => [...prev, { reading_test_id: "", listening_test_id: "" }]);
+        setPracticeTests(prev => [...prev, { _uid: newUid(), reading_test_id: "", listening_test_id: "" }]);
     };
 
-    const updatePracticeTestRow = (idx: number, field: keyof PracticeTestRow, value: string) => {
+    const updatePracticeTestRow = (uid: string, field: "reading_test_id" | "listening_test_id", value: string) => {
         setIsDirty(true);
-        setPracticeTests(prev => {
-            const next = [...prev];
-            next[idx] = { ...next[idx], [field]: value };
-            return next;
-        });
+        setPracticeTests(prev => prev.map(pt => pt._uid === uid ? { ...pt, [field]: value } : pt));
     };
 
-    const removePracticeTestRow = (idx: number) => {
+    const removePracticeTestRow = (uid: string) => {
         setIsDirty(true);
-        setPracticeTests(prev => prev.filter((_, i) => i !== idx));
+        setPracticeTests(prev => prev.filter(pt => pt._uid !== uid));
     };
 
-    // Quiz option helpers
     const readingOptions = quizOptions
         .filter(q => q.skill === "reading")
         .map(q => ({ value: q.id, label: q.title }));
@@ -239,37 +411,26 @@ function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
     if (loading && !isNew) {
         return (
             <AdminLayout>
-                <div className="flex justify-center items-center h-64">
-                    <Spin size="large" />
-                </div>
+                <div className="flex justify-center items-center h-64"><Spin size="large" /></div>
             </AdminLayout>
         );
     }
 
     return (
         <AdminLayout>
-            <div className="max-w-[860px] mx-auto pb-20">
+            <div className="max-w-[900px] mx-auto pb-20">
                 {/* ── Top Bar ── */}
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "16px 24px",
-                        background: "var(--admin-surface)",
-                        position: "sticky",
-                        top: 0,
-                        zIndex: 100,
-                        marginTop: 24,
-                        borderRadius: 8,
-                        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
-                        gap: 16,
-                    }}
-                >
+                <div style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "16px 24px", background: "var(--admin-surface)",
+                    position: "sticky", top: 0, zIndex: 100,
+                    marginTop: 24, borderRadius: 8,
+                    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)", gap: 16,
+                }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                         <Button
                             icon={<ArrowLeftOutlined />}
-                            onClick={() => router.push("/admin/mock-tests")}
+                            onClick={() => router.push("/admin/mock-test-collections")}
                             type="text"
                         />
                         <div>
@@ -300,8 +461,7 @@ function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
                                 title="Xóa mock test này?"
                                 description="Hành động này không thể hoàn tác."
                                 onConfirm={handleDelete}
-                                okText="Xóa"
-                                cancelText="Hủy"
+                                okText="Xóa" cancelText="Hủy"
                                 okButtonProps={{ danger: true }}
                             >
                                 <Button danger icon={<DeleteOutlined />}>Xóa</Button>
@@ -312,18 +472,39 @@ function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
 
                 {saveError && (
                     <Alert
-                        message="Lỗi khi lưu"
-                        description={saveError}
-                        type="error"
-                        showIcon
-                        closable
+                        message="Lỗi khi lưu" description={saveError}
+                        type="error" showIcon closable
                         onClose={() => setSaveError(null)}
                         style={{ marginTop: 16 }}
                     />
                 )}
 
+                {/* ── Parent Collections (read-only) ── */}
+                {!isNew && (
+                    <AdminGlassCard style={{ marginTop: 24 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <BookOutlined style={{ color: "var(--admin-text-secondary)" }} />
+                            <Text type="secondary" style={{ fontSize: 13 }}>Thuộc Collection:</Text>
+                            {parentCollections.length === 0 ? (
+                                <Tag color="default">Chưa gán vào Collection nào</Tag>
+                            ) : (
+                                parentCollections.map(c => (
+                                    <Tag
+                                        key={c.id}
+                                        color="purple"
+                                        style={{ cursor: "pointer" }}
+                                        onClick={() => router.push(`/admin/mock-test-collections/${c.id}`)}
+                                    >
+                                        {c.title} ↗
+                                    </Tag>
+                                ))
+                            )}
+                        </div>
+                    </AdminGlassCard>
+                )}
+
                 {/* ── Basic Info ── */}
-                <AdminGlassCard style={{ marginTop: 24 }}>
+                <AdminGlassCard style={{ marginTop: 16 }}>
                     <Title level={5} style={{ marginBottom: 16 }}>Thông tin cơ bản</Title>
                     <Form
                         form={form}
@@ -342,6 +523,7 @@ function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
                             name="slug"
                             label={<Text strong>Slug</Text>}
                             rules={[{ required: true, message: "Slug không được trống" }]}
+                            className="mb-0"
                         >
                             <Input
                                 placeholder="cambridge-ielts-16-test-1"
@@ -351,101 +533,59 @@ function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
                     </Form>
                 </AdminGlassCard>
 
-                {/* ── Practice Tests ── */}
+                {/* ── Practice Tests (DnD) ── */}
                 <AdminGlassCard style={{ marginTop: 16 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                        <Title level={5} style={{ margin: 0 }}>
-                            Practice Tests{" "}
-                            <Tag color="blue" style={{ fontSize: 12, fontWeight: 400 }}>
-                                {practiceTests.length} bài
-                            </Tag>
-                        </Title>
-                        <Button
-                            type="dashed"
-                            icon={<PlusOutlined />}
-                            onClick={addPracticeTestRow}
-                        >
+                        <div>
+                            <Title level={5} style={{ margin: 0 }}>
+                                Practice Tests{" "}
+                                <Tag color="blue" style={{ fontSize: 12, fontWeight: 400 }}>
+                                    {practiceTests.length} bài
+                                </Tag>
+                            </Title>
+                            <Text type="secondary" style={{ fontSize: 12 }}>
+                                Mỗi bài gồm 1 Reading + 1 Listening quiz. Kéo thả để sắp xếp.
+                            </Text>
+                        </div>
+                        <Button type="dashed" icon={<PlusOutlined />} onClick={addPracticeTestRow}>
                             Thêm cặp bài thi
                         </Button>
                     </div>
 
                     {practiceTests.length === 0 ? (
-                        <div
-                            style={{
-                                textAlign: "center",
-                                padding: "32px 0",
-                                color: "#999",
-                                border: "1px dashed #d9d9d9",
-                                borderRadius: 8,
-                            }}
-                        >
-                            <p>Chưa có practice test nào.</p>
-                            <p style={{ fontSize: 13 }}>
-                                Mỗi cặp gồm 1 Reading quiz + 1 Listening quiz.
-                            </p>
-                        </div>
+                        <Empty
+                            description={
+                                <span style={{ fontSize: 13 }}>
+                                    Chưa có Practice Test.{" "}
+                                    <Button type="link" size="small" onClick={addPracticeTestRow}>
+                                        Thêm ngay →
+                                    </Button>
+                                </span>
+                            }
+                            style={{ padding: "24px 0" }}
+                        />
                     ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                            {practiceTests.map((pt, idx) => (
-                                <div
-                                    key={idx}
-                                    style={{
-                                        display: "grid",
-                                        gridTemplateColumns: "1fr 1fr auto",
-                                        gap: 12,
-                                        alignItems: "center",
-                                        padding: "12px 16px",
-                                        background: "var(--admin-bg, #f9fafb)",
-                                        borderRadius: 8,
-                                        border: "1px solid var(--admin-border, #e5e7eb)",
-                                    }}
-                                >
-                                    <div>
-                                        <Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 4 }}>
-                                            📖 Reading Quiz
-                                        </Text>
-                                        <Select
-                                            style={{ width: "100%" }}
-                                            placeholder="Chọn Reading quiz..."
-                                            value={pt.reading_test_id || undefined}
-                                            onChange={(v) => updatePracticeTestRow(idx, "reading_test_id", v)}
-                                            options={readingOptions}
-                                            showSearch
-                                            filterOption={(input, option) =>
-                                                (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
-                                            }
-                                            loading={quizOptionsLoading}
-                                            allowClear
-                                        />
-                                    </div>
-                                    <div>
-                                        <Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 4 }}>
-                                            🎧 Listening Quiz
-                                        </Text>
-                                        <Select
-                                            style={{ width: "100%" }}
-                                            placeholder="Chọn Listening quiz..."
-                                            value={pt.listening_test_id || undefined}
-                                            onChange={(v) => updatePracticeTestRow(idx, "listening_test_id", v)}
-                                            options={listeningOptions}
-                                            showSearch
-                                            filterOption={(input, option) =>
-                                                (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
-                                            }
-                                            loading={quizOptionsLoading}
-                                            allowClear
-                                        />
-                                    </div>
-                                    <Tooltip title="Xóa cặp này">
-                                        <Button
-                                            danger
-                                            icon={<DeleteOutlined />}
-                                            onClick={() => removePracticeTestRow(idx)}
-                                        />
-                                    </Tooltip>
-                                </div>
-                            ))}
-                        </div>
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleDragEnd}
+                            modifiers={[restrictToVerticalAxis, restrictToWindowEdges, restrictToFirstScrollableAncestor]}
+                        >
+                            <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
+                                {practiceTests.map((pt, idx) => (
+                                    <PracticeTestPairItem
+                                        key={pt._uid}
+                                        pair={pt}
+                                        index={idx}
+                                        readingOptions={readingOptions}
+                                        listeningOptions={listeningOptions}
+                                        quizOptionsLoading={quizOptionsLoading}
+                                        onChange={(field, value) => updatePracticeTestRow(pt._uid, field, value)}
+                                        onRemove={() => removePracticeTestRow(pt._uid)}
+                                    />
+                                ))}
+                            </SortableContext>
+                        </DndContext>
                     )}
                 </AdminGlassCard>
             </div>
@@ -459,7 +599,6 @@ function MockTestEditor({ mockTestId }: MockTestEditorPageProps) {
 export default function MockTestEditorPage() {
     const router = useRouter();
     const mockTestId = router.query.id as string | undefined;
-    // Wait until router is ready to avoid rendering with undefined id
     if (!router.isReady) return null;
     return <MockTestEditor mockTestId={mockTestId} />;
 }

@@ -1,11 +1,11 @@
 import {
-    Card, Input, Row, Col, Space, Button, Divider,
+    Card, Input, Row, Col, Space, Button, Divider, Radio
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 
 type RadioSelectQuestion = {
     question: string;
-    correct: string;
+    correct: number | string;
     options: { option_text: string }[];
 };
 
@@ -15,7 +15,7 @@ type RadioSelectEditorProps = {
 };
 
 export default function RadioSelectEditor({ questions, onChange }: RadioSelectEditorProps) {
-    const add = () => onChange([...questions, { question: "", correct: "", options: [{ option_text: "" }] }]);
+    const add = () => onChange([...questions, { question: "", correct: 0, options: [{ option_text: "" }] }]);
     const remove = (idx: number) => onChange(questions.filter((_, i) => i !== idx));
     const update = (idx: number, field: string, value: unknown) => {
         const arr = [...questions];
@@ -35,6 +35,10 @@ export default function RadioSelectEditor({ questions, onChange }: RadioSelectEd
     const removeOption = (qIdx: number, oIdx: number) => {
         const arr = [...questions];
         arr[qIdx].options = arr[qIdx].options.filter((_, i) => i !== oIdx);
+        // Fallback for correct marker logic
+        if (arr[qIdx].correct === oIdx || String(arr[qIdx].correct) === String(oIdx)) {
+            arr[qIdx].correct = 0;
+        }
         onChange(arr);
     };
 
@@ -42,23 +46,34 @@ export default function RadioSelectEditor({ questions, onChange }: RadioSelectEd
         <div className="sub-editor-container">
             <Divider orientation="left">Radio/Select Questions</Divider>
             {(Array.isArray(questions) ? questions : []).map((q, idx) => (
-                <Card key={idx} size="small" style={{ marginBottom: 8 }} extra={<Button size="small" danger icon={<DeleteOutlined />} onClick={() => remove(idx)} />}>
-                    <Row gutter={8}>
-                        <Col span={12}><Input placeholder="Question text" value={q.question} onChange={(e) => update(idx, "question", e.target.value)} /></Col>
-                        <Col span={12}><Input placeholder="Correct answer" value={q.correct} onChange={(e) => update(idx, "correct", e.target.value)} /></Col>
-                    </Row>
-                    <div style={{ marginTop: 8 }}>
+                <Card key={idx} size="small" style={{ marginBottom: 8, background: "#f9fafb" }} extra={<Button danger icon={<DeleteOutlined />} onClick={() => remove(idx)} />}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ background: '#e5e7eb', padding: '4px 12px', borderRadius: '4px', border: '1px solid #d1d5db', display: 'flex', alignItems: 'center' }}>
+                            Q.{idx + 1}
+                        </div>
+                        <Input style={{ flex: 1 }} placeholder="Question text" value={q.question} onChange={(e) => update(idx, "question", e.target.value)} />
+                    </div>
+                    
+                    <div style={{ marginTop: 16 }}>
                         {(q.options ?? []).map((opt, oIdx) => (
-                            <Space key={oIdx} style={{ marginBottom: 4, width: '100%' }}>
-                                <Input size="small" placeholder={`Option ${oIdx + 1}`} value={opt.option_text} onChange={(e) => updateOption(idx, oIdx, e.target.value)} style={{ width: 300 }} />
-                                <Button size="small" danger icon={<DeleteOutlined />} onClick={() => removeOption(idx, oIdx)} />
+                            <Space key={oIdx} style={{ marginBottom: 8, width: '100%' }}>
+                                <Radio 
+                                    checked={q.correct === oIdx || String(q.correct) === String(oIdx)} 
+                                    onChange={() => update(idx, "correct", oIdx)} 
+                                />
+                                <Input placeholder={`Option ${oIdx + 1}`} value={opt.option_text ?? (opt as any).content} onChange={(e) => updateOption(idx, oIdx, e.target.value)} style={{ width: 300 }} />
+                                {(q.options?.length > 1) && (
+                                    <Button danger icon={<DeleteOutlined />} onClick={() => removeOption(idx, oIdx)} />
+                                )}
                             </Space>
                         ))}
-                        <Button size="small" icon={<PlusOutlined />} onClick={() => addOption(idx)}>Option</Button>
+                        <div style={{ marginTop: 8 }}>
+                            <Button onClick={() => addOption(idx)}>Add Option</Button>
+                        </div>
                     </div>
                 </Card>
             ))}
-            <Button icon={<PlusOutlined />} onClick={add}>Thêm câu hỏi</Button>
+            <Button onClick={add}>Add Question</Button>
 
             <style jsx>{`
                 .sub-editor-container {

@@ -360,7 +360,7 @@ export async function getCollectionDetail(
  * This ensures UI components can access quiz.quizFields.time etc. consistently.
  * Passages are mapped with questions containing explanations for question counting.
  */
-function toExamItemWithQuizFields(item: QuizSummaryRow): MappedExamItem {
+export function toExamItemWithQuizFields(item: QuizSummaryRow): MappedExamItem {
     // Sort and map passages + questions to legacy shape expected by ExamModeModal
     const passages = (item.passages ?? [])
         .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
@@ -388,6 +388,31 @@ function toExamItemWithQuizFields(item: QuizSummaryRow): MappedExamItem {
             passages,
         },
     };
+}
+
+/**
+ * Lấy chi tiết tóm tắt của 1 quiz (bao gồm passages/questions count) để hiển thị Modal.
+ *
+ * @param supabase - Supabase client instance
+ * @param quizId - ID của quiz
+ * @returns MappedExamItem hoặc null
+ */
+export async function getQuizSummary(
+    supabase: SupabaseClient,
+    quizId: string
+): Promise<MappedExamItem | null> {
+    const { data, error } = await supabase
+        .from("quizzes")
+        .select(QUIZ_SUMMARY_SELECT)
+        .eq("id", quizId)
+        .single();
+
+    if (error) {
+        console.error(`[getQuizSummary] Error fetching quiz ${quizId}:`, error);
+        return null;
+    }
+
+    return toExamItemWithQuizFields(data as QuizSummaryRow);
 }
 
 /** Build empty response with correct pagination shape */

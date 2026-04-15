@@ -65,8 +65,8 @@ export default function QuestionModal({ open, initialData, onCancel, onSave }: Q
             case "fillup":
                 return (
                     <FillupEditor
-                        explanations={localData.explanations ?? []}
-                        onChange={(v) => handleUpdate("explanations", v)}
+                        question_text={localData.question_text ?? ""}
+                        onChange={(v) => handleUpdate("question_text", v)}
                     />
                 );
             case "checkbox":

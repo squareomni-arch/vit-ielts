@@ -1,40 +1,66 @@
-import { Input, Space, Button, Divider } from "antd";
-import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import RichTextEditor from "../RichTextEditor";
 
 type FillupEditorProps = {
-    explanations: { content: string }[];
-    onChange: (v: { content: string }[]) => void;
+    question_text: string;
+    onChange: (v: string) => void;
 };
 
-export default function FillupEditor({ explanations, onChange }: FillupEditorProps) {
-    return (
-        <div className="sub-editor-container">
-            <Divider orientation="left">Fill-up Explanations</Divider>
-            {(Array.isArray(explanations) ? explanations : []).map((e, idx) => (
-                <Space key={idx} style={{ marginBottom: 4, width: '100%' }}>
-                    <Input
-                        value={e.content}
-                        onChange={(ev) => {
-                            const arr = [...explanations];
-                            arr[idx] = { content: ev.target.value };
-                            onChange(arr);
-                        }}
-                        placeholder={`Answer ${idx + 1}`}
-                        style={{ width: 400 }}
-                    />
-                    <Button size="small" danger icon={<DeleteOutlined />} onClick={() => onChange(explanations.filter((_, i) => i !== idx))} />
-                </Space>
-            ))}
-            <Button icon={<PlusOutlined />} onClick={() => onChange([...explanations, { content: "" }])}>Thêm đáp án</Button>
+function extractWords(text: string): string[] {
+    const regex = /\{(.*?)\}/g;
+    const matches = [];
+    let match;
 
-            <style jsx>{`
-                .sub-editor-container {
-                    background: var(--admin-surface-hover);
-                    padding: 12px;
-                    border-radius: 8px;
-                    border: 1px solid var(--admin-border);
-                }
-            `}</style>
+    while ((match = regex.exec(text)) !== null) {
+        if (match[1].trim() !== '') {
+            matches.push(match[1].replace(/\s*\|\s*/g, '|').trim());
+        }
+    }
+
+    return matches;
+}
+
+export default function FillupEditor({ question_text, onChange }: FillupEditorProps) {
+    const [values, setValues] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (question_text) {
+            const words = extractWords(question_text);
+            setValues(words);
+        } else {
+            setValues([]);
+        }
+    }, [question_text]);
+
+    return (
+        <div className="space-y-1">
+            <p className="px-4 py-3 bg-neutral-100 rounded border border-dashed border-gray-300 mb-5 text-sm text-gray-600">
+                Use {"{"} {"}"} brackets to identify the word(s) you would like to test,
+                e.g. I {"{"}play{"}"} soccer. You can also specify multiple words using
+                the | key, e.g. I {"{"}play | hate | love{"}"} soccer. In this case,
+                play, love or hate will all be marked as correct. This option is useful
+                for multiple spellings. However, lower case and upper case letters will
+                be ignored.
+            </p>
+            
+            <RichTextEditor
+                value={question_text}
+                onChange={onChange}
+                placeholder="Nhập nội dung câu hỏi điền từ..."
+            />
+            
+            {values.length > 0 && (
+                <div className="p-2 bg-neutral-100 rounded border border-dashed border-gray-300 mt-5 flex gap-2 flex-wrap">
+                    {values.map((word, index) => (
+                        <span
+                            key={index}
+                            className="px-2 py-0.5 bg-green-600 text-white rounded block text-sm"
+                        >
+                            {word}
+                        </span>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

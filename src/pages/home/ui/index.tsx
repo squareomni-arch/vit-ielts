@@ -1,11 +1,8 @@
-import { Container } from "@/shared/ui";
 import { IeltsTestPlatformIntro } from "./ielts-test-platform-intro";
 import { HeroBanner } from "./hero-banner";
 import { WhyChooseUs } from "./why-choose-us";
 import { Testimonials } from "./testimonials";
 import { PracticeSection } from "./practice-section";
-import { useAuth } from "@/appx/providers";
-import { PracticeHistory, TargetScore } from "@/widgets";
 import { ROUTES } from "@/shared/routes";
 import type { HeroBannerConfig } from "./hero-banner/types";
 import type { TestPlatformIntroConfig } from "./ielts-test-platform-intro/types";
@@ -36,7 +33,6 @@ export const PageHome = ({
   writingSamples,
   speakingSamples,
 }: PageHomeProps) => {
-  const { isSignedIn } = useAuth();
   return (
     <>
       {/* === SECTION: Hero Banner === */}
@@ -50,6 +46,7 @@ export const PageHome = ({
           title="IELTS Online Test"
           viewMoreLink={ROUTES.EXAM.ARCHIVE}
           items={examQuizzes}
+          useExamModal={true}
         />
         <PracticeSection
           title="IELTS Listening Practice"
@@ -67,6 +64,8 @@ export const PageHome = ({
           viewMoreLink={ROUTES.SAMPLE_ESSAY.ARCHIVE_WRITING}
           items={writingSamples as unknown as Quiz[]}
           getItemHref={(item) => ROUTES.SAMPLE_ESSAY.SINGLE(item.slug)}
+          actionText="Xem thêm"
+          hideAttempts={true}
         />
         {/* === SECTION: Speaking Sample Carousel === */}
         <PracticeSection
@@ -74,6 +73,8 @@ export const PageHome = ({
           viewMoreLink={ROUTES.SAMPLE_ESSAY.ARCHIVE_SPEAKING}
           items={speakingSamples as unknown as Quiz[]}
           getItemHref={(item) => ROUTES.SAMPLE_ESSAY.SINGLE(item.slug)}
+          actionText="Xem thêm"
+          hideAttempts={true}
         />
       </div>
       {/* === SECTION: Testimonials (Marquee) === */}

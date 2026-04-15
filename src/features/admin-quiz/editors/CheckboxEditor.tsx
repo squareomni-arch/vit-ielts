@@ -1,4 +1,4 @@
-import { Input, Space, Switch, Button, Divider } from "antd";
+import { Input, Space, Checkbox, Button, Divider } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 
 type CheckboxOption = { option_text: string; correct: boolean };
@@ -13,9 +13,17 @@ export default function CheckboxEditor({ options, onChange }: CheckboxEditorProp
         <div className="sub-editor-container">
             <Divider orientation="left">Checkbox Options</Divider>
             {(Array.isArray(options) ? options : []).map((o, idx) => (
-                <Space key={idx} style={{ marginBottom: 4, width: '100%' }}>
+                <Space key={idx} style={{ marginBottom: 8, width: '100%' }}>
+                    <Checkbox
+                        checked={o.correct}
+                        onChange={(e) => {
+                            const arr = [...options];
+                            arr[idx] = { ...arr[idx], correct: e.target.checked };
+                            onChange(arr);
+                        }}
+                    />
                     <Input
-                        value={o.option_text}
+                        value={o.option_text ?? (o as any).option}
                         onChange={(e) => {
                             const arr = [...options];
                             arr[idx] = { ...arr[idx], option_text: e.target.value };
@@ -24,20 +32,10 @@ export default function CheckboxEditor({ options, onChange }: CheckboxEditorProp
                         placeholder={`Option ${idx + 1}`}
                         style={{ width: 300 }}
                     />
-                    <Switch
-                        checked={o.correct}
-                        onChange={(v) => {
-                            const arr = [...options];
-                            arr[idx] = { ...arr[idx], correct: v };
-                            onChange(arr);
-                        }}
-                        checkedChildren="✓"
-                        unCheckedChildren="✗"
-                    />
-                    <Button size="small" danger icon={<DeleteOutlined />} onClick={() => onChange(options.filter((_, i) => i !== idx))} />
+                    <Button danger icon={<DeleteOutlined />} onClick={() => onChange(options.filter((_, i) => i !== idx))} />
                 </Space>
             ))}
-            <Button icon={<PlusOutlined />} onClick={() => onChange([...options, { option_text: "", correct: false }])}>Thêm option</Button>
+            <Button onClick={() => onChange([...options, { option_text: "", correct: false }])}>Add Option</Button>
 
             <style jsx>{`
                 .sub-editor-container {
