@@ -15,20 +15,13 @@ export const config = {
   },
 };
 
-const ALLOWED_MIME_TYPES: Record<string, string[]> = {
-  image: ["image/jpeg", "image/png", "image/webp"],
-  audio: ["audio/mpeg", "audio/wav", "audio/ogg", "audio/mp3"],
-  pdf: ["application/pdf"],
-};
-
-const ALL_ALLOWED_MIMES = Object.values(ALLOWED_MIME_TYPES).flat();
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB for audio files
 const BUCKET_NAME = "quiz-assets";
 
 function getFileCategory(mimeType: string): string | null {
-  for (const [category, mimes] of Object.entries(ALLOWED_MIME_TYPES)) {
-    if (mimes.includes(mimeType)) return category;
-  }
+  if (mimeType.startsWith("image/")) return "image";
+  if (mimeType.startsWith("audio/")) return "audio";
+  if (mimeType === "application/pdf") return "pdf";
   return null;
 }
 
@@ -60,15 +53,16 @@ export default async function handler(
     const file = uploadedFiles[0];
     const mimeType = file.mimetype || "";
 
+    const category = getFileCategory(mimeType);
+
     // Validate mime type
-    if (!ALL_ALLOWED_MIMES.includes(mimeType)) {
+    if (!category) {
       return res.status(400).json({
         success: false,
-        error: `File type "${mimeType}" không được hỗ trợ. Chỉ chấp nhận: images (jpg/png/webp), audio (mp3/wav/ogg), PDF`,
+        error: `File type "${mimeType}" không được hỗ trợ. Chỉ chấp nhận: images, audio, PDF`,
       });
     }
 
-    const category = getFileCategory(mimeType);
     const timestamp = Date.now();
     const originalName = file.originalFilename || "file";
     const ext = path.extname(originalName);

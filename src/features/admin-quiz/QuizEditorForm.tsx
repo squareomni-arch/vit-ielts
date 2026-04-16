@@ -258,7 +258,7 @@ export default function QuizEditorForm({
                         <Form.Item name="audio_url" noStyle><Input hidden /></Form.Item>
                         <FileUploadField
                             label=""
-                            accept={{ 'audio/*': ['.mp3', '.wav', '.ogg'] }}
+                            accept={{ 'audio/*': ['.mp3', '.wav', '.ogg', '.m4a', '.aac'] }}
                             value={watchAudioUrl}
                             layoutType="input-button"
                             buttonLabel="Select Audio"
