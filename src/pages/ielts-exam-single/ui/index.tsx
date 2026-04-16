@@ -1,0 +1,377 @@
+import { useAuth } from "@/appx/providers";
+import { ROUTES } from "@/shared/routes";
+import { Container } from "@/shared/ui";
+import { Avatar, Breadcrumb, Button, Divider } from "@/shared/ui/ds";
+import { TestCardWithScore } from "@/entities/practice-test";
+import { useProContentModal } from "@/shared/ui/pro-content";
+import { SEOHeader } from "@/widgets";
+import { decode } from "html-entities";
+import Image from "next/image";
+import Link from "next/link";
+import { IPracticeSingle } from "@/pages/ielts-practice-single/api";
+import { PracticeHistoryWidget } from "@/pages/ielts-practice-single/ui/practice-history";
+import { normalizeSectionBadge } from "@/shared/lib/quiz-part";
+import ExamModeModal from "@/pages/ielts-exam-library/ui/exam-mode-modal";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+
+export function PageIELTSExamSingle({ post }: { post: IPracticeSingle }) {
+  const { currentUser } = useAuth();
+  const openProContentModal = useProContentModal((state) => state.open);
+  const router = useRouter();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const requiresUpgrade =
+    post.quizFields.proUserOnly && !currentUser?.userData.isPro;
+
+  // Auto-open modal when ?autoStart=true (after login redirect)
+  useEffect(() => {
+    if (router.query.autoStart === "true" && currentUser && !requiresUpgrade) {
+      setIsModalOpen(true);
+      // Clean up URL without reloading
+      const { autoStart, ...rest } = router.query;
+      router.replace(
+        { pathname: router.pathname, query: rest },
+        undefined,
+        { shallow: true }
+      );
+    }
+  }, [router.query.autoStart, currentUser, requiresUpgrade]);
+
+  const handleStartExam = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!currentUser) {
+      window.location.href = ROUTES.LOGIN(
+        ROUTES.EXAM.SINGLE(post.slug) + "?autoStart=true"
+      );
+      return;
+    }
+    if (requiresUpgrade) {
+      openProContentModal();
+      return;
+    }
+    setIsModalOpen(true);
+  };
+
+  const breadcrumbs = post.seo?.breadcrumbs || [];
+  const dsBreadcrumbItems = breadcrumbs.map((b) => ({
+    label: decode(b.text),
+    href: b.url,
+  }));
+
+  const skill = post.quizFields.skill[0];
+  const capitalizedSkill = skill === "listening" ? "Listening" : "Reading";
+
+  return (
+    <>
+      <SEOHeader fullHead={post.seo?.fullHead} title={post.seo?.title} />
+
+      <div className="min-h-screen pb-20 bg-white relative px-4 sm:px-6">
+        {/* Background Grid - Only in Hero Area */}
+        <div
+          className="absolute inset-x-0 top-0 h-[380px] md:h-[420px] pointer-events-none z-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(217,74,86,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(217,74,86,0.07) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+            backgroundPosition: "center top",
+          }}
+        />
+
+        {/* The Red Stripe (Behind the card) */}
+        <div className="absolute top-[380px] md:top-[420px] left-0 w-full h-[10px] bg-[#D94A56] z-0" />
+
+        <Container className="relative z-10 pt-[160px] md:pt-[220px] mb-13">
+          {/* Header Box */}
+          <div className="bg-white rounded-[24px] border border-[rgba(0,0,0,0.06)] px-[20px] md:px-[61px] py-[30px] md:py-[50px] shadow-[0_4px_24px_rgba(0,0,0,0.04)] text-left">
+            <div className="mb-[23px]">
+              <Breadcrumb items={dsBreadcrumbItems} />
+            </div>
+
+            <h1 className="text-3xl md:text-[40px] font-extrabold text-[#2D3142] font-noto-sans leading-tight mb-[23px]">
+              {post.title}
+            </h1>
+
+            {post.excerpt && (
+              <div
+                className="text-[#6A7282] text-sm md:text-base font-noto-sans max-w-full pb-[23px] border-b border-[rgba(0,0,0,0.06)] line-clamp-2"
+                dangerouslySetInnerHTML={{ __html: post.excerpt }}
+              />
+            )}
+
+            {/* Author info */}
+            <div className="flex items-center justify-between pt-[23px]">
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3">
+                  <Avatar
+                    src={post.author.node.userData.avatar?.node.sourceUrl}
+                    name={post.author.node.name || "Admin"}
+                    size="sm"
+                  />
+                  <span className="text-sm font-medium text-[#2D3142]">
+                    {post.author.node.name || "Administrator"}
+                  </span>
+                </div>
+                <div className="text-sm font-medium text-[#6A7282]">
+                  {post.date
+                    ? new Date(post.date).toLocaleDateString("vi-VN")
+                    : "14/12/2025"}
+                </div>
+              </div>
+              <button
+                className="p-1 hover:bg-gray-100 rounded transition-colors text-[#2D3142]"
+                title="Share"
+              >
+                <span className="material-symbols-rounded text-[24px] align-middle">
+                  ios_share
+                </span>
+              </button>
+            </div>
+          </div>
+        </Container>
+
+        <Container className="max-w-[1360px] relative z-10">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left Column: Fixed details */}
+            <div className="w-full lg:w-[220px] shrink-0 relative z-10">
+              <div className="sticky top-35 space-y-6">
+                <div>
+                  <h3 className="font-bold text-lg text-[#2D3142] mb-3">
+                    IELTS {capitalizedSkill} Exam
+                  </h3>
+                  <p className="text-sm text-[#6A7282] leading-relaxed">
+                    Full IELTS {capitalizedSkill} test with all parts included.
+                    Simulate the real exam experience with time limits and
+                    scoring.
+                  </p>
+                </div>
+                
+                <div className="space-y-4 pt-4">
+                  <button 
+                    className="flex items-center gap-3 text-sm font-medium text-[#6A7282] hover:text-[#D94A56] transition-colors"
+                    onClick={() => navigator.clipboard.writeText(window.location.href)}
+                  >
+                    <span className="material-symbols-rounded text-lg">content_copy</span>
+                    Copy link
+                  </button>
+                  <button 
+                    className="flex items-center gap-3 text-sm font-medium text-[#6A7282] hover:text-[#D94A56] transition-colors"
+                    onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
+                  >
+                    <span className="material-symbols-rounded text-lg">share</span>
+                    Share
+                  </button>
+                  
+                  <div className="pt-2">
+                    <Button
+                      variant="primary"
+                      onClick={handleStartExam}
+                      className="w-full !rounded-full py-2.5 h-auto text-sm font-semibold shadow-sm"
+                      leftIcon={
+                        <span className="material-symbols-rounded text-[20px]">
+                          play_circle
+                        </span>
+                      }
+                    >
+                      Làm bài thi
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Middle Column: Main Content */}
+            <div className="w-full lg:flex-1 space-y-6 relative z-10">
+              {/* Featured Image */}
+              <div className="aspect-[21/10] relative rounded-[24px] overflow-hidden border border-[rgba(0,0,0,0.06)] bg-[#FAF7EB]">
+                {post.featuredImage?.node.sourceUrl && (
+                  <Image
+                    src={post.featuredImage.node.sourceUrl}
+                    alt={post.featuredImage.node.altText || post.title}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                )}
+              </div>
+
+              {/* Overview Box */}
+              {post.excerpt && (
+                <div id="overview-box" className="bg-white rounded-[24px] border border-[rgba(0,0,0,0.06)] p-6 md:p-8">
+                  <div className="flex items-center gap-2 mb-6">
+                    <span className="material-symbols-rounded text-[#2D3142]">
+                      info
+                    </span>
+                    <h3 className="font-bold text-lg text-[#2D3142]">
+                      Tổng quan
+                    </h3>
+                  </div>
+                  <div
+                    className="prose max-w-none text-[#4B5563]"
+                    dangerouslySetInnerHTML={{ __html: post.excerpt }}
+                  />
+                </div>
+              )}
+
+              {/* History Box */}
+              <div className="bg-white rounded-[24px] border border-[rgba(0,0,0,0.06)] p-6 md:p-8">
+                <div className="flex items-center gap-2 mb-6">
+                  <span className="material-symbols-rounded text-[#2D3142]">
+                    history
+                  </span>
+                  <h3 className="font-bold text-lg text-[#2D3142]">
+                    Lịch sử làm bài
+                  </h3>
+                </div>
+                <PracticeHistoryWidget post={post} />
+              </div>
+
+              {/* Download PDF Box */}
+              {post.quizFields.pdf?.node?.mediaItemUrl && (
+                <div className="bg-white rounded-[12px] border-2 border-primary-500 p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="material-symbols-rounded text-primary-500 font-bold text-[28px]">
+                      picture_as_pdf
+                    </span>
+                    <h3 className="font-bold text-xl text-[#2D3142]">
+                      Download PDF
+                    </h3>
+                  </div>
+                  <p className="text-[#2D3142] text-sm mb-5 font-medium">
+                    You can download a nice copy of the questions and answers for {post.title} here.
+                  </p>
+                  <a
+                    href={post.quizFields.pdf.node.mediaItemUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex justify-between items-center bg-[#E5E5E5]/40 hover:bg-[#E5E5E5]/80 transition-colors rounded-lg p-4 cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="bg-primary-500 text-white text-[10px] font-bold px-2 py-1 rounded">PDF</span>
+                      <span className="font-semibold text-[#2D3142] text-sm">{post.title}</span>
+                    </div>
+                    <span className="material-symbols-rounded flex items-center justify-center bg-white shadow-sm p-1 rounded text-[#6A7282] group-hover:text-primary-500 transition-colors">
+                      download
+                    </span>
+                  </a>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap justify-center gap-4 pt-4">
+                <Button
+                  variant="primary"
+                  onClick={handleStartExam}
+                  className="min-w-[160px] !rounded-full px-8 py-3 h-auto text-base font-semibold"
+                  leftIcon={
+                    <span className="material-symbols-rounded text-[20px]">
+                      play_circle
+                    </span>
+                  }
+                >
+                  Làm bài thi
+                </Button>
+              </div>
+            </div>
+
+            {/* Right Column: Related items */}
+            <div className="w-full lg:w-[280px] shrink-0 space-y-8 relative z-10">
+              {post.relatedPracticeQuizzes &&
+                post.relatedPracticeQuizzes.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-lg text-[#2D3142]">
+                      Bài test nổi bật
+                    </h3>
+                    <TestCardWithScore
+                      quizId={(post.relatedPracticeQuizzes[0] as any).id ?? post.relatedPracticeQuizzes[0].slug}
+                      title={post.relatedPracticeQuizzes[0].title}
+                      image={
+                        post.relatedPracticeQuizzes[0].featuredImage || undefined
+                      }
+                      skill={skill}
+                      part={normalizeSectionBadge(skill, 1).label}
+                      attempts={1195}
+                      isPro={post.quizFields.proUserOnly}
+                      href={ROUTES.EXAM.SINGLE(
+                        post.relatedPracticeQuizzes[0].slug
+                      )}
+                    />
+                  </div>
+                )}
+
+                {post.relatedPracticeQuizzes &&
+                post.relatedPracticeQuizzes.length > 1 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-lg text-[#2D3142]">
+                        Có thể bạn quan tâm
+                      </h3>
+
+                    </div>
+
+                    <div className="space-y-4">
+                      {post.relatedPracticeQuizzes.slice(1, 4).map((rel, idx) => (
+                        <Link
+                          key={idx}
+                          href={ROUTES.EXAM.SINGLE(rel.slug)}
+                          className="flex gap-3 group items-center"
+                        >
+                          <div className="w-[100px] h-[65px] relative rounded-lg overflow-hidden shrink-0 border border-[rgba(0,0,0,0.06)] bg-[#FAF7EB]">
+                            {rel.featuredImage && (
+                              <Image
+                                src={rel.featuredImage as string}
+                                alt={rel.title}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform"
+                                unoptimized
+                              />
+                            )}
+                          </div>
+                          <h4 className="text-sm font-semibold text-[#2D3142] group-hover:text-primary-500 line-clamp-3 transition-colors">
+                            {rel.title}
+                          </h4>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+            </div>
+          </div>
+        </Container>
+
+        {/* Bottom Related Section */}
+        <Container className="max-w-[1360px] mt-20 relative z-10">
+          <div className="mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-[#2D3142]">
+              Bài thi tương tự
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {post.relatedPracticeQuizzes?.slice(0, 4).map((quiz, i) => (
+              <TestCardWithScore
+                key={i}
+                quizId={(quiz as any).id ?? quiz.slug}
+                title={quiz.title}
+                image={quiz.featuredImage || undefined}
+                skill={skill}
+                part={normalizeSectionBadge(skill, i + 1).label}
+                attempts={1195}
+                isPro={post.quizFields.proUserOnly}
+                href={ROUTES.EXAM.SINGLE(quiz.slug)}
+              />
+            ))}
+          </div>
+        </Container>
+      </div>
+
+      {/* ExamModeModal — mở khi click "Làm bài thi" hoặc autoStart */}
+      <ExamModeModal
+        navigateLink={ROUTES.TAKE_THE_TEST(post.slug)}
+        quiz={post as any}
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </>
+  );
+}

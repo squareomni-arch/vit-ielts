@@ -82,7 +82,11 @@ type FilterProps = {
   onClose?: () => void;
 };
 
-export const Filter = ({ mobile = false, collections = [], onClose }: FilterProps) => {
+export const Filter = ({
+  mobile = false,
+  collections = [],
+  onClose,
+}: FilterProps) => {
   const { watch, setValue } = useFormContext<FilterFormValues>();
   const values = watch();
 

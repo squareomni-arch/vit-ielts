@@ -12,7 +12,7 @@
 // Enums & Constants
 // ============================================================================
 
-export type QuizType = "practice" | "exam";
+export type QuizType = "practice" | "exam" | "academic" | "general";
 export type SkillType = "reading" | "listening";
 export type QuestionType = "radio" | "select" | "fillup" | "checkbox" | "matching" | "matrix";
 export type MatchingLayoutType = "standard" | "summary" | "heading";

@@ -11,7 +11,6 @@ export const HeroSection = ({ title, skillLabel }: HeroSectionProps) => {
       title={title}
       breadcrumbs={[
         { label: "Trang chủ", href: "/" },
-        { label: "Thư viện bài thi thử IELTS", href: "/ielts-practice-library" },
         { label: skillLabel }
       ]}
     />

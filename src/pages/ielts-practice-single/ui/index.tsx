@@ -9,18 +9,12 @@ import { decode } from "html-entities";
 import Image from "next/image";
 import Link from "next/link";
 import { IPracticeSingle } from "../api";
-import { FormProvider, useForm } from "react-hook-form";
-import { useState } from "react";
-import Passage from "./section/passage";
-import QuestionSection from "./section/question";
 import { PracticeHistoryWidget } from "./practice-history";
 import { normalizeSectionBadge } from "@/shared/lib/quiz-part";
 
 export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
   const { currentUser } = useAuth();
   const openProContentModal = useProContentModal((state) => state.open);
-  const methods = useForm();
-  const [showSolution, setShowSolution] = useState(false);
 
   const actionHref = currentUser
     ? ROUTES.TAKE_THE_TEST(post.slug)
@@ -161,7 +155,7 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                         </span>
                       }
                     >
-                      Start Practice
+                      Làm bài
                     </Button>
                   </div>
                 </div>
@@ -183,28 +177,21 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                 )}
               </div>
 
-              {/* Test Content Preview Box */}
-              {post.quizFields.passages && post.quizFields.passages.length > 0 && (
-                <div id="preview-box" className="bg-white rounded-[24px] border border-[rgba(0,0,0,0.06)] p-6 md:p-8">
-                  <div className="flex items-center gap-2 mb-8">
+              {/* Overview Box */}
+              {post.excerpt && (
+                <div id="overview-box" className="bg-white rounded-[24px] border border-[rgba(0,0,0,0.06)] p-6 md:p-8">
+                  <div className="flex items-center gap-2 mb-6">
                     <span className="material-symbols-rounded text-[#2D3142]">
-                      preview
+                      info
                     </span>
                     <h3 className="font-bold text-lg text-[#2D3142]">
-                      Nội dung bài test (Preview) {showSolution && " + Answers"}
+                      Tổng quan
                     </h3>
                   </div>
-                  
-                  <FormProvider {...methods}>
-                    <div className="space-y-12">
-                      {post.quizFields.passages.map((passage, index) => (
-                        <div key={index} className="space-y-8 pb-8 border-b border-[rgba(0,0,0,0.06)] last:border-0 last:pb-0">
-                          <Passage passage={passage} quizSkill={skill} />
-                          <QuestionSection passage={passage} showSolution={showSolution} />
-                        </div>
-                      ))}
-                    </div>
-                  </FormProvider>
+                  <div
+                    className="prose max-w-none text-[#4B5563]"
+                    dangerouslySetInnerHTML={{ __html: post.excerpt }}
+                  />
                 </div>
               )}
 
@@ -265,22 +252,7 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                     </span>
                   }
                 >
-                  Start Practice
-                </Button>
-
-                <Button
-                  className="min-w-[160px] !rounded-full !bg-[#27AE60] !border-[#27AE60] hover:!bg-[#219653] hover:!border-[#219653] hover:!shadow-[0_0_10px_#27AE60] !text-white px-8 py-3 h-auto text-base font-semibold"
-                  onClick={() => {
-                    setShowSolution(!showSolution);
-                    document.getElementById('preview-box')?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  leftIcon={
-                    <span className="material-symbols-rounded text-[20px]">
-                      {showSolution ? "visibility_off" : "grid_view"}
-                    </span>
-                  }
-                >
-                  {showSolution ? "Hide Solution" : "View Solution"}
+                  Làm bài
                 </Button>
               </div>
             </div>

@@ -279,7 +279,6 @@ export const Header = () => {
   const dsNavItems: HeaderNavItem[] = useMemo(() => {
     if (!masterData?.menuData["main-menu"]) return [];
     const cmsItems = masterData.menuData["main-menu"]
-      .filter((item) => (item.label || "").toString().trim().toLowerCase() !== "home")
       .map((item) => {
         const resolvedHref = resolveMenuUri(item);
         const isSubUrl = (uri: string) => {

@@ -2,13 +2,13 @@ import { useEffect, useState, useCallback } from "react";
 import { AdminPageHeader } from "@/widgets/admin";
 import {
     Table, Tag, Input, Space, Card, Button, Select, Avatar,
-    message, DatePicker, Tooltip, Badge, Dropdown,
+    message, DatePicker, Tooltip, Badge, Dropdown, Modal, Form
 } from "antd";
 import {
     SearchOutlined, UserOutlined, CrownOutlined,
     ReloadOutlined, FilterOutlined, DownOutlined,
     ClearOutlined, TeamOutlined, SafetyCertificateOutlined,
-    ClockCircleOutlined, ExportOutlined
+    ClockCircleOutlined, ExportOutlined, PlusOutlined
 } from "@ant-design/icons";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import type { FilterValue, SorterResult } from "antd/es/table/interface";
@@ -68,6 +68,42 @@ export default function AdminUsersPage() {
 
     // ── Bulk actions ──
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+
+    // ── Create User ──
+    const [createModalVisible, setCreateModalVisible] = useState(false);
+    const [creating, setCreating] = useState(false);
+    const [createForm] = Form.useForm();
+
+    const handleCreateUser = async (values: any) => {
+        setCreating(true);
+        try {
+            const res = await fetch("/api/admin/users", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: values.email,
+                    password: values.password,
+                    name: values.name,
+                    phone_number: values.phone_number,
+                    roles: values.role ? [values.role] : [],
+                }),
+            });
+            const json = await res.json();
+            if (json.success) {
+                message.success("Thêm user thành công!");
+                setCreateModalVisible(false);
+                createForm.resetFields();
+                fetchUsers();
+                fetchStats();
+            } else {
+                message.error(json.error || "Có lỗi xảy ra");
+            }
+        } catch {
+            message.error("Lỗi khi thêm user");
+        } finally {
+            setCreating(false);
+        }
+    };
 
     // Count active filters
     const activeFilterCount = [
@@ -378,6 +414,13 @@ export default function AdminUsersPage() {
                     )}
                     actions={
                         <Space>
+                            <Button
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                onClick={() => setCreateModalVisible(true)}
+                            >
+                                Thêm User
+                            </Button>
                             <Tooltip title="Tải lại">
                                 <Button
                                     icon={<ReloadOutlined />}
@@ -665,6 +708,68 @@ export default function AdminUsersPage() {
                     className="admin-users-table"
                 />
             </div>
+
+            <Modal
+                title="Thêm User Mới"
+                open={createModalVisible}
+                onCancel={() => {
+                    setCreateModalVisible(false);
+                    createForm.resetFields();
+                }}
+                onOk={() => createForm.submit()}
+                confirmLoading={creating}
+                okText="Thêm"
+                cancelText="Hủy"
+            >
+                <Form
+                    form={createForm}
+                    layout="vertical"
+                    onFinish={handleCreateUser}
+                >
+                    <Form.Item
+                        name="email"
+                        label="Email"
+                        rules={[{ required: true, message: "Vui lòng nhập email!" }, { type: "email", message: "Email không hợp lệ!" }]}
+                    >
+                        <Input placeholder="example@domain.com" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="password"
+                        label="Mật khẩu"
+                        rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }, { min: 6, message: "Mật khẩu tối thiểu 6 ký tự!" }]}
+                    >
+                        <Input.Password placeholder="Nhập mật khẩu" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="name"
+                        label="Họ và tên"
+                    >
+                        <Input placeholder="Nhập họ và tên" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="phone_number"
+                        label="Số điện thoại"
+                    >
+                        <Input placeholder="Nhập SĐT" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="role"
+                        label="Vai trò"
+                        initialValue="subscriber"
+                    >
+                        <Select
+                            options={[
+                                { value: "subscriber", label: "Subscriber" },
+                                { value: "administrator", label: "Quản trị viên" },
+                            ]}
+                        />
+                    </Form.Item>
+                </Form>
+            </Modal>
 
             <style jsx>{`
                 .admin-users-page {

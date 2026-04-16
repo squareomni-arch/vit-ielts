@@ -17,7 +17,6 @@ import _ from "lodash";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { useEffect, useState, useRef } from "react";
 import { Filter } from "./filter";
-import { DefaultView } from "./single-item";
 import { HorizontalItem } from "./horizontal-item";
 
 const PAGE_SIZE = 18;
@@ -227,7 +226,6 @@ export const PageArchive = ({
                 title={bannerData.title}
                 breadcrumbs={[
                   { label: "Trang chủ", href: "/" },
-                  { label: "Thư viện bài thi thử IELTS", href: "/ielts-practice-library" },
                   { label: skill === "writing" ? "Writing Samples" : "Speaking Samples" },
                 ]}
               />

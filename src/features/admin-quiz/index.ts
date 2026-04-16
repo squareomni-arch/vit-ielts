@@ -1,13 +1,14 @@
 // Types & Constants
 export type { QuizFormData, PassageData, QuestionData } from "./types";
-export { QUESTION_TYPES, MATCHING_LAYOUTS, DEFAULT_PASSAGE, DEFAULT_QUESTION } from "./constants";
+export { QUESTION_TYPES, QUESTION_FORMS, MATCHING_LAYOUTS, DEFAULT_PASSAGE, DEFAULT_QUESTION, QUESTION_TEMPLATES } from "./constants";
+export type { QuestionTemplate } from "./constants";
 
 // Main editors
 export { default as QuizEditorForm } from "./QuizEditorForm";
-export { default as PassageList } from "./PassageList";
-export { default as PassageEditor } from "./PassageEditor";
-export { default as QuestionList } from "./QuestionList";
-export { default as QuestionEditor } from "./QuestionEditor";
+export { default as PassageListCard } from "./PassageListCard";
+export { default as PassageModal } from "./PassageModal";
+export { default as QuestionListCard } from "./QuestionListCard";
+export { default as QuestionModal } from "./QuestionModal";
 
 // Sub-editors
 export { default as RadioSelectEditor } from "./editors/RadioSelectEditor";

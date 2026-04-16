@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { FormProvider, useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 import { Container } from "@/shared/ui";
@@ -8,6 +9,7 @@ import { getExamCollections } from "~services/exam-collection";
 import { ExamLibraryHeroBanner } from "./hero-banner";
 import { Filter } from "./filter";
 import { ExamItem } from "./exam-item";
+import { ExamCollection } from "./exam-collection";
 import type { ExamLibraryHeroConfig } from "./types";
 import type { IExamCollection, IExamCollectionResponse } from "../api";
 
@@ -21,7 +23,7 @@ export type FilterFormValues = {
   size: number;
 };
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 5;
 
 const DEFAULT_VALUES: FilterFormValues = {
   type: "all",
@@ -89,9 +91,9 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
       setData({
         examCollection: {
           data: result.data,
-          pageInfo: { total: result.pageInfo.total },
+          pageInfo: result.pageInfo,
         },
-      } as IExamCollectionResponse);
+      } as unknown as IExamCollectionResponse);
     } catch (error) {
       console.error("Error fetching exam collections:", error);
     } finally {
@@ -146,43 +148,41 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values, isDirty]);
 
-  // Flatten all exams from all collections, filtered by skill + collection
-  const allExams = useMemo<FlatExam[]>(() => {
+  // Group exams by collection
+  const groupedCollections = useMemo(() => {
     if (!data?.examCollection?.data) return [];
-    const reading = (data.examCollection.data.reading || []).flatMap((col) =>
-      col.exams.map((exam) => ({
-        ...exam,
-        skill: "reading" as const,
-        collectionTitle: col.title,
-      }))
-    );
-    const listening = (data.examCollection.data.listening || []).flatMap((col) =>
-      col.exams.map((exam) => ({
-        ...exam,
-        skill: "listening" as const,
-        collectionTitle: col.title,
-      }))
-    );
-
-    let merged: FlatExam[];
-    const skill = values.skill || "all";
-    if (skill === "reading") merged = reading;
-    else if (skill === "listening") merged = listening;
-    else merged = [...reading, ...listening];
-
-    // Filter by collection
-    if (values.collection) {
-      merged = merged.filter((e) => e.collectionTitle === values.collection);
+    
+    const map = new Map<string, any>();
+    const skillParam = values.skill || "all";
+    
+    if (skillParam === "all" || skillParam === "reading") {
+       (data.examCollection.data.reading || []).forEach(col => {
+           if (values.collection && col.title !== values.collection) return;
+           const mappedExams = col.exams.map(e => ({ ...e, skill: "reading" }));
+           map.set(col.id, { ...col, exams: mappedExams }); 
+       });
     }
-
-    return merged;
+    
+    if (skillParam === "all" || skillParam === "listening") {
+       (data.examCollection.data.listening || []).forEach(col => {
+           if (values.collection && col.title !== values.collection) return;
+           const mappedExams = col.exams.map(e => ({ ...e, skill: "listening" }));
+           if (map.has(col.id)) {
+               map.get(col.id).exams.push(...mappedExams);
+           } else {
+               map.set(col.id, { ...col, exams: mappedExams });
+           }
+       });
+    }
+    
+    return Array.from(map.values());
   }, [data, values.skill, values.collection]);
 
   const currentPage = values.page || 1;
-  const totalItems = allExams.length;
+  const totalItems = groupedCollections.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
   const visiblePages = buildPages(currentPage, totalPages);
-  const pagedExams = allExams.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pagedCols = groupedCollections.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const goToPage = (page: number) => {
     setValue("page", page, { shouldDirty: true });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -257,18 +257,18 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
                 </div>
               </aside>
 
-              {/* Grid */}
-              <div className="space-y-10">
+              {/* List */}
+              <div className="space-y-12 min-w-0">
                 {loading ? (
-                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="space-y-12">
                     {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                      <div key={i} className="h-[234px] animate-pulse rounded-[30px] bg-black/5" />
+                      <ExamCollection key={i} loading={true} />
                     ))}
                   </div>
-                ) : pagedExams.length ? (
-                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                    {pagedExams.map((exam) => (
-                      <ExamItem key={exam.id} item={exam} />
+                ) : pagedCols.length ? (
+                  <div className="space-y-12">
+                    {pagedCols.map((col) => (
+                      <ExamCollection key={col.id} data={col} />
                     ))}
                   </div>
                 ) : called ? (
@@ -357,7 +357,11 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
                   <span className="material-symbols-rounded">close</span>
                 </button>
               </div>
-              <Filter mobile collections={availableCollections} onClose={() => setDrawerOpen(false)} />
+              <Filter
+                mobile
+                collections={availableCollections}
+                onClose={() => setDrawerOpen(false)}
+              />
             </div>
           </div>
         )}

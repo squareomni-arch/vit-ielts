@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { ROUTES } from "@/shared/routes";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { IExamCollection } from "../../api";
 import ExamModeModal from "../exam-mode-modal";
 import { useAuth } from "@/appx/providers";
@@ -11,6 +11,8 @@ import Link from "next/link";
 interface TestResultRow {
   id: string;
   status: string;
+  score: number | null;
+  answers: { answers: unknown[]; totalCorrect?: number; totalQuestions?: number } | null;
 }
 
 export const ExamItem = ({
@@ -36,7 +38,7 @@ export const ExamItem = ({
         const supabase = createClient();
         const { data: results } = await supabase
           .from("test_results")
-          .select("id, status")
+          .select("id, status, score, answers")
           .eq("quiz_id", item.id)
           .eq("user_id", currentUser.id)
           .eq("status", "published")
@@ -52,8 +54,32 @@ export const ExamItem = ({
     fetchTestResults();
   }, [item.id, currentUser?.id]);
 
-  const latestResultId = publishedResults[0]?.id ?? null;
-  const isDone = latestResultId !== null;
+  const latestResult = publishedResults[0] ?? null;
+  const latestResultId = latestResult?.id;
+  const latestScoreRaw = latestResult?.score;
+  const isDone = latestResultId != null;
+
+  // Determine display format based on scoreType
+  const scoreType = quizFields.scoreType ?? null;
+  const isBandScore = !scoreType || scoreType === "band";
+
+  // Parse breakdown from answers JSONB (stored since submit flow update)
+  const totalCorrect = latestResult?.answers?.totalCorrect ?? null;
+  const totalQuestions = latestResult?.answers?.totalQuestions ?? null;
+
+  const formattedScore = (() => {
+    if (latestScoreRaw == null) return undefined;
+    if (isBandScore) {
+      // Band score: "7" or "6.5"
+      return `${latestScoreRaw}`;
+    }
+    // Practice test: "32/40" if breakdown available, fallback to band format
+    if (totalCorrect != null && totalQuestions != null) {
+      return `${totalCorrect}/${totalQuestions}`;
+    }
+    // Fallback for old results without breakdown
+    return `${latestScoreRaw}`;
+  })();
 
   const isProtected = quizFields.proUserOnly && !currentUser?.userData.isPro;
 
@@ -62,9 +88,9 @@ export const ExamItem = ({
     (e: React.MouseEvent) => {
       e.preventDefault();
 
-      // Not logged in → redirect to login
+      // Not logged in → redirect to exam detail page (with autoStart to open modal after login)
       if (!currentUser) {
-        const loginTarget = ROUTES.TAKE_THE_TEST(item.slug);
+        const loginTarget = ROUTES.EXAM.SINGLE(item.slug) + "?autoStart=true";
         window.location.href = ROUTES.LOGIN(loginTarget);
         return;
       }
@@ -87,7 +113,7 @@ export const ExamItem = ({
       <a
         href="#"
         onClick={handleCardClick}
-        className="group flex flex-col bg-white rounded-[30px] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] transition-transform duration-350 ease-[var(--ease-slide)] hover:-translate-y-3.5 cursor-pointer w-full"
+        className="group flex flex-col bg-white rounded-[30px] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] transition-transform duration-350 ease-[var(--ease-slide)] hover:-translate-y-3.5 cursor-pointer w-full h-full"
       >
         {/* Image */}
         <div className="relative h-[220px] shrink-0 overflow-hidden bg-secondary-50 rounded-t-[30px] rounded-b-[15px]">
@@ -157,23 +183,27 @@ export const ExamItem = ({
                 )}
               </div>
               <span className="relative z-10 font-noto-sans text-[15px] font-bold text-[#242938] group-hover/btn:text-white transition-colors duration-300 truncate">
-                {isDone ? "Làm lại" : "Làm Bài Thi"}
+                {isDone ? "Làm lại" : "Làm bài"}
               </span>
             </div>
 
-            {/* "Xem kết quả cũ" link — chỉ hiện khi đã làm */}
-            {isDone && latestResultId && !isProtected && (
+            {/* Circular Score — hiện khi đã làm */}
+            {isDone && latestResultId && !isProtected && formattedScore !== undefined && (
               <Link
                 href={ROUTES.TEST_RESULT(latestResultId)}
                 onClick={(e) => e.stopPropagation()}
-                className="shrink-0 flex items-center gap-1 text-[13px] font-semibold text-[#6A7282] hover:text-primary-500 transition-colors underline-offset-2 hover:underline"
-                title="Xem kết quả lần thi trước"
+                className="flex h-[60px] w-[60px] flex-col items-center justify-center p-[10px] rounded-full border border-[rgba(128,128,128,0.55)] bg-white flex-shrink-0 cursor-pointer hover:border-primary-500 hover:text-primary-500 transition-colors"
+                title={isBandScore ? "Band score lần thi trước" : "Số câu đúng lần làm trước"}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" stroke="currentColor" strokeWidth="2" />
-                </svg>
-                Kết quả cũ
+                <span
+                  className={`text-primary-500 font-noto-sans font-bold leading-none ${
+                    !isBandScore && totalQuestions != null
+                      ? "text-[13px]"
+                      : "text-[18px]"
+                  }`}
+                >
+                  {formattedScore}
+                </span>
               </Link>
             )}
           </div>

@@ -11,6 +11,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/router";
 import _ from "lodash";
 import { toast } from "react-toastify";
+import { countQuestion } from "@/shared/lib";
 
 type FormValues = {
   testPart: number[];
@@ -111,12 +112,10 @@ function ExamModeModal({
 
   const fullTestInfo = useMemo(() => {
     const totalQues = (quiz.quizFields?.passages || []).reduce((acc: number, passage: any) => {
-      return (
-        acc +
-        (passage.questions || []).reduce((acc2: number, question: any) => {
-          return acc2 + (question.explanations?.length || 0);
-        }, 0)
-      );
+      if (passage.questionCount !== undefined) {
+        return acc + passage.questionCount;
+      }
+      return acc + countQuestion(passage);
     }, 0);
 
     return `${quiz.quizFields.time} minutes - ${partOptions.length} parts - ${totalQues} questions`;

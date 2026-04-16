@@ -151,7 +151,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
   withMasterData,
   async (context: GetServerSidePropsContext) => {
     const {
-      query: { slug, testId },
+      query: { slug, testId, retake },
     } = context;
     const supabase = createServerSupabase(context);
 
@@ -165,7 +165,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
     const post = toIPracticeSingle(quiz);
 
     // 2. If testId provided, resume existing test
-    if (testId && typeof testId === "string") {
+    if (testId && typeof testId === "string" && retake !== "true") {
       try {
         const existingResult = await getTestResultService(supabase, testId);
         if (existingResult) {
@@ -194,7 +194,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
         testPart,
         testTime: quiz.time_minutes,
         testMode: "practice",
-        retake: false,
+        retake: retake === "true",
       });
 
       if (!newTestResult?.id) {

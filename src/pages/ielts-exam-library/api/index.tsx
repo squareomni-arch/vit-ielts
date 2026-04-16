@@ -13,7 +13,7 @@ export type IExamCollection = {
         featuredImage?: string;
         link: string;
         slug: string;
-        quizFields: IPracticeSingle["quizFields"];
+        quizFields: IPracticeSingle["quizFields"] & { scoreType?: string | null };
       }>;
     }>;
     listening: Array<{
@@ -25,7 +25,7 @@ export type IExamCollection = {
         featuredImage?: string;
         link: string;
         slug: string;
-        quizFields: IPracticeSingle["quizFields"];
+        quizFields: IPracticeSingle["quizFields"] & { scoreType?: string | null };
       }>;
     }>;
   };

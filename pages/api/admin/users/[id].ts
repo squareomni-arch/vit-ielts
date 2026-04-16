@@ -94,12 +94,18 @@ export default async function handler(
 
     if (req.method === "DELETE") {
         try {
+            // Delete from Supabase Auth (this usually cascades to public.users but we do both to be safe)
+            const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(id);
+            if (authError) throw authError;
+
             const { error } = await supabaseAdmin
                 .from("users")
                 .delete()
                 .eq("id", id);
 
-            if (error) throw error;
+            if (error) {
+                console.warn(`[API /api/admin/users/${id}] Failed to delete from public.users, may have cascaded`, error);
+            }
 
             return res.status(200).json({ success: true, message: "User deleted" });
         } catch (error) {

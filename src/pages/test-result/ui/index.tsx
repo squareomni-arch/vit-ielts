@@ -39,6 +39,10 @@ export function PageTestResult({
   const [bandScore, setBandScore] = useState<number | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const numericScore = useMemo(() => {
+    const parsedScore = Number(scoreData.score);
+    return Number.isFinite(parsedScore) ? parsedScore : 0;
+  }, [scoreData.score]);
 
   // --- Tính toán thời gian (Giữ nguyên logic gốc) ---
   const timeSpent = useMemo(() => {
@@ -79,9 +83,9 @@ export function PageTestResult({
   // --- [ĐÃ SỬA] Tính toán điểm % ---
   const scorePercent = useMemo(() => {
     // [ĐÃ SỬA] Ưu tiên dùng điểm từ bandScore nếu có, nếu không thì dùng scoreData.score
-    const scoreToUse = bandScore !== null ? bandScore : Number(scoreData.score);
+    const scoreToUse = bandScore !== null ? bandScore : numericScore;
     return Math.round((scoreToUse / 9) * 100);
-  }, [scoreData.score, bandScore]); // [ĐÃ SỬA] Thêm dependency
+  }, [numericScore, bandScore]); // [ĐÃ SỬA] Thêm dependency
 
   // --- Lấy skill (Giữ nguyên logic gốc) ---
   const skill = useMemo(() => {
@@ -95,6 +99,16 @@ export function PageTestResult({
     if (scoreData.correctAns === 0) return "Oops! bạn chưa làm đúng câu nào, cố gắng lần sau nha.";
     return "Chúc mừng! Bạn đã hoàn thành bài test, cùng kiểm tra kết quả nhé!";
   };
+
+  const isMockTest = post.quizFields.type?.[0] === "exam" || post.quizFields.type?.[0] === "academic" || post.quizFields.type?.[0] === "general";
+  const displayScoreStr = isMockTest
+    ? (
+      bandScore !== null
+        ? (Number.isInteger(bandScore) ? `${bandScore}` : `${bandScore.toFixed(1)}`)
+        : (Number.isInteger(numericScore) ? `${numericScore}` : `${numericScore.toFixed(1)}`)
+    )
+    : `${scoreData.correctAns}/${scoreData.total_questions}`;
+  const scoreLabel = isMockTest ? "Band Score" : "Câu đúng";
 
   return (
     <>
@@ -154,7 +168,7 @@ export function PageTestResult({
                 {/* Custom Score Circle */}
                 <div className="relative w-32 h-32 flex items-center justify-center bg-white rounded-full border-[8px] border-[#4CAF50] shadow-sm">
                   <span className="text-2xl font-black text-[#4CAF50]">
-                    {scoreData.correctAns}/{scoreData.total_questions}
+                    {displayScoreStr}
                   </span>
                 </div>
                 
@@ -225,7 +239,7 @@ export function PageTestResult({
               </div>
               <div>
                 <p className="text-xl font-extrabold text-[#2D3142] capitalize">{skill === "listening" ? "Nghe" : skill === "reading" ? "Đọc" : skill}</p>
-                <p className="text-gray-500 font-medium">{scoreData.correctAns}/{scoreData.total_questions}</p>
+                <p className="text-gray-500 font-medium">{displayScoreStr}</p>
               </div>
             </div>
           </div>
@@ -235,11 +249,11 @@ export function PageTestResult({
             <h3 className="text-2xl font-black text-[#2D3142] pb-4 border-b border-gray-200">Kết quả</h3>
             <div className="flex items-center space-x-6 pt-2">
               <div className="w-[120px] h-[120px] rounded-full bg-[#EAEEF6] flex items-center justify-center shrink-0">
-                <Image src="/assets/figma/icons/check.svg" alt="Câu đúng" width={60} height={60} className="w-[60px] h-[60px]" />
+                <Image src="/assets/figma/icons/check.svg" alt="Kết quả" width={60} height={60} className="w-[60px] h-[60px]" />
               </div>
               <div>
-                <p className="text-xl font-extrabold text-[#2D3142]">Câu đúng</p>
-                <p className="text-gray-500 font-medium">{scoreData.correctAns}/{scoreData.total_questions}</p>
+                <p className="text-xl font-extrabold text-[#2D3142]">{scoreLabel}</p>
+                <p className="text-gray-500 font-medium">{displayScoreStr}</p>
               </div>
             </div>
           </div>

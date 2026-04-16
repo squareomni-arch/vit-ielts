@@ -1707,6 +1707,39 @@ function ReviewExplanation({
                                     );
                                   })}
                                 </div>
+      <div id="iel-test-result-explanation" className="flex flex-col h-full overflow-hidden">
+        {splitter}
+
+        {/* Full-width footer — identical to take-the-test footer (no submit button) */}
+        <footer className="shrink-0 bg-white flex items-center w-full p-[12px] pr-[0] pt-[0]">
+          <div className="flex justify-between items-center h-full flex-grow mr-[110px]">
+            {passages.map((passage: any, idx: number) => {
+              const isCurrent = idx === currentPassageIndex;
+              const info = passagesFooterInfo[idx] ?? { questions: [], total: 0, answered: 0 };
+              return (
+                <div
+                  key={idx}
+                  onClick={() => setCurrentPassageIndex(idx)}
+                  className="h-full flex items-center cursor-pointer w-full"
+                >
+                  {isCurrent ? (
+                    <div className="justify-center w-full">
+                      <div className="flex items-center gap-[5px] h-full">
+                        <div className="flex items-center border-t-[3px] border-gray-200 pt-2">
+                          <span className="font-semibold text-[16px] text-[#000] whitespace-nowrap pl-[20px] pr-[30px]">
+                            {passageLabel} {idx + 1}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 overflow-x-auto py-1">
+                          {info.questions.map((qi: number) => {
+                            const ans = mappedAnswers[qi];
+                            const isAnswered = ans !== null && ans !== undefined && String(ans).trim() !== "" && !(Array.isArray(ans) && ans.length === 0);
+                            return (
+                              <div key={qi} className="flex flex-col items-center gap-2 flex-shrink-0">
+                                <div className={twMerge("w-full h-[3px] rounded-sm", isAnswered ? "bg-green-500" : "bg-gray-200")} />
+                                <span className="text-[#000] p-1 pb-[2px] flex items-center leading-[16px]! justify-center text-[16px] border-2 border-transparent rounded">
+                                  {qi + 1}
+                                </span>
                               </div>
                             </div>
                           ) : (
@@ -1760,9 +1793,9 @@ function ReviewExplanation({
   }
 
   return (
-    <>
+    <div id="iel-test-result-explanation">
       {splitter}
-    </>
+    </div>
   );
 }
 

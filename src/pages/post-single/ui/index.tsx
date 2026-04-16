@@ -10,6 +10,7 @@ import dayjs from "dayjs";
 import { useCallback, useEffect } from "react";
 import SharePost from "./share-post";
 import RelatedPost from "./related-post";
+import { SimilarPostsSection } from "./similar-posts-section";
 import { decode } from "html-entities";
 import { createClient } from "~supabase/client";
 import { resolveContentImage, useContentImageFallback } from "@/shared/lib/content-image";
@@ -141,6 +142,9 @@ export const PageSingle = ({ post }: { post: IPost }) => {
             </div>
           </div>
         </Container>
+
+        {/* === SECTION: Similar Posts === */}
+        <SimilarPostsSection currentPostId={post.id} categories={post.categories || []} />
       </div>
     </>
   );

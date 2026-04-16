@@ -27,7 +27,7 @@ import type {
 
 /** Select columns for quiz summary — includes passages+questions for modal UI */
 const QUIZ_SUMMARY_SELECT =
-    "id, title, slug, skill, featured_image, pro_user_only, tests_taken, time_minutes, question_form, source, year, passages(id, sort_order, questions(id, explanations, sort_order))";
+    "id, title, slug, skill, type, score_type, featured_image, pro_user_only, tests_taken, time_minutes, question_form, source, year, passages(id, sort_order, questions(id, type, question_text, list_of_questions, list_of_options, matching_question, matrix_question, explanations, sort_order))";
 
 // ============================================================================
 // Internal Types (shapes returned by QUIZ_SUMMARY_SELECT)
@@ -42,11 +42,13 @@ type QuestionSummary = {
 type PassageSummary = {
     id: string;
     sort_order: number;
-    questions: QuestionSummary[];
+    questions: any[];
 };
 
 /** Shape returned by Supabase for QUIZ_SUMMARY_SELECT */
 type QuizSummaryRow = ExamCollectionItem & {
+    type: string;
+    score_type: string | null;
     passages: PassageSummary[];
 };
 
@@ -62,8 +64,9 @@ type MappedExamItem = {
         testsTaken: number;
         skill: [string, string];
         type: [string, string];
+        scoreType: string | null;
         time: number;
-        passages: { questions: { explanations: { content: string }[] }[] }[];
+        passages: any[];
     };
 };
 
@@ -352,22 +355,46 @@ export async function getCollectionDetail(
 // Internal Helpers
 // ============================================================================
 
+import { countQuestion } from "@/shared/lib/countQuestion";
+
 /**
  * Map flat Supabase ExamCollectionItem → legacy shape with quizFields.
  * This ensures UI components can access quiz.quizFields.time etc. consistently.
  * Passages are mapped with questions containing explanations for question counting.
  */
-function toExamItemWithQuizFields(item: QuizSummaryRow): MappedExamItem {
+export function toExamItemWithQuizFields(item: QuizSummaryRow): MappedExamItem {
     // Sort and map passages + questions to legacy shape expected by ExamModeModal
     const passages = (item.passages ?? [])
         .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-        .map((p) => ({
-            questions: (p.questions ?? [])
-                .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-                .map((q) => ({
-                    explanations: Array.isArray(q.explanations) ? q.explanations : [],
-                })),
-        }));
+        .map((p) => {
+            const tempPassage = {
+                questions: (p.questions ?? [])
+                    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+                    .map((q: any) => ({
+                        ...q,
+                        type: q.type ? [q.type] : undefined,
+                        question: q.question_text,
+                        matchingQuestion: q.matching_question ? {
+                            layoutType: q.matching_question.layout_type,
+                            summaryText: q.matching_question.summary_text,
+                            matchingItems: q.matching_question.matching_items,
+                        } : undefined,
+                        matrixQuestion: q.matrix_question ? {
+                            matrixItems: q.matrix_question.matrix_items,
+                        } : undefined,
+                        explanations: Array.isArray(q.explanations) ? q.explanations : [],
+                    }))
+            };
+            const cnt = countQuestion(tempPassage);
+
+            return {
+                id: p.id,
+                sort_order: p.sort_order,
+                questionCount: cnt,
+                questions: [], // clear heavy data to prevent UI payload bloat
+            } as any;
+        });
+
 
     return {
         id: item.id,
@@ -379,11 +406,37 @@ function toExamItemWithQuizFields(item: QuizSummaryRow): MappedExamItem {
             proUserOnly: item.pro_user_only,
             testsTaken: item.tests_taken,
             skill: [item.skill, item.skill],
-            type: ["exam", "exam"],
+            type: [item.type ?? "exam", item.type ?? "exam"],
+            scoreType: item.score_type ?? null,
             time: item.time_minutes,
             passages,
         },
     };
+}
+
+/**
+ * Lấy chi tiết tóm tắt của 1 quiz (bao gồm passages/questions count) để hiển thị Modal.
+ *
+ * @param supabase - Supabase client instance
+ * @param quizId - ID của quiz
+ * @returns MappedExamItem hoặc null
+ */
+export async function getQuizSummary(
+    supabase: SupabaseClient,
+    quizId: string
+): Promise<MappedExamItem | null> {
+    const { data, error } = await supabase
+        .from("quizzes")
+        .select(QUIZ_SUMMARY_SELECT)
+        .eq("id", quizId)
+        .single();
+
+    if (error) {
+        console.error(`[getQuizSummary] Error fetching quiz ${quizId}:`, error);
+        return null;
+    }
+
+    return toExamItemWithQuizFields(data as QuizSummaryRow);
 }
 
 /** Build empty response with correct pagination shape */

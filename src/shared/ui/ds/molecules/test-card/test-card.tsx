@@ -10,6 +10,7 @@ export type TestCardProps = {
   skill?: 'reading' | 'listening' | 'speaking' | 'writing';
   author?: string;
   authorAvatar?: string;
+  date?: string;
   views?: number;
   attempts?: number;
   part?: 1 | 2 | 3 | 4 | 5 | string;
@@ -18,7 +19,7 @@ export type TestCardProps = {
   score?: string | number;
   actionText?: string;
   href?: string;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   onScoreClick?: (e: React.MouseEvent) => void;
   className?: string;
 };
@@ -32,13 +33,14 @@ export const TestCard = ({
   skill,
   author,
   authorAvatar,
+  date,
   views,
   attempts,
   part,
   isPro,
   isLocked,
   score,
-  actionText = "Kiểm Tra", // default action
+  actionText = "Làm bài", // default action
   href,
   onClick,
   onScoreClick,
@@ -90,7 +92,7 @@ export const TestCard = ({
       {/* Body Section */}
       <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
         <div className="space-y-[8px] mb-4">
-          <h3 className="text-[17px] font-bold text-[#202020] leading-snug mb-3 group-hover:text-primary-500 transition-colors">
+          <h3 className="text-[17px] font-bold text-[#202020] leading-snug mb-3 group-hover:text-primary-500 transition-colors line-clamp-2">
             {title}
           </h3>
           {(subtitle || attempts !== undefined) && (
@@ -100,7 +102,7 @@ export const TestCard = ({
           )}
         </div>
 
-        {/* Action Row */}
+        {/* Action Row — shown when actionText or score is provided */}
         {(actionText || score !== undefined) && (
           <div className="mt-auto flex items-end justify-between gap-3">
             {actionText && (
@@ -138,6 +140,36 @@ export const TestCard = ({
                 }}
               >
                 <span className="text-primary-500 font-['Noto_Sans'] text-[18px] font-bold leading-none">{score}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Meta Row — shown when actionText is absent AND author/date are provided (blog card mode) */}
+        {!actionText && score === undefined && (author || date) && (
+          <div className="mt-auto flex items-center justify-between gap-2 pt-3 border-t border-[rgba(0,0,0,0.07)]">
+            {author && (
+              <div className="flex items-center gap-2 min-w-0">
+                {authorAvatar ? (
+                  <img
+                    src={authorAvatar}
+                    alt={author}
+                    className="w-5 h-5 rounded-full object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <img
+                    src="/assets/figma/icons/logo.png"
+                    alt="logo"
+                    className="w-5 h-5 object-contain flex-shrink-0"
+                  />
+                )}
+                <span className="font-['Noto_Sans'] text-[13px] font-semibold text-[#2D3142] truncate">{author}</span>
+              </div>
+            )}
+            {date && (
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <span className="material-symbols-rounded text-[#6A7282]" style={{ fontSize: '15px' }}>calendar_month</span>
+                <span className="font-['Noto_Sans'] text-[13px] text-[#6A7282]">{date}</span>
               </div>
             )}
           </div>

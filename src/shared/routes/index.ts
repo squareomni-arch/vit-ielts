@@ -2,7 +2,7 @@ export const ROUTES = {
   HOME: "/",
 
   LOGIN: (redirect?: string) =>
-    `/account/login${redirect ? `?redirect=${redirect}` : ""}`,
+    `/account/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ""}`,
   REGISTER: "/account/register",
   FORGOT_PASSWORD: "/account/forgot-password",
 
@@ -22,6 +22,7 @@ export const ROUTES = {
 
   EXAM: {
     ARCHIVE: "/ielts-exam-library",
+    SINGLE: (slug: string) => `/ielts-exam-library/${slug}`,
   },
 
   PRACTICE: {

@@ -22,7 +22,7 @@ export const useLatestTestScore = (quizId?: string) => {
         const supabase = createClient();
         const { data, error } = await supabase
           .from("test_results")
-          .select("score")
+          .select("score, answers, quizzes!inner(type, score_type)")
           .eq("quiz_id", quizId)
           .eq("user_id", currentUser.id)
           .eq("status", "published")
@@ -32,7 +32,24 @@ export const useLatestTestScore = (quizId?: string) => {
 
         if (isMounted) {
           if (!error && data !== null && data.score !== undefined && data.score !== null) {
-            setScore(Number.isInteger(data.score) ? `${data.score}` : `${data.score}`.replace('.', ','));
+            const quizInfo = Array.isArray(data.quizzes) ? data.quizzes[0] : data.quizzes;
+            const isMockTest = quizInfo?.type === "exam" || quizInfo?.type === "academic" || quizInfo?.type === "general";
+            const scoreType = quizInfo?.score_type;
+            const isBandScore = !scoreType || scoreType === "band";
+
+            const parsedAnswers = typeof data.answers === 'string' ? JSON.parse(data.answers) : data.answers;
+            const totalCorrect = parsedAnswers?.totalCorrect;
+            const totalQuestions = parsedAnswers?.totalQuestions;
+
+            const shouldShowBand = isMockTest && isBandScore;
+
+            if (shouldShowBand) {
+              setScore(Number.isInteger(data.score) ? `${data.score}` : `${data.score.toFixed(1)}`);
+            } else if (totalCorrect != null && totalQuestions != null) {
+              setScore(`${totalCorrect}/${totalQuestions}`);
+            } else {
+              setScore(Number.isInteger(data.score) ? `${data.score}` : `${data.score.toFixed(1)}`);
+            }
           } else {
             setScore(undefined);
           }

@@ -21,18 +21,25 @@ export const PracticeCard = ({ item, priority = false }: PracticeCardProps) => {
     return normalizeSectionBadge(skill, item.quizFields.part);
   }, [item.quizFields.part, skill]);
 
-  const requiresUpgrade = item.quizFields.proUserOnly && !currentUser?.userData.isPro;
+  const isProtected = item.quizFields.proUserOnly;
+  const requiresLogin = !currentUser;
+  const requiresUpgrade = isProtected && !currentUser?.userData.isPro;
+  const isLocked = requiresUpgrade;
+  const needsIntercept = requiresLogin || requiresUpgrade;
+  
   // detailHref: trang giới thiệu/detail bài luyện tập
   const detailHref = ROUTES.PRACTICE.SINGLE(item.slug);
 
   const handleProtectedAction = (event?: MouseEvent<any>) => {
-    if (!requiresUpgrade) return;
+    if (!needsIntercept) return;
     event?.preventDefault();
-    if (!currentUser) {
+    if (requiresLogin) {
       window.location.href = ROUTES.LOGIN(detailHref);
       return;
     }
-    openProContentModal();
+    if (requiresUpgrade) {
+      openProContentModal();
+    }
   };
 
   return (
@@ -43,11 +50,11 @@ export const PracticeCard = ({ item, priority = false }: PracticeCardProps) => {
       skill={skill}
       part={partMeta.label}
       attempts={item.quizFields.testsTaken || 0}
-      isPro={item.quizFields.proUserOnly}
-      isLocked={requiresUpgrade}
-      // Card luôn link đến trang detail — từ đó user mới nhấn "Start Practice"
-      href={requiresUpgrade ? undefined : detailHref}
-      onClick={requiresUpgrade ? handleProtectedAction : undefined}
+      isPro={isProtected}
+      isLocked={isLocked}
+      // Card luôn link đến trang detail — từ đó user mới nhấn "Làm bài"
+      href={needsIntercept ? undefined : detailHref}
+      onClick={needsIntercept ? handleProtectedAction : undefined}
     />
   );
 };

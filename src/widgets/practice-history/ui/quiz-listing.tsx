@@ -44,7 +44,7 @@ type NodeWithScore = NodeType & { key: number; _scoreResult?: ScoreResult };
 export const QuizListing = ({ skill }: { skill: "listening" | "reading" }) => {
   const { currentUser } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
   const [data, setData] = useState<GetPracticeHistory | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -83,7 +83,13 @@ export const QuizListing = ({ skill }: { skill: "listening" | "reading" }) => {
                 testTime: String((quiz as any).time_minutes || 60),
                 timeLeft: r.time_left || "0:00",
                 answers: JSON.stringify({ answers: r.answers || [] }),
-                testPart: JSON.stringify(r.test_part || "all"),
+                testPart: (() => {
+                  const tp = r.test_part;
+                  if (Array.isArray(tp) && tp.length > 0) return JSON.stringify(tp);
+                  // "all" hoặc null/undefined → dùng tất cả passage indices
+                  const passageCount = ((quiz as any).passages || []).length;
+                  return JSON.stringify(Array.from({ length: passageCount }, (_, i) => i));
+                })(),
                 quiz: {
                   node: {
                     title: (quiz as any).title || "",
@@ -162,17 +168,7 @@ export const QuizListing = ({ skill }: { skill: "listening" | "reading" }) => {
       {
         title: "Questions",
         key: "questions",
-        dataIndex: ["testResultFields", "quiz", "node", "quizFields", "passages"],
-        render: (_, record) =>
-          record.testResultFields.quiz.node.quizFields.passages.reduce(
-            (acc, passage) =>
-              acc +
-              passage.questions.reduce(
-                (acc, question) => acc + question.explanations.length,
-                0
-              ),
-            0
-          ),
+        render: (_, record) => (record as NodeWithScore)._scoreResult?.total_questions ?? 0,
       },
       {
         title: "Correct",
@@ -187,7 +183,12 @@ export const QuizListing = ({ skill }: { skill: "listening" | "reading" }) => {
       {
         title: "Missed",
         key: "missedAnswers",
-        render: (_, record) => (record as NodeWithScore)._scoreResult?.missed ?? 0,
+        render: (_, record) => {
+          const sr = (record as NodeWithScore)._scoreResult;
+          if (!sr) return 0;
+          // Tính lại từ total_questions để đảm bảo correct + incorrect + missed = total
+          return Math.max(0, sr.total_questions - sr.correctAns - sr.incorrect);
+        },
       },
       {
         title: "Result",
@@ -195,23 +196,30 @@ export const QuizListing = ({ skill }: { skill: "listening" | "reading" }) => {
         render: (_, record) => {
           const scoreResult = (record as NodeWithScore)._scoreResult;
           const correct = scoreResult?.correctAns ?? 0;
-          const incorrect = scoreResult?.incorrect ?? 0;
-          const missed = scoreResult?.missed ?? 0;
-          const total = correct + incorrect + missed;
+          const total = scoreResult?.total_questions ?? 0;
 
-          if (total === 0) return <span className="font-medium">0/10</span>;
+          const quizType = record.testResultFields.quiz.node.quizFields.type?.[0] || 'practice';
+          const isExam = quizType === 'exam' || quizType === 'academic' || quizType === 'general';
 
-          const score10 = (correct / total) * 10;
-          const displayScore = Number.isInteger(score10) 
-            ? score10.toString() 
-            : score10.toFixed(1).replace('.', ',');
-          const isPass = score10 >= 5;
+          if (total === 0) return <span className="font-medium text-gray-400">—</span>;
 
-          return (
-            <span className={`font-bold ${isPass ? "text-[#1B8C40]" : "text-primary-500"}`}>
-              {displayScore}/10
-            </span>
-          );
+          if (isExam) {
+            // Dùng band score đã tính sẵn từ calculateScore (thang 0-9, làm tròn 0.5)
+            const band = scoreResult?.score ?? "0.0";
+            const isPass = parseFloat(band) >= 5;
+            return (
+              <span className={`font-bold ${isPass ? "text-[#1B8C40]" : "text-primary-500"}`}>
+                {band}
+              </span>
+            );
+          } else {
+            const isPass = correct / total >= 0.5;
+            return (
+              <span className={`font-bold ${isPass ? "text-[#1B8C40]" : "text-primary-500"}`}>
+                {correct}/{total}
+              </span>
+            );
+          }
         },
       },
       {
@@ -314,7 +322,7 @@ export const QuizListing = ({ skill }: { skill: "listening" | "reading" }) => {
           pageSize: pageSize,
           total: filteredDataSource.length,
           showSizeChanger: true,
-          pageSizeOptions: ["10", "20", "50"],
+          pageSizeOptions: ["5", "10", "20", "50"],
           showTotal: (total) => `Hiển thị ${total} bài làm trong 60 ngày gần nhất`,
         }}
         onChange={handleTableChange}

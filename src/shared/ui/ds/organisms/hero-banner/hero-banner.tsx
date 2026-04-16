@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export type BreadcrumbItem = {
+type BreadcrumbItem = {
   label: string;
   href?: string;
 };

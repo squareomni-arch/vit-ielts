@@ -25,7 +25,6 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
           currentLabel: "Reading",
           items: [
             { label: "Trang chủ", href: "/" },
-            { label: "Thư viện bài thi thử IELTS", href: "/ielts-exam-library" },
             { label: "Reading" },
           ],
         },
@@ -38,7 +37,6 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
           currentLabel: "Reading",
           items: [
             { label: "Trang chủ", href: "/" },
-            { label: "Thư viện bài thi thử IELTS", href: "/ielts-exam-library" },
             { label: "Reading" },
           ],
         },

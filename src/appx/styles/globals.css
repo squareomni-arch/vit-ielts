@@ -777,3 +777,11 @@ br {
 .ql-editor {
   min-height: 50px;
 }
+
+/* IELTS Exam/Quiz Content Font — only for take-the-test & test-result/explanation */
+#iel-take-test-main,
+#iel-take-test-main *,
+#iel-test-result-explanation,
+#iel-test-result-explanation * {
+  font-family: Arial, Helvetica, sans-serif !important;
+}

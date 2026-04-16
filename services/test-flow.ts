@@ -337,11 +337,19 @@ export async function submitTestResult(
     );
     const score = scoreResult.score;
 
+    // Embed score breakdown into answers JSONB for display purposes.
+    // Avoids DB schema changes while enabling "X/Y câu đúng" format for Practice Tests.
+    const answersWithBreakdown = {
+        ...answers,
+        totalCorrect: scoreResult.totalCorrect,
+        totalQuestions: scoreResult.totalQuestions,
+    };
+
     // Update test result: publish with score
     const { data: updatedResult, error: updateError } = await supabase
         .from("test_results")
         .update({
-            answers,
+            answers: answersWithBreakdown,
             time_left: timeLeft,
             score,
             status: "published",

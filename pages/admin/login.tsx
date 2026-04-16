@@ -87,8 +87,8 @@ export default function AdminLoginPage() {
         .admin-login-page input:-webkit-autofill:focus,
         .admin-login-page input:-webkit-autofill:active {
           transition: background-color 99999s ease-in-out 0s !important;
-          -webkit-text-fill-color: #e5e7eb !important;
-          caret-color: #e5e7eb !important;
+          -webkit-text-fill-color: #1e293b !important;
+          caret-color: #1e293b !important;
         }
       ` }} />
 
@@ -265,14 +265,14 @@ export default function AdminLoginPage() {
 
         <style jsx>{`
           .admin-login-page {
-            color-scheme: dark;
+            color-scheme: light;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             overflow: hidden;
-            background: #0f1117;
+            background: #f8fafc;
             font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
               Roboto, sans-serif;
           }
@@ -354,12 +354,12 @@ export default function AdminLoginPage() {
             margin: 24px;
             border-radius: 24px;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.5),
-              inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05),
+              inset 0 1px 0 rgba(255, 255, 255, 1);
           }
 
           /* ── Left branding ── */
@@ -370,14 +370,14 @@ export default function AdminLoginPage() {
             padding: 48px;
             background: linear-gradient(
               135deg,
-              rgba(217, 74, 86, 0.12) 0%,
-              rgba(99, 102, 241, 0.08) 100%
+              rgba(217, 74, 86, 0.05) 0%,
+              rgba(99, 102, 241, 0.03) 100%
             );
-            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
           }
 
           .admin-login-branding-content {
-            color: #e5e7eb;
+            color: #475569;
           }
 
           .admin-login-logo {
@@ -402,7 +402,7 @@ export default function AdminLoginPage() {
           .admin-login-logo-text {
             font-size: 22px;
             font-weight: 700;
-            background: linear-gradient(135deg, #fff 0%, #b0b3c5 100%);
+            background: linear-gradient(135deg, #2D3142 0%, #4b5563 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -0.3px;
@@ -411,7 +411,7 @@ export default function AdminLoginPage() {
           .admin-login-branding-title {
             font-size: 28px;
             font-weight: 700;
-            color: #fff;
+            color: #2D3142;
             margin-bottom: 12px;
             letter-spacing: -0.5px;
             line-height: 1.2;
@@ -419,7 +419,7 @@ export default function AdminLoginPage() {
 
           .admin-login-branding-desc {
             font-size: 14.5px;
-            color: #9ca3af;
+            color: #64748b;
             line-height: 1.7;
             margin-bottom: 32px;
           }
@@ -435,7 +435,7 @@ export default function AdminLoginPage() {
             align-items: center;
             gap: 12px;
             font-size: 13.5px;
-            color: #d1d5db;
+            color: #475569;
           }
 
           .admin-login-feature-dot {
@@ -481,7 +481,7 @@ export default function AdminLoginPage() {
           .admin-login-card-title {
             font-size: 22px;
             font-weight: 700;
-            color: #fff;
+            color: #2D3142;
             margin-bottom: 6px;
             letter-spacing: -0.3px;
           }
@@ -506,7 +506,7 @@ export default function AdminLoginPage() {
           .admin-login-label {
             font-size: 13px;
             font-weight: 500;
-            color: #9ca3af;
+            color: #64748b;
             letter-spacing: 0.2px;
           }
 
@@ -523,7 +523,7 @@ export default function AdminLoginPage() {
 
           .admin-login-footer p {
             font-size: 12px;
-            color: #4b5563;
+            color: #94a3b8;
             line-height: 1.6;
           }
 
@@ -538,7 +538,7 @@ export default function AdminLoginPage() {
             .admin-login-branding {
               padding: 32px 24px;
               border-right: none;
-              border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+              border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             }
 
             .admin-login-branding-title {
@@ -564,10 +564,10 @@ export default function AdminLoginPage() {
           /* Override Ant Design Input styles for dark admin login */
           .admin-login-page .admin-login-input .ant-input,
           .admin-login-page .admin-login-input.ant-input {
-            background: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            background: #fff !important;
+            border: 1px solid #e2e8f0 !important;
             border-radius: 12px !important;
-            color: #e5e7eb !important;
+            color: #1e293b !important;
             height: 48px !important;
             font-size: 14px !important;
             padding: 12px 16px !important;
@@ -578,13 +578,13 @@ export default function AdminLoginPage() {
           .admin-login-page .admin-login-input.ant-input:focus,
           .admin-login-page .admin-login-input .ant-input:hover,
           .admin-login-page .admin-login-input.ant-input:hover {
-            border-color: rgba(217, 74, 86, 0.5) !important;
-            background: rgba(255, 255, 255, 0.07) !important;
-            box-shadow: 0 0 0 2px rgba(217, 74, 86, 0.1) !important;
+            border-color: rgba(217, 74, 86, 0.3) !important;
+            background: #fff !important;
+            box-shadow: 0 0 0 2px rgba(217, 74, 86, 0.05) !important;
           }
 
           .admin-login-page .admin-login-input .ant-input::placeholder {
-            color: #4b5563 !important;
+            color: #94a3b8 !important;
           }
 
 
@@ -596,8 +596,8 @@ export default function AdminLoginPage() {
           }
 
           .admin-login-page .admin-login-input.ant-input-password {
-            background: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            background: #fff !important;
+            border: 1px solid #e2e8f0 !important;
             border-radius: 12px !important;
             padding: 0 16px !important;
             height: 48px !important;
@@ -606,9 +606,9 @@ export default function AdminLoginPage() {
 
           .admin-login-page .admin-login-input.ant-input-password:focus-within,
           .admin-login-page .admin-login-input.ant-input-password:hover {
-            border-color: rgba(217, 74, 86, 0.5) !important;
-            background: rgba(255, 255, 255, 0.07) !important;
-            box-shadow: 0 0 0 2px rgba(217, 74, 86, 0.1) !important;
+            border-color: rgba(217, 74, 86, 0.3) !important;
+            background: #fff !important;
+            box-shadow: 0 0 0 2px rgba(217, 74, 86, 0.05) !important;
           }
 
           .admin-login-page .admin-login-input.ant-input-password .ant-input,
@@ -618,7 +618,7 @@ export default function AdminLoginPage() {
             background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
-            color: #e5e7eb !important;
+            color: #1e293b !important;
             padding: 0 !important;
             height: auto !important;
           }
@@ -626,8 +626,8 @@ export default function AdminLoginPage() {
           .admin-login-page .admin-login-input.ant-input-password .ant-input-suffix,
           .admin-login-page .admin-login-input.ant-input-password .ant-input-suffix span,
           .admin-login-page .admin-login-input.ant-input-password .ant-input-suffix svg {
-            color: #9ca3af !important;
-            fill: #9ca3af !important;
+            color: #64748b !important;
+            fill: #64748b !important;
           }
 
           /* Error status */

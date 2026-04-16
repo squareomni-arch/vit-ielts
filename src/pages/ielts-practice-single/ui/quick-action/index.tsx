@@ -25,7 +25,7 @@ function QuickAction({ post }: { post: IPracticeSingle }) {
                 play_circle
               </span>
               <span className="text-default group-hover:underline">
-                Start Practice
+                Làm bài
               </span>
             </LinkButton>
           </Link>
@@ -42,7 +42,7 @@ function QuickAction({ post }: { post: IPracticeSingle }) {
                   play_circle
                 </span>
                 <span className="text-default group-hover:underline">
-                  Start Practice
+                  Làm bài
                 </span>
               </LinkButton>
             </Link>
@@ -52,7 +52,7 @@ function QuickAction({ post }: { post: IPracticeSingle }) {
                 play_circle
               </span>
               <span className="text-default group-hover:underline">
-                Start Practice
+                Làm bài
               </span>
             </Button>
           )
@@ -68,7 +68,7 @@ function QuickAction({ post }: { post: IPracticeSingle }) {
                 play_circle
               </span>
               <span className="text-default group-hover:underline">
-                Start Practice
+                Làm bài
               </span>
             </LinkButton>
           </Link>

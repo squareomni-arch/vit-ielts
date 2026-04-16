@@ -1,85 +1,59 @@
-import { memo, useCallback, useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
-
-const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
-
-const MODULES = {
-    toolbar: [
-        [{ header: [1, 2, 3, false] }],
-        ["bold", "italic", "underline", "strike"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["blockquote", "code-block"],
-        ["link", "image"],
-        [{ align: [] }],
-        ["clean"],
-    ],
-};
-
-const FORMATS = [
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "list",
-    "blockquote",
-    "code-block",
-    "link",
-    "image",
-    "align",
-];
+import { memo, useRef } from "react";
+import { Editor } from "@tinymce/tinymce-react";
+import type { Editor as TinyMCEEditor } from "tinymce";
 
 type BlogEditorProps = {
     value?: string;
     onChange?: (html: string) => void;
     placeholder?: string;
+    height?: number;
 };
 
 function BlogEditorInner({
     value = "",
     onChange,
     placeholder,
+    height = 600,
 }: BlogEditorProps) {
-    const [localValue, setLocalValue] = useState(value);
-    const onChangeRef = useRef(onChange);
-    onChangeRef.current = onChange;
-    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const isEditingRef = useRef(false);
+    const editorRef = useRef<TinyMCEEditor>(null);
 
-    useEffect(() => {
-        if (!isEditingRef.current) {
-            setLocalValue(value || "");
+    const setRef = (_evt: unknown, editor: null | TinyMCEEditor) => {
+        if (editorRef) {
+            editorRef.current = editor as TinyMCEEditor;
         }
-    }, [value]);
-
-    const handleChange = useCallback((html: string) => {
-        isEditingRef.current = true;
-        setLocalValue(html);
-
-        if (timerRef.current) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(() => {
-            isEditingRef.current = false;
-            if (onChangeRef.current) {
-                onChangeRef.current(html);
-            }
-        }, 300);
-    }, []);
-
-    useEffect(() => {
-        return () => {
-            if (timerRef.current) clearTimeout(timerRef.current);
-        };
-    }, []);
+    };
 
     return (
-        <ReactQuill
-            theme="snow"
-            value={localValue}
-            onChange={handleChange}
-            modules={MODULES}
-            formats={FORMATS}
-            placeholder={placeholder}
-            className="admin-blog-quill"
+        <Editor
+            tinymceScriptSrc="/libs/tinymce/tinymce.min.js"
+            licenseKey="gpl"
+            onInit={setRef}
+            init={{
+                promotion: false,
+                height,
+                menubar: true,
+                placeholder: placeholder || "",
+                plugins:
+                    "preview importcss searchreplace autolink autosave save directionality code visualblocks visualchars fullscreen image link media codesample table charmap pagebreak nonbreaking anchor insertdatetime advlist lists wordcount help charmap quickbars emoticons accordion",
+                toolbar:
+                    "undo redo | blocks fontfamily fontsize | " +
+                    "bold italic underline strikethrough | forecolor backcolor | " +
+                    "alignleft aligncenter alignright alignjustify | " +
+                    "bullist numlist outdent indent | link image media codesample | " +
+                    "removeformat | fullscreen | help",
+                content_style:
+                    "body { font-family: Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.7; }",
+                inline_styles: true,
+                entity_encoding: "raw",
+                image_advtab: true,
+                image_caption: true,
+                min_height: 400,
+                branding: false,
+                paste_as_text: false,
+                paste_word_valid_elements: "b,strong,i,em,h1,h2,h3,p,br,ul,ol,li,a,table,tr,td,th,thead,tbody",
+            }}
+            value={value}
+            onEditorChange={(html) => onChange?.(html)}
         />
     );
 }

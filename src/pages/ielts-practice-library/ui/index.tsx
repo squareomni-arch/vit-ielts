@@ -138,6 +138,7 @@ export const PageIELTSPracticeLibrary = ({
 
       const result = await getQuizzes(supabase, {
         skill: (params.skill as SkillType) || undefined,
+        type: "practice",
         search: (params.search as string) || undefined,
         source: (params.source as string) || undefined,
         part: (params.part as string) || undefined,
@@ -159,8 +160,8 @@ export const PageIELTSPracticeLibrary = ({
           quizFields: {
             skill: [quiz.skill, quiz.skill] as IPracticeTest["quizFields"]["skill"],
             type: [
-              quiz.type === "exam" ? "practice" : quiz.type,
-              quiz.type === "exam" ? "practice" : quiz.type,
+              quiz.type,
+              quiz.type,
             ] as IPracticeTest["quizFields"]["type"],
             passages: [],
             part: quiz.part || "0",

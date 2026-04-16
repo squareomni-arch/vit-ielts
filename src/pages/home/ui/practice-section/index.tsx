@@ -1,5 +1,5 @@
 
-import { useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Container } from "@/shared/ui";
 import { TestCardWithScore } from "@/entities/practice-test";
 import { Splide, SplideSlide, SplideTrack } from "@splidejs/react-splide";
@@ -10,12 +10,21 @@ import type { Quiz } from "~services/types/database";
 import { ROUTES } from "@/shared/routes";
 import { normalizeSectionBadge } from "@/shared/lib/quiz-part";
 import { ScrollFadeIn } from "@/shared/lib/use-scroll-fade-in";
+import ExamModeModal from "@/pages/ielts-exam-library/ui/exam-mode-modal";
+import { useAuth } from "@/appx/providers";
+import { useProContentModal } from "@/shared/ui/pro-content";
+import { createClient } from "~supabase/client";
+import { getQuizSummary } from "~services/exam-collection";
+import { toast } from "react-toastify";
 
 export type PracticeSectionProps = {
   title?: string;
   viewMoreLink?: string;
   items?: Quiz[];
   getItemHref?: (item: any) => string;
+  actionText?: string;
+  hideAttempts?: boolean;
+  useExamModal?: boolean;
 };
 
 export const PracticeSection = ({
@@ -23,11 +32,61 @@ export const PracticeSection = ({
   viewMoreLink = "#",
   items = [],
   getItemHref,
+  actionText,
+  hideAttempts = false,
+  useExamModal = false,
 }: PracticeSectionProps) => {
+  const { currentUser } = useAuth();
+  const openProContentModal = useProContentModal((state) => state.open);
   const splideRef = useRef<{ splide: SplideType } | null>(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
+  const [loadingQuiz, setLoadingQuiz] = useState(false);
 
   const handlePrev = () => splideRef.current?.splide?.go("<");
   const handleNext = () => splideRef.current?.splide?.go(">");
+
+  const handleCardClick = useCallback(
+    async (quiz: Quiz) => {
+      // Only use modal if explicitly enabled
+      if (!useExamModal) return;
+
+      // Not logged in → redirect to exam detail page (with autoStart to open modal after login)
+      if (!currentUser) {
+        const loginTarget = ROUTES.EXAM.SINGLE(quiz.slug) + "?autoStart=true";
+        window.location.href = ROUTES.LOGIN(loginTarget);
+        return;
+      }
+
+      // Protected but not pro → open upgrade modal
+      const isProtected = quiz.pro_user_only && !currentUser.userData.isPro;
+      if (isProtected) {
+        openProContentModal();
+        return;
+      }
+
+      // Fetch full quiz summary (with passages) for the modal
+      setLoadingQuiz(true);
+      try {
+        const response = await fetch(`/api/test-flow/summary?quizId=${quiz.id}`);
+        const result = await response.json();
+        
+        if (response.ok && result.success && result.data) {
+          setSelectedQuiz(result.data);
+          setIsModalOpen(true);
+        } else {
+          toast.error("Không thể tải thông tin bài thi");
+        }
+      } catch (error) {
+        console.error("Error fetching quiz summary:", error);
+        toast.error("Có lỗi xảy ra khi tải thông tin bài thi");
+      } finally {
+        setLoadingQuiz(false);
+      }
+    },
+    [currentUser, getItemHref, openProContentModal]
+  );
 
   if (items.length === 0) return null;
 
@@ -76,7 +135,7 @@ export const PracticeSection = ({
           </button>
 
           {/* Splide carousel — pt on each slide matches card lift distance (14px) */}
-          <div>
+          <div className={loadingQuiz ? "opacity-50 pointer-events-none transition-opacity" : ""}>
             <Splide
               ref={splideRef as any}
               hasTrack={false}
@@ -107,6 +166,43 @@ export const PracticeSection = ({
                     partLabel = normalizeSectionBadge(skillValue, rawPart).label;
                   }
 
+                  // For exam cards, the default href should be the exam detail page, not practice single
+                  const defaultHref = useExamModal ? ROUTES.EXAM.SINGLE(quiz.slug) : ROUTES.PRACTICE.SINGLE(quiz.slug);
+                  const href = getItemHref ? getItemHref(quiz) : defaultHref;
+
+                  const isProtected = quiz.pro_user_only;
+                  const requiresLogin = !currentUser;
+                  const requiresUpgrade = isProtected && !currentUser?.userData.isPro;
+                  const isLocked = requiresUpgrade; // Only lock icon for PRO content
+
+                  // For exam cards (useExamModal), delegate login/pro checks to handleCardClick
+                  // which uses ROUTES.TAKE_THE_TEST as redirect — no detail page exists for exams.
+                  // For non-exam cards, intercept here with the correct detail href.
+                  const needsIntercept = !useExamModal && (requiresLogin || requiresUpgrade);
+
+                  const handleLocalClick = (e?: any) => {
+                    if (useExamModal) {
+                      // Exam cards: always go through handleCardClick (has its own login/pro checks)
+                      e?.preventDefault();
+                      handleCardClick(quiz);
+                      return;
+                    }
+                    if (needsIntercept) {
+                      e?.preventDefault();
+                      if (requiresLogin) {
+                        window.location.href = ROUTES.LOGIN(href);
+                        return;
+                      }
+                      if (requiresUpgrade) {
+                        openProContentModal();
+                        return;
+                      }
+                    } else if (!getItemHref) {
+                      e?.preventDefault();
+                      handleCardClick(quiz);
+                    }
+                  };
+
                   return (
                     <SplideSlide key={quiz.id} className="pb-8 pt-[14px] px-1">
                       <TestCardWithScore
@@ -115,9 +211,12 @@ export const PracticeSection = ({
                         image={quiz.featured_image ?? undefined}
                         skill={quiz.skill as any}
                         part={partLabel}
-                        attempts={quiz.tests_taken || (quiz as any).views || 0}
-                        isPro={quiz.pro_user_only}
-                        href={getItemHref ? getItemHref(quiz) : ROUTES.PRACTICE.SINGLE(quiz.slug)}
+                        attempts={hideAttempts ? undefined : (quiz.tests_taken || (quiz as any).views || 0)}
+                        isPro={isProtected}
+                        actionText={actionText}
+                        href={needsIntercept ? undefined : href}
+                        onClick={(e) => handleLocalClick(e)}
+                        isLocked={isLocked}
                       />
                     </SplideSlide>
                   );
@@ -141,6 +240,16 @@ export const PracticeSection = ({
           </button>
         </div>
       </Container>
+
+      {/* ExamModeModal */}
+      {selectedQuiz && (
+        <ExamModeModal
+          quiz={selectedQuiz}
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          navigateLink={ROUTES.TAKE_THE_TEST(selectedQuiz.slug)}
+        />
+      )}
     </ScrollFadeIn>
   );
 };

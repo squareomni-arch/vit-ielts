@@ -636,6 +636,14 @@ export function PageTakeTheTest() {
                     <div className="text-[#000] text-base">
                       Read the text and answer questions {passageInfo.questionRange}
                     </div>
+            <main id="iel-take-test-main" className="shrink grow overflow-hidden flex flex-col pb-[60px]">
+              <div className="border border-[#d5d5d5] rounded-[4px] flex-shrink-0 m-[16px] bg-[#f1f2ec]">
+                <div className="p-[16px]">
+                  <div className="font-bold text-gray-800 text-base md:text-lg leading-tight">
+                    {passageInfo.partLabel} {passageInfo.partNumber}
+                  </div>
+                  <div className="text-[#000] text-base">
+                    Read the text and answer questions {passageInfo.questionRange}
                   </div>
                 </div>
 

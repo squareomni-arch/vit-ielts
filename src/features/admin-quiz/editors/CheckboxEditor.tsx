@@ -1,7 +1,8 @@
-import { Input, Space, Switch, Button, Divider } from "antd";
-import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useState } from "react";
+import { Input, Space, Checkbox, Button, Popover } from "antd";
+import { DeleteOutlined, CommentOutlined } from "@ant-design/icons";
 
-type CheckboxOption = { option_text: string; correct: boolean };
+type CheckboxOption = { option_text: string; correct: boolean; explanation?: string };
 
 type CheckboxEditorProps = {
     options: CheckboxOption[];
@@ -9,44 +10,73 @@ type CheckboxEditorProps = {
 };
 
 export default function CheckboxEditor({ options, onChange }: CheckboxEditorProps) {
-    return (
-        <div className="sub-editor-container">
-            <Divider orientation="left">Checkbox Options</Divider>
-            {(Array.isArray(options) ? options : []).map((o, idx) => (
-                <Space key={idx} style={{ marginBottom: 4, width: '100%' }}>
-                    <Input
-                        value={o.option_text}
-                        onChange={(e) => {
-                            const arr = [...options];
-                            arr[idx] = { ...arr[idx], option_text: e.target.value };
-                            onChange(arr);
-                        }}
-                        placeholder={`Option ${idx + 1}`}
-                        style={{ width: 300 }}
-                    />
-                    <Switch
-                        checked={o.correct}
-                        onChange={(v) => {
-                            const arr = [...options];
-                            arr[idx] = { ...arr[idx], correct: v };
-                            onChange(arr);
-                        }}
-                        checkedChildren="✓"
-                        unCheckedChildren="✗"
-                    />
-                    <Button size="small" danger icon={<DeleteOutlined />} onClick={() => onChange(options.filter((_, i) => i !== idx))} />
-                </Space>
-            ))}
-            <Button icon={<PlusOutlined />} onClick={() => onChange([...options, { option_text: "", correct: false }])}>Thêm option</Button>
+    const [openExpIdx, setOpenExpIdx] = useState<number | null>(null);
 
-            <style jsx>{`
-                .sub-editor-container {
-                    background: var(--admin-surface-hover);
-                    padding: 12px;
-                    border-radius: 8px;
-                    border: 1px solid var(--admin-border);
+    const update = (idx: number, patch: Partial<CheckboxOption>) => {
+        const arr = [...options];
+        arr[idx] = { ...arr[idx], ...patch };
+        onChange(arr);
+    };
+
+    const remove = (idx: number) => onChange(options.filter((_, i) => i !== idx));
+
+    return (
+        <div className="space-y-2">
+            {(Array.isArray(options) ? options : []).map((o, idx) => (
+                <div key={idx} className="flex items-center gap-2" style={{ minWidth: 0 }}>
+                    <Checkbox
+                        style={{ flexShrink: 0 }}
+                        checked={o.correct}
+                        onChange={(e) => update(idx, { correct: e.target.checked })}
+                    />
+                    <Input
+                        value={(o as { option_text?: string; option?: string }).option_text ?? (o as { option?: string }).option ?? ""}
+                        onChange={(e) => update(idx, { option_text: e.target.value })}
+                        placeholder={`Option ${idx + 1}`}
+                        style={{ flex: 1, minWidth: 0 }}
+                    />
+                    <Popover
+                        open={openExpIdx === idx}
+                        onOpenChange={(v) => setOpenExpIdx(v ? idx : null)}
+                        trigger="click"
+                        title="Giải thích cho option này"
+                        content={
+                            <Input.TextArea
+                                rows={3}
+                                style={{ width: 280 }}
+                                placeholder="Nhập giải thích…"
+                                value={o.explanation ?? ""}
+                                onChange={(e) => update(idx, { explanation: e.target.value })}
+                            />
+                        }
+                    >
+                        <Button
+                            size="small"
+                            icon={<CommentOutlined />}
+                            type={o.explanation ? "primary" : "default"}
+                            title="Add explanation"
+                            style={{ flexShrink: 0 }}
+                        />
+                    </Popover>
+                    <Button
+                        size="small"
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => remove(idx)}
+                        style={{ flexShrink: 0 }}
+                    />
+                </div>
+            ))}
+
+            <Button
+                size="small"
+                className="mt-1"
+                onClick={() =>
+                    onChange([...options, { option_text: "", correct: false }])
                 }
-            `}</style>
+            >
+                + Add Option
+            </Button>
         </div>
     );
 }

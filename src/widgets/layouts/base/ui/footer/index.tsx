@@ -257,7 +257,6 @@ export const Footer = () => {
                       {email || "ieltsprediction9@gmail.com"}
                     </Link>
                   </li>
-                  <li>Address: 15205 North Kierland Blvd.</li>
                 </ul>
               </div>
 

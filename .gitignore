@@ -43,3 +43,6 @@ next-env.d.ts
 # figma extracted data (regenerate with: node scripts/figma-extract-full.mjs)
 scripts/figma-data/page_*.json
 scripts/figma-data/design-system-page.json
+
+# sample legacy code
+/mf504-quiz-creator

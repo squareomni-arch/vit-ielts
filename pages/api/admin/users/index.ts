@@ -125,6 +125,53 @@ export default async function handler(
         }
     }
 
+    if (req.method === "POST") {
+        try {
+            const { email, password, name, phone_number, roles } = req.body;
+            
+            if (!email || !password) {
+                return res.status(400).json({ success: false, error: "Email and password are required" });
+            }
+
+            // 1. Create user in Supabase Auth
+            const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+                email,
+                password,
+                email_confirm: true,
+                user_metadata: {
+                    name: name || "",
+                }
+            });
+
+            if (authError) throw authError;
+
+            // wait slightly for the trigger to execute (if there is an insert trigger)
+            await new Promise((resolve) => setTimeout(resolve, 500));
+
+            // 2. Update additional fields in public.users if needed
+            const updateData: Record<string, any> = {};
+            if (name) updateData.name = name;
+            if (phone_number) updateData.phone_number = phone_number;
+            if (roles) updateData.roles = roles;
+
+            if (Object.keys(updateData).length > 0 && authData.user) {
+                await supabaseAdmin
+                    .from("users")
+                    .update(updateData)
+                    .eq("id", authData.user.id);
+            }
+
+            return res.status(201).json({ success: true, data: authData.user });
+
+        } catch (error) {
+            console.error("[API /api/admin/users] POST", error);
+            return res.status(500).json({
+                success: false,
+                error: error instanceof Error ? error.message : "Internal error",
+            });
+        }
+    }
+
     return res
         .status(405)
         .json({ success: false, error: "Method not allowed" });
