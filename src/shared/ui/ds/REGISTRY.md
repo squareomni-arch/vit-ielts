@@ -298,7 +298,7 @@ import { Button, Input, Badge } from '@/shared/ui/ds';
 | `part` | `1-5 \| string` | — | Part tag overlay |
 | `isPro` | `boolean` | — | Shows PRO badge |
 | `score` | `string \| number` | — | Score circle |
-| `actionText` | `string` | `'Kiểm Tra'` | Action button text |
+| `actionText` | `string` | `'Làm bài'` | Action button text |
 | `href` | `string` | — | Link URL |
 | `onClick` | `() => void` | — | Click handler |
 | `className` | `string` | `''` | Extra CSS |

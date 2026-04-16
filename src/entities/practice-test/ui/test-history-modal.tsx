@@ -34,13 +34,14 @@ export const TestHistoryModal = ({ isOpen, onClose, quizId, title }: TestHistory
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [quizData, setQuizData] = useState<any>(null);
-  const [visibleCount, setVisibleCount] = useState(5);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
   useEffect(() => {
     if (!isOpen || !currentUser?.id || !quizId) return;
 
     setLoading(true);
-    setVisibleCount(5); // Reset visible count on open
+    setCurrentPage(1); // Reset page on open
     const fetchData = async () => {
       try {
         const supabase = createClient();
@@ -145,7 +146,7 @@ export const TestHistoryModal = ({ isOpen, onClose, quizId, title }: TestHistory
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-[#4B5563]">
-                    {history.slice(0, visibleCount).map((item, idx) => {
+                    {history.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((item, idx) => {
                       const dateToCheck = item.submitted_at || item.created_at;
                       const dayDisplay = dayjs(dateToCheck).format("DD/MM/YYYY");
                       const timeDisplay = dayjs(dateToCheck).format("HH:mm:ss");
@@ -232,21 +233,52 @@ export const TestHistoryModal = ({ isOpen, onClose, quizId, title }: TestHistory
         </div>
         
         {/* Footer */}
-        <div className="flex justify-center gap-4 py-6">
-          {history.length > visibleCount && (
-            <button 
-              className="w-[160px] h-[48px] rounded-full border border-[rgba(0,0,0,0.5)] font-semibold text-[#2D3142] hover:bg-gray-50 flex items-center justify-center transition-colors"
-              onClick={() => setVisibleCount(prev => prev + 5)}
+        <div className="flex flex-col sm:flex-row items-center justify-between px-6 lg:px-10 py-4 border-t border-gray-100">
+          <div className="flex items-center gap-2 mb-4 sm:mb-0">
+            <span className="text-sm text-gray-500">Hiển thị</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:border-primary-500"
             >
-              Xem thêm
+              <option value={5}>5 / page</option>
+              <option value={10}>10 / page</option>
+              <option value={20}>20 / page</option>
+            </select>
+            <span className="text-sm text-gray-500">bài làm</span>
+          </div>
+
+          <div className="flex justify-center gap-4">
+            <Link 
+              href={ROUTES.TAKE_THE_TEST(testSlug)}
+              className="w-[140px] h-[40px] rounded-full bg-[#D94A56] hover:bg-[#E3636E] font-semibold text-white flex items-center justify-center transition-colors shadow-sm"
+            >
+              Thử lại <span className="material-symbols-rounded text-[20px] ml-1">refresh</span>
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              className="p-1 rounded text-gray-500 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <span className="material-symbols-rounded text-xl">chevron_left</span>
             </button>
-          )}
-          <Link 
-            href={ROUTES.TAKE_THE_TEST(testSlug)}
-            className="w-[160px] h-[48px] rounded-full bg-[#D94A56] hover:bg-[#E3636E] font-semibold text-white flex items-center justify-center transition-colors shadow-sm"
-          >
-            Thử lại <span className="material-symbols-rounded text-[20px] ml-1">refresh</span>
-          </Link>
+            <span className="text-sm text-gray-700 font-medium">
+              {currentPage} / {Math.ceil(history.length / pageSize) || 1}
+            </span>
+            <button
+              disabled={currentPage >= Math.ceil(history.length / pageSize)}
+              onClick={() => setCurrentPage(p => p + 1)}
+              className="p-1 rounded text-gray-500 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <span className="material-symbols-rounded text-xl">chevron_right</span>
+            </button>
+          </div>
         </div>
 
       </div>

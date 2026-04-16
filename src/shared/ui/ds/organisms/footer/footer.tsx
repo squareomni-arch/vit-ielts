@@ -71,7 +71,7 @@ export const Footer = ({
         <h4 className="footer__column-title">Liên hệ</h4>
         {contactInfo && (
           <ul className="footer__links">
-            {contactInfo.address && <li className="footer__contact-item">📍 {contactInfo.address}</li>}
+            {/* {contactInfo.address && <li className="footer__contact-item">📍 {contactInfo.address}</li>} */}
             {contactInfo.phone && <li className="footer__contact-item">📞 {contactInfo.phone}</li>}
             {contactInfo.email && <li className="footer__contact-item">✉️ {contactInfo.email}</li>}
           </ul>

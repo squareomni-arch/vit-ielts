@@ -1,12 +1,11 @@
 import { useCallback, useState } from "react";
 import {
-    Card, Form, Input, Select, InputNumber, Switch, Button, DatePicker
+    Card, Form, Input, Select, InputNumber, Switch, Button
 } from "antd";
 import { EyeOutlined } from "@ant-design/icons";
 import type { FormInstance } from "antd";
 import FileUploadField from "./FileUploadField";
 import Link from "next/link";
-import dayjs from "dayjs";
 
 const { TextArea } = Input;
 
@@ -101,6 +100,8 @@ export default function QuizEditorForm({
                     type: "practice",
                     skill: "reading",
                     time_minutes: 60,
+                    tests_taken: 0,
+                    views: 0,
                     pro_user_only: false,
                     status: "draft",
                 }}
@@ -214,6 +215,28 @@ export default function QuizEditorForm({
                 {/* 6. Time */}
                 <Form.Item label={renderLabel("Time (minutes)", true)} name="time_minutes">
                     <InputNumber variant="filled" size="large" addonAfter="minutes" disabled={saving} />
+                </Form.Item>
+
+                <Form.Item label={renderLabel("Attempts")} name="tests_taken">
+                    <InputNumber
+                        variant="filled"
+                        size="large"
+                        min={0}
+                        precision={0}
+                        style={{ width: "100%" }}
+                        disabled={saving}
+                    />
+                </Form.Item>
+
+                <Form.Item label={renderLabel("Views")} name="views">
+                    <InputNumber
+                        variant="filled"
+                        size="large"
+                        min={0}
+                        precision={0}
+                        style={{ width: "100%" }}
+                        disabled={saving}
+                    />
                 </Form.Item>
 
                 {/* 7. PDF File */}

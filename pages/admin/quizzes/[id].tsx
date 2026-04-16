@@ -130,6 +130,7 @@ function QuizEditor({ quizId }: { quizId?: string }) {
                 form.setFieldsValue({
                     title: quiz.title, slug: quiz.slug, excerpt: quiz.excerpt,
                     type: quiz.type, skill: quiz.skill, time_minutes: quiz.time_minutes,
+                    tests_taken: quiz.tests_taken ?? 0, views: quiz.views ?? 0,
                     pro_user_only: quiz.pro_user_only, score_type: quiz.score_type,
                     featured_image: quiz.featured_image, audio_url: quiz.audio_url,
                     pdf_url: quiz.pdf_url, source: quiz.source, year: quiz.year,

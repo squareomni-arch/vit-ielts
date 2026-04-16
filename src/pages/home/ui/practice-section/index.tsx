@@ -52,9 +52,9 @@ export const PracticeSection = ({
       // Only use modal if explicitly enabled
       if (!useExamModal) return;
 
-      // Not logged in → redirect to login
+      // Not logged in → redirect to exam detail page (with autoStart to open modal after login)
       if (!currentUser) {
-        const loginTarget = ROUTES.TAKE_THE_TEST(quiz.slug);
+        const loginTarget = ROUTES.EXAM.SINGLE(quiz.slug) + "?autoStart=true";
         window.location.href = ROUTES.LOGIN(loginTarget);
         return;
       }
@@ -69,10 +69,11 @@ export const PracticeSection = ({
       // Fetch full quiz summary (with passages) for the modal
       setLoadingQuiz(true);
       try {
-        const supabase = createClient();
-        const summary = await getQuizSummary(supabase, quiz.id);
-        if (summary) {
-          setSelectedQuiz(summary);
+        const response = await fetch(`/api/test-flow/summary?quizId=${quiz.id}`);
+        const result = await response.json();
+        
+        if (response.ok && result.success && result.data) {
+          setSelectedQuiz(result.data);
           setIsModalOpen(true);
         } else {
           toast.error("Không thể tải thông tin bài thi");
@@ -165,7 +166,42 @@ export const PracticeSection = ({
                     partLabel = normalizeSectionBadge(skillValue, rawPart).label;
                   }
 
-                  const href = getItemHref ? getItemHref(quiz) : ROUTES.PRACTICE.SINGLE(quiz.slug);
+                  // For exam cards, the default href should be the exam detail page, not practice single
+                  const defaultHref = useExamModal ? ROUTES.EXAM.SINGLE(quiz.slug) : ROUTES.PRACTICE.SINGLE(quiz.slug);
+                  const href = getItemHref ? getItemHref(quiz) : defaultHref;
+
+                  const isProtected = quiz.pro_user_only;
+                  const requiresLogin = !currentUser;
+                  const requiresUpgrade = isProtected && !currentUser?.userData.isPro;
+                  const isLocked = requiresUpgrade; // Only lock icon for PRO content
+
+                  // For exam cards (useExamModal), delegate login/pro checks to handleCardClick
+                  // which uses ROUTES.TAKE_THE_TEST as redirect — no detail page exists for exams.
+                  // For non-exam cards, intercept here with the correct detail href.
+                  const needsIntercept = !useExamModal && (requiresLogin || requiresUpgrade);
+
+                  const handleLocalClick = (e?: any) => {
+                    if (useExamModal) {
+                      // Exam cards: always go through handleCardClick (has its own login/pro checks)
+                      e?.preventDefault();
+                      handleCardClick(quiz);
+                      return;
+                    }
+                    if (needsIntercept) {
+                      e?.preventDefault();
+                      if (requiresLogin) {
+                        window.location.href = ROUTES.LOGIN(href);
+                        return;
+                      }
+                      if (requiresUpgrade) {
+                        openProContentModal();
+                        return;
+                      }
+                    } else if (!getItemHref) {
+                      e?.preventDefault();
+                      handleCardClick(quiz);
+                    }
+                  };
 
                   return (
                     <SplideSlide key={quiz.id} className="pb-8 pt-[14px] px-1">
@@ -176,15 +212,11 @@ export const PracticeSection = ({
                         skill={quiz.skill as any}
                         part={partLabel}
                         attempts={hideAttempts ? undefined : (quiz.tests_taken || (quiz as any).views || 0)}
-                        isPro={quiz.pro_user_only}
+                        isPro={isProtected}
                         actionText={actionText}
-                        href={href}
-                        onClick={(e: any) => {
-                          if (!getItemHref) {
-                            e.preventDefault();
-                            handleCardClick(quiz);
-                          }
-                        }}
+                        href={needsIntercept ? undefined : href}
+                        onClick={(e) => handleLocalClick(e)}
+                        isLocked={isLocked}
                       />
                     </SplideSlide>
                   );

@@ -1,6 +1,7 @@
 // Types & Constants
 export type { QuizFormData, PassageData, QuestionData } from "./types";
-export { QUESTION_TYPES, QUESTION_FORMS, MATCHING_LAYOUTS, DEFAULT_PASSAGE, DEFAULT_QUESTION } from "./constants";
+export { QUESTION_TYPES, QUESTION_FORMS, MATCHING_LAYOUTS, DEFAULT_PASSAGE, DEFAULT_QUESTION, QUESTION_TEMPLATES } from "./constants";
+export type { QuestionTemplate } from "./constants";
 
 // Main editors
 export { default as QuizEditorForm } from "./QuizEditorForm";

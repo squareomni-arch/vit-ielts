@@ -19,7 +19,7 @@ export type TestCardProps = {
   score?: string | number;
   actionText?: string;
   href?: string;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   onScoreClick?: (e: React.MouseEvent) => void;
   className?: string;
 };
@@ -40,7 +40,7 @@ export const TestCard = ({
   isPro,
   isLocked,
   score,
-  actionText = "Kiểm Tra", // default action
+  actionText = "Làm bài", // default action
   href,
   onClick,
   onScoreClick,

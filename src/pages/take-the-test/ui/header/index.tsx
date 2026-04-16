@@ -9,6 +9,7 @@ import { useRouter } from "next/router";
 import duration from "dayjs/plugin/duration";
 import { useFormContext } from "react-hook-form";
 import Link from "next/link";
+import { ROUTES } from "@/shared/routes";
 
 dayjs.extend(duration);
 
@@ -58,6 +59,7 @@ function Header({ post }: { post: IPracticeSingle }) {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [optionsView, setOptionsView] = useState("main");
   const [isSaving, setIsSaving] = useState(false);
+  const [isRetaking, setIsRetaking] = useState(false);
 
   const handleManualSave = async () => {
     if (isSaving) return;
@@ -151,8 +153,31 @@ function Header({ post }: { post: IPracticeSingle }) {
     }
   };
 
+  const getBackUrl = () => {
+    const type = post?.quizFields?.type?.[0];
+    const skill = post?.quizFields?.skill?.[0];
+    if (type === "academic" || type === "general") {
+      return ROUTES.EXAM.ARCHIVE;
+    }
+    if (skill === "listening") {
+      return ROUTES.PRACTICE.ARCHIVE_LISTENING;
+    }
+    if (skill === "reading") {
+      return ROUTES.PRACTICE.ARCHIVE_READING;
+    }
+    return ROUTES.HOME;
+  };
+
   return (
     <>
+      {/* Full-screen loading overlay for retake */}
+      {isRetaking && (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm">
+          <span className="material-symbols-rounded text-[48px] text-[#d94a56] animate-spin">refresh</span>
+          <p className="mt-4 text-base font-semibold text-gray-700">Đang chuẩn bị bài thi mới...</p>
+        </div>
+      )}
+
       <header className="py-2 bg-white shadow z-20 mb-[20px] px-[16px]">
         <Container className="max-w-none">
           <div className="flex items-center">
@@ -192,13 +217,38 @@ function Header({ post }: { post: IPracticeSingle }) {
             </div>
 
             <div className="w-1/2">
-              <div className="flex items-center justify-end space-x-8">
+              <div className="flex items-center justify-end space-x-3 md:space-x-6">
+                <Link
+                  href={getBackUrl()}
+                  className="flex flex-col md:flex-row items-center gap-1 text-[#222] hover:text-[#d94a56] font-medium transition-colors"
+                >
+                  <span className="material-symbols-rounded bold block! text-[20px] md:text-[24px]!">arrow_back</span>
+                  <span className="hidden lg:inline text-sm whitespace-nowrap">Quay lại</span>
+                </Link>
+
+                <button
+                  type="button"
+                  disabled={isRetaking}
+                  onClick={() => {
+                    setIsRetaking(true);
+                    const url = ROUTES.TAKE_THE_TEST(post.slug);
+                    window.location.href = `${url}?retake=true`;
+                  }}
+                  className="flex flex-col md:flex-row items-center gap-1 text-[#222] hover:text-[#d94a56] font-medium transition-colors disabled:opacity-50"
+                >
+                  <span className={`material-symbols-rounded bold block! text-[20px] md:text-[24px]! ${isRetaking ? "animate-spin" : ""}`}>refresh</span>
+                  <span className="hidden lg:inline text-sm whitespace-nowrap">{isRetaking ? "Đang tải..." : "Làm lại"}</span>
+                </button>
+
+                <div className="w-[1px] h-[24px] bg-gray-300 hidden md:block mx-2"></div>
+
                 <Image
                   width={28}
                   height={24}
                   sizes="100%"
                   alt="logo"
                   src="/wifi.png"
+                  className="hidden md:block"
                   priority
                 />
 

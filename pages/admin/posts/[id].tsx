@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Form, Input, Select, Switch, Button, message, Spin, Popover, Space, Tag } from "antd";
+import { Form, Input, Select, Switch, Button, message, Spin, Popover, Space, Tag, InputNumber } from "antd";
 import { ArrowLeftOutlined, SaveOutlined, SendOutlined, GlobalOutlined, PictureOutlined, TagsOutlined } from "@ant-design/icons";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
@@ -154,6 +154,7 @@ export default function AdminPostEditorPage() {
                 initialValues={{ 
                     status: "draft", 
                     pro_user_only: false, 
+                    views: 0,
                     categories: [],
                     seo: {} 
                 }}
@@ -216,6 +217,10 @@ export default function AdminPostEditorPage() {
                                     { value: "draft", label: "📄 Nháp (Draft)" },
                                     { value: "published", label: "✅ Đã đăng (Published)" }
                                 ]} />
+                            </Form.Item>
+
+                            <Form.Item name="views" label="Views">
+                                <InputNumber min={0} precision={0} style={{ width: "100%" }} />
                             </Form.Item>
                             
                             <Form.Item name="pro_user_only" valuePropName="checked" className="mb-0">

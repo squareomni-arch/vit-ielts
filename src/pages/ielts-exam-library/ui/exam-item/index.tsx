@@ -88,9 +88,9 @@ export const ExamItem = ({
     (e: React.MouseEvent) => {
       e.preventDefault();
 
-      // Not logged in → redirect to login
+      // Not logged in → redirect to exam detail page (with autoStart to open modal after login)
       if (!currentUser) {
-        const loginTarget = ROUTES.TAKE_THE_TEST(item.slug);
+        const loginTarget = ROUTES.EXAM.SINGLE(item.slug) + "?autoStart=true";
         window.location.href = ROUTES.LOGIN(loginTarget);
         return;
       }
@@ -183,7 +183,7 @@ export const ExamItem = ({
                 )}
               </div>
               <span className="relative z-10 font-noto-sans text-[15px] font-bold text-[#242938] group-hover/btn:text-white transition-colors duration-300 truncate">
-                {isDone ? "Làm lại" : "Làm Bài Thi"}
+                {isDone ? "Làm lại" : "Làm bài"}
               </span>
             </div>
 

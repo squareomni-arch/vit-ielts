@@ -52,8 +52,8 @@ function QuestionEditorInner({ question: q, onUpdate }: QuestionEditorProps) {
             )}
             {q.type === "fillup" && (
                 <FillupEditor
-                    explanations={q.explanations ?? []}
-                    onChange={(v) => onUpdate("explanations", v)}
+                    question_text={q.question_text ?? ""}
+                    onChange={(v) => onUpdate("question_text", v)}
                 />
             )}
             {q.type === "checkbox" && (

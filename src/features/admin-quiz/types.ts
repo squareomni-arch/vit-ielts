@@ -37,17 +37,22 @@ export type QuestionData = {
     instructions?: string;
     question_form?: string;
     sort_order: number;
-    list_of_questions?: { question: string; correct: string; options: { option_text: string }[] }[];
-    list_of_options?: { option_text: string; correct: boolean }[];
+    list_of_questions?: {
+        question: string;
+        correct: number | string;
+        options: { option_text: string }[];
+        explanation?: string;
+    }[];
+    list_of_options?: { option_text: string; correct: boolean; explanation?: string }[];
     matching_question?: {
         layoutType: string;
-        matchingItems: { questionPart: string; correctAnswer: string }[];
+        matchingItems: { questionPart: string; correctAnswer: string; explanation?: string }[];
         answerOptions: { optionText: string }[];
         summaryText?: string;
     };
     matrix_question?: {
         matrixCategories: { categoryLetter: string; categoryText: string }[];
-        matrixItems: { itemText: string; correctCategoryLetter: string }[];
+        matrixItems: { itemText: string; correctCategoryLetter: string; explanation?: string }[];
         layoutType?: string;
         legendTitle?: string;
     };

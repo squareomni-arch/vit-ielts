@@ -154,7 +154,7 @@ export function PageIELTSPredictionSingle({ post }: { post: IPracticeSingle }) {
                         </span>
                       }
                     >
-                      Start Practice
+                      Làm bài
                     </Button>
                   </div>
                 </div>
@@ -265,7 +265,7 @@ export function PageIELTSPredictionSingle({ post }: { post: IPracticeSingle }) {
                     </span>
                   }
                 >
-                  Start Practice
+                  Làm bài
                 </Button>
               </div>
             </div>

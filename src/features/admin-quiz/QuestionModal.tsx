@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
-import { Modal, Form, Input, Select, Tabs, Empty } from "antd";
+import { Modal, Form, Input, Button, Tag, Tooltip, Tabs } from "antd";
+import { EditOutlined } from "@ant-design/icons";
 import type { QuestionData } from "./types";
-import { QUESTION_TYPES, QUESTION_FORMS, DEFAULT_QUESTION } from "./constants";
+import { QUESTION_TEMPLATES, DEFAULT_QUESTION, type QuestionTemplate } from "./constants";
 import RichTextEditor from "./RichTextEditor";
 import RadioSelectEditor from "./editors/RadioSelectEditor";
 import FillupEditor from "./editors/FillupEditor";
 import CheckboxEditor from "./editors/CheckboxEditor";
 import MatchingEditor from "./editors/MatchingEditor";
 import MatrixEditor from "./editors/MatrixEditor";
+import QuestionTemplatePicker from "./QuestionTemplatePicker";
+
+import QuestionPreview from "./QuestionPreview";
 
 type QuestionModalProps = {
     open: boolean;
@@ -16,21 +20,76 @@ type QuestionModalProps = {
     onSave: (data: QuestionData) => void;
 };
 
+// ... function getTemplateByTypeAndForm, buildDefaultDataForTemplate ...
+function getTemplateByTypeAndForm(type: string, question_form?: string): QuestionTemplate | undefined {
+    return QUESTION_TEMPLATES.find(
+        (t) => t.type === type && t.question_form === (question_form ?? t.question_form)
+    ) ?? QUESTION_TEMPLATES.find((t) => t.type === type);
+}
+
+function buildDefaultDataForTemplate(tmpl: QuestionTemplate): Partial<QuestionData> {
+    const base: Partial<QuestionData> = {
+        type: tmpl.type,
+        question_form: tmpl.question_form,
+    };
+
+    if (tmpl.type === "radio" || tmpl.type === "select") {
+        const options = tmpl.presetOptions
+            ? tmpl.presetOptions.map((o) => ({ option_text: o }))
+            : [{ option_text: "" }];
+        base.list_of_questions = [{ question: "", correct: 0, options }];
+    }
+    if (tmpl.type === "checkbox") {
+        base.list_of_options = [{ option_text: "", correct: false }];
+    }
+    if (tmpl.type === "fillup") {
+        base.question_text = "";
+    }
+    if (tmpl.type === "matching") {
+        base.matching_question = { layoutType: "standard", matchingItems: [], answerOptions: [] };
+    }
+    if (tmpl.type === "matrix") {
+        base.matrix_question = { matrixCategories: [], matrixItems: [] };
+    }
+
+    return base;
+}
+
 export default function QuestionModal({ open, initialData, onCancel, onSave }: QuestionModalProps) {
     const [form] = Form.useForm();
     const [localData, setLocalData] = useState<QuestionData>({ ...DEFAULT_QUESTION });
+    const [activeTemplate, setActiveTemplate] = useState<QuestionTemplate | undefined>(undefined);
+    const [showPicker, setShowPicker] = useState(false);
+
+    const isNew = !initialData;
 
     useEffect(() => {
         if (open) {
-            const data = initialData ? { ...initialData } : { ...DEFAULT_QUESTION };
-            setLocalData(data);
-            form.setFieldsValue({
-                title: data.title,
-                type: data.type,
-                question_form: data.question_form || "uncategorized",
-            });
+            if (initialData) {
+                setLocalData({ ...initialData });
+                setActiveTemplate(getTemplateByTypeAndForm(initialData.type, initialData.question_form));
+                form.setFieldsValue({ title: initialData.title });
+            } else {
+                // New question — show template picker
+                setLocalData({ ...DEFAULT_QUESTION });
+                setActiveTemplate(undefined);
+                form.resetFields();
+                setShowPicker(true);
+            }
+        } else {
+            setShowPicker(false);
         }
     }, [open, initialData, form]);
+
+    const handleSelectTemplate = (tmpl: QuestionTemplate) => {
+        setActiveTemplate(tmpl);
+        const newData: QuestionData = {
+            ...DEFAULT_QUESTION,
+            ...buildDefaultDataForTemplate(tmpl),
+        };
+        setLocalData(newData);
+        setShowPicker(false);
+    };
 
     const handleUpdate = (field: string, value: unknown) => {
         setLocalData((prev) => ({ ...prev, [field]: value }));
@@ -50,10 +109,8 @@ export default function QuestionModal({ open, initialData, onCancel, onSave }: Q
             });
     };
 
-    const questionType = form.getFieldValue("type") || localData.type;
-
     const renderEditor = () => {
-        switch (questionType) {
+        switch (localData.type) {
             case "radio":
             case "select":
                 return (
@@ -95,91 +152,124 @@ export default function QuestionModal({ open, initialData, onCancel, onSave }: Q
         }
     };
 
-    const questionTab = (
-        <div className="space-y-4 pt-4">
-            <div className="space-y-1">
-                <p className="font-medium">Instructions</p>
-                <RichTextEditor
-                    value={localData.instructions ?? ""}
-                    onChange={(html) => handleUpdate("instructions", html)}
-                    placeholder="Nhập hướng dẫn (nếu có)..."
-                />
-            </div>
-            {/* Some specific types don't rely only on instructions, e.g. fillup requires passage text but that's in passage. We can add a generic text if needed. BP Quiz uses Instructions mostly. */}
-            <div className="space-y-4 border-t pt-4">
-                <p className="font-medium">Details</p>
-                {renderEditor()}
-            </div>
-        </div>
-    );
-
-    const explanationTab = (
-        <div className="space-y-4 pt-4">
-            <div className="space-y-1">
-                <p className="font-medium text-gray-500 mb-4">Note: Explanation is currently coupled inside specific editors for Fill-up, and generalized here for others (To be implemented based on legacy spec).</p>
-                <Empty description="Tính năng Giải thích chi tiết sẽ được nâng cấp ở wave sau." />
-            </div>
-        </div>
-    );
-
-    const previewTab = (
-        <div className="space-y-4 pt-4">
-            <Empty description="Bản xem trước câu hỏi" />
-        </div>
-    );
-
     return (
-        <Modal
-            title={initialData ? "Edit Question" : "Add Question"}
-            open={open}
-            onOk={handleOk}
-            onCancel={onCancel}
-            width={900}
-            destroyOnClose
-            centered
-            okText="Save Question"
-        >
-            <Form form={form} layout="vertical" className="mt-4" onValuesChange={(_, all) => setLocalData(prev => ({ ...prev, type: all.type }))}>
-                <div className="space-y-4">
-                    <div>
-                        <p className="font-medium mb-1">
-                            Title <span className="text-red-500">*</span>
-                        </p>
-                        <Form.Item name="title" rules={[{ required: true, message: "Title is required" }]} className="mb-0">
-                            <Input placeholder="E.g. Question 1-5" />
-                        </Form.Item>
-                    </div>
-
-                    <div>
-                        <p className="font-medium mb-1">
-                            Type <span className="text-red-500">*</span>
-                        </p>
-                        <Form.Item name="type" rules={[{ required: true, message: "Type is required" }]} className="mb-0">
-                            <Select options={QUESTION_TYPES} />
-                        </Form.Item>
-                    </div>
-
-                    <div>
-                        <p className="font-medium mb-1">
-                            Question Form <span className="text-red-500">*</span>
-                        </p>
-                        <Form.Item name="question_form" rules={[{ required: true, message: "Form is required" }]} className="mb-0">
-                            <Select options={QUESTION_FORMS} />
-                        </Form.Item>
-                    </div>
-                </div>
-            </Form>
-
-            <Tabs
-                defaultActiveKey="1"
-                className="mt-6"
-                tabBarStyle={{ backgroundColor: "#f9fafb", padding: "0 20px" }}
-                items={[
-                    { key: "1", label: "Question", children: questionTab },
-                    { key: "2", label: "Explanation", children: explanationTab },
-                    { key: "3", label: "Preview", children: previewTab },
-                ]}
+        <>
+            {/* Template picker shown for new questions */}
+            <QuestionTemplatePicker
+                open={open && showPicker}
+                onSelect={handleSelectTemplate}
+                onCancel={onCancel}
             />
-        </Modal>
+
+            {/* Main editor modal — only shown once template is selected */}
+            <Modal
+                title={
+                    <div className="flex items-center gap-3">
+                        <span>{isNew ? "Add Question" : "Edit Question"}</span>
+                        {activeTemplate && (
+                            <Tooltip title="Click to change format">
+                                <Tag
+                                    icon={<span className="mr-1">{activeTemplate.icon}</span>}
+                                    color="blue"
+                                    className="cursor-pointer select-none text-xs font-medium"
+                                    onClick={() => setShowPicker(true)}
+                                >
+                                    {activeTemplate.label}
+                                    <EditOutlined className="ml-1 opacity-60" />
+                                </Tag>
+                            </Tooltip>
+                        )}
+                    </div>
+                }
+                open={open && !showPicker}
+                onOk={handleOk}
+                onCancel={onCancel}
+                width={900}
+                destroyOnClose
+                centered
+                okText="Save Question"
+            >
+                <Form form={form} layout="vertical" className="mt-4">
+                    <Form.Item
+                        name="title"
+                        label={<span className="font-medium">Title <span className="text-red-500">*</span></span>}
+                        rules={[{ required: true, message: "Title is required" }]}
+                        className="mb-4"
+                    >
+                        <Input placeholder="E.g. Questions 1–6" />
+                    </Form.Item>
+                </Form>
+
+                <Tabs
+                    defaultActiveKey="question"
+                    items={[
+                        {
+                            key: "question",
+                            label: "Question",
+                            children: (
+                                <div className="space-y-4 pt-2">
+                                    {localData.type !== "fillup" && (
+                                        <div>
+                                            <p className="font-medium mb-2">
+                                                Instructions <span className="text-gray-400 font-normal text-xs ml-1">(optional)</span>
+                                            </p>
+                                            <RichTextEditor
+                                                value={localData.instructions ?? ""}
+                                                onChange={(html) => handleUpdate("instructions", html)}
+                                                placeholder="E.g. Do the following statements agree with the information given in the reading passage?"
+                                                height={220}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {activeTemplate ? (
+                                        <div>
+                                            <p className="font-medium mb-2">
+                                                {localData.type === "fillup" ? "Passage / Question Content" : "Questions & Answers"}
+                                            </p>
+                                            {renderEditor()}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8 text-gray-400">
+                                            <p>No question format selected.</p>
+                                            <Button className="mt-2" onClick={() => setShowPicker(true)}>
+                                                Choose Format
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            ),
+                        },
+                        {
+                            key: "explanation",
+                            label: <span className={!localData.explanations?.[0]?.content ? "text-red-500" : ""}>Explanation</span>,
+                            children: (
+                                <div className="pt-2">
+                                    <p className="font-medium mb-2">
+                                        Explanation <span className="text-red-500">*</span>
+                                    </p>
+                                    <RichTextEditor
+                                        value={localData.explanations?.[0]?.content ?? ""}
+                                        onChange={(html) => handleUpdate("explanations", [{ content: html }])}
+                                        placeholder="Enter explanation..."
+                                        height={300}
+                                    />
+                                </div>
+                            ),
+                        },
+                        {
+                            key: "preview",
+                            label: "Preview",
+                            children: (
+                                <div className="pt-4 pb-12 bg-white rounded-lg border border-gray-100 p-6 mt-2 shadow-sm min-h-[300px]">
+                                    <QuestionPreview data={{ ...initialData, ...localData, title: form.getFieldValue("title") || localData.title }} />
+                                </div>
+                            ),
+                        },
+                    ]}
+                />
+            </Modal>
+        </>
     );
 }
+

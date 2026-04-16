@@ -233,7 +233,7 @@ export async function getRelatedQuizzes(
 // ============================================================================
 
 /** Input type for creating a new quiz with nested passages + questions */
-type CreateQuizInput = Omit<Quiz, "id" | "created_at" | "tests_taken" | "views" | "votes"> & {
+type CreateQuizInput = Omit<Quiz, "id" | "created_at" | "votes"> & {
     passages: Array<
         Omit<Passage, "id" | "quiz_id"> & {
             questions: Omit<Question, "id" | "passage_id">[];
@@ -321,7 +321,7 @@ export async function createQuiz(
 
 /** Input type for updating an existing quiz */
 type UpdateQuizInput = Partial<
-    Omit<Quiz, "id" | "created_at" | "tests_taken" | "views" | "votes">
+    Omit<Quiz, "id" | "created_at" | "votes">
 > & {
     passages?: Array<
         Partial<Omit<Passage, "quiz_id">> & {

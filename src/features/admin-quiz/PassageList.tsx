@@ -27,6 +27,7 @@ const { Panel } = Collapse;
 
 type PassageListProps = {
     passages: PassageData[];
+    skill: string;
     onAdd: () => void;
     onRemove: (pIdx: number) => void;
     onReorder: (oldIndex: number, newIndex: number) => void;
@@ -41,6 +42,7 @@ function SortablePassagePanel({
     passage,
     pIdx,
     totalPassages,
+    skill,
     onRemove,
     onUpdatePassage,
     onAddQuestion,
@@ -51,6 +53,7 @@ function SortablePassagePanel({
     passage: PassageData;
     pIdx: number;
     totalPassages: number;
+    skill: string;
     onRemove: () => void;
     onUpdatePassage: (field: string, value: unknown) => void;
     onAddQuestion: () => void;
@@ -155,6 +158,7 @@ function SortablePassagePanel({
                         children: (
                             <PassageEditor
                                 passage={passage}
+                                skill={skill}
                                 pIdx={pIdx}
                                 onUpdatePassage={onUpdatePassage}
                                 onAddQuestion={onAddQuestion}
@@ -261,6 +265,7 @@ function SortablePassagePanel({
 
 export default function PassageList({
     passages,
+    skill,
     onAdd,
     onRemove,
     onReorder,
@@ -337,6 +342,7 @@ export default function PassageList({
                                 passage={passage}
                                 pIdx={pIdx}
                                 totalPassages={passages.length}
+                                skill={skill}
                                 onRemove={() => onRemove(pIdx)}
                                 onUpdatePassage={(field, value) => onUpdatePassage(pIdx, field, value)}
                                 onAddQuestion={() => onAddQuestion(pIdx)}

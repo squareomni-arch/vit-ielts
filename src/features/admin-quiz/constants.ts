@@ -48,3 +48,131 @@ export const DEFAULT_QUESTION: QuestionData = {
     sort_order: 0,
     list_of_questions: [],
 };
+
+// ─── Template-Driven Picker ─────────────────────────────────────────────────
+// User picks an IELTS format name → system maps to type + question_form + optional presets.
+
+export type QuestionTemplate = {
+    id: string;
+    label: string;
+    description: string;
+    icon: string;
+    type: string;
+    question_form: string;
+    presetOptions?: string[];   // Auto-fill answer options (e.g. True/False/Not Given)
+};
+
+export const QUESTION_TEMPLATES: QuestionTemplate[] = [
+    // ── Fill-up types ───────────────────────────────────────────
+    {
+        id: "summary_completion",
+        label: "Summary / Note Completion",
+        description: "Fill-in-the-blank from passage, answers extracted from {word} markers",
+        icon: "✏️",
+        type: "fillup",
+        question_form: "summary_completion",
+    },
+    {
+        id: "sentence_completion",
+        label: "Sentence Completion",
+        description: "Complete sentences using words from the passage",
+        icon: "📝",
+        type: "fillup",
+        question_form: "sentence_completion",
+    },
+    {
+        id: "table_completion",
+        label: "Table / Diagram / Flow Chart Completion",
+        description: "Fill in a table, diagram or flow chart",
+        icon: "📊",
+        type: "fillup",
+        question_form: "table_completion",
+    },
+    // ── Radio / single-choice types ─────────────────────────────
+    {
+        id: "multiple_choice",
+        label: "Multiple Choice (Single Answer)",
+        description: "Choose ONE correct answer from a list of options",
+        icon: "⭕",
+        type: "radio",
+        question_form: "multiple_choice",
+    },
+    {
+        id: "true_false_not_given",
+        label: "True / False / Not Given",
+        description: "Decide if a statement is True, False or Not Given based on the passage",
+        icon: "✅",
+        type: "radio",
+        question_form: "true_false_not_given",
+        presetOptions: ["True", "False", "Not Given"],
+    },
+    {
+        id: "yes_no_not_given",
+        label: "Yes / No / Not Given",
+        description: "Decide if statements agree/disagree/not mentioned",
+        icon: "💬",
+        type: "radio",
+        question_form: "yes_no_not_given",
+        presetOptions: ["Yes", "No", "Not Given"],
+    },
+    // ── Checkbox / multi-choice types ──────────────────────────
+    {
+        id: "checkbox_multi",
+        label: "Multiple Choice (Multiple Answers)",
+        description: "Choose TWO or MORE correct answers from a list",
+        icon: "☑️",
+        type: "checkbox",
+        question_form: "multiple_choice",
+    },
+    {
+        id: "list_selection",
+        label: "List Selection",
+        description: "Select items from a list that match criteria",
+        icon: "📋",
+        type: "checkbox",
+        question_form: "list_selection",
+    },
+    // ── Matching types ──────────────────────────────────────────
+    {
+        id: "matching_headings",
+        label: "Matching Headings",
+        description: "Match headings to sections of the passage",
+        icon: "🔖",
+        type: "matching",
+        question_form: "matching_headings",
+    },
+    {
+        id: "matching_name",
+        label: "Matching Features / Names",
+        description: "Match names or features to statements",
+        icon: "👤",
+        type: "matching",
+        question_form: "matching_name",
+    },
+    {
+        id: "matching_paragraph_information",
+        label: "Matching Paragraph Information",
+        description: "Match statements to paragraphs in the passage",
+        icon: "📄",
+        type: "matching",
+        question_form: "matching_paragraph_information",
+    },
+    {
+        id: "matching_sentence_endings",
+        label: "Matching Sentence Endings",
+        description: "Match sentence beginnings to their correct endings",
+        icon: "↔️",
+        type: "matching",
+        question_form: "matching_sentence_endings",
+    },
+    // ── Matrix types ────────────────────────────────────────────
+    {
+        id: "choose_a_title",
+        label: "Choose a Title / Category",
+        description: "Categorise items into groups/categories",
+        icon: "🏷️",
+        type: "matrix",
+        question_form: "choose_a_title",
+    },
+];
+

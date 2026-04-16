@@ -8,30 +8,50 @@ import { SEOHeader } from "@/widgets";
 import { decode } from "html-entities";
 import Image from "next/image";
 import Link from "next/link";
-import { IPracticeSingle } from "../api";
-import { PracticeHistoryWidget } from "./practice-history";
+import { IPracticeSingle } from "@/pages/ielts-practice-single/api";
+import { PracticeHistoryWidget } from "@/pages/ielts-practice-single/ui/practice-history";
 import { normalizeSectionBadge } from "@/shared/lib/quiz-part";
+import ExamModeModal from "@/pages/ielts-exam-library/ui/exam-mode-modal";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
-export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
+export function PageIELTSExamSingle({ post }: { post: IPracticeSingle }) {
   const { currentUser } = useAuth();
   const openProContentModal = useProContentModal((state) => state.open);
+  const router = useRouter();
 
-  const actionHref = currentUser
-    ? ROUTES.TAKE_THE_TEST(post.slug)
-    : ROUTES.LOGIN(ROUTES.TAKE_THE_TEST(post.slug));
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const requiresUpgrade =
     post.quizFields.proUserOnly && !currentUser?.userData.isPro;
 
-  const handleStartPractice = (e: React.MouseEvent) => {
-    if (requiresUpgrade) {
-      e.preventDefault();
-      if (!currentUser) {
-        window.location.href = ROUTES.LOGIN(ROUTES.PRACTICE.SINGLE(post.slug));
-        return;
-      }
-      openProContentModal();
+  // Auto-open modal when ?autoStart=true (after login redirect)
+  useEffect(() => {
+    if (router.query.autoStart === "true" && currentUser && !requiresUpgrade) {
+      setIsModalOpen(true);
+      // Clean up URL without reloading
+      const { autoStart, ...rest } = router.query;
+      router.replace(
+        { pathname: router.pathname, query: rest },
+        undefined,
+        { shallow: true }
+      );
     }
+  }, [router.query.autoStart, currentUser, requiresUpgrade]);
+
+  const handleStartExam = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!currentUser) {
+      window.location.href = ROUTES.LOGIN(
+        ROUTES.EXAM.SINGLE(post.slug) + "?autoStart=true"
+      );
+      return;
+    }
+    if (requiresUpgrade) {
+      openProContentModal();
+      return;
+    }
+    setIsModalOpen(true);
   };
 
   const breadcrumbs = post.seo?.breadcrumbs || [];
@@ -86,7 +106,7 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                 <div className="flex items-center gap-3">
                   <Avatar
                     src={post.author.node.userData.avatar?.node.sourceUrl}
-                    fallback={post.author.node.name?.charAt(0) || "A"}
+                    name={post.author.node.name || "Admin"}
                     size="sm"
                   />
                   <span className="text-sm font-medium text-[#2D3142]">
@@ -118,12 +138,12 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
               <div className="sticky top-35 space-y-6">
                 <div>
                   <h3 className="font-bold text-lg text-[#2D3142] mb-3">
-                    IELTS {capitalizedSkill} Practice
+                    IELTS {capitalizedSkill} Exam
                   </h3>
                   <p className="text-sm text-[#6A7282] leading-relaxed">
-                    Includes answering questions, reviewing detailed explanations,
-                    and building vocabulary through the most popular IELTS{" "}
-                    {capitalizedSkill} tests on the market.
+                    Full IELTS {capitalizedSkill} test with all parts included.
+                    Simulate the real exam experience with time limits and
+                    scoring.
                   </p>
                 </div>
                 
@@ -146,8 +166,7 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                   <div className="pt-2">
                     <Button
                       variant="primary"
-                      href={requiresUpgrade ? undefined : actionHref}
-                      onClick={requiresUpgrade ? handleStartPractice : undefined}
+                      onClick={handleStartExam}
                       className="w-full !rounded-full py-2.5 h-auto text-sm font-semibold shadow-sm"
                       leftIcon={
                         <span className="material-symbols-rounded text-[20px]">
@@ -155,7 +174,7 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                         </span>
                       }
                     >
-                      Làm bài
+                      Làm bài thi
                     </Button>
                   </div>
                 </div>
@@ -195,7 +214,7 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                 </div>
               )}
 
-              {/* Mockup History Box */}
+              {/* History Box */}
               <div className="bg-white rounded-[24px] border border-[rgba(0,0,0,0.06)] p-6 md:p-8">
                 <div className="flex items-center gap-2 mb-6">
                   <span className="material-symbols-rounded text-[#2D3142]">
@@ -243,8 +262,7 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
               <div className="flex flex-wrap justify-center gap-4 pt-4">
                 <Button
                   variant="primary"
-                  href={requiresUpgrade ? undefined : actionHref}
-                  onClick={requiresUpgrade ? handleStartPractice : undefined}
+                  onClick={handleStartExam}
                   className="min-w-[160px] !rounded-full px-8 py-3 h-auto text-base font-semibold"
                   leftIcon={
                     <span className="material-symbols-rounded text-[20px]">
@@ -252,7 +270,7 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                     </span>
                   }
                 >
-                  Làm bài
+                  Làm bài thi
                 </Button>
               </div>
             </div>
@@ -266,7 +284,7 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                       Bài test nổi bật
                     </h3>
                     <TestCardWithScore
-                      quizId={post.relatedPracticeQuizzes[0].id}
+                      quizId={(post.relatedPracticeQuizzes[0] as any).id ?? post.relatedPracticeQuizzes[0].slug}
                       title={post.relatedPracticeQuizzes[0].title}
                       image={
                         post.relatedPracticeQuizzes[0].featuredImage || undefined
@@ -275,7 +293,7 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                       part={normalizeSectionBadge(skill, 1).label}
                       attempts={1195}
                       isPro={post.quizFields.proUserOnly}
-                      href={ROUTES.PRACTICE.SINGLE(
+                      href={ROUTES.EXAM.SINGLE(
                         post.relatedPracticeQuizzes[0].slug
                       )}
                     />
@@ -296,13 +314,13 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                       {post.relatedPracticeQuizzes.slice(1, 4).map((rel, idx) => (
                         <Link
                           key={idx}
-                          href={ROUTES.PRACTICE.SINGLE(rel.slug)}
+                          href={ROUTES.EXAM.SINGLE(rel.slug)}
                           className="flex gap-3 group items-center"
                         >
                           <div className="w-[100px] h-[65px] relative rounded-lg overflow-hidden shrink-0 border border-[rgba(0,0,0,0.06)] bg-[#FAF7EB]">
                             {rel.featuredImage && (
                               <Image
-                                src={rel.featuredImage}
+                                src={rel.featuredImage as string}
                                 alt={rel.title}
                                 fill
                                 className="object-cover group-hover:scale-105 transition-transform"
@@ -333,19 +351,27 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
             {post.relatedPracticeQuizzes?.slice(0, 4).map((quiz, i) => (
               <TestCardWithScore
                 key={i}
-                quizId={quiz.id}
+                quizId={(quiz as any).id ?? quiz.slug}
                 title={quiz.title}
                 image={quiz.featuredImage || undefined}
                 skill={skill}
                 part={normalizeSectionBadge(skill, i + 1).label}
                 attempts={1195}
                 isPro={post.quizFields.proUserOnly}
-                href={ROUTES.PRACTICE.SINGLE(quiz.slug)}
+                href={ROUTES.EXAM.SINGLE(quiz.slug)}
               />
             ))}
           </div>
         </Container>
       </div>
+
+      {/* ExamModeModal — mở khi click "Làm bài thi" hoặc autoStart */}
+      <ExamModeModal
+        navigateLink={ROUTES.TAKE_THE_TEST(post.slug)}
+        quiz={post as any}
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </>
   );
 }
