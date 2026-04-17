@@ -232,40 +232,8 @@ export const PageArchive = ({
             );
           })()}
 
-        <Container className="mt-12 px-4 sm:px-6">
-          {/* === SECTION: Suggestions === */}
-          <section id="ipl-suggestions" data-section="suggestions">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="font-noto-sans text-2xl font-bold text-[#2D3142]">
-                Suggestions for you
-              </h2>
-              <div className="hidden sm:flex gap-2">
-                <button
-                  type="button"
-                  className="flex h-[36px] w-[36px] items-center justify-center rounded-full border border-[rgba(0,0,0,0.1)] text-[#2D3142] transition hover:bg-gray-50"
-                  aria-label="Previous"
-                >
-                  <span className="material-symbols-rounded text-lg">chevron_left</span>
-                </button>
-                <button
-                  type="button"
-                  className="flex h-[36px] w-[36px] items-center justify-center rounded-full border border-[rgba(0,0,0,0.1)] text-[#2D3142] transition hover:bg-gray-50"
-                  aria-label="Next"
-                >
-                  <span className="material-symbols-rounded text-lg">chevron_right</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {suggestions.map((item: (typeof sampleEssays.edges)[number], index: number) => (
-                <HorizontalItem post={item} skill={skill as "speaking" | "writing"} key={index} />
-              ))}
-            </div>
-          </section>
-
-          <hr className="my-14 border-t border-[rgba(0,0,0,0.06)]" />
-
+        <section className="mt-12 px-4 sm:px-6">
+        <Container>
           {/* === SECTION: Sample Essay === */}
           <section id="sample-essay" data-section="sample-essay">
             <div className="mb-10 flex flex-col gap-6">
@@ -306,7 +274,7 @@ export const PageArchive = ({
               </div>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-[80px] xl:gap-[100px]">
+            <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-[60px] xl:gap-[80px]">
               <aside className="hidden lg:block">
                 <div className="sticky top-[100px]">
                   <Filter
@@ -321,7 +289,7 @@ export const PageArchive = ({
               <div className="space-y-10">
                 {items.length > 0 ? (
                   <>
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                    <div className="flex flex-col gap-6">
                       {items.map((item: (typeof sampleEssays.edges)[number], index: number) => (
                         <HorizontalItem post={item} skill={skill as "speaking" | "writing"} key={index} />
                       ))}
@@ -400,6 +368,7 @@ export const PageArchive = ({
             </div>
           </section>
         </Container>
+        </section>
 
         {drawerOpen && (
           <div className="fixed inset-0 z-50 bg-black/50 lg:hidden">

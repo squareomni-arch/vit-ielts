@@ -178,7 +178,7 @@ function Header({ post }: { post: IPracticeSingle }) {
         </div>
       )}
 
-      <header className="py-2 bg-white shadow z-20 mb-[20px] px-[16px]">
+      <header className="py-2 bg-white shadow z-20 px-[16px]">
         <Container className="max-w-none">
           <div className="flex items-center">
             <div className="md:w-1/2">

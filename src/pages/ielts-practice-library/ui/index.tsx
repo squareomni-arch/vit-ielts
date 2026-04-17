@@ -295,7 +295,8 @@ export const PageIELTSPracticeLibrary = ({
           skillLabel={skill === "reading" ? "Reading" : "Listening"}
         />
 
-        <Container className="mt-12 px-4 sm:px-6">
+        <section className="mt-12 px-4 sm:px-6">
+        <Container>
           {/* === SECTION: Suggestions === */}
           <section id="ipl-suggestions" data-section="suggestions">
             <div className="flex items-center justify-between mb-6">
@@ -377,7 +378,7 @@ export const PageIELTSPracticeLibrary = ({
               </div>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-[80px] xl:gap-[100px]">
+            <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-[60px] xl:gap-[80px]">
               <aside className="hidden lg:block">
                 <div className="sticky top-[100px]">
                   <Filter filterData={quizFilterData} />
@@ -466,6 +467,7 @@ export const PageIELTSPracticeLibrary = ({
             </div>
           </section>
         </Container>
+        </section>
 
         {drawerOpen && (
           <div className="fixed inset-0 z-50 bg-black/50 lg:hidden">

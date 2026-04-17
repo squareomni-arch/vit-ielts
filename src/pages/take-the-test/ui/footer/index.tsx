@@ -474,16 +474,15 @@ function Footer() {
                   {isCurrent ? (
                     <div className="justify-center w-full">
                       <div className="flex items-center gap-[5px] h-full">
-                        <div className="flex items-center border-t-[3px] border-gray-200 pt-2">
+                        <div className={twMerge("flex items-center border-t-[3px] pt-2 mt-[-1px]", info.totalQuestions > 0 && info.answeredCount === info.totalQuestions ? "border-green-700" : "border-gray-200")}>
                           <span className="font-semibold text-[16px] text-[#000] whitespace-nowrap pl-[20px] pr-[30px] flex items-center gap-1.5">
                             {info.totalQuestions > 0 && info.answeredCount === info.totalQuestions && (
-                              <span className="text-green-500 material-symbols-rounded text-[18px] leading-none bold">check</span>
+                              <span className="text-green-700 material-symbols-rounded text-[18px] leading-none bold">check</span>
                             )}
                             {isReadingTest ? "Passage" : "Part"} {(info.displayPartIndex !== undefined ? info.displayPartIndex : info.partIndex) + 1}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 overflow-x-auto py-1">
-                          {/* Vòng lặp này sẽ tự động chạy đúng số lượng item */}
                           {info.questions.map(questionIndex => (
                             <div
                               key={questionIndex}
@@ -491,10 +490,10 @@ function Footer() {
                             >
                               <div
                                 className={twMerge(
-                                  "w-full h-[3px] rounded-sm",
+                                  "w-full h-[3px]",
                                   answeredMap.has(questionIndex)
-                                    ? "bg-green-500"
-                                    : "bg-gray-200" // Lỗi cú pháp đã sửa ở đây
+                                    ? "bg-green-700"
+                                    : "bg-gray-200"
                                 )}
                               />
                               <span

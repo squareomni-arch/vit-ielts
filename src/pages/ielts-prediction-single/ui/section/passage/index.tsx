@@ -13,8 +13,8 @@ function Passage({
         {quizSkill === "listening" ? "Listening" : "📖 Reading passage"}
       </h2>
       <div
-        className="prose max-w-none prose-sm sm:prose-base"
-        dangerouslySetInnerHTML={{ __html: passage.passage_content }}
+        className="prose max-w-none prose-sm sm:prose-base break-words [overflow-wrap:anywhere] [&_*]:[overflow-wrap:anywhere]"
+        dangerouslySetInnerHTML={{ __html: (passage.passage_content || '').replace(/&nbsp;|\u00A0/g, ' ') }}
       ></div>
     </section>
   );

@@ -7,9 +7,9 @@ import { ROUTES } from "@/shared/routes";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { ScrollFadeIn } from "@/shared/lib/use-scroll-fade-in";
 import type { FooterCtaBannerConfig } from "./types";
 import { CTABanner } from "@/shared/ui/ds/organisms/cta-banner";
-import { ScrollFadeIn } from "@/shared/lib/use-scroll-fade-in";
 
 export const Footer = () => {
   const {
@@ -126,8 +126,8 @@ export const Footer = () => {
     <footer data-section="footer" className="bg-gray-100">
       {/* === SECTION: Footer CTA Banner === */}
       {!hideCtaBanner && (
-        <ScrollFadeIn data-section="footer-cta-banner" className="pt-16 pb-16 bg-white">
-          <div className="mx-auto sm:px-6">
+        <section data-section="footer-cta-banner" className="pt-16 pb-16 bg-white">
+          <ScrollFadeIn className="mx-auto sm:px-6">
             <CTABanner
               title={ctaBannerConfig?.title || "Sẵn sàng cho kì thi IELTS máy?"}
               subtitle={
@@ -139,8 +139,8 @@ export const Footer = () => {
                 ctaBannerConfig?.button?.link || buyProLink || ROUTES.LOGIN()
               }
             />
-          </div>
-        </ScrollFadeIn>
+          </ScrollFadeIn>
+        </section>
       )}
 
       {/* === SECTION: Footer Main Content (Links + Newsletter) === */}

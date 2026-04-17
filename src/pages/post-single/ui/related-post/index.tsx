@@ -1,5 +1,4 @@
 import { IPost } from "@/shared/types";
-import _ from "lodash";
 import Link from "next/link";
 import Image from "next/image";
 import { Skeleton } from "antd";
@@ -8,7 +7,7 @@ import { createClient } from "~supabase/client";
 import { getPosts } from "~services/post";
 import { resolveContentImage, useContentImageFallback } from "@/shared/lib/content-image";
 import dayjs from "dayjs";
-import { BlogCard } from "@/shared/ui/ds/molecules/blog-card";
+import { PostCard } from "@/pages/ielts-prediction/ui/post-card";
 
 function RelatedPost({ post }: { post: IPost }) {
   const fallbackImage = useContentImageFallback();
@@ -21,7 +20,7 @@ function RelatedPost({ post }: { post: IPost }) {
         const supabase = createClient();
         const result = await getPosts(supabase, {
           page: 1,
-          pageSize: 5,
+          pageSize: 7,
         });
         // Map and filter out current post
         const mapped = (result.data || []).filter((p: any) => p.id !== post.id).map((p: any) => ({
@@ -69,33 +68,24 @@ function RelatedPost({ post }: { post: IPost }) {
           <h3 className="font-bold text-lg text-[#2D3142]">
             Bài viết nổi bật
           </h3>
-          <BlogCard
+          <PostCard
             title={relatedPosts[0].title}
             image={relatedPosts[0].featuredImage?.node?.sourceUrl}
             href={relatedPosts[0].link}
             date={relatedPosts[0].date ? dayjs(relatedPosts[0].date).format("DD/MM/YYYY") : undefined}
-            category={relatedPosts[0].categories?.edges?.[0]?.node?.name}
-            readTime={`${Math.ceil((relatedPosts[0].content?.length || 0) / 200) || 5} min read`}
+            isPro={relatedPosts[0].postMeta?.proUserOnly}
           />
         </div>
       )}
 
       {relatedPosts.length > 1 && (
         <div className="space-y-4 mt-8">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-lg text-[#2D3142]">
-              Có thể bạn quan tâm
-            </h3>
-            <Link
-              href="/blog"
-              className="text-xs text-[#2F80ED] hover:underline"
-            >
-              Tất cả bài viết &gt;
-            </Link>
-          </div>
+          <h3 className="font-bold text-lg text-[#2D3142]">
+            Có thể bạn quan tâm
+          </h3>
 
           <div className="space-y-4">
-            {relatedPosts.slice(1, 4).map((rel, idx) => (
+            {relatedPosts.slice(1, 7).map((rel, idx) => (
               <Link
                 key={idx}
                 href={rel.link}

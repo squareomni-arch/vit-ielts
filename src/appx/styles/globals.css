@@ -276,6 +276,21 @@ html.text-size-xlarge .text-\[14px\] {
   font-size: 22px;
 }
 
+/* Notepad sidebar text-size scaling */
+html.text-size-large .notepad-sidebar,
+html.text-size-large .notepad-sidebar span,
+html.text-size-large .notepad-sidebar textarea,
+html.text-size-large .notepad-sidebar button {
+  font-size: 19px !important;
+}
+
+html.text-size-xlarge .notepad-sidebar,
+html.text-size-xlarge .notepad-sidebar span,
+html.text-size-xlarge .notepad-sidebar textarea,
+html.text-size-xlarge .notepad-sidebar button {
+  font-size: 22px !important;
+}
+
 .sandbox .min-w-\[96px\] {
   min-width: 520px !important;
   display: block;
@@ -711,20 +726,7 @@ input.active-quizz {
   border-color: #fff;
 }
 
-/* Ẩn scrollbar của toàn trang nhưng vẫn cho cuộn */
-html,
-body {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
-  width: 0 !important;
-  height: 0 !important;
-  background: transparent;
-
-}
+/* Scrollbar hiển thị bình thường */
 
 /* Chỉ .listening-board có scrollbar riêng */
 .listening-board {
@@ -761,6 +763,17 @@ br {
 /* splide__arrow — global overrides REMOVED.
    Arrow styling is now handled by Button component className.
    See: src/pages/home/ui/practice-section/index.tsx */
+
+/* Splide — equal-height slides */
+.splide__list {
+  align-items: stretch !important;
+}
+.splide__slide {
+  height: auto !important;
+}
+.splide__slide > * {
+  height: 100%;
+}
 
 
 /* Hero Banner — responsive padding-top */

@@ -11,15 +11,12 @@ import Link from "next/link";
 import { IPracticeSingle } from "../api";
 import { PracticeHistoryWidget } from "./practice-history";
 import { normalizeSectionBadge } from "@/shared/lib/quiz-part";
-import { useRef } from "react";
-import { Splide, SplideSlide, SplideTrack } from "@splidejs/react-splide";
-import "@splidejs/react-splide/css/core";
-import type { Splide as SplideType } from "@splidejs/splide";
+import { useState } from "react";
 
 export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
   const { currentUser } = useAuth();
   const openProContentModal = useProContentModal((state) => state.open);
-  const splideRef = useRef<{ splide: SplideType } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const actionHref = currentUser
     ? ROUTES.TAKE_THE_TEST(post.slug)
@@ -67,52 +64,64 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
         {/* The Red Stripe (Behind the card) */}
         <div className="absolute top-[380px] md:top-[420px] left-0 w-full h-[10px] bg-[#D94A56] z-0" />
 
-        <Container className="relative z-10 pt-[160px] md:pt-[220px] mb-13">
-          {/* Header Box */}
-          <div className="bg-white rounded-[24px] border border-[rgba(0,0,0,0.06)] px-[20px] md:px-[61px] py-[30px] md:py-[50px] shadow-[0_4px_24px_rgba(0,0,0,0.04)] text-left">
-            <div className="mb-[23px]">
-              <Breadcrumb items={dsBreadcrumbItems} />
-            </div>
+        <Container className="max-w-[1360px] relative z-10 pt-[160px] md:pt-[220px] mb-13">
+          {/* Use same 3-column layout so the header aligns with the middle content column */}
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left spacer — matches left sidebar width */}
+            <div className="hidden lg:block w-[220px] shrink-0" />
 
-            <h1 className="text-3xl md:text-[40px] font-extrabold text-[#2D3142] font-noto-sans leading-tight mb-[23px]">
-              {post.title}
-            </h1>
-
-            {post.excerpt && (
-              <div
-                className="text-[#6A7282] text-sm md:text-base font-noto-sans max-w-full pb-[23px] border-b border-[rgba(0,0,0,0.06)] line-clamp-2"
-                dangerouslySetInnerHTML={{ __html: post.excerpt }}
-              />
-            )}
-
-            {/* Author info */}
-            <div className="flex items-center justify-between pt-[23px]">
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-3">
-                  <Avatar
-                    src={post.author.node.userData.avatar?.node.sourceUrl}
-                    fallback={post.author.node.name?.charAt(0) || "A"}
-                    size="sm"
-                  />
-                  <span className="text-sm font-medium text-[#2D3142]">
-                    {post.author.node.name || "Administrator"}
-                  </span>
+            {/* Header Box — aligned with middle column */}
+            <div className="w-full lg:flex-1">
+              <div className="bg-white rounded-[24px] border border-[rgba(0,0,0,0.06)] px-[20px] md:px-[61px] py-[30px] md:py-[50px] shadow-[0_4px_24px_rgba(0,0,0,0.04)] text-left">
+                <div className="mb-[23px]">
+                  <Breadcrumb items={dsBreadcrumbItems} />
                 </div>
-                <div className="text-sm font-medium text-[#6A7282]">
-                  {post.date
-                    ? new Date(post.date).toLocaleDateString("vi-VN")
-                    : "14/12/2025"}
+
+                <h1 className="text-3xl md:text-[40px] font-extrabold text-[#2D3142] font-noto-sans leading-tight mb-[23px]">
+                  {post.title}
+                </h1>
+
+                {post.excerpt && (
+                  <div
+                    className="text-[#6A7282] text-sm md:text-base font-noto-sans max-w-full pb-[23px] border-b border-[rgba(0,0,0,0.06)] line-clamp-2"
+                    dangerouslySetInnerHTML={{ __html: post.excerpt }}
+                  />
+                )}
+
+                {/* Author info */}
+                <div className="flex items-center justify-between pt-[23px]">
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3">
+                      <Avatar
+                        src={post.author.node.userData.avatar?.node.sourceUrl}
+                        fallback={post.author.node.name?.charAt(0) || "A"}
+                        size="sm"
+                      />
+                      <span className="text-sm font-medium text-[#2D3142]">
+                        {post.author.node.name || "Administrator"}
+                      </span>
+                    </div>
+                    <div className="text-sm font-medium text-[#6A7282]">
+                      {post.date
+                        ? new Date(post.date).toLocaleDateString("vi-VN")
+                        : "14/12/2025"}
+                    </div>
+                  </div>
+                  <button
+                    className="p-1 hover:bg-gray-100 rounded transition-colors text-[#2D3142] cursor-pointer"
+                    title="Share"
+                    onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
+                  >
+                    <span className="material-symbols-rounded text-[24px] align-middle">
+                      ios_share
+                    </span>
+                  </button>
                 </div>
               </div>
-              <button
-                className="p-1 hover:bg-gray-100 rounded transition-colors text-[#2D3142]"
-                title="Share"
-              >
-                <span className="material-symbols-rounded text-[24px] align-middle">
-                  ios_share
-                </span>
-              </button>
             </div>
+
+            {/* Right spacer — matches right sidebar width */}
+            <div className="hidden lg:block w-[280px] shrink-0" />
           </div>
         </Container>
 
@@ -134,14 +143,43 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                 
                 <div className="space-y-4 pt-4">
                   <button 
-                    className="flex items-center gap-3 text-sm font-medium text-[#6A7282] hover:text-[#D94A56] transition-colors"
-                    onClick={() => navigator.clipboard.writeText(window.location.href)}
+                    className={`flex items-center gap-3 text-sm font-medium transition-colors cursor-pointer ${copied ? 'text-[#27AE60]' : 'text-[#6A7282] hover:text-[#D94A56]'}`}
+                    onClick={() => {
+                      const url = window.location.href;
+                      const onSuccess = () => {
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      };
+                      if (navigator.clipboard?.writeText) {
+                        navigator.clipboard.writeText(url).then(onSuccess).catch(() => {
+                          const ta = document.createElement('textarea');
+                          ta.value = url;
+                          ta.style.position = 'fixed';
+                          ta.style.opacity = '0';
+                          document.body.appendChild(ta);
+                          ta.select();
+                          document.execCommand('copy');
+                          document.body.removeChild(ta);
+                          onSuccess();
+                        });
+                      } else {
+                        const ta = document.createElement('textarea');
+                        ta.value = url;
+                        ta.style.position = 'fixed';
+                        ta.style.opacity = '0';
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        onSuccess();
+                      }
+                    }}
                   >
-                    <span className="material-symbols-rounded text-lg">content_copy</span>
-                    Copy link
+                    <span className="material-symbols-rounded text-lg">{copied ? 'check_circle' : 'content_copy'}</span>
+                    {copied ? 'Đã copy!' : 'Copy link'}
                   </button>
                   <button 
-                    className="flex items-center gap-3 text-sm font-medium text-[#6A7282] hover:text-[#D94A56] transition-colors"
+                    className="flex items-center gap-3 text-sm font-medium text-[#6A7282] hover:text-[#D94A56] transition-colors cursor-pointer"
                     onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
                   >
                     <span className="material-symbols-rounded text-lg">share</span>
@@ -168,7 +206,7 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
             </div>
 
             {/* Middle Column: Main Content */}
-            <div className="w-full lg:flex-1 space-y-6 relative z-10">
+            <div className="w-full lg:flex-1 min-w-0 space-y-6 relative z-10">
               {/* Featured Image */}
               <div className="aspect-[21/10] relative rounded-[24px] overflow-hidden border border-[rgba(0,0,0,0.06)] bg-[#FAF7EB]">
                 {post.featuredImage?.node.sourceUrl && (
@@ -263,42 +301,17 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
             </div>
 
             {/* Right Column: Related items */}
-            <div className="w-full lg:w-[280px] shrink-0 space-y-8 relative z-10">
-              {post.relatedPracticeQuizzes &&
+            <div className="w-full lg:w-[280px] shrink-0 relative z-10">
+              <div className="sticky top-35 space-y-8">
+                {post.relatedPracticeQuizzes &&
                 post.relatedPracticeQuizzes.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="font-bold text-lg text-[#2D3142]">
-                      Bài test nổi bật
+                      Có thể bạn quan tâm
                     </h3>
-                    <TestCardWithScore
-                      quizId={post.relatedPracticeQuizzes[0].id}
-                      title={post.relatedPracticeQuizzes[0].title}
-                      image={
-                        post.relatedPracticeQuizzes[0].featuredImage || undefined
-                      }
-                      skill={skill}
-                      part={normalizeSectionBadge(skill, 1).label}
-                      attempts={1195}
-                      isPro={post.quizFields.proUserOnly}
-                      href={ROUTES.PRACTICE.SINGLE(
-                        post.relatedPracticeQuizzes[0].slug
-                      )}
-                    />
-                  </div>
-                )}
-
-                {post.relatedPracticeQuizzes &&
-                post.relatedPracticeQuizzes.length > 1 && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-lg text-[#2D3142]">
-                        Có thể bạn quan tâm
-                      </h3>
-
-                    </div>
 
                     <div className="space-y-4">
-                      {post.relatedPracticeQuizzes.slice(1, 4).map((rel, idx) => (
+                      {post.relatedPracticeQuizzes.slice(0, 6).map((rel, idx) => (
                         <Link
                           key={idx}
                           href={ROUTES.PRACTICE.SINGLE(rel.slug)}
@@ -323,6 +336,7 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                     </div>
                   </div>
                 )}
+              </div>
             </div>
           </div>
         </Container>

@@ -89,6 +89,7 @@ export type SingleSampleEssay = {
   slug: string;
   title: string;
   date: string;
+  skill?: string | null;
   featuredImage?: {
     node: {
       sourceUrl: string;

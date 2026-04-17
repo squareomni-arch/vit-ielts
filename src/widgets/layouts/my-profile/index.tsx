@@ -125,8 +125,8 @@ export const MyProfileLayout = ({
       )}
 
       {/* === SECTION: Main Content === */}
-      <section data-section="dashboard-content" className="bg-[#f8f9fb] lg:mb-13 overflow-x-hidden">
-        <Container className="px-4 sm:px-6">
+      <section data-section="dashboard-content" className="bg-[#f8f9fb] lg:mb-13 overflow-x-hidden px-4 sm:px-6">
+        <Container>
           <div className="py-8 lg:py-10">
             <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start">
               {/* === Left Sidebar === */}

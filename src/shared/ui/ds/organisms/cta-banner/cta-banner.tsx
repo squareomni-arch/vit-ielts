@@ -39,7 +39,7 @@ export const CTABanner = ({
       {/* Red shape wrapper */}
       <div className="@container relative w-full max-w-[1360px] bg-[#D94A56] rounded-3xl min-[1025px]:rounded-[999px] py-8 min-[600px]:py-10 overflow-visible">
         {/* Dot pattern overlay */}
-        <div 
+        <div
           className="absolute inset-0 rounded-3xl min-[1025px]:rounded-[999px] pointer-events-none z-[1]"
           style={{
             backgroundImage: "radial-gradient(circle, rgba(255, 255, 255, 0.25) 4px, transparent 4.5px)",

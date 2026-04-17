@@ -204,7 +204,8 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
       <div className="min-h-screen bg-white pb-20">
         <ExamLibraryHeroBanner config={heroConfig} />
 
-        <Container className="mt-12 px-4 sm:px-6">
+        <section className="mt-12 px-4 sm:px-6">
+        <Container>
           {/* === SECTION: Mock Tests === */}
           <section id="iel-main" data-section="iel-main">
             <div className="mb-10 flex flex-col gap-6">
@@ -249,7 +250,7 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
               </div>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-[80px] xl:gap-[100px]">
+            <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-[60px] xl:gap-[80px]">
               {/* Sidebar */}
               <aside className="hidden lg:block">
                 <div className="sticky top-[100px]">
@@ -335,6 +336,7 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
             </div>
           </section>
         </Container>
+        </section>
 
         {/* Mobile Filter Drawer */}
         {drawerOpen && (

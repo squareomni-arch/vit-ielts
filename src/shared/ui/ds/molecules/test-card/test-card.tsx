@@ -57,7 +57,7 @@ export const TestCard = ({
     <Tag
       {...linkProps}
       onClick={onClick}
-      className={`group flex flex-col bg-white rounded-[30px] outline-none shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] transition-transform duration-350 ease-[var(--ease-slide)] hover:-translate-y-3.5 w-full min-h-[400px] ${className} ${!href ? 'cursor-default' : 'cursor-pointer'}`}
+      className={`group flex flex-col bg-white rounded-[30px] outline-none shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] transition-transform duration-350 ease-[var(--ease-slide)] hover:-translate-y-3.5 w-full h-full min-h-[400px] ${className} ${!href ? 'cursor-default' : 'cursor-pointer'}`}
     >
       {/* Upper Image Section — Figma spec: 356×220 */}
       <div className="relative h-[220px] shrink-0 overflow-hidden bg-secondary-50 rounded-t-[30px] rounded-b-[15px]">
