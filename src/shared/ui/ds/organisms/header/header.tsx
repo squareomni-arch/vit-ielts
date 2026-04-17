@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '../../atoms/button';
 import { Avatar } from '../../atoms/avatar';
+import { UserAccountTypeBadge } from '@/shared/ui/user-account-type-badge';
 
 /**
  * Design System Header
@@ -42,6 +43,7 @@ export type HeaderProps = {
   onLogoClick?: () => void;
   className?: string;
   userMenuItems?: HeaderUserMenuItem[];
+  isPro?: boolean;
 };
 
 export const Header = ({
@@ -58,6 +60,7 @@ export const Header = ({
   onLogoClick,
   className = '',
   userMenuItems = [],
+  isPro = false,
 }: HeaderProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -127,7 +130,10 @@ export const Header = ({
                   <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </span>
-              <span className="text-base font-bold text-[var(--text-primary)]">{userName || 'Username'}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-base font-bold text-[var(--text-primary)]">{userName || 'Username'}</span>
+                <UserAccountTypeBadge isPro={isPro} />
+              </div>
               <Avatar size="md" name={userName || 'U'} src={userAvatar} />
 
               <div className="absolute top-full right-0 mt-0 min-w-[220px] bg-white border border-[var(--border-default)] rounded-xl shadow-lg p-2 opacity-0 invisible translate-y-2 transition-all duration-150 z-[var(--z-dropdown)] group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
@@ -215,8 +221,9 @@ export const Header = ({
                 {/* Profile info */}
                 <div className="flex items-center gap-3 mb-4">
                   <Avatar size="lg" name={userName || 'U'} src={userAvatar} />
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 flex flex-col items-start gap-1">
                     <p className="text-base font-bold text-[var(--text-primary)] truncate">{userName || 'User'}</p>
+                    <UserAccountTypeBadge isPro={isPro} />
                   </div>
                 </div>
                 {/* User menu items */}

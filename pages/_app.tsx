@@ -1,3 +1,4 @@
+import "material-symbols/index.css";
 import "@/appx/styles/globals.css";
 import "@/appx/styles/admin-globals.css";
 import "@/shared/ui/ds/styles.css";

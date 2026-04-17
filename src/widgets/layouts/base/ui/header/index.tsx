@@ -387,6 +387,7 @@ export const Header = () => {
         authLoading={!mounted}
         userName={currentUser?.name || "User"}
         userAvatar={(currentUser?.userData?.avatar?.node as any)?.srcSet}
+        isPro={currentUser?.userData?.isPro}
         onLogin={() => router.push(ROUTES.LOGIN(router.asPath))}
         onSignup={() => router.push(ROUTES.REGISTER)}
         onLogout={signOut}

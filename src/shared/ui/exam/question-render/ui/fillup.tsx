@@ -190,15 +190,15 @@ export const Fillup = ({
                     return <span id={`#question-no-${displayIndex}`} className="ml-[5px] align-middle border border-[#000] px-[10px] py-[5px] rounded-[3px] text-green-600 font-semibold ml-[5px] align-middle">{userAnswerValue}</span>;
                   } else if (userAnswerValue !== "") {
                     return (
-                      <span id={`#question-no-${displayIndex}`} className="ml-[5px] align-middle border border-[#000] px-[10px] py-[5px] rounded-[3px]">
-                        <span className="text-red-500 line-through mr-1">{userAnswerValue}</span>
+                      <span id={`#question-no-${displayIndex}`} className="ml-[5px] align-middle border border-[#374151]/30 px-[10px] py-[5px] rounded-[3px] bg-[#374151]/5">
+                        <span className="text-[#374151] line-through mr-1 opacity-70">{userAnswerValue}</span>
                         <span className="text-green-600 font-semibold">{displayCorrectAnswer}</span>
                       </span>
                     );
                   } else {
                     return (
-                      <span id={`#question-no-${displayIndex}`} className="ml-[5px] align-middle border border-[#000] px-[10px] py-[5px] rounded-[3px]">
-                        <span className="text-gray-500 font-semibold">{displayCorrectAnswer}</span>
+                      <span id={`#question-no-${displayIndex}`} className="ml-[5px] align-middle border border-[#374151]/20 px-[10px] py-[5px] rounded-[3px] bg-gray-50">
+                        <span className="text-[#374151]/60 font-semibold">{displayCorrectAnswer}</span>
                       </span>
                     );
                   }

@@ -63,18 +63,18 @@ function AnswerKeys({
                           <span
                             className={twMerge(
                               "w-7 h-7 text-white rounded-full flex justify-center items-center shrink-0 font-semibold",
-                              q.correct ? "bg-green-600" : "bg-red-500" // Nền xanh/đỏ
+                              q.correct ? "bg-green-600" : "bg-[#374151]" // Nền xanh/xám đậm
                             )}
                           >
                             {questionNumber}
                           </span>
                           <div className="flex flex-wrap items-center gap-x-2">
                             {/* Hiển thị câu trả lời của người dùng */}
-                            <p className={!q.correct && q.userAnswer ? "line-through text-red-500" : ""}>
+                            <p className={!q.correct && q.userAnswer ? "line-through text-[#374151]" : ""}>
                               {q.userAnswer ? (
                                 parse(removeFillHistoryCorrectTags(q.userAnswer))
                               ) : (
-                                <span className="text-gray-400 font-semibold">
+                                <span className="text-[#374151]/60 font-semibold">
                                   Missed
                                 </span>
                               )}

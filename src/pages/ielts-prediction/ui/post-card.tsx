@@ -37,14 +37,12 @@ export const PostCard = ({ image, title, date, isPro, href }: PostCardProps) => 
           loading="lazy"
         />
 
-        {/* PRO / FREE badge */}
-        <span
-          className={`absolute top-3 right-3 rounded-[6px] px-3 py-[5px] text-[13px] font-bold uppercase tracking-wide text-white shadow-sm ${
-            isPro ? "bg-primary-500" : "bg-[#22C55E]"
-          }`}
-        >
-          {isPro ? "PRO" : "FREE"}
-        </span>
+        {/* PRO badge */}
+        {isPro && (
+          <span className="absolute top-3 right-3 rounded-[6px] bg-primary-500 px-3 py-[5px] text-[13px] font-bold uppercase tracking-wide text-white shadow-sm">
+            PRO
+          </span>
+        )}
       </div>
 
       {/* Body */}

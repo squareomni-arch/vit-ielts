@@ -25,6 +25,7 @@ export default async function handler(
         try {
             const {
                 search,
+                type,
                 page = "1",
                 pageSize = "24",
             } = req.query;
@@ -43,29 +44,40 @@ export default async function handler(
                 query = query.ilike("filename", `%${search}%`);
             }
 
+            if (type === "image") query = query.ilike("mimetype", "image/%");
+            else if (type === "audio") query = query.ilike("mimetype", "audio/%");
+            else if (type === "pdf") query = query.eq("mimetype", "application/pdf");
+
             query = query.range(from, to);
 
             const { data, error, count } = await query;
             if (error) throw error;
 
-            // Stats: total count and total size
+            // Stats: total count, size, and per-category counts
             const { data: statsData } = await supabaseAdmin
                 .from("media_library")
-                .select("size")
+                .select("size, mimetype")
                 .limit(10000);
 
-            const totalSize = (statsData ?? []).reduce(
+            const allItems = statsData ?? [];
+            const totalSize = allItems.reduce(
                 (sum: number, item: { size: number }) => sum + (item.size || 0),
                 0,
             );
+            const countByType = {
+                image: allItems.filter((i: { mimetype: string }) => i.mimetype?.startsWith("image/")).length,
+                audio: allItems.filter((i: { mimetype: string }) => i.mimetype?.startsWith("audio/")).length,
+                pdf:   allItems.filter((i: { mimetype: string }) => i.mimetype === "application/pdf").length,
+            };
 
             return res.status(200).json({
                 success: true,
                 data: data ?? [],
                 count: count ?? 0,
                 stats: {
-                    total: count ?? 0,
+                    total: allItems.length,
                     totalSize,
+                    countByType,
                 },
             });
         } catch (error) {

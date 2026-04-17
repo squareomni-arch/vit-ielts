@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useWidgetContext } from "../../context";
 import { SetTargetScoreModal } from "@/widgets/target-score/ui";
 import _ from "lodash";
+import { roundIELTSScore } from "@/shared/lib/ielts-round";
 
 export const DetailScore = () => {
   const [isSetTargetScoreDialogOpen, setIsSetTargetScoreDialogOpen] =
@@ -18,13 +19,14 @@ export const DetailScore = () => {
       return "_";
     }
 
-    return (
+    const avg = 
       (Number(targetScore.listening) +
         Number(targetScore.reading) +
         Number(targetScore.speaking) +
         Number(targetScore.writing)) /
-      4
-    ).toFixed(1);
+      4;
+    
+    return roundIELTSScore(avg).toFixed(1);
   }, [targetScore]);
 
   return (

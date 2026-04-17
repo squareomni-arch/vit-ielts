@@ -1,9 +1,14 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "~supabase/client";
 import { useAuth } from "@/appx/providers";
 import dayjs from "dayjs";
 import { Spin } from "antd";
-import { calculateScore } from "@/shared/lib";
+import {
+  calculateStoredScoreResult,
+  formatResultLabel,
+  getQuizType,
+  getResultToneClassName,
+} from "@/shared/lib";
 import { IPracticeSingle } from "../api";
 
 export function PracticeHistoryWidget({ post }: { post: IPracticeSingle }) {
@@ -63,21 +68,19 @@ export function PracticeHistoryWidget({ post }: { post: IPracticeSingle }) {
       {history.map((item) => {
         const dateToCheck = item.submitted_at || item.created_at;
         const dateDisplay = dayjs(dateToCheck).format("DD/MM/YYYY - HH:mm");
-        
-        let correct = 0;
-        let total = 0;
-        try {
-          const parsedAnswers = Array.isArray(item.answers) ? item.answers : (item.answers?.answers || []);
-          const scoreResult = calculateScore(parsedAnswers, post, item.test_part || []);
-          correct = scoreResult?.correctAns ?? 0;
-          total = (scoreResult?.correctAns ?? 0) + (scoreResult?.incorrect ?? 0) + (scoreResult?.missed ?? 0);
-        } catch(e) {
-           console.error("Score parse error", e);
-        }
-        
-        const scoreOutOf10 = total > 0 ? (correct / total) * 10 : 0;
-        const displayScore = Number.isInteger(scoreOutOf10) ? scoreOutOf10.toString() : scoreOutOf10.toFixed(1);
-        const isPass = scoreOutOf10 >= 5;
+        const scoreResult = calculateStoredScoreResult({
+          quiz: post as any,
+          answers: item.answers,
+          testPart: item.test_part,
+        });
+        const quizType = getQuizType(post.quizFields.type) ?? "practice";
+        const displayScore =
+          formatResultLabel({
+            quizType,
+            storedScore: item.score,
+            scoreResult,
+            answers: item.answers,
+          }) ?? "—";
 
         return (
           <div
@@ -85,8 +88,14 @@ export function PracticeHistoryWidget({ post }: { post: IPracticeSingle }) {
             className="flex justify-between items-center bg-white rounded-lg p-4 shadow-sm border border-[rgba(0,0,0,0.02)]"
           >
             <span className="text-sm text-[#6A7282]">{dateDisplay}</span>
-            <span className={`text-sm font-bold ${isPass ? "text-[#1B8C40]" : "text-primary-500"}`}>
-              {displayScore}/10
+            <span
+              className={`text-sm font-bold ${
+                displayScore === "—"
+                  ? "text-gray-400"
+                  : getResultToneClassName(quizType)
+              }`}
+            >
+              {displayScore}
             </span>
           </div>
         );

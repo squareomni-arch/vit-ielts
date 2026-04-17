@@ -159,14 +159,14 @@ export const MatrixQuestion = ({
                       cellContent = <span className="material-symbols-rounded text-green-500">check_circle</span>;
                       cellBgClass = "bg-green-100";
                     } else if (!userDidAnswer) {
-                      cellContent = <span className="material-symbols-rounded text-gray-400">check_circle</span>;
-                      cellBgClass = "bg-gray-100";
+                      cellContent = <span className="material-symbols-rounded text-[#374151]/40">check_circle</span>;
+                      cellBgClass = "bg-[#374151]/5";
                     } else {
                       cellContent = <span className="material-symbols-rounded text-green-500">check_circle</span>;
                     }
                   } else if (isUserAnswer) {
-                    cellContent = <span className="material-symbols-rounded text-red-500">cancel</span>;
-                    cellBgClass = "bg-red-100";
+                    cellContent = <span className="material-symbols-rounded text-[#374151]">cancel</span>;
+                    cellBgClass = "bg-[#374151]/10";
                   }
 
                   return (

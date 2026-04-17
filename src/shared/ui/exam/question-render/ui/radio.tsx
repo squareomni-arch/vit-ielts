@@ -138,16 +138,16 @@ export const Radio = ({
                             );
                           } else if (!isUserCorrect && userDidAnswer) {
                             if (optIndex === Number(userAnswerIndex)) {
-                              optionBgClass = "bg-[#d3e3fd] text-red-500 font-semibold";
+                              optionBgClass = "bg-[#374151]/10 text-[#374151] font-semibold";
                               suffix = (
-                                <span className="material-symbols-rounded text-red-600 ml-auto">cancel</span>
+                                <span className="material-symbols-rounded text-[#374151] ml-auto">cancel</span>
                               );
                             } else if (optIndex === correctAnswerIndex) {
                               optionTextClass = "text-green-600 font-semibold";
                             }
                           } else if (!userDidAnswer) {
                             if (optIndex === correctAnswerIndex) {
-                              optionBgClass = "bg-gray-200 font-semibold";
+                              optionBgClass = "bg-[#374151]/5 text-[#374151]/70 font-semibold";
                             }
                           }
                         } else {

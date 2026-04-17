@@ -864,6 +864,23 @@ export default function AdminQuizzesPage() {
         }
     };
 
+    const handleTogglePro = async (id: string, pro_user_only: boolean) => {
+        try {
+            const res = await fetch(`/api/admin/quizzes/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pro_user_only }),
+            });
+            const json = await res.json();
+            if (json.success) {
+                message.success("Đã cập nhật");
+                setQuizzes(prev => prev.map(item => item.id === id ? { ...item, pro_user_only } : item));
+            } else {
+                message.error(json.error || "Lỗi");
+            }
+        } catch { message.error("Error"); }
+    };
+
     const columns: ColumnsType<QuizRow> = [
         {
             title: "Title",
@@ -909,7 +926,9 @@ export default function AdminQuizzesPage() {
             dataIndex: "pro_user_only",
             key: "pro_user_only",
             width: 60,
-            render: (v: boolean) => v ? <Tag color="gold">Pro</Tag> : null,
+            render: (v: boolean, r) => (
+                <Switch size="small" checked={v} onChange={(checked) => handleTogglePro(r.id, checked)} />
+            ),
         },
         {
             title: "Ngày tạo",

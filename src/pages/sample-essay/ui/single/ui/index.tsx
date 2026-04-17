@@ -183,8 +183,8 @@ export const PageSingle = ({
                         image={essay.featured_image ?? undefined}
                         title={essay.title}
                         skill={essay.skill as any}
-                        isPro={essay.pro_user_only}
-                        isLocked={essay.pro_user_only}
+                        isPro={essay.pro_user_only || (essay as any).proUserOnly || false}
+                        isLocked={essay.pro_user_only || (essay as any).proUserOnly || false}
                         href={ROUTES.SAMPLE_ESSAY.SINGLE(essay.slug)}
                         actionText="Xem thêm"
                       />
@@ -237,8 +237,8 @@ export const PageSingle = ({
                         image={essay.featured_image ?? undefined}
                         title={essay.title}
                         skill={essay.skill as any}
-                        isPro={essay.pro_user_only}
-                        isLocked={essay.pro_user_only}
+                        isPro={essay.pro_user_only || (essay as any).proUserOnly || false}
+                        isLocked={essay.pro_user_only || (essay as any).proUserOnly || false}
                         href={ROUTES.SAMPLE_ESSAY.SINGLE(essay.slug)}
                         actionText="Xem thêm"
                       />

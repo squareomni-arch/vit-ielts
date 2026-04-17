@@ -27,9 +27,9 @@ export const SingleItem = ({ post, skill }: { post: any; skill: string }) => {
       title={post.title}
       skill={skill as 'reading' | 'listening' | 'speaking' | 'writing'}
       part={label}
-      isPro={post.postMeta?.proUserOnly ?? post.pro_user_only ?? false}
+      isPro={post.pro_user_only || post.proUserOnly || post.postMeta?.proUserOnly || false}
       href={ROUTES.SAMPLE_ESSAY.SINGLE(post.slug)}
-      isLocked={post.postMeta?.proUserOnly ?? post.pro_user_only ?? false}
+      isLocked={post.pro_user_only || post.proUserOnly || post.postMeta?.proUserOnly || false}
       actionText="Xem thêm"
     />
   );

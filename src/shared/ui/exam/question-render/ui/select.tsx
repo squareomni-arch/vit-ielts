@@ -286,7 +286,7 @@ export const Select = ({
                           size="small"
                           placeholder="--"
                           style={{ minWidth: 120 }}
-                          className={readOnly ? (isUserCorrect ? "[&_.ant-select-selector]:bg-[#d9ead3] [&_.ant-select-selector]:!text-green-600" : (userDidAnswer ? "[&_.ant-select-selector]:bg-[#d3e3fd] [&_.ant-select-selector]:!text-red-500" : "")) : ""}
+                          className={readOnly ? (isUserCorrect ? "[&_.ant-select-selector]:bg-[#d9ead3] [&_.ant-select-selector]:!text-green-600" : (userDidAnswer ? "[&_.ant-select-selector]:bg-[#374151]/10 [&_.ant-select-selector]:!text-[#374151]" : "")) : ""}
                           options={(subQ.options || [])
                             .map((o, i) => ({
                               label: parse(o.content || ""),
@@ -312,7 +312,7 @@ export const Select = ({
                            {isUserCorrect ? (
                              <span className="material-symbols-rounded text-green-600 text-lg">check_circle</span>
                            ) : userDidAnswer ? (
-                             <span className="material-symbols-rounded text-red-600 text-lg">cancel</span>
+                             <span className="material-symbols-rounded text-[#374151] text-lg">cancel</span>
                            ) : null}
                            {readOnly && !isUserCorrect && (
                              <span className="text-green-600 font-semibold ml-2">({subQ.options?.[correctAnswerIndex]?.content?.replace(/<[^>]+>/g, '')})</span>
@@ -338,7 +338,7 @@ export const Select = ({
                   Q.{realStartIndex + index + 1}
                 </span>
                 <span>Answer:</span>
-                <span className="text-red-500 font-semibold">
+                <span className="text-[#374151] font-semibold opacity-80">
                   {questionData.questions[index]?.answers?.join(", ")}
                 </span>
               </p>

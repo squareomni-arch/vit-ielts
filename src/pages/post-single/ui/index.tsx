@@ -149,7 +149,7 @@ export const PageSingle = ({ post }: { post: IPost }) => {
                 <div
                   className="text-sm md:text-base text-[#2D3142] leading-relaxed prose prose-sm md:prose-base max-w-none prose-p:!mb-2"
                   dangerouslySetInnerHTML={{ __html: post.content }}
-                ></div>
+                />
               </div>
               <div className="p-4">
                 <SharePost />
@@ -157,9 +157,9 @@ export const PageSingle = ({ post }: { post: IPost }) => {
             </div>
 
             {/* Right Column: Related items */}
-            <div className="w-full lg:w-[280px] shrink-0 space-y-8 relative z-10">
+            <aside className="w-full lg:w-[280px] shrink-0 space-y-8 relative z-10">
               <RelatedPost post={post} />
-            </div>
+            </aside>
           </div>
         </Container>
 

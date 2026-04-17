@@ -1,6 +1,7 @@
 // file: src/shared/lib/calculateScore/index.ts
 
 import { IPracticeSingle, IQuestion } from "@/pages/test-result/api"; // Đảm bảo đường dẫn import đúng
+import { roundIELTSScore } from "../ielts-round";
 
 // Định nghĩa kiểu dữ liệu cho câu trả lời của người dùng
 type AnswerType = string | number | number[] | object | null | undefined;
@@ -557,7 +558,7 @@ export const calculateScore = (
   }); // Kết thúc lặp qua passages
 
   const scoreValue = totalQuestions > 0 ? (correctCount / totalQuestions) * 9 : 0;
-  const roundedScore = (Math.round(scoreValue * 2) / 2).toFixed(1);
+  const roundedScore = roundIELTSScore(scoreValue).toFixed(1);
   const missedCount = totalQuestions - correctCount - incorrectCount;
 
 

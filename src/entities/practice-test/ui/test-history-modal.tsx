@@ -4,7 +4,13 @@ import { createClient } from "~supabase/client";
 import { useAuth } from "@/appx/providers";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
-import { calculateScore } from "@/shared/lib";
+import {
+  calculateStoredScoreResult,
+  formatResultLabel,
+  getQuizType,
+  getResultToneClassName,
+  toLegacyQuizForScore,
+} from "@/shared/lib";
 import Link from "next/link";
 import { ROUTES } from "@/shared/routes";
 
@@ -33,7 +39,11 @@ export const TestHistoryModal = ({ isOpen, onClose, quizId, title }: TestHistory
   const { currentUser } = useAuth();
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [quizData, setQuizData] = useState<any>(null);
+  const [quizData, setQuizData] = useState<{
+    slug: string;
+    type: string | undefined;
+    scoreQuiz: ReturnType<typeof toLegacyQuizForScore>;
+  } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
 
@@ -65,14 +75,21 @@ export const TestHistoryModal = ({ isOpen, onClose, quizId, title }: TestHistory
         // Fetch quiz for scoring details & slug
         const { data: quizRes, error: quizErr } = await supabase
           .from("quizzes")
-          .select("id, title, slug, skill, type, time_minutes, passages(*, questions(*))")
+          .select("id, title, slug, skill, type, status, time_minutes, passages(*, questions(*))")
           .eq("id", quizId)
           .single();
           
         if (quizErr) {
           console.error("Failed to fetch quiz for scoring", quizErr);
-        } else if (quizRes) {
-          setQuizData(quizRes);
+        } else if (quizRes && quizRes.status === "published") {
+          setQuizData({
+            slug: quizRes.slug,
+            type: getQuizType(quizRes.type),
+            scoreQuiz: toLegacyQuizForScore(quizRes),
+          });
+        } else {
+          setHistory([]);
+          setQuizData(null);
         }
       } catch (err) {
         console.error("Failed to fetch practice history", err);
@@ -150,52 +167,37 @@ export const TestHistoryModal = ({ isOpen, onClose, quizId, title }: TestHistory
                       const dateToCheck = item.submitted_at || item.created_at;
                       const dayDisplay = dayjs(dateToCheck).format("DD/MM/YYYY");
                       const timeDisplay = dayjs(dateToCheck).format("HH:mm:ss");
-                      
-                      let correct = 0;
-                      let incorrect = 0;
-                      let missed = 0;
-                      let totalQuestions = 0;
-                      let score10 = 0;
-                      
-                      if (quizData && item.answers) {
-                        try {
-                          const parsedAnswers = Array.isArray(item.answers) ? item.answers : (item.answers.answers || []);
-                          const scoreResult = calculateScore(parsedAnswers, quizData, item.test_part || "all");
-                          correct = scoreResult?.correctAns ?? 0;
-                          incorrect = scoreResult?.incorrect ?? 0;
-                          missed = scoreResult?.missed ?? 0;
-                          
-                          totalQuestions = quizData.passages?.reduce((acc: number, passage: any) => 
-                            acc + (passage.questions?.reduce((qAcc: number, q: any) => qAcc + (q.explanations?.length || 0), 0) || 0)
-                          , 0) || 0;
-                          
-                          if (totalQuestions === 0) totalQuestions = correct + incorrect + missed;
-                          
-                          const total = correct + incorrect + missed;
-                          if (total > 0) score10 = (correct / total) * 10;
-                          
-                        } catch (e) {
-                          console.error("Score parse error", e);
-                        }
-                      }
+                      const scoreResult = quizData
+                        ? calculateStoredScoreResult({
+                            quiz: quizData.scoreQuiz,
+                            answers: item.answers,
+                            testPart: item.test_part,
+                          })
+                        : null;
+
+                      const correct = scoreResult?.correctAns ?? 0;
+                      const incorrect = scoreResult?.incorrect ?? 0;
+                      const missed = scoreResult?.missed ?? 0;
+                      const totalQuestions = scoreResult?.total_questions ?? 0;
                       
                       const timeSpent = item.time_left 
-                        ? calcTimeTaken(item.test_time || quizData?.time_minutes || 60, item.time_left) 
+                        ? calcTimeTaken(item.test_time || 60, item.time_left) 
                         : "0:00";
-                        
-                      const isMockTest = quizData?.type === 'exam' || quizData?.type === 'academic' || quizData?.type === 'general';
-                      let displayScoreOutput: string;
-                      let isPass: boolean;
 
-                      if (isMockTest) {
-                        const displayScoreStr = Number.isInteger(score10) ? score10.toString() : score10.toFixed(1);
-                        displayScoreOutput = `${displayScoreStr}/10`;
-                        isPass = score10 >= 5;
-                      } else {
-                        const total = correct + incorrect + missed;
-                        displayScoreOutput = `${correct}/${total}`;
-                        isPass = total > 0 && correct / total >= 0.5;
-                      }
+                      const displayScoreOutput =
+                        formatResultLabel({
+                          quizType: quizData?.type,
+                          storedScore: item.score,
+                          scoreResult,
+                          answers: item.answers,
+                        }) ?? "—";
+                      const resultToneClassName =
+                        displayScoreOutput === "—"
+                          ? "text-gray-400"
+                          : getResultToneClassName(quizData?.type);
+                      const takenIndex =
+                        history.length -
+                        ((currentPage - 1) * pageSize + idx);
 
                       return (
                         <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
@@ -207,13 +209,13 @@ export const TestHistoryModal = ({ isOpen, onClose, quizId, title }: TestHistory
                             </div>
                           </td>
                           <td className="py-4 px-4 text-center font-semibold text-[#2D3142]">{timeSpent}</td>
-                          <td className="py-4 px-4 text-center font-semibold text-[#2D3142]">{history.length - idx}</td>
+                          <td className="py-4 px-4 text-center font-semibold text-[#2D3142]">{takenIndex}</td>
                           <td className="py-4 px-4 text-center font-semibold text-[#2D3142]">{totalQuestions}</td>
                           <td className="py-4 px-4 text-center font-semibold text-[#2D3142]">{correct}</td>
                           <td className="py-4 px-4 text-center font-semibold text-[#2D3142]">{incorrect}</td>
                           <td className="py-4 px-4 text-center font-semibold text-[#2D3142]">{missed}</td>
                           <td className="py-4 px-4 text-center">
-                            <span className={`font-bold ${isPass ? "text-[#1B8C40]" : "text-[#D94A56]"}`}>
+                            <span className={`font-bold ${resultToneClassName}`}>
                               {displayScoreOutput}
                             </span>
                           </td>

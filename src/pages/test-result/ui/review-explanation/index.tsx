@@ -137,7 +137,7 @@ function ReviewHeader({
       <header className="py-2 bg-white shadow z-20 mb-[20px] px-[16px] shrink-0">
         <Container className="max-w-none">
           <div className="flex items-center">
-            <div className="md:w-1/2">
+            <div className="md:w-1/3">
               <div className="flex">
                 <div className="h-full md:h-12 aspect-[750/449] relative duration-300">
                   <Link href="/">
@@ -152,7 +152,7 @@ function ReviewHeader({
                   </Link>
                 </div>
                 <div className="title-wrap ml-[15px]">
-                  <h2 className="font-bold text-base">{quiz.title}</h2>
+                  <h2 className="font-bold text-base line-clamp-1">{quiz.title}</h2>
                   <div className="flex items-center">
                     <span className="font-medium text-sm text-gray-500">Review Mode</span>
                   </div>
@@ -160,8 +160,46 @@ function ReviewHeader({
               </div>
             </div>
 
-            <div className="w-1/2">
-              <div className="flex items-center justify-end space-x-8">
+            <div className="md:w-2/3">
+              <div className="flex items-center justify-end md:gap-4 gap-2">
+                <div className="flex items-center gap-3 md:gap-6">
+                  <Link
+                    href={(() => {
+                      const skill = quiz.quizFields.skill?.[0];
+                      const type = quiz.quizFields.type?.[0];
+                      if (type === "prediction") return ROUTES.PREDICTION.ARCHIVE;
+                      if (type === "exam") return ROUTES.EXAM.ARCHIVE;
+                      if (skill === "reading") return ROUTES.PRACTICE.ARCHIVE_READING;
+                      if (skill === "listening") return ROUTES.PRACTICE.ARCHIVE_LISTENING;
+                      return ROUTES.HOME;
+                    })()}
+                    className="flex flex-col md:flex-row items-center gap-1 text-[#222] hover:text-[#d94a56] font-medium transition-colors"
+                  >
+                    <span className="material-symbols-rounded !font-bold !block text-[20px] md:text-[24px]">
+                      arrow_back
+                    </span>
+                    <span className="hidden lg:inline text-sm whitespace-nowrap">
+                      Quay lại
+                    </span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.location.href = `${ROUTES.TAKE_THE_TEST(quiz.slug)}?retake=true`;
+                    }}
+                    className="flex flex-col md:flex-row items-center gap-1 text-[#222] hover:text-[#d94a56] font-medium transition-colors"
+                  >
+                    <span className="material-symbols-rounded !font-bold !block text-[20px] md:text-[24px]">
+                      refresh
+                    </span>
+                    <span className="hidden lg:inline text-sm whitespace-nowrap">
+                      Làm lại
+                    </span>
+                  </button>
+                </div>
+
+                <div className="w-[1px] h-[24px] bg-gray-300 hidden md:block mx-2"></div>
                 <Image
                   width={28}
                   height={24}
@@ -195,9 +233,12 @@ function ReviewHeader({
 
                 <Link
                   href={ROUTES.TEST_RESULT(testResult.id)}
-                  className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                  className="hidden md:flex items-center justify-center w-10 h-10 rounded-full text-[#222] hover:bg-gray-100 transition-all"
+                  title="Tiếp tục"
                 >
-                  <span className="material-symbols-rounded text-[20px]">arrow_back</span>
+                  <span className="material-symbols-rounded text-[26px]">
+                    arrow_forward
+                  </span>
                 </Link>
               </div>
             </div>
@@ -584,7 +625,7 @@ function ReviewExplanation({
       );
     }
     return (
-      <div className="mb-[-15px] flex flex-row gap-2 leading-[20px] border text-center border-dashed border-red-500 bg-red-50 text-red-700 p-2 py-[1px] rounded-md prose prose-sm max-w-none">
+      <div className="mb-[-15px] flex flex-row gap-2 leading-[20px] border text-center border-dashed border-[#374151] bg-[#374151]/5 text-[#374151] p-2 py-[1px] rounded-md prose prose-sm max-w-none">
         <div className="line-through">
           <TextSelectionWrapper>
             {normalizeParseResult(parse(cleanedUserAnswer))}
@@ -649,23 +690,23 @@ function ReviewExplanation({
               let icon = null;
 
               if (isUserSelected) {
-                if (isCorrectOption) {
-                  rowBgClass = "bg-green-100 text-green-600";
-                  rowBorderClass = "border-green-300";
-                  icon = (
-                    <span className="material-symbols-rounded text-green-600 ml-auto">
-                      check_circle
-                    </span>
-                  );
-                } else {
-                  rowBgClass = "rounded bg-[#d3e3fd] text-red-500";
-                  rowBorderClass = "border-red-300";
-                  icon = (
-                    <span className="material-symbols-rounded text-red-600 ml-auto">
-                      cancel
-                    </span>
-                  );
-                }
+                  if (isCorrectOption) {
+                    rowBgClass = "bg-green-100 text-green-600";
+                    rowBorderClass = "border-green-300";
+                    icon = (
+                      <span className="material-symbols-rounded text-green-600 ml-auto">
+                        check_circle
+                      </span>
+                    );
+                  } else {
+                    rowBgClass = "rounded bg-[#374151]/10 text-[#374151]";
+                    rowBorderClass = "border-[#374151]/30";
+                    icon = (
+                      <span className="material-symbols-rounded text-[#374151] ml-auto">
+                        cancel
+                      </span>
+                    );
+                  }
               } else {
                 if (isCorrectOption) {
                   textClass = "text-green-600";

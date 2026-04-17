@@ -8,7 +8,7 @@ export type TestCardWithScoreProps = TestCardProps & {
 };
 
 export const TestCardWithScore = ({ quizId, title, score, ...props }: TestCardWithScoreProps) => {
-  const { score: latestScore } = useLatestTestScore(quizId);
+  const { score: latestScore, scoreClassName } = useLatestTestScore(quizId);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   return (
@@ -17,7 +17,8 @@ export const TestCardWithScore = ({ quizId, title, score, ...props }: TestCardWi
         {...props} 
         title={title}
         score={latestScore} 
-        onScoreClick={() => setIsModalOpen(true)}
+        scoreClassName={scoreClassName}
+        onScoreClick={latestScore !== undefined ? () => setIsModalOpen(true) : undefined}
       />
       <TestHistoryModal
         isOpen={isModalOpen}

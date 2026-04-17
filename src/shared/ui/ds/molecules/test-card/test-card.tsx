@@ -1,4 +1,3 @@
-import { Badge } from '../../atoms/badge';
 import { PartTag } from '../../atoms/part-tag';
 import { ProBadge } from '../../../pro-badge';
 import { resolveContentImage, useContentImageFallback } from '@/shared/lib/content-image';
@@ -17,6 +16,7 @@ export type TestCardProps = {
   isPro?: boolean;
   isLocked?: boolean;
   score?: string | number;
+  scoreClassName?: string;
   actionText?: string;
   href?: string;
   onClick?: (e: React.MouseEvent) => void;
@@ -40,6 +40,7 @@ export const TestCard = ({
   isPro,
   isLocked,
   score,
+  scoreClassName,
   actionText = "Làm bài", // default action
   href,
   onClick,
@@ -82,9 +83,7 @@ export const TestCard = ({
             )}
           </div>
           {isPro && (
-            <span className="rounded-[8px] bg-primary-500 px-3 py-[6px] text-[13px] font-bold uppercase tracking-wide text-white shadow-sm">
-              PRO
-            </span>
+            <ProBadge className="shadow-sm border border-white/20" />
           )}
         </div>
       </div>
@@ -129,7 +128,7 @@ export const TestCard = ({
             )}
 
             {score !== undefined && (
-              <div 
+              <div
                 className={`flex h-[60px] w-[60px] flex-col items-center justify-center p-[10px] rounded-full border border-[rgba(128,128,128,0.55)] bg-white flex-shrink-0 ${onScoreClick ? 'cursor-pointer hover:border-primary-500 hover:text-primary-500 transition-colors' : ''}`}
                 onClick={(e) => {
                   if (onScoreClick) {
@@ -139,7 +138,9 @@ export const TestCard = ({
                   }
                 }}
               >
-                <span className="text-primary-500 font-['Noto_Sans'] text-[18px] font-bold leading-none">{score}</span>
+                <span className={`${scoreClassName ?? "text-primary-500"} font-['Noto_Sans'] text-[18px] font-bold leading-none`}>
+                  {score}
+                </span>
               </div>
             )}
           </div>

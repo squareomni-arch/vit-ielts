@@ -1,30 +1,36 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import formidable from "formidable";
 import fs from "fs";
-import path from "path";
 import { requireAdmin } from "~lib/admin-auth";
-import { supabaseAdmin } from "~lib/supabase/admin";
+import { uploadToVPS } from "~lib/vps-upload";
 import { dbg } from "~lib/debug";
 
 const log = dbg.upload;
 
-// Disable body parser for file upload
+// Disable Next.js body parser — formidable handles the stream
 export const config = {
   api: {
     bodyParser: false,
   },
 };
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB for audio files
-const BUCKET_NAME = "quiz-assets";
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 
-function getFileCategory(mimeType: string): string | null {
-  if (mimeType.startsWith("image/")) return "image";
-  if (mimeType.startsWith("audio/")) return "audio";
-  if (mimeType === "application/pdf") return "pdf";
-  return null;
-}
+const ACCEPTED_MIME: Record<string, true> = {
+  "image/jpeg": true, "image/png": true, "image/webp": true, "image/gif": true,
+  "audio/mpeg": true, "audio/mp4": true, "audio/ogg": true,
+  "audio/wav":  true, "audio/webm": true, "audio/aac": true,
+  "application/pdf": true,
+};
 
+/**
+ * POST /api/admin/upload
+ *
+ * Accepts image / audio / PDF, forwards to VPS CMS via PHP endpoint,
+ * and returns the public URL. Supabase stores the URL only.
+ *
+ * Response: { success: true, data: { url, filename, size, mimeType, category } }
+ */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -37,97 +43,51 @@ export default async function handler(
     const user = await requireAdmin(req, res);
     if (!user) return;
 
-    // Parse multipart form
-    const form = formidable({
-      maxFileSize: MAX_FILE_SIZE,
-      keepExtensions: true,
-    });
+    const form = formidable({ maxFileSize: MAX_FILE_SIZE, keepExtensions: true });
+    const [, files] = await form.parse(req);
 
-    const [fields, files] = await form.parse(req);
+    const uploaded = Array.isArray(files.file) ? files.file : [files.file];
+    const file = uploaded[0];
 
-    const uploadedFiles = Array.isArray(files.file) ? files.file : [files.file];
-    if (!uploadedFiles[0]) {
+    if (!file) {
       return res.status(400).json({ success: false, error: "Không có file được upload" });
     }
 
-    const file = uploadedFiles[0];
-    const mimeType = file.mimetype || "";
-
-    const category = getFileCategory(mimeType);
-
-    // Validate mime type
-    if (!category) {
-      return res.status(400).json({
+    const mimeType = file.mimetype ?? "";
+    if (!ACCEPTED_MIME[mimeType]) {
+      return res.status(415).json({
         success: false,
-        error: `File type "${mimeType}" không được hỗ trợ. Chỉ chấp nhận: images, audio, PDF`,
+        error: `Loại file "${mimeType}" không được hỗ trợ. Chỉ chấp nhận: ảnh, audio, PDF`,
       });
     }
 
-    const timestamp = Date.now();
-    const originalName = file.originalFilename || "file";
-    const ext = path.extname(originalName);
-    const baseName = path.basename(originalName, ext).replace(/[^a-z0-9]/gi, "-");
-    const storagePath = `${category}/${baseName}-${timestamp}${ext}`;
+    const originalName = file.originalFilename ?? "file";
+    log("Uploading to VPS:", { filename: originalName, mimetype: mimeType, size: file.size });
 
-    log("Processing upload:", {
-      filename: originalName,
-      mimetype: mimeType,
-      size: file.size,
-      category,
-      storagePath,
-    });
-
-    // Read file buffer
+    // Read buffer then clean up temp file immediately
     const fileBuffer = fs.readFileSync(file.filepath);
+    try { fs.unlinkSync(file.filepath); } catch { /* ignore */ }
 
-    // Upload to Supabase Storage
-    const { data, error: uploadError } = await supabaseAdmin.storage
-      .from(BUCKET_NAME)
-      .upload(storagePath, fileBuffer, {
-        contentType: mimeType,
-        upsert: false,
-      });
+    // Forward to VPS — database receives only the URL
+    const result = await uploadToVPS(fileBuffer, originalName, mimeType);
 
-    // Clean up temp file
-    try {
-      fs.unlinkSync(file.filepath);
-    } catch {
-      // ignore cleanup errors
-    }
-
-    if (uploadError) {
-      log.error("Supabase upload error:", uploadError);
-      return res.status(500).json({
-        success: false,
-        error: `Lỗi upload: ${uploadError.message}`,
-      });
-    }
-
-    // Get public URL
-    const { data: urlData } = supabaseAdmin.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(data.path);
-
-    log("Upload successful:", urlData.publicUrl);
+    log("VPS upload success:", result.url);
 
     return res.status(200).json({
       success: true,
       data: {
-        url: urlData.publicUrl,
-        path: data.path,
+        url:      result.url,
         filename: originalName,
-        size: file.size,
+        size:     file.size,
         mimeType,
-        category,
+        category: result.category,
       },
     });
   } catch (error) {
-    log.error("Upload handler error:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
+    log.error("Upload error:", error);
     return res.status(500).json({
       success: false,
-      error: `Lỗi khi upload file: ${errorMessage}`,
+      error: `Lỗi khi upload file: ${error instanceof Error ? error.message : String(error)}`,
     });
   }
 }

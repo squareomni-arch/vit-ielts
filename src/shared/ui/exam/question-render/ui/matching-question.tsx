@@ -406,7 +406,7 @@ export function MatchingQuestion({
                       // 2. Incorrect: Red text (strikethrough) + Green text
                       content = (
                         <>
-                          <span className="text-red-500 line-through mr-1 font-bold">
+                          <span className="text-[#374151] line-through mr-1 font-bold opacity-70">
                             {userAnswerText}
                           </span>
                           <span className="text-green-700 font-bold">
@@ -414,15 +414,15 @@ export function MatchingQuestion({
                           </span>
                         </>
                       );
-                      boxClasses = "border-red-500 bg-red-50";
+                      boxClasses = "border-[#374151]/30 bg-[#374151]/5";
                     } else {
                       // 3. Missed: Gray text
                       content = (
-                        <span className="text-gray-500 font-bold">
+                        <span className="text-[#374151]/60 font-bold">
                           {correctAnswerText}
                         </span>
                       );
-                      boxClasses = "border-gray-200 bg-gray-50"; // Changed diff: Lighter border
+                      boxClasses = "border-[#374151]/20 bg-gray-50"; // Changed diff: Lighter border
                     }
 
                     // 4. Return component with dashed border AND BACKGROUND COLOR
