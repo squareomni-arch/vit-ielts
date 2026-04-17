@@ -57,8 +57,8 @@ export const PageSingle = ({ post }: { post: IPost }) => {
             <div className="flex items-center justify-between pt-[23px]">
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-3">
-                  <Avatar src={post.author?.node?.userData?.avatar?.node?.sourceUrl} fallback={post.author?.node?.name?.charAt(0) || "A"} size="sm" />
-                  <span className="text-sm font-medium text-[#2D3142]">{post.author?.node?.name || "Administrator"}</span>
+                  <Avatar src={(post as any).author?.node?.userData?.avatar?.node?.sourceUrl} size="sm" />
+                  <span className="text-sm font-medium text-[#2D3142]">{(post as any).author?.node?.name || "Administrator"}</span>
                 </div>
                 <div className="text-sm font-medium text-[#6A7282]">{post.date ? new Date(post.date).toLocaleDateString("vi-VN") : "14/12/2025"}</div>
               </div>
@@ -164,7 +164,7 @@ export const PageSingle = ({ post }: { post: IPost }) => {
         </Container>
 
         {/* === SECTION: Similar Posts === */}
-        <SimilarPostsSection currentPostId={post.id} categories={post.categories || []} />
+        <SimilarPostsSection currentPostId={post.id} categories={post.categories as any} />
       </div>
     </>
   );

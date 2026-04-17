@@ -1420,8 +1420,8 @@ function ReviewExplanation({
       const allParents = document.querySelectorAll('.plyr, .plyr__controls, .plyr__controls__item');
       allParents.forEach((parent: any) => {
         if (parent) {
-          const computetyle = window.getComputetyle(parent);
-          if (computetyle.overflow === 'hidden' || computetyle.overflowY === 'hidden' || computetyle.overflowX === 'hidden') {
+          const computedStyle = window.getComputedStyle(parent);
+          if (computedStyle.overflow === 'hidden' || computedStyle.overflowY === 'hidden' || computedStyle.overflowX === 'hidden') {
             parent.style.overflow = 'visible';
             parent.style.overflowY = 'visible';
             parent.style.overflowX = 'visible';
@@ -1433,8 +1433,8 @@ function ReviewExplanation({
       const splitterPanels = document.querySelectorAll('.ant-split-panel');
       splitterPanels.forEach((panel: any) => {
         if (panel && panel.querySelector('.plyr')) {
-          const computetyle = window.getComputetyle(panel);
-          if (computetyle.overflow === 'hidden' || computetyle.overflowY === 'hidden') {
+          const computedStyle = window.getComputedStyle(panel);
+          if (computedStyle.overflow === 'hidden' || computedStyle.overflowY === 'hidden') {
             panel.style.overflow = 'visible';
             panel.style.overflowY = 'visible';
           }
@@ -1442,8 +1442,8 @@ function ReviewExplanation({
           const panelChildren = panel.querySelectorAll('*');
           panelChildren.forEach((child: any) => {
             if (child && child !== panel.querySelector('.plyr') && !child.closest('.plyr')) {
-              const chiltyle = window.getComputetyle(child);
-              if (chiltyle.overflow === 'hidden' && child !== panel.querySelector('.plyr__menu')) {
+              const childStyle = window.getComputedStyle(child);
+              if (childStyle.overflow === 'hidden' && child !== panel.querySelector('.plyr__menu')) {
                 // Chỉ fix nếu không phải là explanations scrollable area
                 if (!child.classList.contains('ex-right') && !child.closest('.ex-right')) {
                   // Không làm gì, giữ nguyên overflow cho explanations
@@ -1457,8 +1457,8 @@ function ReviewExplanation({
       // Fix Splitter container
       const splitter = document.querySelector('.ant-split') as HTMLElement;
       if (splitter) {
-        const computetyle = window.getComputetyle(splitter);
-        if (computetyle.overflow === 'hidden') {
+        const computedStyle = window.getComputedStyle(splitter);
+        if (computedStyle.overflow === 'hidden') {
           splitter.style.overflow = 'visible';
         }
       }
@@ -1707,41 +1707,8 @@ function ReviewExplanation({
                                     );
                                   })}
                                 </div>
-      <div id="iel-test-result-explanation" className="flex flex-col h-full overflow-hidden">
-        {splitter}
-
-        {/* Full-width footer — identical to take-the-test footer (no submit button) */}
-        <footer className="shrink-0 bg-white flex items-center w-full p-[12px] pr-[0] pt-[0]">
-          <div className="flex justify-between items-center h-full flex-grow mr-[110px]">
-            {passages.map((passage: any, idx: number) => {
-              const isCurrent = idx === currentPassageIndex;
-              const info = passagesFooterInfo[idx] ?? { questions: [], total: 0, answered: 0 };
-              return (
-                <div
-                  key={idx}
-                  onClick={() => setCurrentPassageIndex(idx)}
-                  className="h-full flex items-center cursor-pointer w-full"
-                >
-                  {isCurrent ? (
-                    <div className="justify-center w-full">
-                      <div className="flex items-center gap-[5px] h-full">
-                        <div className="flex items-center border-t-[3px] border-gray-200 pt-2">
-                          <span className="font-semibold text-[16px] text-[#000] whitespace-nowrap pl-[20px] pr-[30px]">
-                            {passageLabel} {idx + 1}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 overflow-x-auto py-1">
-                          {info.questions.map((qi: number) => {
-                            const ans = mappedAnswers[qi];
-                            const isAnswered = ans !== null && ans !== undefined && String(ans).trim() !== "" && !(Array.isArray(ans) && ans.length === 0);
-                            return (
-                              <div key={qi} className="flex flex-col items-center gap-2 flex-shrink-0">
-                                <div className={twMerge("w-full h-[3px] rounded-sm", isAnswered ? "bg-green-500" : "bg-gray-200")} />
-                                <span className="text-[#000] p-1 pb-[2px] flex items-center leading-[16px]! justify-center text-[16px] border-2 border-transparent rounded">
-                                  {qi + 1}
-                                </span>
-                              </div>
-                            </div>
+                                  </div>
+                                </div>
                           ) : (
                             <div className="flex items-center gap-3 h-full w-full justify-center pt-[10px]">
                               <span className="pl-[20px] text-[16px] text-gray-700 whitespace-nowrap">

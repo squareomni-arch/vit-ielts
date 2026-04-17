@@ -1,8 +1,8 @@
 # Re-architecting the Question Creator UX
 
-Khảo sát trải nghiệm người dùng (Content Creator) khi nhập liệu đề thi IELTS cho thấy có một độ lệch lớn giữa **"Format câu hỏi IELTS"** (ví dụ: True/False/Not Given, Matching Headings) và **"Cấu trúc Technical Component"** (ví dụ: radio, fillup, matrix). 
+Khảo sát trải nghiệm người dùng (Content Creator) khi nhập liệu đề thi IELTS cho thấy có một độ lệch lớn giữa **"Format câu hỏi IELTS"** (ví dụ: True/False/Not Given, Matching Headings) và **"Cấu trúc Technical Component"** (ví dụ: radio, fillup, matrix).
 
-Việc bắt user phải tự suy luận: *"Để tạo bài True/False, tôi phải chọn Type = Radio, và Question Form = True_False_Not_Given"* là UX chưa hợp lý. 
+Việc bắt user phải tự suy luận: _"Để tạo bài True/False, tôi phải chọn Type = Radio, và Question Form = True_False_Not_Given"_ là UX chưa hợp lý.
 
 Mục tiêu của kế hoạch này là **chuyển đổi quy trình tạo câu hỏi sang hướng Template-Driven (Dựa trên mẫu)**, giúp user thao tác "thuận lợi, dễ dàng và nhanh chóng".
 
@@ -19,33 +19,39 @@ Mục tiêu của kế hoạch này là **chuyển đổi quy trình tạo câu 
 ## Proposed Changes
 
 ### 1. Template-Driven Selection (Smart Picker)
+
 Thay vì hai dropdown kỹ thuật khô khan, cung cấp một **Visual Menu / Card Grid** cho user ngay khi họ bấm "Add Question".
 User sẽ chọn trực tiếp các Format chuẩn của IELTS:
+
 - **Multiple Choice** (Tương đương: `radio` / `checkbox`)
 - **True / False / Not Given** (Tương đương: `radio`)
 - **Matching Headings** (Tương đương: `matching` layout heading)
 - **Summary Completion** (Tương đương: `fillup`)
 - **Map / Diagram Labeling** (Tương đương: `select` / `fillup`)
 
-*Sau khi click, hệ thống tự động thiết lập `type` và UI Editor tương ứng.*
+_Sau khi click, hệ thống tự động thiết lập `type` và UI Editor tương ứng._
 
 ### 2. Hợp nhất Tabs thành Single-View Focus
+
 Modal hiện tại có 3 tabs (Question, Explanation, Preview). UX mới sẽ:
+
 - **Instructions:** Nằm cố định ở đầu.
 - **Detailed Editor:** Editor nhập nội dung câu hỏi/đáp án.
-- **Inline Explanations:** Di chuyển phần nhập "Giải thích" (Explanation) gắn liền vào từng tuỳ chọn đáp án (Ví dụ: Kế bên textbox nhập Option A sẽ có một nút `[+] Thêm giải thích`). 
+- **Inline Explanations:** Di chuyển phần nhập "Giải thích" (Explanation) gắn liền vào từng tuỳ chọn đáp án (Ví dụ: Kế bên textbox nhập Option A sẽ có một nút `[+] Thêm giải thích`).
 - **Live Preview:** Nếu màn hình đủ rộng, Preview sẽ nằm ở nửa bên phải (Split-pane) thay vì phải nhảy tab.
 
 ### 3. Tối ưu hoá từng Editor UI
 
 #### [MODIFY] `src/features/admin-quiz/editors/RadioSelectEditor.tsx`
-- Bổ sung nút bấm nhỏ `Add Explanation` bên cạnh mỗi option.
+
 - Tự động sinh sẵn 3 options phổ biến (True, False, Not Given) nếu user chọn template T/F/NG.
 
 #### [MODIFY] `src/features/admin-quiz/editors/FillupEditor.tsx`
+
 - Tích hợp Inline Explanation: Bấm vào một `{word}` đã được parse ra ở dưới (green badge), sẽ hiện một popup/popover nhỏ để nhập giải thích luôn cho khoảng trống đó.
 
 #### [MODIFY] `src/features/admin-quiz/QuestionModal.tsx`
+
 - Thay thế toàn bộ phần header (Title, Type, Form) thành một tiêu đề thông minh sinh ra từ Template (Ví dụ: `Title` tự gen là "Question 1-5" tuỳ thuộc độ dài mảng list_of_questions).
 - Bố cục lại Layout.
 

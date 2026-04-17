@@ -199,7 +199,7 @@ export const QuizListing = ({ skill }: { skill: "listening" | "reading" }) => {
           const total = scoreResult?.total_questions ?? 0;
 
           const quizType = record.testResultFields.quiz.node.quizFields.type?.[0] || 'practice';
-          const isExam = quizType === 'exam' || quizType === 'academic' || quizType === 'general';
+          const isExam = quizType === 'academic' || quizType === 'general';
 
           if (total === 0) return <span className="font-medium text-gray-400">—</span>;
 
@@ -231,7 +231,7 @@ export const QuizListing = ({ skill }: { skill: "listening" | "reading" }) => {
     ];
 
   // Filter để chỉ hiển thị bài làm trong 60 ngày gần nhất và paginate client-side
-  const { filteredDataSource, paginatedDataSource } = useMemo(() => {
+  const { filteredDataSource } = useMemo(() => {
     if (data) {
       const sixtyDaysAgo = dayjs().subtract(60, "days").unix();
       const filtered = data.testResults.edges

@@ -763,14 +763,7 @@ export default function ExamLibraryPage() {
             {/* Standalone Mock Tests */}
             {standaloneMockTests.length > 0 && (
                 <AdminGlassCard
-                    title={
-                        <span>
-                            Mock Tests chưa gán vào Collection{" "}
-                            <Tag color="orange" style={{ fontWeight: 400 }}>
-                                {standaloneMockTests.length}
-                            </Tag>
-                        </span>
-                    }
+                    title={`Mock Tests chưa gán vào Collection (${standaloneMockTests.length})`}
                     style={{ marginTop: 16 }}
                 >
                     <Table
