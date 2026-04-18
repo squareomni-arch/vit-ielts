@@ -46,7 +46,12 @@ export function PageIELTSPredictionSingle({ post }: { post: IPracticeSingle }) {
 
   return (
     <>
-      <SEOHeader fullHead={post.seo?.fullHead} title={post.seo?.title} />
+      <SEOHeader
+        fullHead={post.seo?.fullHead}
+        title={post.seo?.title}
+        description={post.excerpt}
+        image={post.featuredImage?.node.sourceUrl}
+      />
 
       <div className="min-h-screen pb-20 bg-white relative px-4 sm:px-6">
         {/* Background Grid - Only in Hero Area */}

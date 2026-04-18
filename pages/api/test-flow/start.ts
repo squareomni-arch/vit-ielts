@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createApiSupabase } from "~supabase/server";
+import { createApiSupabase, createAdminApiSupabase } from "~supabase/server";
 import { takeTheTest } from "~services/test-flow";
 import { StartTestSchema } from "~services/lib/validation";
 import { rateLimit } from "~lib/rate-limit";
@@ -28,7 +28,17 @@ export default async function handler(
   if (await rateLimit(req, res, { windowMs: 60_000, max: 30, keyPrefix: "test-start" })) return;
 
   try {
-    const supabase = createApiSupabase(req, res);
+    let supabase = createApiSupabase(req, res);
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // Fallback to admin session if no regular user (for preview mode)
+    if (!user) {
+      const adminSupabase = createAdminApiSupabase(req, res);
+      const { data: { user: adminUser } } = await adminSupabase.auth.getUser();
+      if (adminUser) {
+        supabase = adminSupabase;
+      }
+    }
 
     const parsed = StartTestSchema.safeParse(req.body);
     if (!parsed.success) {

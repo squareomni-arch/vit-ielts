@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Input, Space, Button, Divider, Popover, Select } from "antd";
+import { Input, Space, Button, Divider, Popover, Select, Form } from "antd";
 import { PlusOutlined, DeleteOutlined, CommentOutlined } from "@ant-design/icons";
 
 type MatrixCategory = { categoryLetter: string; categoryText: string };
@@ -16,6 +16,11 @@ type MatrixEditorProps = {
     data: MatrixData;
     onChange: (v: MatrixData) => void;
 };
+
+const MATRIX_LAYOUTS = [
+    { value: "standard", label: "Standard (table với categories nằm ngang)" },
+    { value: "simple", label: "Simple (danh sách đơn giản)" },
+];
 
 export default function MatrixEditor({ data, onChange }: MatrixEditorProps) {
     const [openExpIdx, setOpenExpIdx] = useState<number | null>(null);
@@ -42,8 +47,27 @@ export default function MatrixEditor({ data, onChange }: MatrixEditorProps) {
 
     return (
         <div className="space-y-4">
+            {/* Layout type + Legend title */}
+            <div className="flex gap-4 flex-wrap">
+                <Form.Item label="Layout Type" className="mb-0">
+                    <Select
+                        value={data.layoutType ?? "standard"}
+                        onChange={(v) => update("layoutType", v)}
+                        options={MATRIX_LAYOUTS}
+                        style={{ width: 320 }}
+                    />
+                </Form.Item>
+                <Form.Item label="Legend Title (optional)" className="mb-0 flex-1">
+                    <Input
+                        placeholder='E.g. "Which writer mentions the following?"'
+                        value={data.legendTitle ?? ""}
+                        onChange={(e) => update("legendTitle", e.target.value)}
+                    />
+                </Form.Item>
+            </div>
+
             <Divider orientation="left" plain className="!my-2">
-                Categories (e.g. A = Yes, B = No)
+                Categories (e.g. A = Writer Jones, B = Writer Smith)
             </Divider>
 
             <div className="space-y-2">
@@ -58,12 +82,12 @@ export default function MatrixEditor({ data, onChange }: MatrixEditorProps) {
                             style={{ width: 70 }}
                         />
                         <Input
-                            placeholder="Category label (e.g. Yes, True, Section A)"
+                            placeholder="Category label (e.g. Yes, True, Writer Jones)"
                             value={cat.categoryText}
                             onChange={(e) =>
                                 updateCategory(idx, { categoryText: e.target.value })
                             }
-                            style={{ width: 280 }}
+                            style={{ width: 300 }}
                         />
                         <Button
                             size="small"
@@ -125,7 +149,8 @@ export default function MatrixEditor({ data, onChange }: MatrixEditorProps) {
                                 updateItem(idx, { correctCategoryLetter: v })
                             }
                             options={categoryOptions}
-                            style={{ width: 180 }}
+                            style={{ width: 200 }}
+                            notFoundContent="Thêm Categories trước"
                         />
                         <Popover
                             open={openExpIdx === idx}
@@ -144,12 +169,6 @@ export default function MatrixEditor({ data, onChange }: MatrixEditorProps) {
                                 />
                             }
                         >
-                            <Button
-                                size="small"
-                                icon={<CommentOutlined />}
-                                type={item.explanation ? "primary" : "default"}
-                                title="Explanation"
-                            />
                         </Popover>
                         <Button
                             size="small"

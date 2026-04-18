@@ -19,6 +19,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isAdminRole } from "~lib/parseRoles";
 import type {
     TestResult,
     PaginatedResponse,
@@ -174,14 +175,17 @@ export async function takeTheTest(
     if (quiz.pro_user_only) {
         const { data: profile } = await supabase
             .from("users")
-            .select("is_pro, pro_expiration_date, pro_skills")
+            .select("is_pro, pro_expiration_date, pro_skills, roles")
             .eq("id", userId)
             .single();
 
-        const isPro =
+        const isAdmin = isAdminRole(profile?.roles);
+        
+        const isPro = isAdmin || (
             profile?.is_pro &&
             profile.pro_expiration_date &&
-            new Date(profile.pro_expiration_date) > new Date();
+            new Date(profile.pro_expiration_date) > new Date()
+        );
 
         if (!isPro) {
             throw new ProAccessError();
@@ -190,9 +194,10 @@ export async function takeTheTest(
         // Skill-level check: pro_skills = null means all skills (combo)
         // If pro_skills is an array, user must have access to this quiz's skill
         if (
-            profile.pro_skills !== null &&
-            Array.isArray(profile.pro_skills) &&
-            !profile.pro_skills.includes(quiz.skill)
+            !isAdmin &&
+            profile?.pro_skills !== null &&
+            Array.isArray(profile?.pro_skills) &&
+            !profile?.pro_skills.includes(quiz.skill)
         ) {
             throw new ProAccessError();
         }
@@ -415,6 +420,24 @@ export async function getUserTestHistory(
     const page = filters.page ?? 1;
     const pageSize = Math.min(filters.pageSize ?? 10, 100);
 
+    // PostgREST can't filter parent rows by embedded table conditions,
+    // so resolve published quiz IDs upfront and use .in() on the main query.
+    let publishedQuizzesQuery = supabase
+        .from("quizzes")
+        .select("id")
+        .eq("status", "published");
+
+    if (filters.skill) {
+        publishedQuizzesQuery = publishedQuizzesQuery.eq("skill", filters.skill) as typeof publishedQuizzesQuery;
+    }
+
+    const { data: matchingQuizzes } = await publishedQuizzesQuery;
+    const publishedQuizIds = (matchingQuizzes ?? []).map((q) => q.id);
+
+    if (publishedQuizIds.length === 0) {
+        return { data: [], count: 0, page, pageSize, totalPages: 0 };
+    }
+
     let query = supabase
         .from("test_results")
         .select(
@@ -425,26 +448,12 @@ export async function getUserTestHistory(
             { count: "exact" },
         )
         .eq("user_id", userId)
-        .eq("status", "published");
+        .eq("status", "published")
+        .in("quiz_id", publishedQuizIds);
 
     // Apply filters
     if (filters.quizId) {
         query = query.eq("quiz_id", filters.quizId);
-    }
-
-    // PostgREST .eq() on embedded resources doesn't filter parent rows,
-    // so we use a 2-step approach: get quiz IDs first, then filter.
-    if (filters.skill) {
-        const { data: matchingQuizzes } = await supabase
-            .from("quizzes")
-            .select("id")
-            .eq("skill", filters.skill);
-
-        const quizIds = (matchingQuizzes ?? []).map((q) => q.id);
-        if (quizIds.length === 0) {
-            return { data: [], count: 0, page, pageSize, totalPages: 0 };
-        }
-        query = query.in("quiz_id", quizIds);
     }
 
     if (filters.dateFrom) {

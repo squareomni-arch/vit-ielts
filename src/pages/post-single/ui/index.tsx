@@ -69,7 +69,12 @@ export const PageSingle = ({ post }: { post: IPost }) => {
 
   return (
     <>
-      <SEOHeader fullHead={post.seo?.fullHead} title={post.seo?.title} />
+      <SEOHeader
+        fullHead={post.seo?.fullHead}
+        title={post.seo?.title}
+        description={post.excerpt}
+        image={post.featuredImage?.node.sourceUrl}
+      />
       <div className="min-h-screen pb-20 bg-white relative px-4 sm:px-6">
         <div className="absolute inset-x-0 top-0 h-[380px] md:h-[420px] pointer-events-none z-0" style={{ backgroundImage: "linear-gradient(rgba(217,74,86,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(217,74,86,0.07) 1px, transparent 1px)", backgroundSize: "40px 40px", backgroundPosition: "center top" }} />
         <div className="absolute top-[380px] md:top-[420px] left-0 w-full h-[10px] bg-[#D94A56] z-0" />
@@ -147,17 +152,9 @@ export const PageSingle = ({ post }: { post: IPost }) => {
                       <span className="material-symbols-rounded text-lg! leading-none!">
                         visibility
                       </span>
-                      {post.categories?.edges?.map(({ node }, index) => (
-                        <Link
-                          href={node.link}
-                          key={index}
-                          className="block bg-gray-200 rounded-full font-extrabold text-gray-500 hover:text-red-800 duration-150"
-                        >
-                          <span className="px-3 py-1 block">{node.name}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
+                      <span>{parseInt(post.postFields.viewCount || '0').toLocaleString()}</span>
+                    </p>
+                  </div>
                 </div>
                 <div className="bg-white rounded-[24px] border border-[rgba(0,0,0,0.06)] p-6 md:p-8 mt-6 overflow-hidden">
                   <div

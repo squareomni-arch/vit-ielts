@@ -5,7 +5,6 @@ import RichTextEditor from "../RichTextEditor";
 type FillupEditorProps = {
     question_text: string;
     onChange: (v: string) => void;
-    // word-level explanations: keyed by word index (e.g. "0", "1", ...)
     wordExplanations?: Record<string, string>;
     onExplanationsChange?: (v: Record<string, string>) => void;
 };
@@ -43,27 +42,30 @@ export default function FillupEditor({
     return (
         <div className="space-y-4">
             <p className="px-4 py-3 bg-neutral-100 rounded border border-dashed border-gray-300 text-sm text-gray-600">
-                Use <code className="bg-gray-200 px-1 rounded">{"{"} {"}"}</code> brackets to mark fill-in-the-blank words.
-                Example: <em>The engine was <strong>{"{inefficient}"}</strong> due to its weight.</em>
+                Dùng <code className="bg-gray-200 px-1 rounded">{"{"} {"}"}</code> để đánh dấu chỗ trống và ghi đáp án đúng bên trong.{" "}
+                Ví dụ: <em>The engine was <strong>{"{inefficient}"}</strong> due to its weight.</em>
                 <br />
-                Multiple accepted spellings: <code className="bg-gray-200 px-1 rounded">{"{play | hate | love}"}</code>
+                Nhiều đáp án chấp nhận: <code className="bg-gray-200 px-1 rounded">{"{play | hate | love}"}</code>
             </p>
 
             <RichTextEditor
                 value={question_text}
                 onChange={onChange}
-                placeholder="Type passage / question content here. Wrap blanks in { }…"
+                placeholder="Nhập nội dung passage / câu hỏi. Bọc đáp án trong { }…"
             />
 
             {words.length > 0 && (
                 <div className="p-3 bg-neutral-50 rounded border border-dashed border-gray-300">
                     <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">
-                        Detected answers — click to add explanation
+                        {words.length} đáp án phát hiện
+                        {onExplanationsChange
+                            ? " — click để thêm giải thích"
+                            : ""}
                     </p>
                     <div className="flex flex-wrap gap-2">
                         {words.map((word, index) => {
                             const hasExp = !!wordExplanations?.[String(index)];
-                            return (
+                            return onExplanationsChange ? (
                                 <Popover
                                     key={index}
                                     open={openIdx === index}
@@ -102,6 +104,13 @@ export default function FillupEditor({
                                         )}
                                     </span>
                                 </Popover>
+                            ) : (
+                                <span
+                                    key={index}
+                                    className="px-2 py-1 rounded text-sm font-medium bg-green-100 text-green-800 border border-green-300"
+                                >
+                                    {word}
+                                </span>
                             );
                         })}
                     </div>

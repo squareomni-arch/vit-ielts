@@ -8,22 +8,27 @@ import { SEOHeader } from "@/widgets";
 import { decode } from "html-entities";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { IPracticeSingle } from "../api";
 import { PracticeHistoryWidget } from "./practice-history";
 import { normalizeSectionBadge } from "@/shared/lib/quiz-part";
 import { useState } from "react";
 
-export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
+export function PageIELTSPracticeSingle({ post, isPreview: isPreviewProp }: { post: IPracticeSingle; isPreview?: boolean }) {
   const { currentUser } = useAuth();
   const openProContentModal = useProContentModal((state) => state.open);
   const [copied, setCopied] = useState(false);
+  const { query } = useRouter();
+  const isPreview = isPreviewProp || query.preview === "true";
+  const previewSuffix = isPreview ? "?preview=true" : "";
 
-  const actionHref = currentUser
-    ? ROUTES.TAKE_THE_TEST(post.slug)
-    : ROUTES.LOGIN(ROUTES.TAKE_THE_TEST(post.slug));
+  // In preview mode, admin bypasses auth — go directly to take-the-test
+  const actionHref = (currentUser || isPreview)
+    ? ROUTES.TAKE_THE_TEST(post.slug) + previewSuffix
+    : ROUTES.LOGIN(ROUTES.TAKE_THE_TEST(post.slug) + previewSuffix);
 
   const requiresUpgrade =
-    post.quizFields.proUserOnly && !currentUser?.userData.isPro;
+    !isPreview && post.quizFields.proUserOnly && !currentUser?.userData.isPro;
 
   const handleStartPractice = (e: React.MouseEvent) => {
     if (requiresUpgrade) {
@@ -47,7 +52,12 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
 
   return (
     <>
-      <SEOHeader fullHead={post.seo?.fullHead} title={post.seo?.title} />
+      <SEOHeader
+        fullHead={post.seo?.fullHead}
+        title={post.seo?.title}
+        description={post.excerpt}
+        image={post.featuredImage?.node.sourceUrl}
+      />
 
       <div className="min-h-screen pb-20 bg-white relative px-4 sm:px-6">
         {/* Background Grid - Only in Hero Area */}
@@ -140,9 +150,9 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                     {capitalizedSkill} tests on the market.
                   </p>
                 </div>
-                
+
                 <div className="space-y-4 pt-4">
-                  <button 
+                  <button
                     className={`flex items-center gap-3 text-sm font-medium transition-colors cursor-pointer ${copied ? 'text-[#27AE60]' : 'text-[#6A7282] hover:text-[#D94A56]'}`}
                     onClick={() => {
                       const url = window.location.href;
@@ -178,14 +188,14 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
                     <span className="material-symbols-rounded text-lg">{copied ? 'check_circle' : 'content_copy'}</span>
                     {copied ? 'Đã copy!' : 'Copy link'}
                   </button>
-                  <button 
+                  <button
                     className="flex items-center gap-3 text-sm font-medium text-[#6A7282] hover:text-[#D94A56] transition-colors cursor-pointer"
                     onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
                   >
                     <span className="material-symbols-rounded text-lg">share</span>
                     Share
                   </button>
-                  
+
                   <div className="pt-2">
                     <Button
                       variant="primary"
@@ -304,38 +314,38 @@ export function PageIELTSPracticeSingle({ post }: { post: IPracticeSingle }) {
             <div className="w-full lg:w-[280px] shrink-0 relative z-10">
               <div className="sticky top-35 space-y-8">
                 {post.relatedPracticeQuizzes &&
-                post.relatedPracticeQuizzes.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="font-bold text-lg text-[#2D3142]">
-                      Có thể bạn quan tâm
-                    </h3>
-
+                  post.relatedPracticeQuizzes.length > 0 && (
                     <div className="space-y-4">
-                      {post.relatedPracticeQuizzes.slice(0, 6).map((rel, idx) => (
-                        <Link
-                          key={idx}
-                          href={ROUTES.PRACTICE.SINGLE(rel.slug)}
-                          className="flex gap-3 group items-center"
-                        >
-                          <div className="w-[100px] h-[65px] relative rounded-lg overflow-hidden shrink-0 border border-[rgba(0,0,0,0.06)] bg-[#FAF7EB]">
-                            {rel.featuredImage && (
-                              <Image
-                                src={rel.featuredImage}
-                                alt={rel.title}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform"
-                                unoptimized
-                              />
-                            )}
-                          </div>
-                          <h4 className="text-sm font-semibold text-[#2D3142] group-hover:text-primary-500 line-clamp-3 transition-colors">
-                            {rel.title}
-                          </h4>
-                        </Link>
-                      ))}
+                      <h3 className="font-bold text-lg text-[#2D3142]">
+                        Có thể bạn quan tâm
+                      </h3>
+
+                      <div className="space-y-4">
+                        {post.relatedPracticeQuizzes.slice(0, 6).map((rel, idx) => (
+                          <Link
+                            key={idx}
+                            href={ROUTES.PRACTICE.SINGLE(rel.slug)}
+                            className="flex gap-3 group items-center"
+                          >
+                            <div className="w-[100px] h-[65px] relative rounded-lg overflow-hidden shrink-0 border border-[rgba(0,0,0,0.06)] bg-[#FAF7EB]">
+                              {rel.featuredImage && (
+                                <Image
+                                  src={rel.featuredImage}
+                                  alt={rel.title}
+                                  fill
+                                  className="object-cover group-hover:scale-105 transition-transform"
+                                  unoptimized
+                                />
+                              )}
+                            </div>
+                            <h4 className="text-sm font-semibold text-[#2D3142] group-hover:text-primary-500 line-clamp-3 transition-colors">
+                              {rel.title}
+                            </h4>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             </div>
           </div>

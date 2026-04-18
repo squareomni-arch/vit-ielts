@@ -66,6 +66,45 @@ export async function getQuizBySlug(
 }
 
 /**
+ * Lấy quiz theo slug cho chế độ Preview (admin).
+ * Giống getQuizBySlug nhưng KHÔNG lọc theo status,
+ * cho phép xem quiz ở trạng thái draft.
+ *
+ * @param supabase - Supabase client instance
+ * @param slug - Quiz slug (unique)
+ * @returns Quiz with nested passages/questions hoặc null
+ */
+export async function getQuizBySlugPreview(
+    supabase: SupabaseClient,
+    slug: string
+): Promise<QuizWithPassages | null> {
+    const { data, error } = await supabase
+        .from("quizzes")
+        .select(`*, passages(*, questions(*))`)
+        .eq("slug", slug)
+        .single();
+
+    if (error) {
+        if (error.code === "PGRST116") return null; // Not found
+        throw error;
+    }
+
+    // Sort passages + questions by sort_order
+    if (data?.passages) {
+        data.passages.sort(
+            (a: Passage, b: Passage) => a.sort_order - b.sort_order
+        );
+        data.passages.forEach((p: PassageWithQuestions) =>
+            p.questions?.sort(
+                (a: Question, b: Question) => a.sort_order - b.sort_order
+            )
+        );
+    }
+
+    return data as QuizWithPassages;
+}
+
+/**
  * Lấy danh sách quiz với bộ lọc đa dạng + phân trang.
  *
  * Filters: skill, type, year, source, quarter, part, questionForm (ilike), search (title ilike).

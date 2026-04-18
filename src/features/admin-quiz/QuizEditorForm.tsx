@@ -136,8 +136,8 @@ export default function QuizEditorForm({
                 <Form.Item label={
                     <span className="font-semibold text-gray-800">
                         Slug (URL) <span className="text-red-500">*</span>
-                        {!isNew && currentSlug && currentStatus === 'published' && (
-                            <Link href={`/ielts-practice/${currentSlug}`} target="_blank" legacyBehavior>
+                        {!isNew && currentSlug && (
+                            <Link href={`${currentType === 'practice' ? `/ielts-practice-library/${currentSlug}` : `/ielts-exam-library/${currentSlug}`}?preview=true`} target="_blank" legacyBehavior>
                                 <a target="_blank" rel="noopener noreferrer" style={{ marginLeft: 8 }}>
                                     <Button size="small" type="link" icon={<EyeOutlined />} />
                                 </a>

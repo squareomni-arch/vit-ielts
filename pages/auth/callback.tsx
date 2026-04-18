@@ -1,5 +1,5 @@
 import { createClient } from "~supabase/client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { isAdminRole } from "~lib/parseRoles";
 
@@ -11,13 +11,30 @@ import { isAdminRole } from "~lib/parseRoles";
  */
 export default function AuthCallback() {
     const router = useRouter();
+    const isExchanging = useRef(false);
 
     useEffect(() => {
         const supabase = createClient();
+
+        const exchangeCode = async () => {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get("code");
+            
+            if (code && !isExchanging.current) {
+                isExchanging.current = true;
+                const { error } = await supabase.auth.exchangeCodeForSession(code);
+                if (error) {
+                    console.error("Code exchange failed:", error.message);
+                }
+            }
+        };
+        
+        exchangeCode();
+
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === "SIGNED_IN" && session?.user) {
+            if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user) {
                 const user = session.user;
 
                 // Ensure public.users profile exists (fallback for Google OAuth)
@@ -62,13 +79,15 @@ export default function AuthCallback() {
                 } else {
                     window.location.href = explicitRedirect;
                 }
+            } else if (event === "INITIAL_SESSION" && !session) {
+                // If there's no session initially, we rely on the exchangeCodeForSession to trigger SIGNED_IN.
             }
         });
 
         return () => {
             subscription.unsubscribe();
         };
-    }, [router]);
+    }, []);
 
     return (
         <div

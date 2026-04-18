@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createApiSupabase } from "~supabase/server";
+import { createApiSupabase, createAdminApiSupabase } from "~supabase/server";
 import { saveTestResult } from "~services/test-flow";
 
 type ResponseData = {
@@ -16,7 +16,17 @@ export default async function handler(
   }
 
   try {
-    const supabase = createApiSupabase(req, res);
+    let supabase = createApiSupabase(req, res);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Fallback to admin session for preview mode
+    if (!user) {
+      const adminSupabase = createAdminApiSupabase(req, res);
+      const { data: { user: adminUser } } = await adminSupabase.auth.getUser();
+      if (adminUser) {
+        supabase = adminSupabase;
+      }
+    }
 
     const { testId, answers, timeLeft } = req.body;
 

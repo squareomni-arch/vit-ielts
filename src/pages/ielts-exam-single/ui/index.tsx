@@ -15,19 +15,20 @@ import ExamModeModal from "@/pages/ielts-exam-library/ui/exam-mode-modal";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
-export function PageIELTSExamSingle({ post }: { post: IPracticeSingle }) {
+export function PageIELTSExamSingle({ post, isPreview: isPreviewProp }: { post: IPracticeSingle; isPreview?: boolean }) {
   const { currentUser } = useAuth();
   const openProContentModal = useProContentModal((state) => state.open);
   const router = useRouter();
+  const isPreview = isPreviewProp || router.query.preview === "true";
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const requiresUpgrade =
-    post.quizFields.proUserOnly && !currentUser?.userData.isPro;
+    !isPreview && post.quizFields.proUserOnly && !currentUser?.userData.isPro;
 
   // Auto-open modal when ?autoStart=true (after login redirect)
   useEffect(() => {
-    if (router.query.autoStart === "true" && currentUser && !requiresUpgrade) {
+    if (router.query.autoStart === "true" && (currentUser || isPreview) && !requiresUpgrade) {
       setIsModalOpen(true);
       // Clean up URL without reloading
       const { autoStart, ...rest } = router.query;
@@ -37,11 +38,11 @@ export function PageIELTSExamSingle({ post }: { post: IPracticeSingle }) {
         { shallow: true }
       );
     }
-  }, [router.query.autoStart, currentUser, requiresUpgrade]);
+  }, [router.query.autoStart, currentUser, requiresUpgrade, isPreview]);
 
   const handleStartExam = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!currentUser) {
+    if (!currentUser && !isPreview) {
       window.location.href = ROUTES.LOGIN(
         ROUTES.EXAM.SINGLE(post.slug) + "?autoStart=true"
       );
@@ -65,7 +66,12 @@ export function PageIELTSExamSingle({ post }: { post: IPracticeSingle }) {
 
   return (
     <>
-      <SEOHeader fullHead={post.seo?.fullHead} title={post.seo?.title} />
+      <SEOHeader
+        fullHead={post.seo?.fullHead}
+        title={post.seo?.title}
+        description={post.excerpt}
+        image={post.featuredImage?.node.sourceUrl}
+      />
 
       <div className="min-h-screen pb-20 bg-white relative px-4 sm:px-6">
         {/* Background Grid - Only in Hero Area */}
@@ -367,7 +373,7 @@ export function PageIELTSExamSingle({ post }: { post: IPracticeSingle }) {
 
       {/* ExamModeModal — mở khi click "Làm bài thi" hoặc autoStart */}
       <ExamModeModal
-        navigateLink={ROUTES.TAKE_THE_TEST(post.slug)}
+        navigateLink={ROUTES.TAKE_THE_TEST(post.slug) + (router.query.preview === "true" ? "?preview=true" : "")}
         quiz={post as any}
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}

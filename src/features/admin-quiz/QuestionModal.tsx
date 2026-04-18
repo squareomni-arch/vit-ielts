@@ -53,7 +53,7 @@ function buildDefaultDataForTemplate(tmpl: QuestionTemplate): Partial<QuestionDa
         base.matching_question = { layoutType, matchingItems: [], answerOptions: [], summaryText: "" };
     }
     if (tmpl.type === "matrix") {
-        base.matrix_question = { matrixCategories: [], matrixItems: [] };
+        base.matrix_question = { matrixCategories: [], matrixItems: [], layoutType: "standard" };
     }
 
     return base;
@@ -129,6 +129,21 @@ export default function QuestionModal({ open, initialData, onCancel, onSave }: Q
                     <FillupEditor
                         question_text={localData.question_text ?? ""}
                         onChange={(v) => handleUpdate("question_text", v)}
+                        wordExplanations={
+                            Array.isArray(localData.explanations)
+                                ? Object.fromEntries(
+                                    localData.explanations
+                                        .filter((e: any) => e?.key != null)
+                                        .map((e: any) => [String(e.key), e.content ?? ""])
+                                )
+                                : {}
+                        }
+                        onExplanationsChange={(map) =>
+                            handleUpdate(
+                                "explanations",
+                                Object.entries(map).map(([key, content]) => ({ key: Number(key), content }))
+                            )
+                        }
                     />
                 );
             case "checkbox":
@@ -213,19 +228,21 @@ export default function QuestionModal({ open, initialData, onCancel, onSave }: Q
                             label: "Question",
                             children: (
                                 <div className="space-y-4 pt-2">
-                                    {localData.type !== "fillup" && (
-                                        <div>
+                                    <div>
                                             <p className="font-medium mb-2">
                                                 Instructions <span className="text-gray-400 font-normal text-xs ml-1">(optional)</span>
                                             </p>
                                             <RichTextEditor
                                                 value={localData.instructions ?? ""}
                                                 onChange={(html) => handleUpdate("instructions", html)}
-                                                placeholder="E.g. Do the following statements agree with the information given in the reading passage?"
-                                                height={220}
+                                                placeholder={
+                                                    localData.type === "fillup"
+                                                        ? "E.g. Complete the notes below. Choose NO MORE THAN TWO WORDS from the passage for each answer."
+                                                        : "E.g. Do the following statements agree with the information given in the reading passage?"
+                                                }
+                                                height={180}
                                             />
                                         </div>
-                                    )}
 
                                     {activeTemplate ? (
                                         <div>

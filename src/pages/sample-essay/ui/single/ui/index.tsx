@@ -102,7 +102,12 @@ export const PageSingle = ({
 
   return (
     <>
-      <SEOHeader fullHead={post.seo?.fullHead} title={post.seo?.title} />
+      <SEOHeader
+        fullHead={post.seo?.fullHead}
+        title={post.seo?.title}
+        description={post.excerpt}
+        image={post.featuredImage?.node.sourceUrl}
+      />
       <div className="min-h-screen pb-20 bg-white relative px-4 sm:px-6">
         <div
           className="absolute inset-x-0 top-0 h-[380px] md:h-[420px] pointer-events-none z-0"

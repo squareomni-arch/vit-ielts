@@ -2,11 +2,12 @@ import { withMasterData, withMultipleWrapper } from "@/shared/hoc";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { ROUTES } from "@/shared/routes";
 import { createServerSupabase } from "~supabase/server";
-import { getQuizBySlug, getRelatedQuizzes } from "~services/quiz";
+import { getQuizBySlug, getQuizBySlugPreview, getRelatedQuizzes } from "~services/quiz";
 import { safeParseJsonb } from "~services/lib/safeParseJsonb";
 import type { QuizWithPassages, Quiz } from "~services/types/database";
 import type { IPracticeSingle } from "./api";
 import { isAdminRole } from "~lib/parseRoles";
+import { createClient } from "@supabase/supabase-js";
 
 export { PageIELTSPracticeSingle } from "./ui";
 
@@ -169,21 +170,61 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
   withMasterData,
   async (context: GetServerSidePropsContext) => {
     const {
-      query: { slug },
+      query: { slug, preview },
     } = context;
     const supabase = createServerSupabase(context);
+    const isPreview = preview === "true";
 
     try {
-      const quiz = await getQuizBySlug(supabase, slug?.toString() || "");
+      const { data: { user } } = await supabase.auth.getUser();
+      let quiz: QuizWithPassages | null = null;
+
+      if (isPreview) {
+        // Preview mode: verify admin role before loading draft content
+        // Admin panel uses isolated auth session (sb-admin-auth cookies),
+        // so we check both regular and admin sessions.
+        // Lazily create service-role client (bypasses RLS) — can't import at top-level
+        // because SUPABASE_SERVICE_ROLE_KEY is server-only.
+        const sAdmin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+        let adminUserId: string | null = null;
+
+        // 1. Try regular session
+        if (user) {
+          adminUserId = user.id;
+        } else {
+          // 2. Try admin session
+          const { createAdminServerSupabase } = await import("~supabase/server");
+          const adminSupabase = createAdminServerSupabase(context);
+          const { data: { user: aUser } } = await adminSupabase.auth.getUser();
+          if (aUser) adminUserId = aUser.id;
+        }
+
+        // 3. Verify admin role (use service role client to bypass RLS)
+        if (adminUserId) {
+          const { data: profile } = await sAdmin
+            .from("users")
+            .select("roles")
+            .eq("id", adminUserId)
+            .single();
+          if (isAdminRole(profile?.roles)) {
+            quiz = await getQuizBySlugPreview(sAdmin, slug?.toString() || "");
+          }
+        }
+        // If not admin, fall through — quiz stays null → notFound
+      } else {
+        quiz = await getQuizBySlug(supabase, slug?.toString() || "");
+      }
 
       if (!quiz || quiz.type !== "practice") {
         return { notFound: true };
       }
 
-      // Check Pro access: if quiz requires Pro and user is not Pro, redirect
-      const { data: { user } } = await supabase.auth.getUser();
+      // Check Pro access (skip in preview mode — admin always has access)
       let hasAccess = true;
-      if (quiz.pro_user_only) {
+      if (!isPreview && quiz.pro_user_only) {
         if (!user) {
           hasAccess = false;
         } else {
@@ -222,6 +263,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
       return {
         props: {
           post: JSON.parse(JSON.stringify(post)),
+          isPreview,
         },
       };
     } catch (error) {

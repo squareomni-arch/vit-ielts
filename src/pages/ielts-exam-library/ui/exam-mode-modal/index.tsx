@@ -81,8 +81,9 @@ function ExamModeModal({
       }
 
       const testId = result.data?.id;
+      const separator = navigateLink.includes("?") ? "&" : "?";
       if (testId) {
-        router.push(`${navigateLink}?testId=${testId}`);
+        router.push(`${navigateLink}${separator}testId=${testId}`);
       } else {
         router.push(navigateLink);
       }

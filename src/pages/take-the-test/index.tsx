@@ -2,12 +2,14 @@ import { withAuth, withMasterData, withMultipleWrapper } from "@/shared/hoc";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { ROUTES } from "@/shared/routes";
 import { createServerSupabase } from "~supabase/server";
-import { getQuizBySlug } from "~services/quiz";
+import { getQuizBySlug, getQuizBySlugPreview } from "~services/quiz";
 import { takeTheTest, getTestResult as getTestResultService } from "~services/test-flow";
 import { safeParseJsonb } from "~services/lib/safeParseJsonb";
 import type { ITestResult } from "./api";
 import type { QuizWithPassages, Quiz } from "~services/types/database";
 import type { IPracticeSingle } from "../ielts-practice-single/api";
+import { isAdminRole } from "~lib/parseRoles";
+import { createClient } from "@supabase/supabase-js";
 
 export { PageTakeTheTestWrapper } from "./ui";
 
@@ -151,12 +153,49 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
   withMasterData,
   async (context: GetServerSidePropsContext) => {
     const {
-      query: { slug, testId, retake },
+      query: { slug, testId, retake, preview },
     } = context;
     const supabase = createServerSupabase(context);
+    const isPreview = preview === "true";
 
     // 1. Fetch quiz data
-    const quiz = await getQuizBySlug(supabase, slug?.toString() || "");
+    let quiz: QuizWithPassages | null = null;
+    let authSupabase = supabase;
+
+    if (isPreview) {
+      // Preview mode: verify admin, then fetch with service-role client
+      const sAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+      let adminUserId: string | null = null;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        adminUserId = user.id;
+      } else {
+        const { createAdminServerSupabase } = await import("~supabase/server");
+        const adminSupabase = createAdminServerSupabase(context);
+        const { data: { user: aUser } } = await adminSupabase.auth.getUser();
+        if (aUser) {
+          adminUserId = aUser.id;
+          authSupabase = adminSupabase;
+        }
+      }
+
+      if (adminUserId) {
+        const { data: profile } = await sAdmin
+          .from("users")
+          .select("roles")
+          .eq("id", adminUserId)
+          .single();
+        if (isAdminRole(profile?.roles)) {
+          quiz = await getQuizBySlugPreview(sAdmin, slug?.toString() || "");
+        }
+      }
+    } else {
+      quiz = await getQuizBySlug(supabase, slug?.toString() || "");
+    }
 
     if (!quiz) {
       return { notFound: true };
@@ -167,7 +206,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
     // 2. If testId provided, resume existing test
     if (testId && typeof testId === "string" && retake !== "true") {
       try {
-        const existingResult = await getTestResultService(supabase, testId);
+        const existingResult = await getTestResultService(authSupabase, testId);
         if (existingResult) {
           return {
             props: {
@@ -189,7 +228,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
     );
 
     try {
-      const newTestResult = await takeTheTest(supabase, {
+      const newTestResult = await takeTheTest(authSupabase, {
         quizId: quiz.id,
         testPart,
         testTime: quiz.time_minutes,

@@ -77,6 +77,7 @@ export const TestHistoryModal = ({ isOpen, onClose, quizId, title }: TestHistory
           .from("quizzes")
           .select("id, title, slug, skill, type, status, time_minutes, passages(*, questions(*))")
           .eq("id", quizId)
+          .eq("status", "published")
           .single();
           
         if (quizErr) {

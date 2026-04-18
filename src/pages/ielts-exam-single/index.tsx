@@ -1,10 +1,12 @@
 import { withMasterData, withMultipleWrapper } from "@/shared/hoc";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { createServerSupabase } from "~supabase/server";
-import { getQuizBySlug, getRelatedQuizzes } from "~services/quiz";
+import { getQuizBySlug, getQuizBySlugPreview, getRelatedQuizzes } from "~services/quiz";
 import { safeParseJsonb } from "~services/lib/safeParseJsonb";
 import type { QuizWithPassages, Quiz } from "~services/types/database";
 import type { IPracticeSingle } from "@/pages/ielts-practice-single/api";
+import { isAdminRole } from "~lib/parseRoles";
+import { createClient } from "@supabase/supabase-js";
 
 export { PageIELTSExamSingle } from "./ui";
 
@@ -167,12 +169,51 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
   withMasterData,
   async (context: GetServerSidePropsContext) => {
     const {
-      query: { slug },
+      query: { slug, preview },
     } = context;
     const supabase = createServerSupabase(context);
+    const isPreview = preview === "true";
 
     try {
-      const quiz = await getQuizBySlug(supabase, slug?.toString() || "");
+      let quiz: QuizWithPassages | null = null;
+
+      if (isPreview) {
+        // Preview mode: verify admin role before loading draft content
+        // Admin panel uses isolated auth session (sb-admin-auth cookies),
+        // so we check both regular and admin sessions.
+        // Lazily create service-role client (bypasses RLS)
+        const sAdmin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+        let adminUserId: string | null = null;
+
+        // 1. Try regular session
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          adminUserId = user.id;
+        } else {
+          // 2. Try admin session
+          const { createAdminServerSupabase } = await import("~supabase/server");
+          const adminSupabase = createAdminServerSupabase(context);
+          const { data: { user: aUser } } = await adminSupabase.auth.getUser();
+          if (aUser) adminUserId = aUser.id;
+        }
+
+        // 3. Verify admin role (use service role client to bypass RLS)
+        if (adminUserId) {
+          const { data: profile } = await sAdmin
+            .from("users")
+            .select("roles")
+            .eq("id", adminUserId)
+            .single();
+          if (isAdminRole(profile?.roles)) {
+            quiz = await getQuizBySlugPreview(sAdmin, slug?.toString() || "");
+          }
+        }
+      } else {
+        quiz = await getQuizBySlug(supabase, slug?.toString() || "");
+      }
 
       // Only allow exam types (academic/general), not practice quizzes
       if (!quiz || quiz.type === "practice") {
@@ -187,6 +228,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
       return {
         props: {
           post: JSON.parse(JSON.stringify(post)),
+          isPreview,
         },
       };
     } catch (error) {

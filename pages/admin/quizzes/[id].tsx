@@ -334,11 +334,11 @@ function QuizEditor({ quizId }: { quizId?: string }) {
                         >
                             <span className="text-base">Save</span>
                         </Button>
-                        {!isNew && currentSlug && currentStatus === "published" && (
+                        {!isNew && currentSlug && (
                             <Tooltip title="Xem trước">
                                 <Button
                                     icon={<EyeOutlined />}
-                                    href={`/ielts-practice/${currentSlug}`}
+                                    href={`${currentType === "practice" ? `/ielts-practice-library/${currentSlug}` : `/ielts-exam-library/${currentSlug}`}?preview=true`}
                                     target="_blank"
                                 />
                             </Tooltip>
