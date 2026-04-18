@@ -57,7 +57,7 @@ export default function MatchingEditor({ data, onChange }: MatchingEditorProps) 
                 <Form.Item label="Summary Text" className="mb-0">
                     <p className="px-3 py-2 mb-2 bg-neutral-100 rounded border border-dashed border-gray-300 text-sm text-gray-600">
                         Dùng <code className="bg-gray-200 px-1 rounded">{"{ }"}</code> để đánh dấu chỗ trống, viết đáp án đúng bên trong.{" "}
-                        Ví dụ: <em>The process is <strong>{"{"+"efficient"+"}"}</strong> and cost-effective.</em>
+                        Ví dụ: <em>The process is <strong>{"{" + "efficient" + "}"}</strong> and cost-effective.</em>
                     </p>
                     <RichTextEditor
                         value={data.summaryText ?? ""}
@@ -119,7 +119,7 @@ export default function MatchingEditor({ data, onChange }: MatchingEditorProps) 
                                         }}
                                     >
                                         {isHeading
-                                            ? ["i","ii","iii","iv","v","vi","vii","viii","ix","x"][idx] ?? idx + 1
+                                            ? ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"][idx] ?? idx + 1
                                             : idx + 1}
                                     </div>
                                     <Input
@@ -160,13 +160,6 @@ export default function MatchingEditor({ data, onChange }: MatchingEditorProps) 
                                             />
                                         }
                                     >
-                                        <Button
-                                            size="small"
-                                            icon={<CommentOutlined />}
-                                            type={item.explanation ? "primary" : "default"}
-                                            title="Explanation"
-                                            style={{ flexShrink: 0 }}
-                                        />
                                     </Popover>
                                     <Button
                                         size="small"
