@@ -36,7 +36,7 @@ export async function getMasterData(context: GetServerSidePropsContext): Promise
     if (user) {
         const { data: profile } = await supabase
             .from("users")
-            .select("*")
+            .select("name, roles, avatar_url, is_pro, pro_expiration_date, pro_skills")
             .eq("id", user.id)
             .single();
 

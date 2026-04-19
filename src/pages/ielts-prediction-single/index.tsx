@@ -36,6 +36,7 @@ function toIPracticeSingle(
     slug: quiz.slug,
     hasAccess,
     relatedPracticeQuizzes: relatedQuizzes.map((rq) => ({
+      id: rq.id,
       databaseId: 0,
       title: rq.title,
       featuredImage: rq.featured_image || false,
@@ -78,6 +79,7 @@ function toIPracticeSingle(
         passage_content: p.content ?? "",
         audio_start: p.audio_start?.toString() ?? undefined,
         audio_end: p.audio_end?.toString() ?? undefined,
+        start_question_number: p.start_question_number ? Number(p.start_question_number) : undefined,
         questions: (p.questions ?? []).map((q) => {
           const listOfQuestions = safeParseJsonb<any[]>(q.list_of_questions);
           const listOfOptions = safeParseJsonb<any[]>(q.list_of_options);
@@ -173,14 +175,25 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
     const supabase = createServerSupabase(context);
 
     try {
-      const quiz = await getQuizBySlug(supabase, slug?.toString() || "");
+      // quiz fetch + auth check in parallel
+      const [quiz, { data: authData }] = await Promise.all([
+        getQuizBySlug(supabase, slug?.toString() || ""),
+        supabase.auth.getUser(),
+      ]);
+      const user = authData.user;
 
       if (!quiz) {
         return { notFound: true };
       }
 
+      // Fire related quizzes early — runs in parallel with profile fetch below
+      const relatedQuizzesPromise = getRelatedQuizzes(supabase, quiz.id, {
+        skill: quiz.skill,
+        source: quiz.source,
+        year: quiz.year,
+      }).catch(() => []);
+
       // Check Pro access: if quiz requires Pro and user is not Pro, redirect
-      const { data: { user } } = await supabase.auth.getUser();
       let hasAccess = true;
       if (quiz.pro_user_only) {
         if (!user) {
@@ -197,7 +210,6 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
             (profile?.is_pro &&
               profile?.pro_expiration_date &&
               new Date(profile.pro_expiration_date) > new Date() &&
-              // Skill check: null = all skills (combo), otherwise must include quiz skill
               (profile.pro_skills === null || profile.pro_skills.includes(quiz.skill)));
 
           hasAccess = !!isPro;
@@ -213,8 +225,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
         };
       }
 
-      // Get related quizzes
-      const relatedQuizzes = await getRelatedQuizzes(supabase, quiz.id).catch(() => []);
+      const relatedQuizzes = await relatedQuizzesPromise;
 
       const post = toIPracticeSingle(quiz, relatedQuizzes, hasAccess);
 
@@ -224,8 +235,8 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
         },
       };
     } catch (error) {
-      console.error("Error retrieving practice single:", error);
-      throw error;
+      console.error("Error retrieving prediction single:", error);
+      return { notFound: true };
     }
   }
 );

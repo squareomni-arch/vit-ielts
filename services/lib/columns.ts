@@ -5,6 +5,10 @@
  * When a column is added/removed, update it in one place.
  */
 
+/** lightweight quiz columns for list/related views (no passages/questions) */
+export const QUIZ_LIST_COLUMNS =
+    "id, title, slug, excerpt, type, skill, time_minutes, pro_user_only, featured_image, tests_taken, source, year, quarter, part, question_form, status, views, published_at, created_at" as const;
+
 /** columns returned for order queries */
 export const ORDER_COLUMNS =
     "id, order_id, user_id, package_type, duration, skill_type, amount, original_amount, discount_amount, coupon_id, coupon_code, status, payment_method, transfer_content, affiliate_ref, created_at" as const;

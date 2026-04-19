@@ -12,6 +12,7 @@
 
 import { SupabaseClient } from "@supabase/supabase-js";
 import { sanitizeFilterValue } from "./lib/sanitize";
+import { QUIZ_LIST_COLUMNS } from "./lib/columns";
 import type {
     Quiz,
     QuizWithPassages,
@@ -20,6 +21,7 @@ import type {
     PassageWithQuestions,
     Passage,
     Question,
+    SkillType,
 } from "./types/database";
 
 // ============================================================================
@@ -124,10 +126,7 @@ export async function getQuizzes(
 
     let query = supabase
         .from("quizzes")
-        .select(
-            "id, title, slug, excerpt, type, skill, time_minutes, pro_user_only, featured_image, tests_taken, source, year, quarter, part, question_form, status, views, published_at, created_at",
-            { count: "exact" }
-        )
+        .select(QUIZ_LIST_COLUMNS, { count: "exact" })
         .eq("status", "published");
 
     // Apply filters
@@ -198,72 +197,47 @@ export async function getQuizFilterOptions(supabase: SupabaseClient): Promise<{
             }
         }
     } catch {
-        // RPC not deployed yet — fall through to legacy query
+        // RPC not deployed — fall through
     }
 
-    // Fallback: fetch all published quizzes and deduplicate client-side
-    const { data, error } = await supabase
-        .from("quizzes")
-        .select("year, source, part, quarter")
-        .eq("status", "published");
-
-    if (error) throw error;
-
-    const rows = data ?? [];
-    const unique = (arr: (string | null)[]) =>
-        [...new Set(arr.filter((v): v is string => v != null))].sort();
-
-    return {
-        years: unique(rows.map((r) => r.year)),
-        sources: unique(rows.map((r) => r.source)),
-        parts: unique(rows.map((r) => r.part)),
-        quarters: unique(rows.map((r) => r.quarter)),
-    };
+    // RPC not available — return empty rather than fetching all rows client-side
+    return { years: [], sources: [], parts: [], quarters: [] };
 }
 
-/**
- * Tìm quiz tương tự dựa trên metadata (cùng source, year, quarter, skill).
- * Loại trừ quiz hiện tại, giới hạn 6 kết quả.
- *
- * @origin bp_quiz_creator/index.php (related quizzes logic)
- *
- * @param supabase - Supabase client instance
- * @param quizId - ID quiz hiện tại (để loại trừ)
- * @returns Mảng quiz tương tự
- */
+/** meta — pass quiz.skill/source/year from the caller to skip an extra round trip. */
 export async function getRelatedQuizzes(
     supabase: SupabaseClient,
-    quizId: string
+    quizId: string,
+    meta?: { skill: SkillType; source?: string | null; year?: string | null }
 ): Promise<Quiz[]> {
-    // Step 1: Get current quiz metadata
-    const { data: currentQuiz, error: quizError } = await supabase
-        .from("quizzes")
-        .select("source, year, quarter, skill")
-        .eq("id", quizId)
-        .single();
+    let currentMeta = meta;
 
-    if (quizError || !currentQuiz) return [];
+    if (!currentMeta) {
+        const { data: current, error } = await supabase
+            .from("quizzes")
+            .select("skill, source, year")
+            .eq("id", quizId)
+            .single();
 
-    // Step 2: Find quizzes with same metadata
+        if (error || !current) return [];
+        currentMeta = current as { skill: SkillType; source?: string | null; year?: string | null };
+    }
+
     let query = supabase
         .from("quizzes")
-        .select(
-            "id, title, slug, excerpt, type, skill, time_minutes, pro_user_only, featured_image, tests_taken, source, year, quarter, part, question_form, status, views, published_at, created_at"
-        )
+        .select(QUIZ_LIST_COLUMNS)
         .eq("status", "published")
         .neq("id", quizId)
-        .eq("skill", currentQuiz.skill)
+        .eq("skill", currentMeta.skill)
         .limit(8);
 
-    // Prioritize same source, year, quarter (best match)
-    if (currentQuiz.source) query = query.eq("source", currentQuiz.source);
-    if (currentQuiz.year) query = query.eq("year", currentQuiz.year);
+    if (currentMeta.source) query = query.eq("source", currentMeta.source);
+    if (currentMeta.year) query = query.eq("year", currentMeta.year);
 
     const { data, error } = await query;
 
     if (error) throw error;
 
-    // If not enough results, fallback: same skill only (already filtered above, returns fewer results)
     return (data ?? []) as Quiz[];
 }
 

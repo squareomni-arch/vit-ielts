@@ -7,7 +7,7 @@ import { safeParseJsonb } from "~services/lib/safeParseJsonb";
 import type { QuizWithPassages, Quiz } from "~services/types/database";
 import type { IPracticeSingle } from "./api";
 import { isAdminRole } from "~lib/parseRoles";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type User } from "@supabase/supabase-js";
 
 export { PageIELTSPracticeSingle } from "./ui";
 
@@ -177,33 +177,29 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
     const isPreview = preview === "true";
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       let quiz: QuizWithPassages | null = null;
+      let user: User | null = null;
 
       if (isPreview) {
-        // Preview mode: verify admin role before loading draft content
-        // Admin panel uses isolated auth session (sb-admin-auth cookies),
-        // so we check both regular and admin sessions.
-        // Lazily create service-role client (bypasses RLS) — can't import at top-level
-        // because SUPABASE_SERVICE_ROLE_KEY is server-only.
+        // Preview mode: need user first to verify admin role
+        const { data: { user: sessionUser } } = await supabase.auth.getUser();
+        user = sessionUser;
+
         const sAdmin = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.SUPABASE_SERVICE_ROLE_KEY!
         );
         let adminUserId: string | null = null;
 
-        // 1. Try regular session
         if (user) {
           adminUserId = user.id;
         } else {
-          // 2. Try admin session
           const { createAdminServerSupabase } = await import("~supabase/server");
           const adminSupabase = createAdminServerSupabase(context);
           const { data: { user: aUser } } = await adminSupabase.auth.getUser();
           if (aUser) adminUserId = aUser.id;
         }
 
-        // 3. Verify admin role (use service role client to bypass RLS)
         if (adminUserId) {
           const { data: profile } = await sAdmin
             .from("users")
@@ -214,14 +210,26 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
             quiz = await getQuizBySlugPreview(sAdmin, slug?.toString() || "");
           }
         }
-        // If not admin, fall through — quiz stays null → notFound
       } else {
-        quiz = await getQuizBySlug(supabase, slug?.toString() || "");
+        // Non-preview: quiz fetch + auth check in parallel
+        const [quizResult, { data: authData }] = await Promise.all([
+          getQuizBySlug(supabase, slug?.toString() || ""),
+          supabase.auth.getUser(),
+        ]);
+        quiz = quizResult;
+        user = authData.user;
       }
 
       if (!quiz || quiz.type !== "practice") {
         return { notFound: true };
       }
+
+      // Fire related quizzes early — runs in parallel with profile fetch below
+      const relatedQuizzesPromise = getRelatedQuizzes(supabase, quiz.id, {
+        skill: quiz.skill,
+        source: quiz.source,
+        year: quiz.year,
+      }).catch(() => []);
 
       // Check Pro access (skip in preview mode — admin always has access)
       let hasAccess = true;
@@ -240,7 +248,6 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
             (profile?.is_pro &&
               profile?.pro_expiration_date &&
               new Date(profile.pro_expiration_date) > new Date() &&
-              // Skill check: null = all skills (combo), otherwise must include quiz skill
               (profile.pro_skills === null || profile.pro_skills.includes(quiz.skill)));
 
           hasAccess = !!isPro;
@@ -256,8 +263,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
         };
       }
 
-      // Get related quizzes
-      const relatedQuizzes = await getRelatedQuizzes(supabase, quiz.id).catch(() => []);
+      const relatedQuizzes = await relatedQuizzesPromise;
 
       const post = toIPracticeSingle(quiz, relatedQuizzes, hasAccess);
 
@@ -269,7 +275,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
       };
     } catch (error) {
       console.error("Error retrieving practice single:", error);
-      throw error;
+      return { notFound: true };
     }
   }
 );

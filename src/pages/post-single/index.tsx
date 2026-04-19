@@ -12,7 +12,13 @@ export const getServerSideProps = async (
 ): ReturnType<GetServerSideProps> => {
   const supabase = createServerSupabase(context);
 
-  const post = await getPostBySlug(supabase, singleSlug);
+  let post: Awaited<ReturnType<typeof getPostBySlug>>;
+  try {
+    post = await getPostBySlug(supabase, singleSlug);
+  } catch (error) {
+    console.error("Error fetching post single:", error);
+    return { notFound: true };
+  }
 
   if (!post) {
     return {

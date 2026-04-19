@@ -20,24 +20,30 @@ import type {
 // Public Read Functions
 // ============================================================================
 
-/**
- * Lấy các bài mẫu liên quan — cùng skill, ưu tiên cùng source + year.
- * Loại trừ bài hiện tại. Limit 6.
- */
+/** meta — pass essay.skill/source/year from the caller to skip an extra round trip. */
+type EssayMeta = { skill: string | null; source?: string | null; year?: string | null };
+
 export async function getRelatedSampleEssays(
     supabase: SupabaseClient,
-    essayId: string
+    essayId: string,
+    meta?: EssayMeta
 ): Promise<SampleEssay[]> {
-    // Step 1: lấy metadata bài hiện tại
-    const { data: current, error } = await supabase
-        .from("sample_essays")
-        .select("skill, source, year, quarter")
-        .eq("id", essayId)
-        .single();
+    let current: EssayMeta | null = meta ?? null;
 
-    if (error || !current) return [];
+    if (!current) {
+        const { data, error } = await supabase
+            .from("sample_essays")
+            .select("skill, source, year")
+            .eq("id", essayId)
+            .single();
 
-    // Step 2: tìm bài cùng skill + source + year (best match)
+        if (error || !data) return [];
+        current = data as EssayMeta;
+    }
+
+    if (!current.skill) return [];
+
+    // tìm bài cùng skill + source + year (best match)
     let query = supabase
         .from("sample_essays")
         .select("id, title, slug, excerpt, skill, featured_image, pro_user_only, published_at, created_at")

@@ -60,11 +60,13 @@ export const getServerSideProps = async (
 
   const supabase = createServerSupabase(context);
 
-  const result = await getPosts(supabase, {
-    category,
-    page: Number(paged),
-    pageSize,
-  });
+  let result: Awaited<ReturnType<typeof getPosts>>;
+  try {
+    result = await getPosts(supabase, { category, page: Number(paged), pageSize });
+  } catch (error) {
+    console.error("Error fetching posts archive:", error);
+    return { notFound: true };
+  }
 
   return {
     props: {

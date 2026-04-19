@@ -43,10 +43,17 @@ export const getServerSidePropsArchive = async (
   };
 
   // Parallel: fetch essays + banner config
-  const [essaysResult, bannerConfig] = await Promise.all([
-    getSampleEssays(supabase, filters),
-    readConfig<SampleEssayBannerConfig>(supabase, "sample-essay/banner").catch(() => null),
-  ]);
+  let essaysResult: Awaited<ReturnType<typeof getSampleEssays>>;
+  let bannerConfig: SampleEssayBannerConfig | null;
+  try {
+    [essaysResult, bannerConfig] = await Promise.all([
+      getSampleEssays(supabase, filters),
+      readConfig<SampleEssayBannerConfig>(supabase, "sample-essay/banner").catch(() => null),
+    ]);
+  } catch (error) {
+    console.error("Error fetching sample essays archive:", error);
+    return { notFound: true };
+  }
 
   const defaultBannerConfig: SampleEssayBannerConfig = {
     writing: {
@@ -124,13 +131,23 @@ export const getServerSidePropsSingle = async (
 ): ReturnType<GetServerSideProps> => {
   const supabase = createServerSupabase(context);
 
-  const essay = await getSampleEssayBySlug(supabase, singleID);
+  let essay: Awaited<ReturnType<typeof getSampleEssayBySlug>>;
+  try {
+    essay = await getSampleEssayBySlug(supabase, singleID);
+  } catch (error) {
+    console.error("Error fetching sample essay single:", error);
+    return { notFound: true };
+  }
 
   if (!essay) {
     return { notFound: true };
   }
 
-  const relatedEssays = await getRelatedSampleEssays(supabase, essay.id).catch(() => []);
+  const relatedEssays = await getRelatedSampleEssays(supabase, essay.id, {
+    skill: essay.skill,
+    source: essay.source ?? null,
+    year: essay.year ?? null,
+  }).catch(() => []);
 
   // Check Pro access
   if (essay.pro_user_only) {
