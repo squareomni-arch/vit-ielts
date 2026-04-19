@@ -12,11 +12,15 @@ import { useRouter } from "next/router";
 import { IPracticeSingle } from "../api";
 import { PracticeHistoryWidget } from "./practice-history";
 import { normalizeSectionBadge } from "@/shared/lib/quiz-part";
-import { useState } from "react";
+import { Splide, SplideSlide, SplideTrack } from "@splidejs/react-splide";
+import "@splidejs/react-splide/css/core";
+import type { Splide as SplideType } from "@splidejs/splide";
+import { useState, useRef } from "react";
 
 export function PageIELTSPracticeSingle({ post, isPreview: isPreviewProp }: { post: IPracticeSingle; isPreview?: boolean }) {
   const { currentUser } = useAuth();
   const openProContentModal = useProContentModal((state) => state.open);
+  const splideRef = useRef<{ splide: SplideType } | null>(null);
   const [copied, setCopied] = useState(false);
   const { query } = useRouter();
   const isPreview = isPreviewProp || query.preview === "true";
