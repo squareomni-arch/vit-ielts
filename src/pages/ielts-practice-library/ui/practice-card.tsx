@@ -18,8 +18,9 @@ export const PracticeCard = ({ item, priority = false }: PracticeCardProps) => {
 
   const skill = item.quizFields.skill[0] === "listening" ? "listening" : "reading";
   const partMeta = useMemo(() => {
+    if (item.quizFields.type[0] === "academic") return null;
     return normalizeSectionBadge(skill, item.quizFields.part);
-  }, [item.quizFields.part, skill]);
+  }, [item.quizFields.part, item.quizFields.type, skill]);
 
   const isProtected = item.quizFields.proUserOnly;
   const requiresLogin = !currentUser;
@@ -48,7 +49,7 @@ export const PracticeCard = ({ item, priority = false }: PracticeCardProps) => {
       image={item.featuredImage?.node.sourceUrl}
       title={item.title}
       skill={skill}
-      part={partMeta.label}
+      part={partMeta?.label}
       attempts={item.quizFields.testsTaken || 0}
       isPro={isProtected}
       isLocked={isLocked}

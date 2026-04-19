@@ -11,6 +11,7 @@ import {
 import { ROUTES } from "@/shared/routes";
 import dayjs from "dayjs";
 import { Avatar } from "@/entities";
+import { ProBadge } from "@/shared/ui/pro-badge";
 
 export function HeaderAccount() {
   const { useToken } = theme;
@@ -90,9 +91,7 @@ export function HeaderAccount() {
                     <p className="font-bold text-primary-600">
                       {currentUser?.name}{" "}
                       {currentUser?.userData.isPro && (
-                        <span className="rounded py-px px-1 font-semibold text-white text-xs shadow bg-primary">
-                          PRO
-                        </span>
+                        <ProBadge className="ml-1" />
                       )}
                     </p>
                     <p className="text-[10px] text-gray-400">
@@ -125,9 +124,7 @@ export function HeaderAccount() {
               <div>
                 <p className="font-bold">{currentUser?.name}</p>
                 {currentUser?.userData.isPro && (
-                  <span className="rounded py-px px-1 font-semibold text-primary text-xs shadow bg-white">
-                    PRO
-                  </span>
+                  <ProBadge className="mt-1" />
                 )}
               </div>
               <i className="material-symbols-rounded">keyboard_arrow_down</i>

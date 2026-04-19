@@ -1,7 +1,26 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
+import type { ServerResponse } from "http";
 
 const isProduction = process.env.NODE_ENV === "production";
+
+/**
+ * Append Set-Cookie values without clobbering any cookies already set on the
+ * response (e.g. by middleware or earlier in the request lifecycle).
+ */
+function appendSetCookie(
+    res: ServerResponse | NextApiResponse,
+    cookieStrings: string[],
+): void {
+    if (cookieStrings.length === 0) return;
+    const existing = res.getHeader("Set-Cookie");
+    const existingArray = Array.isArray(existing)
+        ? existing.map((v) => String(v))
+        : existing != null
+            ? [String(existing)]
+            : [];
+    res.setHeader("Set-Cookie", [...existingArray, ...cookieStrings]);
+}
 
 /**
  * Build a secure Set-Cookie header string from Supabase cookie options.
@@ -39,7 +58,7 @@ export function createServerSupabase(context: GetServerSidePropsContext) {
                     const cookieStrings = cookiesToSet.map(({ name, value, options }) =>
                         buildCookieString(name, value, options)
                     );
-                    context.res.setHeader("Set-Cookie", cookieStrings);
+                    appendSetCookie(context.res, cookieStrings);
                 },
             },
         }
@@ -73,7 +92,7 @@ export function createAdminServerSupabase(context: GetServerSidePropsContext) {
                     const cookieStrings = cookiesToSet.map(({ name, value, options }) =>
                         buildCookieString(name, value, options)
                     );
-                    context.res.setHeader("Set-Cookie", cookieStrings);
+                    appendSetCookie(context.res, cookieStrings);
                 },
             },
         }
@@ -106,7 +125,7 @@ export function createApiSupabase(req: NextApiRequest, res: NextApiResponse) {
                     const cookieStrings = cookiesToSet.map(({ name, value, options }) =>
                         buildCookieString(name, value, options)
                     );
-                    res.setHeader("Set-Cookie", cookieStrings);
+                    appendSetCookie(res, cookieStrings);
                 },
             },
         }
@@ -140,7 +159,7 @@ export function createAdminApiSupabase(req: NextApiRequest, res: NextApiResponse
                     const cookieStrings = cookiesToSet.map(({ name, value, options }) =>
                         buildCookieString(name, value, options)
                     );
-                    res.setHeader("Set-Cookie", cookieStrings);
+                    appendSetCookie(res, cookieStrings);
                 },
             },
         }

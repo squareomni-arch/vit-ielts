@@ -8,6 +8,7 @@
 
 import { SupabaseClient } from "@supabase/supabase-js";
 import { readConfigOrDefault, writeConfig } from "./cms-config";
+import { sanitizeFilterValue } from "./lib/sanitize";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -75,9 +76,12 @@ export async function getRedirects(
         query = query.eq("is_active", options.isActive);
     }
     if (options.search) {
-        query = query.or(
-            `source_path.ilike.%${options.search}%,target_path.ilike.%${options.search}%`,
-        );
+        const s = sanitizeFilterValue(options.search);
+        if (s) {
+            query = query.or(
+                `source_path.ilike.%${s}%,target_path.ilike.%${s}%`,
+            );
+        }
     }
 
     query = query.range((page - 1) * size, page * size - 1);

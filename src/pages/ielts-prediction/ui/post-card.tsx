@@ -1,6 +1,7 @@
 import { resolveContentImage, useContentImageFallback } from "@/shared/lib/content-image";
 import Image from "next/image";
 import Link from "next/link";
+import { ProBadge } from "@/shared/ui/pro-badge";
 
 export type PostCardProps = {
   image?: string;
@@ -40,9 +41,7 @@ export const PostCard = ({ image, title, date, isPro, href }: PostCardProps) => 
 
         {/* PRO badge */}
         {isPro && (
-          <span className="absolute top-3 right-3 rounded-[6px] bg-primary-500 px-3 py-[5px] text-[13px] font-bold uppercase tracking-wide text-white shadow-sm">
-            PRO
-          </span>
+          <ProBadge className="absolute top-3 right-3 shadow-sm" />
         )}
       </div>
 

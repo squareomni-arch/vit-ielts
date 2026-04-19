@@ -21,6 +21,7 @@
 
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { NextApiRequest } from "next";
+import { sanitizeFilterValue } from "./lib/sanitize";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -147,9 +148,12 @@ export async function getActivityLogs(
     if (filters.dateFrom) query = query.gte("created_at", filters.dateFrom);
     if (filters.dateTo) query = query.lte("created_at", filters.dateTo);
     if (filters.search) {
-        query = query.or(
-            `entity_title.ilike.%${filters.search}%,user_email.ilike.%${filters.search}%,user_name.ilike.%${filters.search}%`,
-        );
+        const s = sanitizeFilterValue(filters.search);
+        if (s) {
+            query = query.or(
+                `entity_title.ilike.%${s}%,user_email.ilike.%${s}%,user_name.ilike.%${s}%`,
+            );
+        }
     }
 
     query = query.range((page - 1) * size, page * size - 1);

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import dayjs from "dayjs";
 import { ProLink } from "@/shared/ui/pro-link";
+import { ProBadge } from "@/shared/ui/pro-badge";
 import { resolveContentImage, useContentImageFallback } from "@/shared/lib/content-image";
 
 export const DefaultView = ({ post }: { post: IPost }) => {
@@ -20,13 +21,7 @@ export const DefaultView = ({ post }: { post: IPost }) => {
         <div className="relative aspect-video">
           {post.postMeta.proUserOnly && (
             <div className="absolute top-3 right-3 z-10">
-              <div
-                className={
-                  "rounded py-0.5 px-1.5 font-semibold text-white shadow bg-primary"
-                }
-              >
-                PRO
-              </div>
+              <ProBadge className="shadow-sm" />
             </div>
           )}
           <Image

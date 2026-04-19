@@ -78,20 +78,25 @@ export default async function handler(
   }
 
   // ── Blocker #1: Verify webhook signature ──
+  // Hard-fail if secret is not configured — webhook must NEVER accept
+  // unauthenticated requests in any environment.
   const webhookSecret = process.env.SEPAY_WEBHOOK_SECRET;
-  if (webhookSecret) {
-    const signature =
-      (req.headers["x-sepay-signature"] as string) ||
-      (req.headers["authorization"] as string) ||
-      "";
+  if (!webhookSecret) {
+    log.error("[Sepay Webhook] SEPAY_WEBHOOK_SECRET is not configured");
+    return res.status(500).json({ error: "Webhook misconfigured" });
+  }
 
-    const rawBody =
-      typeof req.body === "string" ? req.body : JSON.stringify(req.body);
+  const signature =
+    (req.headers["x-sepay-signature"] as string) ||
+    (req.headers["authorization"] as string) ||
+    "";
 
-    if (!signature || !verifyWebhookSignature(rawBody, signature, webhookSecret)) {
-      log.error("[Sepay Webhook] Invalid or missing signature");
-      return res.status(401).json({ error: "Invalid webhook signature" });
-    }
+  const rawBody =
+    typeof req.body === "string" ? req.body : JSON.stringify(req.body);
+
+  if (!signature || !verifyWebhookSignature(rawBody, signature, webhookSecret)) {
+    log.error("[Sepay Webhook] Invalid or missing signature");
+    return res.status(401).json({ error: "Invalid webhook signature" });
   }
 
   try {

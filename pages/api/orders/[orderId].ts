@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
+import { createApiSupabase } from "~supabase/server";
 import { getOrderById, updateOrderStatus } from "~services/order";
+import { isAdminRole } from "~lib/parseRoles";
 
 type ResponseData = {
   success: boolean;
@@ -18,13 +20,31 @@ export default async function handler(
     return res.status(400).json({ success: false, error: "Order ID is required" });
   }
 
-  // ── GET: Lấy thông tin order ──
+  // Require auth for all methods
+  const supabase = createApiSupabase(req, res);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return res.status(401).json({ success: false, error: "Unauthorized" });
+  }
+
+  // ── GET: Lấy thông tin order (chủ sở hữu hoặc admin) ──
   if (req.method === "GET") {
     try {
       const order = await getOrderById(supabaseAdmin, orderId);
 
       if (!order) {
         return res.status(404).json({ success: false, error: "Order not found" });
+      }
+
+      if (order.user_id !== user.id) {
+        const { data: profile } = await supabaseAdmin
+          .from("users")
+          .select("roles")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (!isAdminRole(profile?.roles)) {
+          return res.status(404).json({ success: false, error: "Order not found" });
+        }
       }
 
       return res.status(200).json({
@@ -46,34 +66,34 @@ export default async function handler(
       });
     } catch (error) {
       console.error("[API /api/orders/[orderId]] GET error:", error);
-      return res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : "Internal server error",
-      });
+      return res.status(500).json({ success: false, error: "Internal server error" });
     }
   }
 
-  // ── PUT/PATCH: Cập nhật status ──
+  // ── PUT/PATCH: Admin-only status change ──
   if (req.method === "PUT" || req.method === "PATCH") {
     try {
+      const { data: profile } = await supabaseAdmin
+        .from("users")
+        .select("roles")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!isAdminRole(profile?.roles)) {
+        return res.status(403).json({ success: false, error: "Forbidden" });
+      }
+
       const { status } = req.body;
 
       if (!status || !["pending", "completed", "cancelled", "expired"].includes(status)) {
         return res.status(400).json({ success: false, error: "Valid status is required" });
       }
 
-      // Lấy order hiện tại để check previous status
       const currentOrder = await getOrderById(supabaseAdmin, orderId);
       if (!currentOrder) {
         return res.status(404).json({ success: false, error: "Order not found" });
       }
 
-      // Update status
       const updatedOrder = await updateOrderStatus(supabaseAdmin, orderId, status);
-
-      // TODO(task-09): Affiliate commission khi pending → completed
-      // Khi currentOrder.status === "pending" && status === "completed" && currentOrder.affiliate_ref
-      // → Tính hoa hồng affiliate qua Supabase
 
       return res.status(200).json({
         success: true,
@@ -94,10 +114,7 @@ export default async function handler(
       });
     } catch (error) {
       console.error("[API /api/orders/[orderId]] PUT/PATCH error:", error);
-      return res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : "Internal server error",
-      });
+      return res.status(500).json({ success: false, error: "Internal server error" });
     }
   }
 

@@ -16,12 +16,29 @@ export const config = {
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 
-const ACCEPTED_MIME: Record<string, true> = {
-  "image/jpeg": true, "image/png": true, "image/webp": true, "image/gif": true,
-  "audio/mpeg": true, "audio/mp4": true, "audio/ogg": true,
-  "audio/wav":  true, "audio/webm": true, "audio/aac": true,
-  "application/pdf": true,
+const MIME_EXTENSION: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png":  "png",
+  "image/webp": "webp",
+  "image/gif":  "gif",
+  "audio/mpeg": "mp3",
+  "audio/mp4":  "m4a",
+  "audio/ogg":  "ogg",
+  "audio/wav":  "wav",
+  "audio/webm": "webm",
+  "audio/aac":  "aac",
+  "application/pdf": "pdf",
 };
+
+/** Build a safe filename using a sanitized base + an extension derived from MIME. */
+function buildSafeFilename(originalName: string, mimeType: string): string {
+  const ext = MIME_EXTENSION[mimeType];
+  const base = originalName
+    .replace(/\.[^./\\]*$/, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "_")
+    .slice(0, 80) || "file";
+  return ext ? `${base}.${ext}` : base;
+}
 
 /**
  * POST /api/admin/upload
@@ -43,7 +60,7 @@ export default async function handler(
     const user = await requireAdmin(req, res);
     if (!user) return;
 
-    const form = formidable({ maxFileSize: MAX_FILE_SIZE, keepExtensions: true });
+    const form = formidable({ maxFileSize: MAX_FILE_SIZE, keepExtensions: false });
     const [, files] = await form.parse(req);
 
     const uploaded = Array.isArray(files.file) ? files.file : [files.file];
@@ -54,22 +71,22 @@ export default async function handler(
     }
 
     const mimeType = file.mimetype ?? "";
-    if (!ACCEPTED_MIME[mimeType]) {
+    if (!MIME_EXTENSION[mimeType]) {
       return res.status(415).json({
         success: false,
         error: `Loại file "${mimeType}" không được hỗ trợ. Chỉ chấp nhận: ảnh, audio, PDF`,
       });
     }
 
-    const originalName = file.originalFilename ?? "file";
-    log("Uploading to VPS:", { filename: originalName, mimetype: mimeType, size: file.size });
+    // Derive a safe filename — extension comes from MIME, not from the client,
+    // so an uploaded `foo.exe` with mime `image/jpeg` becomes `foo.jpg`.
+    const safeName = buildSafeFilename(file.originalFilename ?? "file", mimeType);
+    log("Uploading to VPS:", { filename: safeName, mimetype: mimeType, size: file.size });
 
-    // Read buffer then clean up temp file immediately
     const fileBuffer = fs.readFileSync(file.filepath);
     try { fs.unlinkSync(file.filepath); } catch { /* ignore */ }
 
-    // Forward to VPS — database receives only the URL
-    const result = await uploadToVPS(fileBuffer, originalName, mimeType);
+    const result = await uploadToVPS(fileBuffer, safeName, mimeType);
 
     log("VPS upload success:", result.url);
 
@@ -77,7 +94,7 @@ export default async function handler(
       success: true,
       data: {
         url:      result.url,
-        filename: originalName,
+        filename: safeName,
         size:     file.size,
         mimeType,
         category: result.category,

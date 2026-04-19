@@ -51,6 +51,41 @@ function ExamModeModal({
   });
   const [loading, setLoading] = useState(false);
 
+  // Lazy-fetch full quiz summary (with question counts) when modal opens
+  const [resolvedQuiz, setResolvedQuiz] = useState<typeof quiz | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open || resolvedQuiz) return;
+    let cancelled = false;
+
+    const fetchSummary = async () => {
+      setSummaryLoading(true);
+      try {
+        const res = await fetch(`/api/test-flow/summary?quizId=${quiz.id}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (!cancelled && json.success && json.data) {
+            setResolvedQuiz(json.data);
+            // Update form defaults with resolved passages
+            const passageCount = json.data.quizFields?.passages?.length || 0;
+            setValue("testPart", Array.from({ length: passageCount }, (_, i) => i));
+          }
+        }
+      } catch {
+        // Silently fail — modal still works with listing data
+      } finally {
+        if (!cancelled) setSummaryLoading(false);
+      }
+    };
+
+    fetchSummary();
+    return () => { cancelled = true; };
+  }, [open, quiz.id, resolvedQuiz, setValue]);
+
+  // Use resolved quiz data if available, otherwise fall back to listing data
+  const activeQuiz = resolvedQuiz || quiz;
+
   const testPart = watch("testPart");
 
   useEffect(() => {
@@ -100,27 +135,28 @@ function ExamModeModal({
 
   const partOptions = useMemo(() => {
     const options: { label: string; value: number }[] = [];
-    (quiz.quizFields?.passages || []).forEach((passage: any, idx: number) => {
+    (activeQuiz.quizFields?.passages || []).forEach((passage: any, idx: number) => {
       options.push({
-        label: `${quiz.quizFields.skill?.[0] === "reading" ? "Passage" : "Part"
+        label: `${activeQuiz.quizFields.skill?.[0] === "reading" ? "Passage" : "Part"
           } ${idx + 1}`,
         value: idx,
       });
     });
 
     return options;
-  }, [quiz.quizFields?.passages, quiz.quizFields?.skill]);
+  }, [activeQuiz.quizFields?.passages, activeQuiz.quizFields?.skill]);
 
   const fullTestInfo = useMemo(() => {
-    const totalQues = (quiz.quizFields?.passages || []).reduce((acc: number, passage: any) => {
+    if (summaryLoading) return `${activeQuiz.quizFields.time} minutes - loading...`;
+    const totalQues = (activeQuiz.quizFields?.passages || []).reduce((acc: number, passage: any) => {
       if (passage.questionCount !== undefined) {
         return acc + passage.questionCount;
       }
       return acc + countQuestion(passage);
     }, 0);
 
-    return `${quiz.quizFields.time} minutes - ${partOptions.length} parts - ${totalQues} questions`;
-  }, [partOptions.length, quiz.quizFields?.passages, quiz.quizFields?.time]);
+    return `${activeQuiz.quizFields.time} minutes - ${partOptions.length} parts - ${totalQues} questions`;
+  }, [partOptions.length, activeQuiz.quizFields?.passages, activeQuiz.quizFields?.time, summaryLoading]);
 
   const testPartWatcher = useWatch({
     control,

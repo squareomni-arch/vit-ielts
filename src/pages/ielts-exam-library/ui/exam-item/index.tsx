@@ -1,12 +1,13 @@
 import Image from "next/image";
 import { ROUTES } from "@/shared/routes";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { IExamCollection } from "../../api";
 import ExamModeModal from "../exam-mode-modal";
 import { useAuth } from "@/appx/providers";
 import { useProContentModal } from "@/shared/ui/pro-content";
-import { createClient } from "~supabase/client";
 import Link from "next/link";
+import { ProBadge } from "@/shared/ui/pro-badge";
+import { useBatchResults } from "../batch-results-context";
 
 interface TestResultRow {
   id: string;
@@ -25,34 +26,11 @@ export const ExamItem = ({
   const { currentUser } = useAuth();
   const openProContentModal = useProContentModal((state) => state.open);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [publishedResults, setPublishedResults] = useState<TestResultRow[]>([]);
 
   const quizFields = item.quizFields;
 
-  // Fetch user's published results for this quiz
-  useEffect(() => {
-    if (!currentUser?.id) return;
-
-    const fetchTestResults = async () => {
-      try {
-        const supabase = createClient();
-        const { data: results } = await supabase
-          .from("test_results")
-          .select("id, status, score, answers")
-          .eq("quiz_id", item.id)
-          .eq("user_id", currentUser.id)
-          .eq("status", "published")
-          .order("created_at", { ascending: false })
-          .limit(5);
-
-        setPublishedResults(results || []);
-      } catch (error) {
-        console.error("Error fetching test results:", error);
-      }
-    };
-
-    fetchTestResults();
-  }, [item.id, currentUser?.id]);
+  // Use batch context instead of per-item Supabase query
+  const publishedResults = useBatchResults(item.id);
 
   const latestResult = publishedResults[0] ?? null;
   const latestResultId = latestResult?.id;
@@ -132,9 +110,7 @@ export const ExamItem = ({
           {/* PRO Badge */}
           {quizFields.proUserOnly && (
             <div className="absolute top-4 right-4 z-10">
-              <span className="rounded-[8px] bg-primary-500 px-3 py-[6px] text-[13px] font-bold uppercase tracking-wide text-white shadow-sm">
-                PRO
-              </span>
+              <ProBadge className="shadow-sm" />
             </div>
           )}
 

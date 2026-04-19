@@ -6,6 +6,7 @@ import {
   useContentImageFallback,
 } from "@/shared/lib/content-image";
 import Image from "next/image";
+import { ProBadge } from "@/shared/ui/pro-badge";
 
 export const HorizontalItem = ({
   post: { node: post },
@@ -47,9 +48,7 @@ export const HorizontalItem = ({
       {/* Image */}
       <div className="relative w-full h-[200px] sm:w-[390px] sm:h-[240px] shrink-0 rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none overflow-hidden bg-gray-100">
         {isPro && (
-          <div className="absolute top-2 right-2 z-10 rounded px-2 py-0.5 text-xs font-bold text-white bg-red-500">
-            PRO
-          </div>
+          <ProBadge className="absolute top-2 right-2 z-10 shadow-sm" />
         )}
         <Image
           src={imageSrc}

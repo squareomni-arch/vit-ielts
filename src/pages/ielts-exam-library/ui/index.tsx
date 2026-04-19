@@ -12,6 +12,7 @@ import { ExamItem } from "./exam-item";
 import { ExamCollection } from "./exam-collection";
 import type { ExamLibraryHeroConfig } from "./types";
 import type { IExamCollection, IExamCollectionResponse } from "../api";
+import { BatchResultsProvider } from "./batch-results-context";
 
 export type FilterFormValues = {
   type: "all" | "academic" | "general";
@@ -71,6 +72,7 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
   const [loading, setLoading] = useState(false);
   const [called, setCalled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [pageInfo, setPageInfo] = useState<{ total: number; totalPages: number } | null>(null);
 
   const values = watch();
 
@@ -85,8 +87,8 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
             ? (params.type as "academic" | "general")
             : undefined,
         search: (params.search as string) || undefined,
-        page: 1,
-        pageSize: 200,
+        page: (params.page as number) || 1,
+        pageSize: PAGE_SIZE,
       });
       setData({
         examCollection: {
@@ -94,6 +96,7 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
           pageInfo: result.pageInfo,
         },
       } as unknown as IExamCollectionResponse);
+      setPageInfo({ total: result.pageInfo.total, totalPages: result.pageInfo.totalPages });
     } catch (error) {
       console.error("Error fetching exam collections:", error);
     } finally {
@@ -117,14 +120,15 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.isReady, router.query]);
 
-  // Fetch when relevant query params change
+  // Fetch when relevant query params change (including page)
   useEffect(() => {
     if (!router.isReady) return;
     getData({
       type: router.query.type || "all",
       search: router.query.search || "",
+      page: Number(router.query.page) || 1,
     });
-  }, [getData, router.isReady, router.query.type, router.query.search]);
+  }, [getData, router.isReady, router.query.type, router.query.search, router.query.page]);
 
   // Sync form → router query
   useEffect(() => {
@@ -179,10 +183,10 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
   }, [data, values.skill, values.collection]);
 
   const currentPage = values.page || 1;
-  const totalItems = groupedCollections.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const totalPages = pageInfo?.totalPages ?? 1;
   const visiblePages = buildPages(currentPage, totalPages);
-  const pagedCols = groupedCollections.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  // Server already returns only the current page of collections
+  const pagedCols = groupedCollections;
   const goToPage = (page: number) => {
     setValue("page", page, { shouldDirty: true });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -196,6 +200,17 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
     const all = [...readingCols, ...listeningCols];
     return Array.from(new Set(all));
   }, [data]);
+
+  // Collect all visible quiz IDs for batch results fetching
+  const allQuizIds = useMemo(() => {
+    const ids: string[] = [];
+    for (const col of pagedCols) {
+      for (const exam of col.exams ?? []) {
+        if (exam.id) ids.push(exam.id);
+      }
+    }
+    return ids;
+  }, [pagedCols]);
 
   return (
     <FormProvider {...methods}>
@@ -259,6 +274,7 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
               </aside>
 
               {/* List */}
+              <BatchResultsProvider quizIds={allQuizIds}>
               <div className="space-y-12 min-w-0">
                 {loading ? (
                   <div className="space-y-12">
@@ -333,6 +349,7 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
                   </div>
                 )}
               </div>
+              </BatchResultsProvider>
             </div>
           </section>
         </Container>

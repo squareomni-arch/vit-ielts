@@ -159,6 +159,8 @@ export const PracticeSection = ({
                   let partLabel = "Part 1";
                   if (quiz.type === 'exam') {
                     partLabel = "Trọn bộ";
+                  } else if (quiz.type === 'academic') {
+                    partLabel = undefined;
                   } else {
                     const skillSource = Array.isArray(quiz.skill) ? quiz.skill[0] : quiz.skill;
                     const skillValue = typeof skillSource === 'string' ? skillSource.toLowerCase() : 'listening';

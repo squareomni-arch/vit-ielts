@@ -30,6 +30,14 @@ import type {
 const QUIZ_SUMMARY_SELECT =
     "id, title, slug, skill, type, score_type, featured_image, pro_user_only, tests_taken, time_minutes, question_form, source, year, passages(id, sort_order, questions(id, type, question_text, list_of_questions, list_of_options, matching_question, matrix_question, explanations, sort_order))";
 
+/**
+ * Lightweight select for card-level listing — no heavy question JSONB.
+ * Passages are fetched with count only (via count aggregation).
+ * Full data is deferred to getQuizSummary() when user opens the modal.
+ */
+const QUIZ_LISTING_SELECT =
+    "id, title, slug, skill, type, score_type, featured_image, pro_user_only, tests_taken, time_minutes, question_form, source, year, passages(id, sort_order)";
+
 // ============================================================================
 // Internal Types (shapes returned by QUIZ_SUMMARY_SELECT)
 // ============================================================================
@@ -226,7 +234,7 @@ export async function getExamCollections(
     if (validQuizIds.length > 0) {
         const { data: quizDetails, error: detailError } = await supabase
             .from("quizzes")
-            .select(QUIZ_SUMMARY_SELECT)
+            .select(QUIZ_LISTING_SELECT)
             .in("id", validQuizIds);
 
         if (detailError) throw detailError;
@@ -254,12 +262,12 @@ export async function getExamCollections(
             for (const pt of mt.practice_tests) {
                 const readingQuiz = quizMap.get(pt.reading_test_id);
                 if (readingQuiz && !readingExams.some((e) => e.id === readingQuiz.id)) {
-                    readingExams.push(toExamItemWithQuizFields(readingQuiz));
+                    readingExams.push(toExamItemListing(readingQuiz));
                 }
 
                 const listeningQuiz = quizMap.get(pt.listening_test_id);
                 if (listeningQuiz && !listeningExams.some((e) => e.id === listeningQuiz.id)) {
-                    listeningExams.push(toExamItemWithQuizFields(listeningQuiz));
+                    listeningExams.push(toExamItemListing(listeningQuiz));
                 }
             }
         }
@@ -383,7 +391,7 @@ export async function getCollectionDetail(
 }
 
 // ============================================================================
-// Internal Helpers
+// Internal Helpers — Listing (lightweight, no question data)
 // ============================================================================
 
 import { countQuestion } from "@/shared/lib/countQuestion";
@@ -393,6 +401,42 @@ import { countQuestion } from "@/shared/lib/countQuestion";
  * This ensures UI components can access quiz.quizFields.time etc. consistently.
  * Passages are mapped with questions containing explanations for question counting.
  */
+/**
+ * Lightweight mapper for card listings — no question data, no countQuestion().
+ * Passages are mapped with sort_order only; questionCount is NOT available.
+ * Use getQuizSummary() for the full data when the user opens the modal.
+ */
+function toExamItemListing(item: QuizSummaryRow): MappedExamItem {
+    const passages = (item.passages ?? [])
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+        .map((p) => ({
+            id: p.id,
+            sort_order: p.sort_order,
+            questions: [],
+        } as any));
+
+    return {
+        id: item.id,
+        title: item.title,
+        slug: item.slug,
+        featuredImage: item.featured_image,
+        link: `/ielts-practice-library/${item.slug}`,
+        quizFields: {
+            proUserOnly: item.pro_user_only,
+            testsTaken: item.tests_taken,
+            skill: [item.skill, item.skill],
+            type: [item.type ?? "exam", item.type ?? "exam"],
+            scoreType: item.score_type ?? null,
+            time: item.time_minutes,
+            passages,
+        },
+    };
+}
+
+// ============================================================================
+// Internal Helpers — Full (with question data, for modal)
+// ============================================================================
+
 export function toExamItemWithQuizFields(item: QuizSummaryRow): MappedExamItem {
     // Sort and map passages + questions to legacy shape expected by ExamModeModal
     const passages = (item.passages ?? [])

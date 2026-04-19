@@ -23,15 +23,16 @@ export default async function handler(
     if (!user) return;
 
     try {
-        const { email } = req.body;
-        if (!email || typeof email !== "string") {
+        // Test emails may only be sent to the admin's own registered address,
+        // to prevent the endpoint from being used as a generic email sender.
+        const email = user.email;
+        if (!email) {
             return res.status(400).json({
                 success: false,
-                error: "Missing email address",
+                error: "Admin account has no email address on file",
             });
         }
 
-        // Send a test email with sample data
         const success = await sendOrderConfirmEmail(
             email,
             "Học viên test",

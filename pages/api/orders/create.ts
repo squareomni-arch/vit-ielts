@@ -112,8 +112,28 @@ export default async function handler(
 
     const finalAmount = Math.max(0, originalAmount - discountAmount);
 
-    // Affiliate ref từ cookie
-    const affiliateRef = req.cookies[AFFILIATE_COOKIE_NAME];
+    // Affiliate ref từ cookie — nhưng bỏ qua nếu ref resolve về chính user hiện tại
+    // để chặn self-referral (user tự credit commission cho chính mình).
+    let affiliateRef: string | undefined = req.cookies[AFFILIATE_COOKIE_NAME];
+    if (affiliateRef) {
+      const { resolveAffiliateRef } = await import("~services/affiliate");
+      try {
+        const resolved = await resolveAffiliateRef(supabaseAdmin, affiliateRef);
+        if (resolved?.affiliateId) {
+          const { data: affOwner } = await supabaseAdmin
+            .from("affiliates")
+            .select("user_id")
+            .eq("id", resolved.affiliateId)
+            .maybeSingle();
+          if (affOwner?.user_id === finalUserId) {
+            affiliateRef = undefined;
+          }
+        }
+      } catch {
+        // Nếu resolve lỗi, bỏ qua affiliateRef cho an toàn
+        affiliateRef = undefined;
+      }
+    }
 
     // ─── DEDUP: Reuse existing pending order if same params ─────────────
     const existingOrder = await findExistingPendingOrder(

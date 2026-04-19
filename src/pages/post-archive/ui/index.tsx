@@ -9,6 +9,7 @@ import Image from "next/image";
 import { resolveContentImage, useContentImageFallback } from "@/shared/lib/content-image";
 import { ProLink } from "@/shared/ui/pro-link";
 import { IPost } from "@/shared/types";
+import { ProBadge } from "@/shared/ui/pro-badge";
 
 const HorizontalPostItem = ({ post }: { post: IPost }) => {
   const fallbackImage = useContentImageFallback();
@@ -27,9 +28,7 @@ const HorizontalPostItem = ({ post }: { post: IPost }) => {
       {/* Image */}
       <div className="relative w-full h-[200px] sm:w-[390px] sm:h-[240px] shrink-0 rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none overflow-hidden bg-gray-100">
         {isPro && (
-          <div className="absolute top-2 right-2 z-10 rounded px-2 py-0.5 text-xs font-bold text-white bg-red-500">
-            PRO
-          </div>
+          <ProBadge className="absolute top-2 right-2 z-10 shadow-sm" />
         )}
         <Image
           src={imageSrc}
