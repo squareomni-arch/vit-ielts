@@ -61,6 +61,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
     }
 
+    if (req.method === "PATCH") {
+        // Lightweight toggle — chỉ cập nhật pro_user_only mà không cần full body
+        try {
+            const { pro_user_only } = req.body;
+            if (typeof pro_user_only !== "boolean") {
+                return res.status(400).json({ success: false, error: "pro_user_only must be a boolean" });
+            }
+            const { data, error } = await supabaseAdmin
+                .from("posts")
+                .update({ pro_user_only })
+                .eq("id", id)
+                .select("id, pro_user_only")
+                .single();
+            if (error) throw error;
+
+            await logActivity(supabaseAdmin, {
+                userId: user.id,
+                userEmail: user.email ?? undefined,
+                action: "update",
+                entityType: "post",
+                entityId: id,
+                entityTitle: `[PRO toggle → ${pro_user_only}]`,
+                ipAddress: getClientIP(req),
+            });
+
+            return res.status(200).json({ success: true, data });
+        } catch (error) {
+            return res.status(500).json({ success: false, error: error instanceof Error ? error.message : "Internal error" });
+        }
+    }
+
     if (req.method === "DELETE") {
         try {
             const { error } = await supabaseAdmin.from("posts").delete().eq("id", id);

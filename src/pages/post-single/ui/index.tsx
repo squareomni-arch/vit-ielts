@@ -16,8 +16,11 @@ import {
   resolveContentImage,
   useContentImageFallback,
 } from "@/shared/lib/content-image";
+import { ProBadge } from "@/shared/ui/pro-badge";
 
-export const PageSingle = ({ post }: { post: IPost }) => {
+export const PageSingle = ({ post }: { post: IPost & { pro_user_only?: boolean; author?: { node?: { name?: string; userData?: { avatar?: { node?: { sourceUrl?: string } } } } } } }) => {
+  // Hỗ trợ cả raw Post (snake_case) và IPost (camelCase postMeta)
+  const isProPost = (post as any).pro_user_only || post.postMeta?.proUserOnly || false;
   const fallbackImage = useContentImageFallback();
   const [copied, setCopied] = useState(false);
 
@@ -109,9 +112,17 @@ export const PageSingle = ({ post }: { post: IPost }) => {
                 <div className="mb-[23px]">
                   <Breadcrumb items={breadcrumbItems} />
                 </div>
-                <h1 className="text-3xl md:text-[40px] font-extrabold text-[#2D3142] font-noto-sans leading-tight mb-[23px]">
-                  {post.title}
-                </h1>
+                <div className="flex items-start gap-3 mb-[23px]">
+                  <h1 className="text-3xl md:text-[40px] font-extrabold text-[#2D3142] font-noto-sans leading-tight flex-1">
+                    {post.title}
+                  </h1>
+                  {isProPost && (
+                    <ProBadge
+                      className="mt-2 shrink-0"
+                      title="Bài viết chỉ dành cho PRO user"
+                    />
+                  )}
+                </div>
                 <div className="flex items-center justify-between pt-[23px]">
                   <div className="flex items-center gap-6">
                     <div className="flex items-center gap-3">

@@ -6,7 +6,7 @@
 }
 .blog-card:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-3px); }
 
-.blog-card__image-wrapper { aspect-ratio: 16/10; overflow: hidden; background: var(--color-neutral-100); }
+.blog-card__image-wrapper { aspect-ratio: 16/10; overflow: hidden; background: var(--color-neutral-100); position: relative; }
 .blog-card__image { width: 100%; height: 100%; object-fit: cover; transition: transform var(--duration-slow); }
 .blog-card:hover .blog-card__image { transform: scale(1.05); }
 .blog-card__image-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, var(--color-neutral-100), var(--color-neutral-200)); }

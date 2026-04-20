@@ -1,5 +1,6 @@
 
 import { resolveContentImage, useContentImageFallback } from "@/shared/lib/content-image";
+import { ProBadge } from "@/shared/ui/pro-badge";
 
 /**
  * Design System Blog Card
@@ -15,6 +16,8 @@ export type BlogCardProps = {
   date?: string;
   readTime?: string;
   author?: string;
+  /** Hiển thị badge PRO overlay nếu bài viết chỉ dành cho PRO user */
+  isPro?: boolean;
   href?: string;
   onClick?: () => void;
   className?: string;
@@ -28,6 +31,7 @@ export const BlogCard = ({
   date,
   readTime,
   author,
+  isPro = false,
   href,
   onClick,
   className = '',
@@ -41,9 +45,15 @@ export const BlogCard = ({
     <Tag {...linkProps} className={`blog-card ${className}`} onClick={onClick}>
       <div className="blog-card__image-wrapper">
         <img src={imageSrc} alt={title} className="blog-card__image" loading="lazy" />
+        {isPro && (
+          <ProBadge className="absolute top-2 right-2 z-10" />
+        )}
       </div>
       <div className="blog-card__body">
-        {category && <span className="blog-card__category">{category}</span>}
+        <div className="flex items-center gap-2 flex-wrap">
+          {category && <span className="blog-card__category">{category}</span>}
+          {isPro && <ProBadge variant="primary" className="shrink-0" />}
+        </div>
         <h3 className="blog-card__title">{title}</h3>
         {excerpt && <p className="blog-card__excerpt">{excerpt}</p>}
         <div className="blog-card__meta">
