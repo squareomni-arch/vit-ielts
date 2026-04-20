@@ -18,6 +18,7 @@ import {
   resolveContentImage,
   useContentImageFallback,
 } from "@/shared/lib/content-image";
+import { formatBandScore } from "@/shared/lib/test-result-display";
 
 import type { IPracticeSingle, ITestResult, IUser } from "../api";
 import AnswerKeys from "./answer-keys";
@@ -111,9 +112,7 @@ export function PageTestResult({
     post.quizFields.type?.[0] === "general";
 
   const displayScoreStr = isMockTest
-    ? bandScore !== null
-      ? bandScore.toFixed(1)
-      : numericScore.toFixed(1)
+    ? (formatBandScore(bandScore ?? numericScore) ?? numericScore.toFixed(1))
     : `${scoreData.correctAns}/${scoreData.total_questions}`;
 
   const scoreLabel = isMockTest ? "Band Score" : "Câu đúng";

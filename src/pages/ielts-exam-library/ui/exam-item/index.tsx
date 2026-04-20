@@ -5,9 +5,10 @@ import { IExamCollection } from "../../api";
 import ExamModeModal from "../exam-mode-modal";
 import { useAuth } from "@/appx/providers";
 import { useProContentModal } from "@/shared/ui/pro-content";
-import Link from "next/link";
 import { ProBadge } from "@/shared/ui/pro-badge";
 import { useBatchResults } from "../batch-results-context";
+import { formatBandScore } from "@/shared/lib/test-result-display";
+import { TestHistoryModal } from "@/entities/practice-test/ui/test-history-modal";
 
 interface TestResultRow {
   id: string;
@@ -26,6 +27,7 @@ export const ExamItem = ({
   const { currentUser } = useAuth();
   const openProContentModal = useProContentModal((state) => state.open);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const quizFields = item.quizFields;
 
@@ -48,15 +50,15 @@ export const ExamItem = ({
   const formattedScore = (() => {
     if (latestScoreRaw == null) return undefined;
     if (isBandScore) {
-      // Band score: "7" or "6.5"
-      return `${latestScoreRaw}`;
+      // Band score: dùng formatBandScore để "7" không thành "7.0"
+      return formatBandScore(latestScoreRaw) ?? `${latestScoreRaw}`;
     }
-    // Practice test: "32/40" if breakdown available, fallback to band format
+    // Practice test: "32/40" nếu có breakdown
     if (totalCorrect != null && totalQuestions != null) {
       return `${totalCorrect}/${totalQuestions}`;
     }
-    // Fallback for old results without breakdown
-    return `${latestScoreRaw}`;
+    // Fallback cho kết quả cũ không có breakdown
+    return formatBandScore(latestScoreRaw) ?? `${latestScoreRaw}`;
   })();
 
   const isProtected = quizFields.proUserOnly && !currentUser?.userData.isPro;
@@ -163,13 +165,13 @@ export const ExamItem = ({
               </span>
             </div>
 
-            {/* Circular Score — hiện khi đã làm */}
+            {/* Circular Score — click mở History Modal */}
             {isDone && latestResultId && !isProtected && formattedScore !== undefined && (
-              <Link
-                href={ROUTES.TEST_RESULT(latestResultId)}
-                onClick={(e) => e.stopPropagation()}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsHistoryOpen(true); }}
                 className="flex h-[60px] w-[60px] flex-col items-center justify-center p-[10px] rounded-full border border-[rgba(128,128,128,0.55)] bg-white flex-shrink-0 cursor-pointer hover:border-primary-500 hover:text-primary-500 transition-colors"
-                title={isBandScore ? "Band score lần thi trước" : "Số câu đúng lần làm trước"}
+                title="Xem lịch sử làm bài"
               >
                 <span
                   className={`text-primary-500 font-noto-sans font-bold leading-none ${
@@ -180,7 +182,7 @@ export const ExamItem = ({
                 >
                   {formattedScore}
                 </span>
-              </Link>
+              </button>
             )}
           </div>
         </div>
@@ -192,6 +194,14 @@ export const ExamItem = ({
         quiz={item}
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+      />
+
+      {/* History Modal — mở khi click điểm */}
+      <TestHistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        quizId={item.id}
+        title={item.title}
       />
     </>
   );
