@@ -304,9 +304,7 @@ export const formatBandScore = (score: unknown) => {
     return undefined;
   }
 
-  return Number.isInteger(numericScore)
-    ? `${numericScore}`
-    : numericScore.toFixed(1);
+  return numericScore.toFixed(1);
 };
 
 export const formatResultLabel = ({

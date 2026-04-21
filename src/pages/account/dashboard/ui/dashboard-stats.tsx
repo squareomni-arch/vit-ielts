@@ -5,6 +5,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/appx/providers";
+import { formatBandScore } from "@/shared/lib";
 import { createClient } from "~supabase/client";
 
 type StatItem = {
@@ -18,7 +19,7 @@ export const DashboardStats = () => {
   const { currentUser } = useAuth();
   const [totalTime, setTotalTime] = useState("0 Giờ 0 Phút");
   const [totalTests, setTotalTests] = useState(0);
-  const [totalScore, setTotalScore] = useState<number | string>(0);
+  const [totalScore, setTotalScore] = useState("0.0");
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -69,8 +70,7 @@ export const DashboardStats = () => {
         setTotalTime(`${hours} Giờ ${mins} Phút`);
         setTotalTests(results.length);
         
-        // Show 1 decimal if floating point, else whole number
-        setTotalScore(Number.isInteger(totalScoreSum) ? totalScoreSum : totalScoreSum.toFixed(1));
+        setTotalScore(formatBandScore(totalScoreSum) ?? "0.0");
       } catch (err) {
         console.error("Error fetching dashboard stats:", err);
       }
