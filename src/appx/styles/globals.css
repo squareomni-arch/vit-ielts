@@ -797,3 +797,9 @@ br {
 #iel-test-result-explanation *:not(.material-symbols-rounded) {
   font-family: Arial, Helvetica, sans-serif !important;
 }
+
+/* Admin — remove inner border from Ant Design Input.Search */
+.ant-input-search .ant-input-wrapper .ant-input-affix-wrapper {
+  border: none !important;
+  box-shadow: none !important;
+}

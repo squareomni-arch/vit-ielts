@@ -638,10 +638,8 @@ export function PageTakeTheTest() {
           <TextSelectionProvider key={part.current}>
             {/* Left column: header + passage info + splitter */}
             <div
-              className={twMerge(
-                "flex flex-col flex-1 min-w-0 h-full overflow-hidden duration-300",
-                isNotesViewOpen && "w-9/12 flex-none"
-              )}
+              className="flex flex-col flex-1 min-w-0 h-full overflow-hidden"
+              style={{ transition: "none" }}
             >
               <Header post={post} />
 
@@ -753,14 +751,11 @@ export function PageTakeTheTest() {
             </div>
 
             {/* Notepad sidebar — full height from header to footer */}
-            <div
-              className={twMerge(
-                "w-0 overflow-hidden duration-300 shrink-0",
-                isNotesViewOpen && "w-3/12"
-              )}
-            >
-              <Notepad />
-            </div>
+            {isNotesViewOpen && (
+              <div className="w-3/12 max-w-[410px] shrink-0" style={{ transition: "none" }}>
+                <Notepad />
+              </div>
+            )}
           </TextSelectionProvider>
 
           {/* Footer is outside TextSelectionProvider so AudioPlayer won't unmount */}

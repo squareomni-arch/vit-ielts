@@ -230,7 +230,7 @@ export const Filter = ({ filterData, mobile = false, onClose }: FilterProps) => 
           <button
             type="button"
             onClick={resetFilters}
-            className="w-full rounded-[32px] bg-white py-3 text-[14px] font-bold text-[#2D3142] transition hover:bg-gray-50 border border-[rgba(0,0,0,0.06)]"
+            className="w-full rounded-[32px] bg-white py-3 text-[14px] font-bold text-[#2D3142] cursor-pointer transition hover:bg-gray-50 border border-[rgba(0,0,0,0.06)]"
             style={{
               boxShadow:
                 "0 4px 8px -2px rgba(16, 24, 40, 0.10), 0 2px 4px -2px rgba(16, 24, 40, 0.06)",

@@ -521,10 +521,7 @@ function EmailTemplatePage() {
                 title={
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingRight: 24 }}>
                         <span>
-                            📧 Preview:{" "}
-                            {previewType === "orderConfirmation"
-                                ? "Email xác nhận đơn hàng"
-                                : "Email thông báo admin"}
+                            Preview
                         </span>
                         <Space>
                             <Button
