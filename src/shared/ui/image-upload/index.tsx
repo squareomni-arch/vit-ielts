@@ -49,9 +49,18 @@ export function ImageUpload({
         formData.append("oldPath", value);
       }
 
-      const res = await fetch("/api/admin/upload-image", {
+      const uploadUrl = process.env.NEXT_PUBLIC_MEDIA_UPLOAD_URL || "/api/admin/upload-image";
+      const uploadSecret = process.env.NEXT_PUBLIC_MEDIA_UPLOAD_SECRET;
+
+      const headers: Record<string, string> = {};
+      if (uploadSecret && uploadUrl.includes("ieltspredictiontest.com")) {
+        headers["X-Upload-Key"] = uploadSecret;
+      }
+
+      const res = await fetch(uploadUrl, {
         method: "POST",
         body: formData,
+        headers
       });
 
       if (!res.ok) {
@@ -59,8 +68,9 @@ export function ImageUpload({
         throw new Error(error.message || "Upload thất bại");
       }
 
-      const data = await res.json();
-      const imagePath = data.path;
+      const json = await res.json();
+      // Handle both local API response { path } and VPS response { data: { url } }
+      const imagePath = json.path || json.data?.url;
 
       if (!isValidImageUrl(imagePath)) {
         throw new Error("URL ảnh không hợp lệ. Vui lòng thử lại.");

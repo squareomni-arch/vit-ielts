@@ -229,12 +229,12 @@ export default function QuestionPreview({ data }: QuestionPreviewProps) {
 
                 <div className="bg-white p-4 rounded border border-gray-200">
                     <h4 className="font-medium mb-2">Options Pool:</h4>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-2">
                         {answerOptions.map((opt: any, i: number) => (
-                            <span key={i} className="bg-gray-100 px-2 py-1 rounded text-sm">
-                                {String.fromCharCode(65 + i)}.{" "}
+                            <div key={i} className="bg-gray-100 px-3 py-2 rounded text-sm border border-gray-200">
+                                <span className="font-bold mr-2 text-blue-600">{String.fromCharCode(65 + i)}.</span>
                                 {opt.optionText || opt.option_text || `[Option ${i + 1}]`}
-                            </span>
+                            </div>
                         ))}
                     </div>
                 </div>

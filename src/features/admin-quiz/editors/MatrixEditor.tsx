@@ -72,14 +72,14 @@ export default function MatrixEditor({ data, onChange }: MatrixEditorProps) {
 
             <div className="space-y-2">
                 {(data.matrixCategories ?? []).map((cat, idx) => (
-                    <Space key={idx}>
+                    <div key={idx} className="flex items-center gap-2">
                         <Input
                             placeholder="Letter"
                             value={cat.categoryLetter}
                             onChange={(e) =>
                                 updateCategory(idx, { categoryLetter: e.target.value })
                             }
-                            style={{ width: 70 }}
+                            style={{ width: 70, flexShrink: 0 }}
                         />
                         <Input
                             placeholder="Category label (e.g. Yes, True, Writer Jones)"
@@ -87,7 +87,7 @@ export default function MatrixEditor({ data, onChange }: MatrixEditorProps) {
                             onChange={(e) =>
                                 updateCategory(idx, { categoryText: e.target.value })
                             }
-                            style={{ width: 300 }}
+                            style={{ flex: 1 }}
                         />
                         <Button
                             size="small"
@@ -100,7 +100,7 @@ export default function MatrixEditor({ data, onChange }: MatrixEditorProps) {
                                 )
                             }
                         />
-                    </Space>
+                    </div>
                 ))}
                 <Button
                     icon={<PlusOutlined />}
