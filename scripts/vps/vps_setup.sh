@@ -26,57 +26,85 @@ HTEOF
 echo ">>> Ghi upload.php..."
 cat > "$UPLOAD_DIR/upload.php" << 'ENDOFPHP'
 <?php
-declare(strict_types=1);
+/**
+ * IELTS Prediction — Media Upload API
+ * Handle CORS and file uploads for Vercel frontend.
+ */
 
-// Secret stored here since cPanel has no fastcgi_param.
-// Keep this file non-listable (no directory index).
+// 1. Robust CORS Handling (Must be at the absolute top)
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
+header("Access-Control-Allow-Origin: $origin");
+header("Access-Control-Allow-Methods: POST, OPTIONS, GET");
+header("Access-Control-Allow-Headers: X-Upload-Key, Content-Type, Authorization, X-Requested-With");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Max-Age: 86400");
+
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
+// 2. Configuration
 define('UPLOAD_SECRET', '3dbfd0665d45051089cd0e16d8fea76fcf1857e739cf33d22758928e9e909d41');
 define('MEDIA_DIR',     '/home/ieltspre/public_html/media/');
 define('MEDIA_URL',     'https://cms.ieltspredictiontest.com/media');
 define('MAX_BYTES',     100 * 1024 * 1024);
 
-function json_out(int $status, array $payload): void {
+/**
+ * Helper to output JSON and exit
+ */
+function json_out($status, $payload) {
     http_response_code($status);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode($payload, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: X-Upload-Key, Content-Type');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
+// 3. Validate Method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_out(405, ['success' => false, 'error' => 'Method not allowed']);
 }
 
-$requestKey = $_SERVER['HTTP_X_UPLOAD_KEY'] ?? '';
+// 4. Validate Auth Key
+// Support both standard and custom headers (LiteSpeed/Nginx variations)
+$requestKey = $_SERVER['HTTP_X_UPLOAD_KEY'] ?? $_SERVER['X-Upload-Key'] ?? '';
 if (!UPLOAD_SECRET || !hash_equals(UPLOAD_SECRET, $requestKey)) {
     json_out(401, ['success' => false, 'error' => 'Unauthorized']);
 }
 
+// 5. Basic PHP Upload Validation
 if (empty($_FILES['file']) || $_FILES['file']['error'] === UPLOAD_ERR_NO_FILE) {
-    json_out(400, ['success' => false, 'error' => 'Khong co file duoc upload']);
+    json_out(400, ['success' => false, 'error' => 'Không có file được upload']);
 }
 
 $file = $_FILES['file'];
 if ($file['error'] !== UPLOAD_ERR_OK) {
     $phpErrors = [
-        UPLOAD_ERR_INI_SIZE   => 'File vuot qua upload_max_filesize trong php.ini',
-        UPLOAD_ERR_FORM_SIZE  => 'File vuot qua MAX_FILE_SIZE',
-        UPLOAD_ERR_PARTIAL    => 'File chi upload mot phan',
-        UPLOAD_ERR_NO_TMP_DIR => 'Khong tim thay thu muc tam',
-        UPLOAD_ERR_CANT_WRITE => 'Khong the ghi file len disk',
+        UPLOAD_ERR_INI_SIZE   => 'File vượt quá upload_max_filesize trong php.ini',
+        UPLOAD_ERR_FORM_SIZE  => 'File vượt quá MAX_FILE_SIZE',
+        UPLOAD_ERR_PARTIAL    => 'File chỉ upload một phần',
+        UPLOAD_ERR_NO_TMP_DIR => 'Không tìm thấy thư mục tạm',
+        UPLOAD_ERR_CANT_WRITE => 'Không thể ghi file lên disk',
+        UPLOAD_ERR_EXTENSION  => 'Một PHP extension đã chặn việc upload',
     ];
-    json_out(500, ['success' => false, 'error' => $phpErrors[$file['error']] ?? "Upload error: {$file['error']}"]);
+    json_out(500, ['success' => false, 'error' => $phpErrors[$file['error']] ?? "Lỗi upload: {$file['error']}"]);
 }
 
 if ($file['size'] > MAX_BYTES) {
-    json_out(413, ['success' => false, 'error' => 'File qua lon. Toi da 100 MB']);
+    json_out(413, ['success' => false, 'error' => 'File quá lớn. Tối đa 100 MB']);
 }
 
-$finfo    = new finfo(FILEINFO_MIME_TYPE);
-$mimeType = $finfo->file($file['tmp_name']);
+// 6. Mime Type Detection (with fallback)
+$mimeType = '';
+if (class_exists('finfo')) {
+    $finfo    = new finfo(FILEINFO_MIME_TYPE);
+    $mimeType = $finfo->file($file['tmp_name']);
+} else if (function_exists('mime_content_type')) {
+    $mimeType = mime_content_type($file['tmp_name']);
+} else {
+    $mimeType = $file['type']; // Fallback to browser-provided type (less secure)
+}
 
 $mimeToCategory = [
     'image/jpeg'      => 'images',
@@ -95,9 +123,10 @@ $mimeToCategory = [
 ];
 
 if (!array_key_exists($mimeType, $mimeToCategory)) {
-    json_out(415, ['success' => false, 'error' => "Loai file khong duoc ho tro: {$mimeType}"]);
+    json_out(415, ['success' => false, 'error' => "Loại file không được hỗ trợ: {$mimeType}"]);
 }
 
+// 7. Generate Safe Filename
 $category     = $mimeToCategory[$mimeType];
 $originalName = $file['name'] ?? 'file';
 $ext          = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
@@ -107,16 +136,18 @@ $safeName     = strtolower(substr((string)$safeName, 0, 60));
 $safeName     = trim($safeName, '-') ?: 'file';
 $filename     = $safeName . '-' . time() . '.' . $ext;
 
+// 8. Move File
 $destDir = MEDIA_DIR . $category . '/';
 if (!is_dir($destDir) && !mkdir($destDir, 0755, true)) {
-    json_out(500, ['success' => false, 'error' => "Khong the tao thu muc: {$destDir}"]);
+    json_out(500, ['success' => false, 'error' => "Không thể tạo thư mục: {$destDir}"]);
 }
 
 $destPath = $destDir . $filename;
 if (!move_uploaded_file($file['tmp_name'], $destPath)) {
-    json_out(500, ['success' => false, 'error' => 'Khong the luu file len server']);
+    json_out(500, ['success' => false, 'error' => 'Không thể lưu file lên server']);
 }
 
+// 9. Success Response
 json_out(200, [
     'success' => true,
     'data'    => [
@@ -130,6 +161,73 @@ json_out(200, [
 ENDOFPHP
 
 chmod 644 "$UPLOAD_DIR/upload.php"
+
+echo ">>> Ghi delete.php..."
+cat > "$UPLOAD_DIR/delete.php" << 'ENDOFPHP'
+<?php
+/**
+ * IELTS Prediction — Media Delete API
+ */
+
+// 1. CORS
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
+header("Access-Control-Allow-Origin: $origin");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: X-Upload-Key, Content-Type");
+header("Access-Control-Allow-Credentials: true");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
+define('UPLOAD_SECRET', '3dbfd0665d45051089cd0e16d8fea76fcf1857e739cf33d22758928e9e909d41');
+define('MEDIA_DIR',     '/home/ieltspre/public_html/media/');
+define('MEDIA_URL_BASE', 'https://cms.ieltspredictiontest.com/media/');
+
+function json_out($status, $payload) {
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// 2. Validate Auth
+$requestKey = $_SERVER['HTTP_X_UPLOAD_KEY'] ?? $_SERVER['X-Upload-Key'] ?? '';
+if (!UPLOAD_SECRET || !hash_equals(UPLOAD_SECRET, $requestKey)) {
+    json_out(401, ['success' => false, 'error' => 'Unauthorized']);
+}
+
+// 3. Get URL to delete
+$data = json_decode(file_get_contents('php://input'), true);
+$fileUrl = $data['url'] ?? '';
+
+if (!$fileUrl) {
+    json_out(400, ['success' => false, 'error' => 'Thiếu URL file cần xóa']);
+}
+
+// 4. Resolve path
+if (strpos($fileUrl, MEDIA_URL_BASE) !== 0) {
+    json_out(400, ['success' => false, 'error' => 'URL không thuộc quản lý của hệ thống media']);
+}
+
+$relativePath = substr($fileUrl, strlen(MEDIA_URL_BASE));
+// Security: prevent directory traversal
+$relativePath = str_replace(['..', '\\'], ['', '/'], $relativePath);
+$filePath = MEDIA_DIR . $relativePath;
+
+if (file_exists($filePath)) {
+    if (unlink($filePath)) {
+        json_out(200, ['success' => true, 'message' => 'Đã xóa file vật lý']);
+    } else {
+        json_out(500, ['success' => false, 'error' => 'Không thể xóa file trên disk']);
+    }
+} else {
+    json_out(200, ['success' => true, 'message' => 'File không tồn tại hoặc đã bị xóa trước đó']);
+}
+ENDOFPHP
+
+chmod 644 "$UPLOAD_DIR/delete.php"
 
 echo ""
 echo "=================================================="

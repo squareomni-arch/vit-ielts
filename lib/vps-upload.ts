@@ -90,3 +90,42 @@ export async function uploadToVPS(
 
   return json.data;
 }
+
+/**
+ * Deletes a file from the VPS via the PHP endpoint.
+ *
+ * @param url The public URL of the file to delete.
+ */
+export async function deleteFromVPS(url: string): Promise<void> {
+  const deleteUrl = UPLOAD_URL.replace("upload.php", "delete.php");
+  if (!deleteUrl || !UPLOAD_SECRET) return;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30_000);
+
+  try {
+    const response = await fetch(deleteUrl, {
+      method: "POST",
+      headers: {
+        "X-Upload-Key": UPLOAD_SECRET,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ url }),
+      signal: controller.signal,
+    });
+
+    const json = (await response.json().catch(() => ({}))) as {
+      success?: boolean;
+      error?: string;
+    };
+
+    if (!response.ok || !json.success) {
+      console.error(`Xóa file VPS thất bại: ${json.error ?? "Unknown error"}`);
+    }
+  } catch (err) {
+    console.error(`Lỗi kết nối VPS khi xóa: ${(err as Error).message}`);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+

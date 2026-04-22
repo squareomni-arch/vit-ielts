@@ -5,6 +5,8 @@ import { useWidgetContext } from "../../context";
 import { useAuth } from "@/appx/providers";
 import { createClient } from "~supabase/client";
 
+import { roundIELTSScore } from "@/shared/lib/ielts-round";
+
 type FormData = {
   reading: number;
   listening: number;
@@ -41,8 +43,9 @@ export const SetTargetScoreModal = ({
   useEffect(() => {
     const { reading, listening, speaking, writing } = values;
     if (reading && listening && speaking && writing) {
-      const overall = (Number(reading) + Number(listening) + Number(speaking) + Number(writing)) / 4;
-      setOverallScore(overall.toFixed(1));
+      const avg = (Number(reading) + Number(listening) + Number(speaking) + Number(writing)) / 4;
+      const rounded = roundIELTSScore(avg);
+      setOverallScore(rounded.toFixed(1));
     } else {
       setOverallScore("0.0");
     }

@@ -173,7 +173,7 @@ function MediaCard({
                             <Button size="small" type="text" icon={<CopyOutlined style={{ fontSize: 11 }} />}
                                 onClick={e => { e.stopPropagation(); onCopy(item.url); }} />
                         </Tooltip>
-                        <Popconfirm title="Xóa bản ghi này?" description="File trên VPS không bị xóa." onConfirm={() => onDelete(item.id)}>
+                        <Popconfirm title="Xóa file này?" description="File sẽ bị xóa vĩnh viễn khỏi VPS." onConfirm={() => onDelete(item.id)}>
                             <Button size="small" type="text" danger icon={<DeleteOutlined style={{ fontSize: 11 }} />}
                                 onClick={e => e.stopPropagation()} />
                         </Popconfirm>
@@ -339,7 +339,7 @@ function MediaLibraryPage() {
                     <Tooltip title="Copy URL">
                         <Button size="small" icon={<CopyOutlined />} onClick={() => handleCopy(r.url)} />
                     </Tooltip>
-                    <Popconfirm title="Xóa bản ghi này?" description="File trên VPS không bị xóa." onConfirm={() => handleDelete(r.id)}>
+                    <Popconfirm title="Xóa file này?" description="File sẽ bị xóa vĩnh viễn khỏi VPS." onConfirm={() => handleDelete(r.id)}>
                         <Button size="small" danger icon={<DeleteOutlined />} />
                     </Popconfirm>
                 </Space>

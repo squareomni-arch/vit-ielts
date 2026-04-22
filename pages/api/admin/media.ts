@@ -143,13 +143,19 @@ export default async function handler(
                     .json({ success: false, error: "Missing id" });
             }
 
-            // Get filename before delete for logging
             const { data: mediaItem } = await supabaseAdmin
                 .from("media_library")
                 .select("filename, url")
                 .eq("id", id)
                 .single();
 
+            // 1. Physically delete from VPS
+            if (mediaItem?.url) {
+                const { deleteFromVPS } = await import("~lib/vps-upload");
+                await deleteFromVPS(mediaItem.url);
+            }
+
+            // 2. Delete from database
             const { error } = await supabaseAdmin
                 .from("media_library")
                 .delete()
