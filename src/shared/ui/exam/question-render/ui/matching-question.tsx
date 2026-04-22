@@ -447,7 +447,7 @@ export function MatchingQuestion({
               return (
                 <>
                   {/* 1. Hiển thị danh sách Options */}
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex flex-col items-start gap-2 mb-4">
                     {answerOptions.map((option, index) => (
                       <div
                         key={index}
@@ -683,7 +683,7 @@ export function MatchingQuestion({
                       )}
                     >
                       <SortableContext items={allOptionIds} id="available">
-                        <div className="flex flex-row flex-wrap gap-3">
+                        <div className="flex flex-col items-start gap-3">
                           {allOptionIds.map((id, optionIndex) => {
                             const optionText = answerOptions[optionIndex]?.optionText;
                             if (!optionText) return null;
@@ -723,11 +723,11 @@ export function MatchingQuestion({
 
                   if (isListening) {
                     return (
-                      <div className="flex flex-col gap-8">
-                        <div>
+                      <div className="flex flex-row gap-8 items-start">
+                        <div className="shrink-0">
                           {TextContent}
                         </div>
-                        <div className="w-full">
+                        <div className="shrink-0">
                           <p className="text-[16px] font-bold mb-4">List of options</p>
                           {OptionsContent}
                         </div>
@@ -801,7 +801,7 @@ export function MatchingQuestion({
             {/* Sử dụng `allOptionIds` ổn định cho SortableContext
              */}
             <SortableContext items={allOptionIds} id="available">
-              <div className="flex flex-row flex-wrap gap-2">
+              <div className="flex flex-col items-start gap-2">
                 {/* Lặp qua `allOptionIds` ổn định
                  */}
                 {allOptionIds.map((id, optionIndex) => {
@@ -848,7 +848,7 @@ export function MatchingQuestion({
           <div className="mt-6 space-y-4">
             <div className="pt-3 heading-list">
               <h4 className="text-[16px] font-bold mb-4">List of Headings</h4>
-              <div className="flex flex-row flex-wrap gap-3 prose prose-sm max-w-none w-full">
+              <div className="flex flex-col items-start gap-3 prose prose-sm max-w-none w-full">
                 {answerOptions.map((option, index) => (
                   <div
                     key={`heading-opt-${index}`}
@@ -1155,7 +1155,7 @@ export function MatchingQuestion({
                         <h4 className="text-[16px] font-bold mb-4">
                           List of options
                         </h4>
-                        <div className="flex flex-row flex-wrap gap-3">
+                        <div className="flex flex-col items-start gap-3">
                           {answerOptions.map((option, index) => (
                             <div
                               key={`list-opt-readonly-${index}`}
@@ -1278,7 +1278,7 @@ export function MatchingQuestion({
                         items={items["available"] || []}
                         id="available"
                       >
-                        <div className="flex flex-row flex-wrap gap-3 items-start">
+                        <div className="flex flex-col items-start gap-3">
                           {(items["available"] || []).map((id) => {
                             const optionIndex = parseInt(
                               String(id).split("-")[2]
@@ -1403,7 +1403,7 @@ export function MatchingQuestion({
                     <h4 className="text-[16px] font-bold mb-4">
                       Answer Options
                     </h4>
-                    <div className="flex flex-row flex-wrap gap-3 prose prose-sm max-w-none w-full">
+                    <div className="flex flex-col items-start gap-3 prose prose-sm max-w-none w-full">
                       {answerOptions.map((option, index) => (
                         <div
                           key={`sa-opt-${index}`}
@@ -1511,7 +1511,7 @@ export function MatchingQuestion({
                   {!readOnly && (
                     <div className="pt-3">
                       <SortableContext items={allOptionIds} id="available">
-                        <div className="flex flex-row flex-wrap gap-2">
+                        <div className="flex flex-col items-start gap-2">
                           {allOptionIds.map((id, optionIndex) => {
                             const optionText =
                               answerOptions[optionIndex]?.optionText;

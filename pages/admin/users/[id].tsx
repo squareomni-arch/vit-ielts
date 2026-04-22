@@ -606,6 +606,7 @@ export default function AdminUserDetailPage() {
                 okText="Xoá"
                 cancelText="Hủy"
                 okButtonProps={{ danger: true }}
+                getPopupContainer={(triggerNode) => triggerNode.parentNode as HTMLElement}
               >
                 <Button danger icon={<DeleteOutlined />}>
                   Xoá
@@ -622,6 +623,7 @@ export default function AdminUserDetailPage() {
                     onConfirm={() => handleTogglePro("deactivate")}
                     okText="Xác nhận"
                     cancelText="Hủy"
+                    getPopupContainer={(triggerNode) => triggerNode.parentNode as HTMLElement}
                   >
                     <Button danger>Hủy Pro</Button>
                   </Popconfirm>

@@ -607,7 +607,7 @@ const TooltipPopup = () => {
               onClick={handleNote}
               className="flex flex-col items-center cursor-pointer group"
             >
-              <div className="w-[44px] h-[40px] bg-[#e5e7eb] rounded-lg flex items-center justify-center bg-transparent">
+              <div className="w-[44px] h-[36px] bg-[#e5e7eb] rounded-lg flex items-center justify-center bg-transparent">
                 <NoteIcon className="text-[24px] text-[#374151]" />
               </div>
               <span className="text-[12px] font-medium text-[#4B5563] whitespace-nowrap">Note</span>
@@ -617,7 +617,7 @@ const TooltipPopup = () => {
               onClick={handleHighlight}
               className="flex flex-col items-center cursor-pointer group"
             >
-              <div className="w-[44px] h-[40px] bg-[#e5e7eb] rounded-lg flex items-center justify-center bg-transparent">
+              <div className="w-[44px] h-[36px] bg-[#e5e7eb] rounded-lg flex items-center justify-center bg-transparent">
                 <MarkerIcon className="text-[24px] text-[#374151]" />
               </div>
               <span className="text-[12px] font-medium text-[#4B5563] whitespace-nowrap">Highlight</span>
@@ -630,9 +630,9 @@ const TooltipPopup = () => {
           <button
             type="button"
             onClick={removeHighlight}
-            className="flex flex-col items-center gap-2 px-2 cursor-pointer group"
+            className="flex flex-col items-center cursor-pointer group pl-2"
           >
-            <div className="w-[44px] h-[44px] bg-[#e5e7eb] rounded-lg flex items-center justify-center group-hover:bg-[#fecaca] transition-colors">
+            <div className="w-[44px] h-[36px] bg-[#e5e7eb] rounded-lg flex items-center justify-center bg-transparent">
               <MarkerClearIcon className="text-[24px] text-[#374151]" />
             </div>
             <span className="text-[12px] font-medium text-[#4B5563] whitespace-nowrap">Remove</span>

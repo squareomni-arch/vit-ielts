@@ -123,11 +123,17 @@ export default function AffiliateUsersPage() {
         const affiliatesData = data.affiliates as AffiliateUser[];
 
         const enrichedAffiliates = affiliatesData.map((affiliate) => {
+          const rawStatus = (affiliate as any).status as string;
           return {
             ...affiliate,
             userId: affiliate.userId || (affiliate as any).user_id,
             email: affiliate.email || (affiliate as any).user_email,
             name: affiliate.name || (affiliate as any).user_name,
+            status: (rawStatus === "active" ? "approved" : rawStatus) as AffiliateUser["status"],
+            commissionRate:
+              affiliate.commissionRate !== undefined
+                ? affiliate.commissionRate
+                : (affiliate as any).commission_rate,
           };
         });
 
@@ -167,12 +173,18 @@ export default function AffiliateUsersPage() {
           }
         }
 
+        const rawStatus = data.affiliate.status as string;
         setAffiliateDetail({
           affiliate: {
             ...data.affiliate,
             userId: data.affiliate.userId || data.affiliate.user_id,
             email,
             name,
+            status: rawStatus === "active" ? "approved" : rawStatus,
+            commissionRate:
+              data.affiliate.commissionRate !== undefined
+                ? data.affiliate.commissionRate
+                : data.affiliate.commission_rate,
           },
           links: Array.isArray(data.links) ? data.links : [],
           commissions: Array.isArray(data.commissions) ? data.commissions : [],

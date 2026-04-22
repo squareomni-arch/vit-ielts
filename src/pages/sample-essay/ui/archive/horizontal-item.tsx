@@ -7,6 +7,7 @@ import {
 } from "@/shared/lib/content-image";
 import Image from "next/image";
 import { ProBadge } from "@/shared/ui/pro-badge";
+import { ProLink } from "@/shared/ui/pro-link";
 
 export const HorizontalItem = ({
   post: { node: post },
@@ -41,8 +42,10 @@ export const HorizontalItem = ({
   const isPro = post.pro_user_only ?? post.postMeta?.proUserOnly ?? false;
 
   return (
-    <a
+    <ProLink
       href={ROUTES.SAMPLE_ESSAY.SINGLE(post.slug)}
+      title={post.title}
+      isPro={isPro}
       className="group flex flex-col sm:flex-row sm:items-center bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.07)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)] transition-shadow overflow-hidden"
     >
       {/* Image */}
@@ -69,6 +72,6 @@ export const HorizontalItem = ({
         </h3>
         <p className="text-sm text-gray-400 line-clamp-1">{post.title}</p>
       </div>
-    </a>
+    </ProLink>
   );
 };

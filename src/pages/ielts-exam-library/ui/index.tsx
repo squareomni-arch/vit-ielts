@@ -27,8 +27,8 @@ export type FilterFormValues = {
 const PAGE_SIZE = 5;
 
 const DEFAULT_VALUES: FilterFormValues = {
-  type: "all",
-  skill: "all",
+  type: "academic",
+  skill: "reading",
   collection: "",
   sort: "newest",
   search: "",
@@ -104,13 +104,24 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
     }
   }, []);
 
-  // Sync form ← router query
+  // Sync form ← router query (and push defaults to URL on first visit)
   useEffect(() => {
     if (!router.isReady) return;
     const q = router.query;
+
+    // First visit: no type/skill in URL → push defaults to URL
+    if (!q.type && !q.skill) {
+      router.replace(
+        { pathname: router.pathname, query: { ...q, type: "academic", skill: "reading" } },
+        undefined,
+        { shallow: true, scroll: false }
+      );
+      return;
+    }
+
     methods.reset({
-      type: (q.type as FilterFormValues["type"]) || "all",
-      skill: (q.skill as FilterFormValues["skill"]) || "all",
+      type: (q.type as FilterFormValues["type"]) || "academic",
+      skill: (q.skill as FilterFormValues["skill"]) || "reading",
       collection: (q.collection as string) || "",
       sort: (q.sort as FilterFormValues["sort"]) || "newest",
       search: (q.search as string) || "",
@@ -124,7 +135,7 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
   useEffect(() => {
     if (!router.isReady) return;
     getData({
-      type: router.query.type || "all",
+      type: router.query.type || "academic",
       search: router.query.search || "",
       page: Number(router.query.page) || 1,
     });
@@ -134,8 +145,8 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
   useEffect(() => {
     if (!isDirty) return;
     const q: Record<string, string> = {};
-    if (values.type && values.type !== "all") q.type = values.type;
-    if (values.skill && values.skill !== "all") q.skill = values.skill;
+    if (values.type) q.type = values.type;
+    if (values.skill) q.skill = values.skill;
     if (values.collection) q.collection = values.collection;
     if (values.search) q.search = values.search;
     if (values.sort !== "newest") q.sort = values.sort;

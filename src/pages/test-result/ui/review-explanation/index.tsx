@@ -189,7 +189,7 @@ function ReviewHeader({
                     onClick={() => {
                       window.location.href = `${ROUTES.TAKE_THE_TEST(quiz.slug)}?retake=true`;
                     }}
-                    className="flex flex-col md:flex-row items-center gap-1 text-[#222] hover:text-[#d94a56] font-medium transition-colors"
+                    className="flex flex-col md:flex-row items-center gap-1 text-[#222] hover:text-[#d94a56] font-medium transition-colors cursor-pointer"
                   >
                     <span className="material-symbols-rounded !font-bold !block text-[20px] md:text-[24px]">
                       refresh
@@ -1308,10 +1308,10 @@ function ReviewExplanation({
 
     return (
       <div className="">
-        <h3 className="text-xl font-bold text-primary md:px-12">
+        <h3 className="text-xl font-bold text-primary md:px-4">
           Explanations
         </h3>
-        <div className="space-y-2 px-1">
+        <div className="space-y-2 px-4">
           <div className="prose prose-sm max-w-none">
             <SafeRender name="finalExplanations">
               {finalExplanations}
@@ -1654,7 +1654,8 @@ function ReviewExplanation({
           {isListening && (
             <div className="overflow-y-auto h-full relative">
               <style>{`
-                #left-question-panel .ant-collapse {
+                #left-question-panel .ant-collapse,
+                #left-question-panel [data-question-explanation="true"] {
                     display: none !important;
                 }
               `}</style>
@@ -1685,7 +1686,9 @@ function ReviewExplanation({
               </div>
               {/* Explanations - scrollable */}
               <div className="flex-1 overflow-y-auto min-h-0" style={{ overflowX: 'visible' }}>
-                <div className="ex-right">{ExplanationsPanelContent}</div>
+                <TextSelectionWrapper>
+                  <div className="ex-right">{ExplanationsPanelContent}</div>
+                </TextSelectionWrapper>
               </div>
             </div>
           )}
@@ -1721,7 +1724,7 @@ function ReviewExplanation({
 
             <div id="iel-test-result-explanation" className="flex flex-grow min-h-0 overflow-hidden">
               {/* Main content: splitter + footer */}
-              <div className={twMerge("flex flex-col min-h-0 w-full duration-300 overflow-hidden", isNotesViewOpen && "w-9/12")}>
+              <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden" style={{ transition: "none" }}>
                 
                 <div className="border border-[#d5d5d5] rounded-[4px] flex-shrink-0 m-[16px] bg-[#f1f2ec]">
                   <div className="p-[16px]">
@@ -1762,7 +1765,7 @@ function ReviewExplanation({
                                     const isAnswered = ans !== null && ans !== undefined && String(ans).trim() !== "" && !(Array.isArray(ans) && ans.length === 0);
                                     return (
                                       <div key={qi} className="flex flex-col items-center gap-2 flex-shrink-0">
-                                        <div className={twMerge("w-full h-[3px] rounded-sm", isAnswered ? "bg-green-500" : "bg-gray-200")} />
+                                        <div className={twMerge("w-full h-[3px] rounded-sm", isAnswered ? "bg-green-700" : "bg-gray-200")} />
                                         <span className="text-[#000] p-1 pb-[2px] flex items-center leading-[16px]! justify-center text-[16px] border-2 border-transparent rounded">
                                           {qi + 1}
                                         </span>
@@ -1812,9 +1815,11 @@ function ReviewExplanation({
               </div>
 
               {/* Notepad sidebar */}
-              <div className={twMerge("w-0 overflow-hidden duration-300", isNotesViewOpen && "w-3/12")}>
-                <Notepad />
-              </div>
+              {isNotesViewOpen && (
+                <div className="w-3/12 max-w-[410px] shrink-0" style={{ transition: "none" }}>
+                  <Notepad />
+                </div>
+              )}
             </div>
           </div>
         </TextSelectionProvider>

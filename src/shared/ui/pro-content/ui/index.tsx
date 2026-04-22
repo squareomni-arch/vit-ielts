@@ -20,7 +20,7 @@ export const ProContentModal = () => {
         <div className="space-x-2">
           <Button onClick={close}>Close</Button>
           <Link href={ROUTES.SUBSCRIPTION} passHref legacyBehavior>
-            <LinkButton type="primary">
+            <LinkButton type="primary" onClick={close}>
               Buy Premium
             </LinkButton>
           </Link>

@@ -20,7 +20,7 @@ export const QuestionExplanation = ({
   if (!content) return null;
 
   return (
-    <div className={twMerge("mt-4", className)}>
+    <div data-question-explanation="true" className={twMerge("mt-4", className)}>
       <Button
         variant="primary"
         size="sm"

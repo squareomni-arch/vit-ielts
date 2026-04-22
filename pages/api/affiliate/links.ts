@@ -81,7 +81,7 @@ export default async function handler(
 
       // Build full URL for response
       const baseUrl = getBaseUrl(req);
-      const fullLink = `${baseUrl}/subscription?ref=${link.custom_link}`;
+      const fullLink = `${baseUrl}/?ref=${link.custom_link}`;
 
       return res.status(200).json({
         success: true,
@@ -130,7 +130,7 @@ export default async function handler(
       const baseUrl = getBaseUrl(req);
       const normalizedLinks = links.map((link) => ({
         ...link,
-        link: `${baseUrl}/subscription?ref=${link.custom_link}`,
+        link: `${baseUrl}/?ref=${link.custom_link}`,
       }));
 
       return res.status(200).json({
