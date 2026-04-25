@@ -447,7 +447,10 @@ export function MatchingQuestion({
               return (
                 <>
                   {/* 1. Hiển thị danh sách Options */}
-                  <div className="flex flex-col items-start gap-2 mb-4">
+                  <div className={twMerge(
+                    "gap-2 mb-4",
+                    isReading ? "flex flex-wrap items-start" : "flex flex-col items-start"
+                  )}>
                     {answerOptions.map((option, index) => (
                       <div
                         key={index}
@@ -683,7 +686,10 @@ export function MatchingQuestion({
                       )}
                     >
                       <SortableContext items={allOptionIds} id="available">
-                        <div className="flex flex-col items-start gap-3">
+                        <div className={twMerge(
+                          "gap-3",
+                          isListening ? "flex flex-col items-start" : "flex flex-wrap items-start"
+                        )}>
                           {allOptionIds.map((id, optionIndex) => {
                             const optionText = answerOptions[optionIndex]?.optionText;
                             if (!optionText) return null;
