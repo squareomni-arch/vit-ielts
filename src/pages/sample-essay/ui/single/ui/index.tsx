@@ -266,44 +266,6 @@ export const PageSingle = ({
                   <SharePost />
                 </div>
               </div>
-              <div className="bg-white rounded-[24px] border border-[rgba(0,0,0,0.06)] p-6 md:p-8 overflow-hidden">
-                <style
-                  dangerouslySetInnerHTML={{
-                    __html: `
-                  .wp-content-sanitized * {
-                    max-width: 100% !important;
-                    box-sizing: border-box !important;
-                  }
-                  .wp-content-sanitized img {
-                    height: auto !important;
-                    max-width: 100% !important;
-                  }
-                  .wp-content-sanitized table {
-                    width: 100% !important;
-                    table-layout: fixed !important;
-                    overflow-wrap: break-word !important;
-                  }
-                  .wp-content-sanitized [style*="position: absolute"],
-                  .wp-content-sanitized [style*="position:absolute"] {
-                    position: relative !important;
-                  }
-                  .wp-content-sanitized [style*="height"] {
-                    max-height: 2000px !important;
-                  }
-                  .wp-content-sanitized iframe {
-                    max-width: 100% !important;
-                  }
-                `,
-                  }}
-                />
-                <div
-                  className="wp-content-sanitized text-sm md:text-base text-[#2D3142] leading-relaxed prose prose-sm md:prose-base max-w-none prose-p:!mb-2 overflow-x-auto"
-                  dangerouslySetInnerHTML={{ __html: post.content }}
-                ></div>
-              </div>
-              <div className="p-4">
-                <SharePost />
-              </div>
             </div>
 
             {/* Right Column: Related items */}
