@@ -1,6 +1,7 @@
 import { Radio, Checkbox, Input, Select, Table, Collapse } from "antd";
 import parse, { HTMLReactParserOptions } from "html-react-parser";
 import type { QuestionData } from "./types";
+import { formatPresetOptionText } from "@/shared/lib/preset-option";
 
 type QuestionPreviewProps = {
     data: QuestionData;
@@ -101,19 +102,22 @@ export default function QuestionPreview({ data }: QuestionPreviewProps) {
                                             className="w-full"
                                             options={(q.options || []).map((opt: any, oIdx) => ({
                                                 value: oIdx,
-                                                label:
+                                                label: formatPresetOptionText(
                                                     opt.option_text ||
-                                                    opt.content ||
-                                                    opt.label ||
-                                                    `[Option ${oIdx + 1}]`,
+                                                        opt.content ||
+                                                        opt.label ||
+                                                        `[Option ${oIdx + 1}]`,
+                                                    data.question_form,
+                                                ),
                                             }))}
                                         />
                                         {!isNaN(correctIdx) && q.options?.[correctIdx] && (
                                             <CorrectAnswerBadge
-                                                label={
+                                                label={formatPresetOptionText(
                                                     (q.options[correctIdx] as any).option_text ||
-                                                    `Option ${correctIdx + 1}`
-                                                }
+                                                        `Option ${correctIdx + 1}`,
+                                                    data.question_form,
+                                                )}
                                             />
                                         )}
                                     </div>
@@ -140,7 +144,10 @@ export default function QuestionPreview({ data }: QuestionPreviewProps) {
                                                             <div className="flex items-center justify-between w-full">
                                                                 <div className="min-w-0 break-words prose prose-sm max-w-none">
                                                                     {renderRichText(
-                                                                        opt.option_text || opt.content || opt.label,
+                                                                        formatPresetOptionText(
+                                                                            opt.option_text || opt.content || opt.label,
+                                                                            data.question_form,
+                                                                        ),
                                                                         `[Option ${oIdx + 1}]`
                                                                     )}
                                                                 </div>

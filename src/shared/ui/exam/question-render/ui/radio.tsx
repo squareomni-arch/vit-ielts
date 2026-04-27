@@ -6,6 +6,7 @@ import { IQuestion, AnswerFormValues } from "@/shared/types/exam";
 import { useState, useMemo } from "react";
 import { twMerge } from "tailwind-merge";
 import { QuestionExplanation } from "./question-explanation";
+import { formatPresetOptionText } from "@/shared/lib/preset-option";
 // 1. IMPORT CONTEXT
 import { useExamContext } from "@/pages/take-the-test/context";
 
@@ -141,16 +142,18 @@ export const Radio = ({
                             );
                           } else if (!isUserCorrect && userDidAnswer) {
                             if (optIndex === Number(userAnswerIndex)) {
-                              optionBgClass = "bg-[#374151]/10 text-[#374151] font-semibold";
+                              // User chọn sai: nền xanh dương nhạt, text đỏ, icon X đỏ
+                              optionBgClass = "bg-[#dbe5fa] text-red-600 font-semibold";
                               suffix = (
-                                <span className="material-symbols-rounded text-[#374151] ml-auto">cancel</span>
+                                <span className="material-symbols-rounded text-red-600 ml-auto">cancel</span>
                               );
                             } else if (optIndex === correctAnswerIndex) {
                               optionTextClass = "text-green-600 font-semibold";
                             }
                           } else if (!userDidAnswer) {
                             if (optIndex === correctAnswerIndex) {
-                              optionBgClass = "bg-[#374151]/5 text-[#374151]/70 font-semibold";
+                              // Bỏ trống nhưng đây là đáp án đúng — text xanh lá để gợi ý
+                              optionTextClass = "text-green-600 font-semibold";
                             }
                           }
                         } else {
@@ -177,7 +180,12 @@ export const Radio = ({
                                 )}
                               >
                                 <TextSelectionWrapper>
-                                  {parse(option.content || "")}
+                                  {parse(
+                                    formatPresetOptionText(
+                                      option.content || "",
+                                      question.question_form,
+                                    ),
+                                  )}
                                 </TextSelectionWrapper>
                               </span>
                               {suffix}

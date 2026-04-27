@@ -114,7 +114,7 @@ export const QUESTION_TEMPLATES: QuestionTemplate[] = [
         icon: "✅",
         type: "radio",
         question_form: "true_false_not_given",
-        presetOptions: ["True", "False", "Not Given"],
+        presetOptions: ["TRUE", "FALSE", "NOT GIVEN"],
     },
     {
         id: "yes_no_not_given",
@@ -123,7 +123,7 @@ export const QUESTION_TEMPLATES: QuestionTemplate[] = [
         icon: "💬",
         type: "radio",
         question_form: "yes_no_not_given",
-        presetOptions: ["Yes", "No", "Not Given"],
+        presetOptions: ["YES", "NO", "NOT GIVEN"],
     },
     // ── Checkbox / multi-choice types ──────────────────────────
     {

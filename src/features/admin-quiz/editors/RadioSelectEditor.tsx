@@ -149,7 +149,9 @@ export default function RadioSelectEditor({ questions, onChange, presetOptions }
                                             color: "#595959",
                                         }}
                                     >
-                                        {(opt as { option_text?: string }).option_text ?? ""}
+                                        {String(
+                                            (opt as { option_text?: string }).option_text ?? "",
+                                        ).toUpperCase()}
                                     </span>
                                 ) : (
                                     <>

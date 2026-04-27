@@ -11,10 +11,10 @@ import MatchingEditor from "./editors/MatchingEditor";
 import MatrixEditor from "./editors/MatrixEditor";
 import RichTextEditor from "./RichTextEditor";
 
-// Preset options keyed by question_form
+// Preset options keyed by question_form (luôn IN HOA theo chuẩn IELTS).
 const PRESET_OPTIONS_BY_FORM: Record<string, string[]> = {
-    true_false_not_given: ["True", "False", "Not Given"],
-    yes_no_not_given: ["Yes", "No", "Not Given"],
+    true_false_not_given: ["TRUE", "FALSE", "NOT GIVEN"],
+    yes_no_not_given: ["YES", "NO", "NOT GIVEN"],
 };
 
 type QuestionEditorProps = {
