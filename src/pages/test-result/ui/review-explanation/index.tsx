@@ -16,6 +16,7 @@ import { TextSelectionWrapper, TextSelectionProvider } from "@/shared/ui/text-se
 import { Checkbox as AntCheckbox } from "antd";
 import { normalizeParseResult, SafeRender } from "@/shared/lib/html-normalize";
 import { countQuestion } from "@/shared/lib";
+import { calculateScore as computeScoreDetails } from "@/shared/lib/calculateScore";
 import { calculateStartIndexForAllQuestions } from "@/shared/lib/calculateStartIndex";
 import { ExamContext, useExamContext } from "@/pages/take-the-test/context";
 import Notepad from "@/pages/take-the-test/ui/notepad";
@@ -26,23 +27,25 @@ import { QuestionExplanation } from "@/shared/ui/exam/question-render/ui";
 
 // Helper function để đếm số câu hỏi con từ một question
 // Sử dụng cùng logic với countQuestion để đảm bảo nhất quán
-const countSubQuestions = (question: any): number => {
+const countSubQuestions = (question: any, passageContent?: string): number => {
   if (!question) return 1;
-  
+
   const questionType = question.type?.[0];
-  
+
   // Matching với layoutType = "heading": đếm gaps trong passage_content
   if (questionType === "matching" && question.matchingQuestion) {
     const layoutType = String(question.matchingQuestion.layoutType).trim().toLowerCase();
     if (layoutType === "heading") {
-      // Note: passage_content không có trong question object, cần lấy từ passage
-      // Nhưng ở đây chúng ta không có passage, nên dùng logic khác
+      // Heading layout: đếm số {...} trong nội dung passage
+      const content = passageContent || "";
+      const gapCount = (content.match(/\{(.*?)\}/g) || []).length;
+      if (gapCount > 0) return gapCount;
+      // Fallback nếu không có passageContent: thử summaryText / matchingItems
       const summaryText = question.matchingQuestion.summaryText || "";
       if (summaryText && /\{(.*?)\}/.test(summaryText)) {
         const gapCount = (summaryText.match(/\{(.*?)\}/g) || []).length;
         return gapCount > 0 ? gapCount : 1;
       }
-      // Fallback: đếm matchingItems nếu có
       if (question.matchingQuestion.matchingItems?.length > 0) {
         return question.matchingQuestion.matchingItems.length;
       }
@@ -1541,17 +1544,107 @@ function ReviewExplanation({
   const passages = newPost?.quizFields?.passages ?? [];
   const passageLabel = isReading ? "Passage" : "Part";
 
+  // Build per-slot status: 'correct' | 'incorrect' | 'unanswered'.
+  // Review-mode footer cần phân biệt câu đúng (xanh) / sai (đỏ) / chưa làm (xám)
+  // — không phải chỉ "đã trả lời". Dùng client-side calculateScore để chấm từng
+  // sub-question rồi flatten về slot index.
+  const slotStatus = useMemo(() => {
+    const passages = newPost?.quizFields?.passages ?? [];
+    let totalSlots = 0;
+    passages.forEach((p: any) => {
+      (p.questions ?? []).forEach((q: any) => {
+        totalSlots += countQuestion({
+          questions: [q],
+          passage_content: p.passage_content,
+        } as any);
+      });
+    });
+    const status: Array<"correct" | "incorrect" | "unanswered"> = new Array(
+      totalSlots,
+    ).fill("unanswered");
+
+    if (totalSlots === 0) return status;
+
+    // Parse testPart cho calculateScore (dùng original passages).
+    let testParts: number[] = [];
+    try {
+      testParts = JSON.parse(testResult.testResultFields.testPart || "[]");
+      if (!Array.isArray(testParts) || testParts.length === 0) {
+        testParts = Array.from(
+          { length: quiz.quizFields.passages.length },
+          (_, index) => index,
+        );
+      }
+    } catch {
+      testParts = Array.from(
+        { length: quiz.quizFields.passages.length },
+        (_, index) => index,
+      );
+    }
+
+    let scoreDetails: Record<string, { details: Array<{ correct: boolean; userAnswer: string | null }> }>;
+    try {
+      const result = computeScoreDetails(
+        parsedAnswers as any,
+        quiz as any,
+        testParts,
+      );
+      scoreDetails = result?.details ?? {};
+    } catch (err) {
+      console.warn("[slotStatus] computeScoreDetails failed", err);
+      return status;
+    }
+
+    // newPost passages đã filter & gán originalPartIndex → map sang scoreDetails.
+    let cursor = 0;
+    passages.forEach((p: any) => {
+      const originalIdx = (p as any).originalPartIndex ?? (p as any).partIndex ?? 0;
+      const passageDetails = scoreDetails[String(originalIdx)]?.details ?? [];
+      const passageSlotCount = (p.questions ?? []).reduce(
+        (acc: number, q: any) =>
+          acc +
+          countQuestion({
+            questions: [q],
+            passage_content: p.passage_content,
+          } as any),
+        0,
+      );
+
+      for (let i = 0; i < passageSlotCount; i++) {
+        const detail = passageDetails[i];
+        if (!detail) continue;
+        if (detail.correct) {
+          status[cursor + i] = "correct";
+        } else if (
+          detail.userAnswer !== null &&
+          detail.userAnswer !== undefined &&
+          String(detail.userAnswer).trim() !== ""
+        ) {
+          status[cursor + i] = "incorrect";
+        }
+      }
+
+      cursor += passageSlotCount;
+    });
+
+    return status;
+  }, [newPost, parsedAnswers, quiz, testResult.testResultFields.testPart]);
+
   // Compute per-passage question info for the footer (mirrors take-the-test footer logic)
   const passagesFooterInfo = useMemo(() => {
     return (newPost?.quizFields?.passages ?? []).map((passage: any, idx: number) => {
       const questionIndices: number[] = [];
-      let startIdx = 0;
 
-      // Compute startIndex for each question in this passage
+      // Compute startIndex for each question in this passage.
+      // QUAN TRỌNG: phải truyền passage_content để countQuestion có thể đếm gaps
+      // cho matching/heading, nếu không nó sẽ fallback về 1 và toàn bộ câu sau lệch.
       let runningIdx = 0;
       (newPost?.quizFields?.passages ?? []).forEach((p: any, pIdx: number) => {
         (p.questions ?? []).forEach((q: any) => {
-          const count = countQuestion({ questions: [q] } as any);
+          const count = countQuestion({
+            questions: [q],
+            passage_content: p.passage_content,
+          } as any);
           if (pIdx === idx) {
             for (let i = 0; i < count; i++) questionIndices.push(runningIdx + i);
           }
@@ -1559,17 +1652,14 @@ function ReviewExplanation({
         });
       });
 
-      const answeredCount = questionIndices.filter((qi) => {
-        const ans = mappedAnswers[qi];
-        if (ans === null || ans === undefined || ans === "") return false;
-        if (Array.isArray(ans)) return ans.length > 0;
-        if (typeof ans === "object") return Object.keys(ans).length > 0;
-        return String(ans).trim() !== "";
-      }).length;
+      // "answered" trong review mode = số câu đã làm (đúng + sai) — dùng để hiển thị "X of Y".
+      const answeredCount = questionIndices.filter(
+        (qi) => slotStatus[qi] !== "unanswered",
+      ).length;
 
       return { questions: questionIndices, total: questionIndices.length, answered: answeredCount };
     });
-  }, [newPost, mappedAnswers]);
+  }, [newPost, slotStatus]);
 
   const passageInfo = useMemo(() => {
     if (
@@ -1585,7 +1675,7 @@ function ReviewExplanation({
     const partNumber = (originalPartIndex !== undefined ? originalPartIndex : (currentPassage as any).partIndex) + 1;
     const startQuestion = (currentPassage.questions[0]?.startIndex ?? 0) + 1;
     let questionCountInPassage = 0;
-    currentPassage.questions.forEach((q:any) => questionCountInPassage += countSubQuestions(q));
+    currentPassage.questions.forEach((q:any) => questionCountInPassage += countSubQuestions(q, (currentPassage as any).passage_content));
     const endQuestion = startQuestion + questionCountInPassage - 1;
     const questionRange =
       questionCountInPassage <= 1
@@ -1761,11 +1851,16 @@ function ReviewExplanation({
                                 </div>
                                 <div className="flex items-center gap-1 overflow-x-auto py-1">
                                   {info.questions.map((qi: number) => {
-                                    const ans = mappedAnswers[qi];
-                                    const isAnswered = ans !== null && ans !== undefined && String(ans).trim() !== "" && !(Array.isArray(ans) && ans.length === 0);
+                                    const status = slotStatus[qi];
+                                    const barClass =
+                                      status === "correct"
+                                        ? "bg-green-700"
+                                        : status === "incorrect"
+                                          ? "bg-red-500"
+                                          : "bg-gray-200";
                                     return (
                                       <div key={qi} className="flex flex-col items-center gap-2 flex-shrink-0">
-                                        <div className={twMerge("w-full h-[3px] rounded-sm", isAnswered ? "bg-green-700" : "bg-gray-200")} />
+                                        <div className={twMerge("w-full h-[3px] rounded-sm", barClass)} />
                                         <span className="text-[#000] p-1 pb-[2px] flex items-center leading-[16px]! justify-center text-[16px] border-2 border-transparent rounded">
                                           {qi + 1}
                                         </span>
