@@ -109,14 +109,14 @@ export const MatrixQuestion = ({
   );
 
   const StaticQuestionGridJSX = (
-    <div className="border px-[16px] py-[36px] overflow-x-auto matrixboard">
-      <table className="w-full border-collapse text-black text-[15px] min-w-max">
+    <div className={twMerge("border overflow-x-auto matrixboard", readOnly ? "px-2 py-4" : "px-[16px] py-[36px]")}>
+      <table className={twMerge("w-full border-collapse text-black", readOnly ? "text-[14px]" : "text-[15px] min-w-max")}>
         <thead>
           <tr>
-            <th className="w-[50px] border-b-2 border-black"></th>
-            <th className="border-b-2 border-black min-w-[120px]"></th>
+            <th className={twMerge("border-b-2 border-black", readOnly ? "w-[30px]" : "w-[50px]")}></th>
+            <th className={twMerge("border-b-2 border-black", readOnly ? "min-w-[80px]" : "min-w-[120px]")}></th>
             {matrixCategories.map((cat, index) => (
-              <th key={cat.categoryLetter} className={twMerge("w-[50px] p-2 text-center font-bold border-b-2 border-black", index > 0 && "border-l border-black", index === 0 && "border-l-2 border-black")}>
+              <th key={cat.categoryLetter} className={twMerge("text-center font-bold border-b-2 border-black", readOnly ? "w-[30px] p-1 text-sm" : "w-[50px] p-2", index > 0 && "border-l border-black", index === 0 && "border-l-2 border-black")}>
                 {cat.categoryLetter}
               </th>
             ))}
@@ -131,10 +131,10 @@ export const MatrixQuestion = ({
 
             return (
               <tr key={itemIndex} className="border-b last:border-b-0" id={`#question-no-${absoluteIndex + 1}`}>
-                <td className="p-2 text-center align-middle font-bold text-[16px] pr-[0]">
+                <td className={twMerge("text-center align-middle font-bold pr-[0]", readOnly ? "p-1 text-[14px]" : "p-2 text-[16px]")}>
                   <div className="h-[34px] w-7 flex items-center justify-center rounded-sm mx-auto">{absoluteIndex + 1}</div>
                 </td>
-                <td className="p-3 align-middle text-[16px] pl-[0] break-words">
+                <td className={twMerge("align-middle pl-[0] break-words", readOnly ? "p-1 text-[14px]" : "p-3 text-[16px]")}>
                   <TextSelectionWrapper>{parse(item.itemText || "")}</TextSelectionWrapper>
                 </td>
                 {matrixCategories.map((category, index) => {
@@ -160,7 +160,7 @@ export const MatrixQuestion = ({
                   }
 
                   return (
-                    <td key={category.categoryLetter} className={twMerge("p-2 text-center align-middle h-[42px]", index > 0 && "border-l", index === 0 && "border-l-2 border-black", cellBgClass)}>
+                    <td key={category.categoryLetter} className={twMerge("text-center align-middle h-[42px]", readOnly ? "p-0" : "p-2", index > 0 && "border-l", index === 0 && "border-l-2 border-black", cellBgClass)}>
                       {cellContent}
                     </td>
                   );
