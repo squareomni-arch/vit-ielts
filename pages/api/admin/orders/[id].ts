@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
-import { updateOrderStatus } from "~services/order";
 import { activateProAccount } from "~services/user";
 import { requireAdmin } from "~lib/admin-auth";
 
@@ -38,21 +37,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             if (!status) return res.status(400).json({ success: false, error: "Missing status" });
 
-            // Update order status
-            const order = await updateOrderStatus(supabaseAdmin, id, status);
+            // Update by primary key (UUID from URL). Cannot reuse
+            // services/order.ts updateOrderStatus — that one filters by the
+            // text `order_id` column for webhook usage, but the admin UI
+            // routes by the row UUID. Returning .select() lets us reuse the
+            // row for the activatePro branch instead of a second query.
+            const { data: order, error: updateError } = await supabaseAdmin
+                .from("orders")
+                .update({ status })
+                .eq("id", id)
+                .select()
+                .single();
+            if (updateError) throw updateError;
 
             // If manually confirming, optionally activate Pro
             if (status === "completed" && activatePro && order.user_id) {
-                // Fetch order details to get package_type and skill_type
-                const { data: orderDetail } = await supabaseAdmin
-                    .from("orders")
-                    .select("package_type, skill_type")
-                    .eq("order_id", id)
-                    .single();
-
                 const proSkills =
-                    orderDetail?.package_type === "single" && orderDetail?.skill_type
-                        ? [orderDetail.skill_type]
+                    order.package_type === "single" && order.skill_type
+                        ? [order.skill_type]
                         : null;
 
                 await activateProAccount(supabaseAdmin, order.user_id, Number(durationMonths), proSkills);
