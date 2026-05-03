@@ -444,13 +444,64 @@ export function MatchingQuestion({
                 },
               };
 
+              // Listening summary in review mode: mirror the take-the-test
+              // 2-column layout (locations on the left, options panel on the
+              // right) so the user can see options without scrolling above
+              // the location list. Reading keeps the original inline flow
+              // because the passage text wraps the gaps and a side panel
+              // would crowd it.
+              const OptionsList = (
+                <div className="flex flex-col items-start gap-2">
+                  {answerOptions.map((option, index) => (
+                    <div
+                      key={index}
+                      className="border rounded-md px-3 py-0.5 bg-gray-50 text-[#000] text-sm"
+                    >
+                      <TextSelectionWrapper>
+                        {parse(option.optionText || "")}
+                      </TextSelectionWrapper>
+                    </div>
+                  ))}
+                </div>
+              );
+
+              const InlineText = (
+                <div className="prose-base text-black leading-relaxed">
+                  <TextSelectionWrapper>
+                    {parse(processedText, readOnlyParserOptions)}
+                  </TextSelectionWrapper>
+                </div>
+              );
+
+              const Explanation = question.explanations?.[0]?.content && (
+                <div className="mt-6">
+                  <QuestionExplanation
+                    content={question.explanations?.[0]?.content}
+                  />
+                </div>
+              );
+
+              if (!isReading) {
+                return (
+                  <>
+                    <div className="flex flex-row gap-8 items-start">
+                      <div className="shrink-0">{InlineText}</div>
+                      <div className="shrink-0">
+                        <p className="text-[16px] font-bold mb-4">
+                          List of options
+                        </p>
+                        {OptionsList}
+                      </div>
+                    </div>
+                    {Explanation}
+                  </>
+                );
+              }
+
               return (
                 <>
-                  {/* 1. Hiển thị danh sách Options */}
-                  <div className={twMerge(
-                    "gap-2 mb-4",
-                    isReading ? "flex flex-wrap items-start" : "flex flex-col items-start"
-                  )}>
+                  {/* 1. Hiển thị danh sách Options (reading: wrap inline) */}
+                  <div className="gap-2 mb-4 flex flex-wrap items-start">
                     {answerOptions.map((option, index) => (
                       <div
                         key={index}
@@ -464,20 +515,10 @@ export function MatchingQuestion({
                   </div>
 
                   {/* 2. Hiển thị đoạn văn với kết quả inline */}
-                  <div className="prose-base text-black leading-relaxed">
-                    <TextSelectionWrapper>
-                      {parse(processedText, readOnlyParserOptions)}
-                    </TextSelectionWrapper>
-                  </div>
+                  {InlineText}
 
                   {/* 3. Hiển thị Explanation */}
-                    {question.explanations?.[0]?.content && (
-                      <div className="mt-6">
-                        <QuestionExplanation 
-                          content={question.explanations?.[0]?.content}
-                        />
-                      </div>
-                    )}
+                  {Explanation}
                 </>
               );
             }

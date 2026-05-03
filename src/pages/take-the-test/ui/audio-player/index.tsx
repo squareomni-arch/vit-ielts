@@ -5,13 +5,41 @@ interface AudioPlayerProps {
   audioUrl: string;
   isReady: boolean;
   onTimeUpdate?: (currentTime: number) => void;
+  /**
+   * Start of the segment to play, in seconds. When this changes (passage
+   * navigation), the player seeks here. Falsy/undefined → start at 0.
+   */
+  audioStart?: number | null;
+  /**
+   * End of the segment, in seconds. The player pauses when currentTime
+   * reaches this value. Falsy/undefined → play to the end of the file.
+   */
+  audioEnd?: number | null;
 }
 
-const AudioPlayer = ({ audioUrl, isReady, onTimeUpdate }: AudioPlayerProps) => {
+const AudioPlayer = ({ audioUrl, isReady, onTimeUpdate, audioStart, audioEnd }: AudioPlayerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const plyrInstanceRef = useRef<any>(null);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const isInitializedRef = useRef(false);
+  // Hold latest start/end so the timeupdate listener (registered once at
+  // init) always reads fresh values when the user switches passages.
+  const audioStartRef = useRef<number | null | undefined>(audioStart);
+  const audioEndRef = useRef<number | null | undefined>(audioEnd);
+  audioStartRef.current = audioStart;
+  audioEndRef.current = audioEnd;
+
+  // When the segment range changes (e.g. user navigates to another passage),
+  // seek to the new start. Skip while the user is actively playing if the
+  // new start equals the old one (no-op).
+  useEffect(() => {
+    const audioElement = audioElementRef.current;
+    if (!audioElement || !isInitializedRef.current) return;
+    const start = audioStart ?? 0;
+    if (Math.abs(audioElement.currentTime - start) > 0.5) {
+      audioElement.currentTime = start;
+    }
+  }, [audioStart, audioEnd]);
 
   // Use useLayoutEffect to ensure ref is ready before initialization
   useLayoutEffect(() => {
@@ -98,10 +126,26 @@ const AudioPlayer = ({ audioUrl, isReady, onTimeUpdate }: AudioPlayerProps) => {
           ],
         });
 
-        // Setup time update listener
+        // Setup time update listener — also enforce the audio_end cap by
+        // pausing once playback reaches it. The latest audioStart / audioEnd
+        // are read through refs so this listener doesn't need to be
+        // re-attached when the passage changes.
         audioElement.addEventListener("timeupdate", () => {
           if (onTimeUpdate) {
             onTimeUpdate(audioElement.currentTime);
+          }
+          const end = audioEndRef.current;
+          if (end != null && audioElement.currentTime >= end) {
+            audioElement.pause();
+          }
+        });
+
+        // On metadata load, snap to the configured start point so the user
+        // doesn't have to manually seek.
+        audioElement.addEventListener("loadedmetadata", () => {
+          const start = audioStartRef.current;
+          if (start != null && start > 0) {
+            audioElement.currentTime = start;
           }
         });
 

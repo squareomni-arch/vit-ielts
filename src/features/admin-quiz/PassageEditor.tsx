@@ -5,6 +5,7 @@ import {
 import type { PassageData } from "./types";
 import QuestionList from "./QuestionList";
 import RichTextEditor from "./RichTextEditor";
+import MMSSInput from "./MMSSInput";
 
 type PassageEditorProps = {
     passage: PassageData;
@@ -40,13 +41,21 @@ function PassageEditorInner({
                 {isListening && (
                     <>
                         <Col span={3}>
-                            <Form.Item label="Audio Start">
-                                <InputNumber value={passage.audio_start} onChange={(v) => onUpdatePassage("audio_start", v)} className="w-full" />
+                            <Form.Item label="Audio Start" tooltip="MM:SS hoặc số giây (vd 0:40 = 40 giây)">
+                                <MMSSInput
+                                    value={passage.audio_start}
+                                    onChange={(v) => onUpdatePassage("audio_start", v ?? null)}
+                                    placeholder="0:40"
+                                />
                             </Form.Item>
                         </Col>
                         <Col span={3}>
-                            <Form.Item label="Audio End">
-                                <InputNumber value={passage.audio_end} onChange={(v) => onUpdatePassage("audio_end", v)} className="w-full" />
+                            <Form.Item label="Audio End" tooltip="MM:SS hoặc số giây (vd 4:15 = 4 phút 15 giây)">
+                                <MMSSInput
+                                    value={passage.audio_end}
+                                    onChange={(v) => onUpdatePassage("audio_end", v ?? null)}
+                                    placeholder="4:15"
+                                />
                             </Form.Item>
                         </Col>
                     </>

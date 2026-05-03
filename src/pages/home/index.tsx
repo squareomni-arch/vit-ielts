@@ -50,13 +50,17 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
       readConfig<MockCollectionConfig>(supabase, "home/mock-collections").catch(() => null),
     ]);
 
-    // Fetch mock collections:
-    // • Nếu admin đã chọn collection_ids cụ thể → dùng getExamCollectionsByIds (giữ thứ tự)
-    // • Nếu chưa chọn → dùng getExamCollections với page_size (mặc định 5)
+    // Mock collections homepage section is admin-controlled: it shows exactly
+    // the collections the admin toggled ON in /admin/mock-test-collections.
+    // Empty config = nothing rendered. Previously we fell back to "top 5
+    // latest" when collection_ids was empty, but that meant the admin's
+    // toggle UI (which shows OFF when collection_ids is empty) didn't match
+    // what users saw on the homepage — and toggling ON a single collection
+    // hid all the others.
     const mockCollections = await (
       mockCollectionConfig?.collection_ids?.length
         ? getExamCollectionsByIds(supabase, mockCollectionConfig.collection_ids)
-        : getExamCollections(supabase, { page: 1, pageSize: mockCollectionConfig?.page_size ?? 5 })
+        : Promise.resolve({ data: EMPTY_COLLECTION_DATA })
     ).catch(() => ({ data: EMPTY_COLLECTION_DATA }));
 
     return {

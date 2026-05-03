@@ -448,15 +448,35 @@ function Footer() {
   return (
     <>
       <footer className="fixed bottom-0 left-0 right-0 z-50 bg-white">
-        {post.quizFields.skill[0] === "listening" && post.quizFields.audio && (
-          <div className={testResult.testMode === "simulation" ? "invisible h-0 overflow-hidden" : ""}>
-            <AudioPlayer
-              key="listening-audio-player"
-              audioUrl={post.quizFields.audio.node.mediaItemUrl}
-              isReady={isReady}
-            />
-          </div>
-        )}
+        {post.quizFields.skill[0] === "listening" && post.quizFields.audio && (() => {
+          // Honor per-passage audio_start / audio_end so a single-passage
+          // practice quiz doesn't replay the whole 30-minute test file. The
+          // values come through SSR as strings (or null); coerce to numbers
+          // and pass undefined when missing so AudioPlayer can fall back to
+          // "play full file".
+          const currentPassage = post.quizFields.passages?.[part.current];
+          const rawStart = (currentPassage as any)?.audio_start;
+          const rawEnd = (currentPassage as any)?.audio_end;
+          const audioStart =
+            rawStart === null || rawStart === undefined || rawStart === ""
+              ? undefined
+              : Number(rawStart);
+          const audioEnd =
+            rawEnd === null || rawEnd === undefined || rawEnd === ""
+              ? undefined
+              : Number(rawEnd);
+          return (
+            <div className={testResult.testMode === "simulation" ? "invisible h-0 overflow-hidden" : ""}>
+              <AudioPlayer
+                key="listening-audio-player"
+                audioUrl={post.quizFields.audio.node.mediaItemUrl}
+                isReady={isReady}
+                audioStart={Number.isFinite(audioStart) ? audioStart : undefined}
+                audioEnd={Number.isFinite(audioEnd) ? audioEnd : undefined}
+              />
+            </div>
+          );
+        })()}
         <div className="flex items-center w-full p-[12px] pr-[0] pt-[0]">
           <div className="flex justify-between items-center h-full flex-grow mr-10">
             {passagesInfo.map(info => {

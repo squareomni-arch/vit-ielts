@@ -3,6 +3,7 @@ import { Modal, Form, Input, InputNumber, Row, Col } from "antd";
 import type { PassageData } from "./types";
 import RichTextEditor from "./RichTextEditor";
 import { DEFAULT_PASSAGE } from "./constants";
+import MMSSInput from "./MMSSInput";
 
 type PassageModalProps = {
     open: boolean;
@@ -68,13 +69,21 @@ export default function PassageModal({ open, initialData, skill, onCancel, onSav
                     {isListening && (
                         <>
                             <Col span={3}>
-                                <Form.Item name="audio_start" label="Audio Start">
-                                    <InputNumber min={0} className="w-full" />
+                                <Form.Item
+                                    name="audio_start"
+                                    label="Audio Start"
+                                    tooltip="MM:SS hoặc số giây"
+                                >
+                                    <MMSSInput placeholder="0:40" />
                                 </Form.Item>
                             </Col>
                             <Col span={3}>
-                                <Form.Item name="audio_end" label="Audio End">
-                                    <InputNumber min={0} className="w-full" />
+                                <Form.Item
+                                    name="audio_end"
+                                    label="Audio End"
+                                    tooltip="MM:SS hoặc số giây"
+                                >
+                                    <MMSSInput placeholder="4:15" />
                                 </Form.Item>
                             </Col>
                         </>
