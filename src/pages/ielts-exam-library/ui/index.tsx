@@ -163,25 +163,47 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values, isDirty]);
 
-  // Group exams by collection
+  // Group exams by collection, filtering individual exams by search term
   const groupedCollections = useMemo(() => {
     if (!data?.examCollection?.data) return [];
     
     const map = new Map<string, any>();
     const skillParam = values.skill || "all";
+
+    // Prepare search words for client-side filtering of individual exams
+    const searchWords = values.search
+      ? values.search.toLowerCase().split(/\s+/).filter((w) => w.length > 0)
+      : [];
+    
+    // Client-side filter: keep only exams whose title matches ALL search words.
+    // When a search like "28" matched a collection via range detection (e.g.
+    // "Test 21-40"), the server returns all exams inside that collection. We
+    // narrow down to only the relevant items here.
+    const examMatchesSearch = (exam: any): boolean => {
+      if (searchWords.length === 0) return true;
+      const title = (exam.title || "").toLowerCase();
+      return searchWords.every((word) => title.includes(word));
+    };
     
     if (skillParam === "all" || skillParam === "reading") {
        (data.examCollection.data.reading || []).forEach(col => {
            if (values.collection && col.title !== values.collection) return;
-           const mappedExams = col.exams.map(e => ({ ...e, skill: "reading" }));
-           map.set(col.id, { ...col, exams: mappedExams }); 
+           const mappedExams = col.exams
+             .map((e: any) => ({ ...e, skill: "reading" }))
+             .filter(examMatchesSearch);
+           if (mappedExams.length > 0) {
+             map.set(col.id, { ...col, exams: mappedExams }); 
+           }
        });
     }
     
     if (skillParam === "all" || skillParam === "listening") {
        (data.examCollection.data.listening || []).forEach(col => {
            if (values.collection && col.title !== values.collection) return;
-           const mappedExams = col.exams.map(e => ({ ...e, skill: "listening" }));
+           const mappedExams = col.exams
+             .map((e: any) => ({ ...e, skill: "listening" }))
+             .filter(examMatchesSearch);
+           if (mappedExams.length === 0) return;
            if (map.has(col.id)) {
                map.get(col.id).exams.push(...mappedExams);
            } else {
@@ -191,7 +213,7 @@ export const PageIELTSExamLibrary = ({ heroConfig }: PageIELTSExamLibraryProps) 
     }
     
     return Array.from(map.values());
-  }, [data, values.skill, values.collection]);
+  }, [data, values.skill, values.collection, values.search]);
 
   const currentPage = values.page || 1;
   const totalPages = pageInfo?.totalPages ?? 1;
