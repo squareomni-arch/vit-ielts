@@ -12,6 +12,7 @@ import parse, { HTMLReactParserOptions, domToReact } from "html-react-parser";
 import dynamic from "next/dynamic";
 const Plyr = dynamic(() => import("plyr-react"), { ssr: false });
 import "plyr-react/plyr.css";
+import AudioPlayer from "@/pages/take-the-test/ui/audio-player";
 import { TextSelectionWrapper, TextSelectionProvider } from "@/shared/ui/text-selection";
 import { Checkbox as AntCheckbox } from "antd";
 import { normalizeParseResult, SafeRender } from "@/shared/lib/html-normalize";
@@ -1277,22 +1278,35 @@ function ReviewExplanation({
     }
   };
 
+  // Per-passage audio segmentation in Review Mode: when the user switches
+  // passages, the player seeks to that passage's audio_start and pauses at
+  // audio_end (configured by admin in PassageEditor). Falsy/missing values
+  // fall back to playing the full file.
+  const passageAudioStart = useMemo(() => {
+    const raw = (currentPassage as any)?.audio_start;
+    if (raw === null || raw === undefined || raw === "") return undefined;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : undefined;
+  }, [currentPassage]);
+
+  const passageAudioEnd = useMemo(() => {
+    const raw = (currentPassage as any)?.audio_end;
+    if (raw === null || raw === undefined || raw === "") return undefined;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : undefined;
+  }, [currentPassage]);
+
   const PlyrComponent = useMemo(() => {
     if (!quiz.quizFields.audio) return null;
     return (
-      <Plyr
-        source={{
-          type: "audio",
-          sources: [
-            {
-              src: quiz.quizFields.audio!.node.mediaItemUrl,
-              type: "audio/mp3",
-            },
-          ],
-        }}
+      <AudioPlayer
+        audioUrl={quiz.quizFields.audio!.node.mediaItemUrl}
+        isReady={false}
+        audioStart={passageAudioStart}
+        audioEnd={passageAudioEnd}
       />
     );
-  }, [quiz.quizFields.audio]);
+  }, [quiz.quizFields.audio, passageAudioStart, passageAudioEnd]);
 
   // ▼▼▼ ExplanationsPanelContent ▼▼▼
   const ExplanationsPanelContent = useMemo(() => {
