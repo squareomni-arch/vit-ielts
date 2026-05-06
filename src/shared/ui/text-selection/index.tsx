@@ -80,6 +80,11 @@ export const TextSelectionProvider = ({
 
   const notesRef = useRef(notes);
   const highlightsRef = useRef(highlights);
+  // iOS Safari collapses the live selection when the user taps a tooltip
+  // button, BEFORE our click handler runs. We capture the range during
+  // `selectionchange` and fall back to it inside applySelection so highlight
+  // and note still target the originally selected text on touch devices.
+  const selectionRangeRef = useRef<Range | null>(null);
   useEffect(() => { notesRef.current = notes; }, [notes]);
   useEffect(() => { highlightsRef.current = highlights; }, [highlights]);
 
@@ -189,8 +194,18 @@ export const TextSelectionProvider = ({
         range = forceRange;
     } else {
         selection = document.getSelection();
-        if (!selection?.rangeCount) return null;
-        range = selection.getRangeAt(0);
+        const liveRange = selection?.rangeCount ? selection.getRangeAt(0) : null;
+        const liveText = liveRange?.toString().trim() ?? "";
+
+        if (liveRange && liveText) {
+            range = liveRange;
+        } else if (selectionRangeRef.current && selectionRangeRef.current.toString().trim()) {
+            // iOS Safari fallback: live selection was collapsed by the tap on
+            // the tooltip button — use the range captured at selectionchange.
+            range = selectionRangeRef.current;
+        } else {
+            return null;
+        }
     }
 
     const wrapper = document.querySelectorAll(`.${SANDBOX_ID}`);
@@ -218,6 +233,8 @@ export const TextSelectionProvider = ({
     }
 
     if (selection) selection.removeAllRanges();
+    // Consume the captured fallback range now that we've applied it.
+    selectionRangeRef.current = null;
 
     return { nodeId, text: selectedText };
   }, [SANDBOX_ID, processTextNode, traverseNodes]);
@@ -433,6 +450,10 @@ export const TextSelectionProvider = ({
 
     if (!selectedText || !isWithinWrapper) return;
 
+    // Cache the live range so the tooltip buttons can still apply
+    // highlight/note even after iOS Safari collapses the selection on tap.
+    selectionRangeRef.current = range.cloneRange();
+
     // When user selects new text, always show Note/Highlight options
     // (even if selection overlaps existing spans — that triggers pink highlight).
     // Remove option is only shown via the span's own onClick handler.
@@ -446,22 +467,28 @@ export const TextSelectionProvider = ({
   }, [SANDBOX_ID]);
 
   useEffect(() => {
-    const hideTooltip = (event: MouseEvent) => {
+    const hideTooltip = (event: MouseEvent | TouchEvent) => {
       const target = event.target as HTMLElement;
       const isTooltip = tooltipRef.current?.contains(target);
       const isEdit = notesRef.current.find((n) => n.nodeId === currentSelection?.nodeId);
-      
+
       if (!isTooltip) {
         setTooltip((prev) => ({ ...prev, visible: false }));
         if (currentSelection && !isEdit) removeUnderline(currentSelection.nodeId);
         setCurrentSelection(null);
+        // Drop the cached range when the user dismisses the tooltip.
+        selectionRangeRef.current = null;
       }
     };
     document.addEventListener("selectionchange", handleSelectionChange, true);
     document.addEventListener("mousedown", hideTooltip, true);
+    // Touch-first devices (iOS Safari, iPadOS) don't always fire mousedown
+    // before the selection collapses; touchstart guarantees we catch the tap.
+    document.addEventListener("touchstart", hideTooltip, true);
     return () => {
       document.removeEventListener("selectionchange", handleSelectionChange, true);
       document.removeEventListener("mousedown", hideTooltip, true);
+      document.removeEventListener("touchstart", hideTooltip, true);
     };
   }, [currentSelection, handleSelectionChange, removeUnderline]);
 
@@ -553,6 +580,10 @@ const TooltipPopup = () => {
   return (
     <div
       ref={tooltipRef}
+      // Prevent the tap on the tooltip from clearing the text selection on
+      // iOS Safari before the click handler can read it.
+      onMouseDown={(e) => e.preventDefault()}
+      onTouchStart={(e) => e.stopPropagation()}
       style={{
         left: tooltip.position.x,
         top: tooltip.position.y,
@@ -561,7 +592,7 @@ const TooltipPopup = () => {
         transform: "translateX(-50%) translateY(8px)",
         pointerEvents: tooltip.visible ? "auto" : "none",
       }}
-      className="absolute z-50 bg-white border border-gray-400"
+      className="fixed z-50 bg-white border border-gray-400"
     >
       {/* Arrow pointing up */}
       {showArrow && (

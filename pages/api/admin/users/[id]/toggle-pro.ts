@@ -1,8 +1,26 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "~supabase/admin";
-import { activateProAccount, calculateProExpirationDate } from "~services/user";
+import { activateProAccount, calculateProExpirationDate, mergeProSkills } from "~services/user";
 import { requireAdmin } from "~lib/admin-auth";
 import dayjs from "dayjs";
+
+const VALID_SKILLS = ["listening", "reading"] as const;
+
+/**
+ * Normalize admin-supplied proSkills payload to the storage format used by
+ * `pro_skills` (null = combo/full access, array = single-skill access).
+ *
+ * Treat both empty array and "all skills" as combo so the admin doesn't
+ * accidentally lock the user out by sending [].
+ */
+function normalizeProSkills(input: unknown): string[] | null {
+    if (!Array.isArray(input)) return null;
+    const filtered = input.filter(
+        (s): s is string => typeof s === "string" && (VALID_SKILLS as readonly string[]).includes(s),
+    );
+    if (filtered.length === 0 || filtered.length >= VALID_SKILLS.length) return null;
+    return [...new Set(filtered)];
+}
 
 export default async function handler(
     req: NextApiRequest,
@@ -21,17 +39,18 @@ export default async function handler(
     }
 
     try {
-        const { action, durationMonths, durationDays, note } = req.body;
+        const { action, durationMonths, durationDays, note, proSkills } = req.body;
 
         // ── Activate: theo tháng hoặc theo ngày ──────────────────
         if (action === "activate") {
+            const incomingSkills = normalizeProSkills(proSkills);
             let expirationDate: string;
 
             if (durationDays && Number(durationDays) > 0) {
                 // Theo ngày: lấy current Pro status rồi tính thêm ngày
                 const { data: currentUser } = await supabaseAdmin
                     .from("users")
-                    .select("is_pro, pro_expiration_date")
+                    .select("is_pro, pro_expiration_date, pro_skills")
                     .eq("id", id)
                     .single();
 
@@ -42,11 +61,20 @@ export default async function handler(
 
                 expirationDate = base.add(Number(durationDays), "day").format("YYYY-MM-DD");
 
+                const mergedSkills = mergeProSkills(
+                    currentUser?.pro_skills ?? null,
+                    incomingSkills,
+                );
+
                 const { data, error } = await supabaseAdmin
                     .from("users")
-                    .update({ is_pro: true, pro_expiration_date: expirationDate })
+                    .update({
+                        is_pro: true,
+                        pro_expiration_date: expirationDate,
+                        pro_skills: mergedSkills,
+                    })
                     .eq("id", id)
-                    .select("is_pro, pro_expiration_date")
+                    .select("is_pro, pro_expiration_date, pro_skills")
                     .single();
 
                 if (error) throw error;
@@ -60,7 +88,7 @@ export default async function handler(
 
             // Theo tháng (mặc định)
             const months = Number(durationMonths ?? 1);
-            const result = await activateProAccount(supabaseAdmin, id, months);
+            const result = await activateProAccount(supabaseAdmin, id, months, incomingSkills);
             return res.status(200).json({
                 success: true,
                 message: `Pro activated for ${months} month(s)${note ? ` — Lý do: ${note}` : ""}`,

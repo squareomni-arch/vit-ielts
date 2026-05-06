@@ -390,17 +390,26 @@ export async function findExistingPendingOrder(
     userId: string,
     packageType: string,
     duration: number,
+    skillType?: SkillType,
 ) {
     const cutoff = new Date(Date.now() - ORDER_TTL_MINUTES * 60 * 1000).toISOString();
 
-    const { data } = await supabaseAdmin
+    let query = supabaseAdmin
         .from("orders")
         .select(ORDER_COLUMNS)
         .eq("user_id", userId)
         .eq("package_type", packageType)
         .eq("duration", duration)
         .eq("status", "pending")
-        .gte("created_at", cutoff)
+        .gte("created_at", cutoff);
+
+    // Single packages must also match skill_type — Listening and Reading
+    // pending orders are distinct products and must not be deduped together.
+    if (packageType === "single" && skillType) {
+        query = query.eq("skill_type", skillType);
+    }
+
+    const { data } = await query
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();

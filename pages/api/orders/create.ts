@@ -141,6 +141,9 @@ export default async function handler(
       finalUserId,
       packageType,
       duration,
+      packageType === "single"
+        ? (skillType as "reading" | "listening" | undefined)
+        : undefined,
     );
 
     if (existingOrder) {

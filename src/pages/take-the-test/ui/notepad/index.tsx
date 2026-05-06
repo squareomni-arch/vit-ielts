@@ -72,7 +72,7 @@ function Notepad() {
   const partNumber = part.current + 1;
 
   return (
-    <div className="notepad-sidebar hidden md:flex md:flex-col w-full h-full bg-white border-l border-gray-200">
+    <div className="notepad-sidebar flex flex-col w-full h-full bg-white md:border-l md:border-gray-200">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 flex-shrink-0">
         <span className="text-[15px] font-bold text-[#222] tracking-wide">NOTE</span>

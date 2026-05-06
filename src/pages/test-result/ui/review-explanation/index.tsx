@@ -2058,9 +2058,12 @@ function ReviewExplanation({
                 </footer>
               </div>
 
-              {/* Notepad sidebar */}
+              {/* Notepad sidebar — full overlay on mobile, side panel on md+. */}
               {isNotesViewOpen && (
-                <div className="w-3/12 max-w-[410px] shrink-0" style={{ transition: "none" }}>
+                <div
+                  className="fixed inset-0 z-50 md:static md:w-3/12 md:max-w-[410px] md:shrink-0 md:z-auto"
+                  style={{ transition: "none" }}
+                >
                   <Notepad />
                 </div>
               )}

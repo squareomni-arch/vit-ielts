@@ -18,8 +18,8 @@ import {
   Input,
   Select,
   DatePicker,
-  Radio,
   Divider,
+  Segmented,
 } from "antd";
 import {
   UserOutlined,
@@ -34,6 +34,9 @@ import {
   DeleteOutlined,
   KeyOutlined,
   ReloadOutlined,
+  CustomerServiceOutlined,
+  BookOutlined,
+  CalendarOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import AdminLayout from "../_layout";
@@ -202,6 +205,7 @@ export default function AdminUserDetailPage() {
   const [durationMonths, setDurationMonths] = useState(1);
   const [durationDays, setDurationDays] = useState(7);
   const [proNote, setProNote] = useState("");
+  const [proPackage, setProPackage] = useState<"combo" | "listening" | "reading">("combo");
 
   // ── Set PRO Date Modal State ──
   const [setDateModalVisible, setSetDateModalVisible] = useState(false);
@@ -258,6 +262,9 @@ export default function AdminUserDetailPage() {
         } else {
           body.durationMonths = durationMonths;
         }
+        if (proPackage !== "combo") {
+          body.proSkills = [proPackage];
+        }
       }
 
       const res = await fetch(`/api/admin/users/${id}/toggle-pro`, {
@@ -270,6 +277,7 @@ export default function AdminUserDetailPage() {
         message.success(json.message);
         setProModalVisible(false);
         setProNote("");
+        setProPackage("combo");
         fetchUser();
       } else {
         message.error(json.error);
@@ -749,74 +757,128 @@ export default function AdminUserDetailPage() {
           onCancel={() => {
             setProModalVisible(false);
             setProNote("");
+            setProPackage("combo");
           }}
           okText="Kích hoạt"
           cancelText="Hủy"
           confirmLoading={proActivating}
-          width={480}
+          width={560}
         >
-          {/* Tuỳ chọn loại kích hoạt */}
-          <div className="mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Loại kích hoạt
+          {/* ── Section 1: Gói truy cập (Combo / Single) ── */}
+          <section className="mb-5">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[13px] font-semibold text-gray-800 uppercase tracking-wide">
+                Gói truy cập
+              </label>
+              <span className="text-[11px] text-gray-400">
+                Combo ghi đè gói lẻ • Mua gói lẻ khác sẽ cộng dồn
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                {
+                  value: "combo" as const,
+                  label: "Combo",
+                  desc: "Listening + Reading",
+                  icon: <CrownOutlined style={{ fontSize: 18 }} />,
+                },
+                {
+                  value: "listening" as const,
+                  label: "Listening",
+                  desc: "Chỉ kỹ năng nghe",
+                  icon: <CustomerServiceOutlined style={{ fontSize: 18 }} />,
+                },
+                {
+                  value: "reading" as const,
+                  label: "Reading",
+                  desc: "Chỉ kỹ năng đọc",
+                  icon: <BookOutlined style={{ fontSize: 18 }} />,
+                },
+              ].map((opt) => {
+                const active = proPackage === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setProPackage(opt.value)}
+                    className={`relative rounded-lg border px-3 py-3 text-left transition-all ${
+                      active
+                        ? "border-[#D94A56] bg-[#FDECEE] ring-1 ring-[#D94A56]/30"
+                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`flex items-center gap-2 text-sm font-bold ${
+                        active ? "text-[#D94A56]" : "text-gray-800"
+                      }`}
+                    >
+                      {opt.icon}
+                      {opt.label}
+                    </div>
+                    <div className="text-[11px] text-gray-500 mt-0.5">
+                      {opt.desc}
+                    </div>
+                    {active && (
+                      <CheckOutlined
+                        className="absolute top-2 right-2 text-[#D94A56]"
+                        style={{ fontSize: 11 }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* ── Section 2: Thời hạn ── */}
+          <section className="mb-5">
+            <label className="block text-[13px] font-semibold text-gray-800 uppercase tracking-wide mb-2">
+              Thời hạn
             </label>
-            <Radio.Group
-              value={proMode}
-              onChange={(e) => setProMode(e.target.value)}
-              buttonStyle="solid"
-            >
-              <Radio.Button value="month">Theo tháng</Radio.Button>
-              <Radio.Button value="day">Theo ngày</Radio.Button>
-            </Radio.Group>
-          </div>
-
-          {/* Số tháng / ngày */}
-          {proMode === "month" ? (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Số tháng
-              </label>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Segmented
+                value={proMode}
+                onChange={(v) => setProMode(v as "month" | "day")}
+                options={[
+                  { label: "Theo tháng", value: "month" },
+                  { label: "Theo ngày", value: "day" },
+                ]}
+                block
+                className="sm:w-[220px]"
+              />
               <InputNumber
                 min={1}
-                max={24}
-                value={durationMonths}
-                onChange={(v) => setDurationMonths(v ?? 1)}
-                addonAfter="tháng"
-                className="w-full"
+                max={proMode === "month" ? 24 : 365}
+                value={proMode === "month" ? durationMonths : durationDays}
+                onChange={(v) =>
+                  proMode === "month"
+                    ? setDurationMonths(v ?? 1)
+                    : setDurationDays(v ?? 7)
+                }
+                addonAfter={proMode === "month" ? "tháng" : "ngày"}
+                className="flex-1"
               />
-              <p className="text-xs text-gray-400 mt-1">
-                Ngày hết hạn dự kiến:{" "}
-                <b>
-                  {dayjs().add(durationMonths, "month").format("DD/MM/YYYY")}
-                </b>
-              </p>
             </div>
-          ) : (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Số ngày
-              </label>
-              <InputNumber
-                min={1}
-                max={365}
-                value={durationDays}
-                onChange={(v) => setDurationDays(v ?? 7)}
-                addonAfter="ngày"
-                className="w-full"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                Ngày hết hạn dự kiến:{" "}
-                <b>{dayjs().add(durationDays, "day").format("DD/MM/YYYY")}</b>
-              </p>
+            <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-md px-2.5 py-1">
+              <CalendarOutlined />
+              Hết hạn dự kiến:&nbsp;
+              <b className="text-gray-800">
+                {dayjs()
+                  .add(
+                    proMode === "month" ? durationMonths : durationDays,
+                    proMode === "month" ? "month" : "day",
+                  )
+                  .format("DD/MM/YYYY")}
+              </b>
             </div>
-          )}
+          </section>
 
-          <Divider className="my-3" />
+          <Divider className="!my-4" />
 
-          {/* Note / lý do */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ghi chú / Lý do kích hoạt
+          {/* ── Section 3: Note ── */}
+          <section className="pb-6">
+            <label className="block text-[13px] font-semibold text-gray-800 uppercase tracking-wide mb-2">
+              Ghi chú / Lý do
             </label>
             <Input.TextArea
               placeholder="VD: Tặng dùng thử, hỗ trợ kỹ thuật, KH đã thanh toán..."
@@ -826,7 +888,7 @@ export default function AdminUserDetailPage() {
               maxLength={300}
               showCount
             />
-          </div>
+          </section>
         </Modal>
 
         {/* Set PRO Date Modal */}
