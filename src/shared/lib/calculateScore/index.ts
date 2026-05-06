@@ -75,14 +75,24 @@ const processMatchingQuestion = (
     const correctAnswersFromText = extractWords(matchingData.summaryText || '');
     const total = correctAnswersFromText.length;
     correctAnswersFromText.forEach((correctAnswerText, gapIndex) => {
-      const userAnswerOptionId = userAnswerObject[gapIndex] as string;
+      // userAnswerObject[gapIndex] is normally an "option-<start>-<idx>" string
+      // dropped by the take-the-test DnD layer, but legacy / saved-from-other-
+      // mode payloads can hand us a raw number (the option index) or even a
+      // letter like "A". Coerce to string before .split() and fall back to
+      // numeric / letter resolution so submit doesn't crash.
+      const rawUserChoice = userAnswerObject[gapIndex];
       let userAnswerText: string | null = null;
-      if (userAnswerOptionId) {
-        const parts = userAnswerOptionId.split('-');
+      if (rawUserChoice !== null && rawUserChoice !== undefined && rawUserChoice !== "") {
+        const asString = String(rawUserChoice);
+        const parts = asString.split('-');
         const optionIndexStr = parts[parts.length - 1];
-        if (optionIndexStr && !isNaN(parseInt(optionIndexStr, 10))) {
-          const optionIndex = parseInt(optionIndexStr, 10);
-          userAnswerText = answerOptions[optionIndex]?.optionText ?? null;
+        const numericIndex = optionIndexStr ? parseInt(optionIndexStr, 10) : NaN;
+        if (Number.isFinite(numericIndex)) {
+          userAnswerText = answerOptions[numericIndex]?.optionText ?? null;
+        } else if (/^[A-Z]$/i.test(asString)) {
+          // Letter (e.g. "A") — translate via charCodeAt
+          userAnswerText =
+            answerOptions[asString.toUpperCase().charCodeAt(0) - 65]?.optionText ?? null;
         }
       }
       const isCorrect = userAnswerText?.trim().toLowerCase() === correctAnswerText.trim().toLowerCase();
@@ -97,14 +107,24 @@ const processMatchingQuestion = (
     const correctAnswersFromText = extractWords(passageContent || '');
     const total = correctAnswersFromText.length;
     correctAnswersFromText.forEach((correctAnswerText, gapIndex) => {
-      const userAnswerOptionId = userAnswerObject[gapIndex] as string;
+      // userAnswerObject[gapIndex] is normally an "option-<start>-<idx>" string
+      // dropped by the take-the-test DnD layer, but legacy / saved-from-other-
+      // mode payloads can hand us a raw number (the option index) or even a
+      // letter like "A". Coerce to string before .split() and fall back to
+      // numeric / letter resolution so submit doesn't crash.
+      const rawUserChoice = userAnswerObject[gapIndex];
       let userAnswerText: string | null = null;
-      if (userAnswerOptionId) {
-        const parts = userAnswerOptionId.split('-');
+      if (rawUserChoice !== null && rawUserChoice !== undefined && rawUserChoice !== "") {
+        const asString = String(rawUserChoice);
+        const parts = asString.split('-');
         const optionIndexStr = parts[parts.length - 1];
-        if (optionIndexStr && !isNaN(parseInt(optionIndexStr, 10))) {
-          const optionIndex = parseInt(optionIndexStr, 10);
-          userAnswerText = answerOptions[optionIndex]?.optionText ?? null;
+        const numericIndex = optionIndexStr ? parseInt(optionIndexStr, 10) : NaN;
+        if (Number.isFinite(numericIndex)) {
+          userAnswerText = answerOptions[numericIndex]?.optionText ?? null;
+        } else if (/^[A-Z]$/i.test(asString)) {
+          // Letter (e.g. "A") — translate via charCodeAt
+          userAnswerText =
+            answerOptions[asString.toUpperCase().charCodeAt(0) - 65]?.optionText ?? null;
         }
       }
       const isCorrect = userAnswerText?.trim().toLowerCase() === correctAnswerText.trim().toLowerCase();
@@ -480,6 +500,24 @@ const processCheckboxQuestion = (
         answer: isThisChoiceCorrect ? (userText ?? 'N/A') : missedCorrectText.join(', '),
       });
     });
+
+    // Pad with one "missed" detail per remaining correct slot so the answer
+    // keys grid still renders one row per question (Q11, Q12, …) instead of
+    // collapsing the whole multi-select question down to the items the user
+    // actually clicked. Without this, a "Choose two letters" question that
+    // the user skipped contributes 0 detail rows, hiding the questions from
+    // the result page even though the score totals already counted them.
+    const remainingSlots = total - userAnswer.length;
+    for (let i = 0; i < remainingSlots; i++) {
+      const correctIdx = correctAnswersIndices[userAnswer.length + i];
+      const correctText =
+        correctIdx !== undefined ? getOptionText(correctIdx) ?? "N/A" : "N/A";
+      details.push({
+        correct: false,
+        userAnswer: null,
+        answer: correctText,
+      });
+    }
   }
 
   return {

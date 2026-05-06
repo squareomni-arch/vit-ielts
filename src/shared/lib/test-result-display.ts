@@ -125,6 +125,7 @@ const normalizeMatchingQuestion = (value: unknown) => {
   return {
     layoutType: String(parsed.layout_type ?? parsed.layoutType ?? ""),
     summaryText: String(parsed.summary_text ?? parsed.summaryText ?? ""),
+    optionsTitle: String(parsed.options_title ?? parsed.optionsTitle ?? ""),
     matchingItems: matchingItems.map((item) => ({
       questionPart: String(
         (item as Record<string, unknown>).questionPart ??

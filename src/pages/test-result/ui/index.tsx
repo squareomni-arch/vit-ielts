@@ -62,25 +62,31 @@ export function PageTestResult({
       minutes: testResult.testResultFields.testTime,
     });
 
-    const [minutes, seconds] = testResult.testResultFields.timeLeft
-      .split(":")
-      .map(Number);
+    // Parse the saved timeLeft. dayjs may serialize a negative countdown as
+    // "-1:16" (minutes negative, seconds positive in absolute), which would
+    // otherwise sum to -44s. Treat the seconds as same-sign as the minutes
+    // when minutes < 0 so "-1:16" means "1m 16s past the limit".
+    const tlRaw = testResult.testResultFields.timeLeft || "0:0";
+    const [mPart, sPart] = tlRaw.split(":");
+    const mNum = Number(mPart) || 0;
+    const sNum = Math.abs(Number(sPart) || 0);
+    const remainingSecs = mNum < 0 ? mNum * 60 - sNum : mNum * 60 + sNum;
 
-    const remainingDuration = dayjs.duration({ minutes, seconds });
-    const spentSecondsTotal = Math.max(
-      0,
-      total.asSeconds() - remainingDuration.asSeconds(),
-    );
-    const spentDuration = dayjs.duration(spentSecondsTotal, "seconds");
-
+    const totalSecs = total.asSeconds();
     const percent =
-      total.asSeconds() > 0
-        ? Math.round((spentSecondsTotal / total.asSeconds()) * 100)
+      totalSecs > 0
+        ? Math.round(
+            (Math.max(0, totalSecs - remainingSecs) / totalSecs) * 100,
+          )
         : 0;
 
-    const formattedTime = `${Math.floor(spentDuration.asMinutes())}:${String(
-      spentDuration.seconds(),
-    ).padStart(2, "0")}`;
+    // Show the final timer value with its sign. Negative => the user went
+    // past the time limit by that amount (e.g. "-1:16" = 1:16 over).
+    const sign = remainingSecs < 0 ? "-" : "";
+    const absSecs = Math.abs(remainingSecs);
+    const displayMinutes = Math.floor(absSecs / 60);
+    const displaySeconds = absSecs % 60;
+    const formattedTime = `${sign}${displayMinutes}:${String(displaySeconds).padStart(2, "0")}`;
 
     const totalTime = `${Number(total.minutes()) + total.hours() * 60}:${String(
       total.seconds(),

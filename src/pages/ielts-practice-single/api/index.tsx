@@ -109,6 +109,7 @@ export type IPracticeSingle = {
         matchingQuestion?: {
           layoutType?: 'standard' | 'summary' | 'heading' | 'list';
           summaryText?: string;
+          optionsTitle?: string;
           matchingItems?: {
             questionPart: string;
             correctAnswer: string;

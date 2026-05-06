@@ -214,8 +214,32 @@ export async function takeTheTest(
         .eq("status", "draft")
         .maybeSingle();
 
-    // Resume existing draft
+    // Resume existing draft. If admin has since changed the quiz's time
+    // setting and the user hasn't started answering yet, refresh test_time
+    // and clear the saved time_left so the timer reflects the new config —
+    // otherwise an admin who tweaks the time can't see the change without
+    // hitting "Retake".
     if (existingDraft && !params.retake) {
+        const draftAnswers = (existingDraft as { answers?: { answers?: unknown[] } }).answers;
+        const hasAnswers = Boolean(
+            draftAnswers?.answers?.some?.(
+                (a) => a !== null && a !== undefined && a !== ""
+            )
+        );
+
+        if (
+            !hasAnswers &&
+            params.testTime != null &&
+            existingDraft.test_time !== params.testTime
+        ) {
+            const { data: refreshed } = await supabase
+                .from("test_results")
+                .update({ test_time: params.testTime, time_left: null })
+                .eq("id", existingDraft.id)
+                .select()
+                .single();
+            return (refreshed ?? existingDraft) as TestResult;
+        }
         return existingDraft as TestResult;
     }
 

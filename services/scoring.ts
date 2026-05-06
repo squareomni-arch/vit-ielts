@@ -298,11 +298,15 @@ function scoreMatching(
         total = correctAnswers.length;
 
         correctAnswers.forEach((correctText, gapIndex) => {
-            const userOptionId = userAnswerObj[String(gapIndex)];
-            if (userOptionId == null) return;
+            const rawUserChoice = userAnswerObj[String(gapIndex)];
+            if (rawUserChoice == null || rawUserChoice === "") return;
 
-            // User answer format: "option-0-2" → last part is the option index
-            const parts = userOptionId.split("-");
+            // userAnswerObj entries are normally "option-<start>-<idx>" strings
+            // dropped by the take-the-test DnD layer, but legacy / cross-mode
+            // payloads can hand us a raw number index. Coerce to string before
+            // .split() so submit doesn't crash with "split is not a function".
+            const asString = String(rawUserChoice);
+            const parts = asString.split("-");
             const optIdx = parseInt(parts[parts.length - 1], 10);
             if (isNaN(optIdx)) return;
 
@@ -318,10 +322,11 @@ function scoreMatching(
         total = correctAnswers.length;
 
         correctAnswers.forEach((correctText, gapIndex) => {
-            const userOptionId = userAnswerObj[String(gapIndex)];
-            if (userOptionId == null) return;
+            const rawUserChoice = userAnswerObj[String(gapIndex)];
+            if (rawUserChoice == null || rawUserChoice === "") return;
 
-            const parts = userOptionId.split("-");
+            const asString = String(rawUserChoice);
+            const parts = asString.split("-");
             const optIdx = parseInt(parts[parts.length - 1], 10);
             if (isNaN(optIdx)) return;
 

@@ -321,7 +321,7 @@ export async function resolveAffiliateRef(
 
     if (affError) throw affError;
 
-    if (affiliate && affiliate.status === "active") {
+    if (affiliate && (affiliate.status === "approved" || affiliate.status === "active")) {
         // Find associated link
         const { data: link } = await supabaseAdmin
             .from("affiliate_links")
@@ -353,7 +353,7 @@ export async function resolveAffiliateRef(
             .eq("id", affLink.affiliate_id)
             .single();
 
-        if (aff && aff.status === "active") {
+        if (aff && (aff.status === "approved" || aff.status === "active")) {
             return {
                 affiliateId: aff.id as string,
                 linkId: affLink.id as string,

@@ -11,6 +11,7 @@ type MatchingData = {
     matchingItems: MatchingItem[];
     answerOptions: { optionText: string }[];
     summaryText?: string;
+    optionsTitle?: string;
 };
 
 type MatchingEditorProps = {
@@ -43,7 +44,7 @@ export default function MatchingEditor({ data, onChange }: MatchingEditorProps) 
 
     return (
         <div className="space-y-4">
-            <Form.Item label="Layout Type" className="mb-0">
+            <Form.Item label="Layout Type" className="mb-4">
                 <Select
                     value={data.layoutType}
                     onChange={(v) => update("layoutType", v)}
@@ -51,6 +52,8 @@ export default function MatchingEditor({ data, onChange }: MatchingEditorProps) 
                     style={{ width: 220 }}
                 />
             </Form.Item>
+
+
 
             {/* ── SUMMARY layout ── */}
             {isSummary && (
@@ -193,7 +196,7 @@ export default function MatchingEditor({ data, onChange }: MatchingEditorProps) 
             )}
 
             {/* ── Answer Options (always shown) ── */}
-            <Divider orientation="left" plain className="!my-2">
+            <Divider orientation="left" orientationMargin={0} plain className="!my-2">
                 {isHeading ? "Headings (Answer Options)" : "Answer Options"}
             </Divider>
 
@@ -202,6 +205,16 @@ export default function MatchingEditor({ data, onChange }: MatchingEditorProps) 
                     Danh sách heading để match — được đánh nhãn A, B, C… tự động.
                 </p>
             )}
+
+            {/* ── Tiêu đề danh sách options ── */}
+            <Form.Item label="Tiêu đề Options" className="mb-4">
+                <Input
+                    placeholder="List of options"
+                    value={data.optionsTitle ?? ""}
+                    onChange={(e) => update("optionsTitle", e.target.value)}
+                    style={{ width: 320 }}
+                />
+            </Form.Item>
 
             <div className="space-y-2">
                 {(data.answerOptions ?? []).map((opt, idx) => (

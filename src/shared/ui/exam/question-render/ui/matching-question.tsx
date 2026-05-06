@@ -32,6 +32,7 @@ type IQuestion =
       layoutType?: "standard" | "summary" | "heading" | string[]; // Có thể là mảng
       matchingItems?: { questionPart: string; correctAnswer: string }[];
       summaryText?: string;
+      optionsTitle?: string;
       answerOptions?: { optionText: string }[];
     };
     startIndex?: number;
@@ -431,6 +432,11 @@ export function MatchingQuestion({
                     // 4. Return component with dashed border AND BACKGROUND COLOR
                     return (
                       <span
+                        // Anchor for review-mode footer pagination's
+                        // handleScrollToQuestion — same convention as the
+                        // interactive layout so clicking 27/28/29/30 jumps
+                        // to the right gap on a matching-summary question.
+                        id={`#question-no-${startIndex + gapIndex + 1}`}
                         className={twMerge(
                           "inline-block border border-dashed px-2 py-0.5 align-baseline min-w-[80px] text-center rounded-sm",
                           shouldBeBold ? "font-bold" : "font-normal",
@@ -488,7 +494,7 @@ export function MatchingQuestion({
                       <div className="shrink-0">{InlineText}</div>
                       <div className="shrink-0">
                         <p className="text-[16px] font-bold mb-4">
-                          List of options
+                          {matchingData.optionsTitle || "List of options"}
                         </p>
                         {OptionsList}
                       </div>
@@ -656,6 +662,14 @@ export function MatchingQuestion({
                   const questionNumber = startIndex + gapIndex + 1;
                   const questionAbsoluteIndex = startIndex + gapIndex;
                   return (
+                    // Anchor the gap with #question-no-<n+1> so the footer
+                    // pagination's handleScrollToQuestion can locate this
+                    // gap and scrollIntoView. Without it, clicking 27/28/29
+                    // on a matching-summary question was a no-op.
+                    <span
+                      id={`#question-no-${questionAbsoluteIndex + 1}`}
+                      style={{ display: "inline" }}
+                    >
                     <SortableContext
                       items={items[containerId] || []}
                       id={containerId}
@@ -694,6 +708,7 @@ export function MatchingQuestion({
                         })}
                       </SummaryDroppableSlot>
                     </SortableContext>
+                    </span>
                   );
                 }
               },
@@ -775,7 +790,7 @@ export function MatchingQuestion({
                           {TextContent}
                         </div>
                         <div className="shrink-0">
-                          <p className="text-[16px] font-bold mb-4">List of options</p>
+                          <p className="text-[16px] font-bold mb-4">{matchingData.optionsTitle || "List of options"}</p>
                           {OptionsContent}
                         </div>
                       </div>
@@ -1217,7 +1232,7 @@ export function MatchingQuestion({
                       {/* Right Column: Options List (Static) */}
                       <div>
                         <h4 className="text-[16px] font-bold mb-4">
-                          List of options
+                          {matchingData.optionsTitle || "List of options"}
                         </h4>
                         <div className="flex flex-col items-start gap-3">
                           {answerOptions.map((option, index) => (
@@ -1336,7 +1351,7 @@ export function MatchingQuestion({
                     {/* Right Column: Options */}
                     <div>
                       <h4 className="text-[16px] font-bold mb-4">
-                        List of options
+                        {matchingData.optionsTitle || "List of options"}
                       </h4>
                       <SortableContext
                         items={items["available"] || []}

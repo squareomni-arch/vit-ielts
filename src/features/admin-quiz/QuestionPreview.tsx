@@ -235,7 +235,7 @@ export default function QuestionPreview({ data }: QuestionPreviewProps) {
                 )}
 
                 <div className="bg-white p-4 rounded border border-gray-200">
-                    <h4 className="font-medium mb-2">Options Pool:</h4>
+                    <h4 className="font-medium mb-2">{mq.optionsTitle || mq.options_title || "List of options"}</h4>
                     <div className="flex flex-col gap-2">
                         {answerOptions.map((opt: any, i: number) => (
                             <div key={i} className="bg-gray-100 px-3 py-2 rounded text-sm border border-gray-200">

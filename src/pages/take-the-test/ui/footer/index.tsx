@@ -449,30 +449,39 @@ function Footer() {
     <>
       <footer className="fixed bottom-0 left-0 right-0 z-50 bg-white">
         {post.quizFields.skill[0] === "listening" && post.quizFields.audio && (() => {
-          // Honor per-passage audio_start / audio_end so a single-passage
-          // practice quiz doesn't replay the whole 30-minute test file. The
-          // values come through SSR as strings (or null); coerce to numbers
-          // and pass undefined when missing so AudioPlayer can fall back to
-          // "play full file".
-          const currentPassage = post.quizFields.passages?.[part.current];
-          const rawStart = (currentPassage as any)?.audio_start;
-          const rawEnd = (currentPassage as any)?.audio_end;
-          const audioStart =
-            rawStart === null || rawStart === undefined || rawStart === ""
-              ? undefined
-              : Number(rawStart);
-          const audioEnd =
-            rawEnd === null || rawEnd === undefined || rawEnd === ""
-              ? undefined
-              : Number(rawEnd);
+          // Audio segmentation (audio_start / audio_end) only applies to
+          // single-passage practice quizzes — those reuse the full test
+          // audio file but only need a slice of it. For full mock tests
+          // (multiple passages), the audio must play continuously across
+          // parts; clicking Part 2 should NOT yank the playhead back to
+          // that passage's start mid-listen.
+          const passages = post.quizFields.passages ?? [];
+          const isSinglePassagePractice = passages.length === 1;
+          let audioStart: number | undefined;
+          let audioEnd: number | undefined;
+          if (isSinglePassagePractice) {
+            const currentPassage = passages[0];
+            const rawStart = (currentPassage as any)?.audio_start;
+            const rawEnd = (currentPassage as any)?.audio_end;
+            const parsedStart =
+              rawStart === null || rawStart === undefined || rawStart === ""
+                ? NaN
+                : Number(rawStart);
+            const parsedEnd =
+              rawEnd === null || rawEnd === undefined || rawEnd === ""
+                ? NaN
+                : Number(rawEnd);
+            audioStart = Number.isFinite(parsedStart) ? parsedStart : undefined;
+            audioEnd = Number.isFinite(parsedEnd) ? parsedEnd : undefined;
+          }
           return (
             <div className={testResult.testMode === "simulation" ? "invisible h-0 overflow-hidden" : ""}>
               <AudioPlayer
                 key="listening-audio-player"
                 audioUrl={post.quizFields.audio.node.mediaItemUrl}
                 isReady={isReady}
-                audioStart={Number.isFinite(audioStart) ? audioStart : undefined}
-                audioEnd={Number.isFinite(audioEnd) ? audioEnd : undefined}
+                audioStart={audioStart}
+                audioEnd={audioEnd}
               />
             </div>
           );

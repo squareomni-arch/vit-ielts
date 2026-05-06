@@ -277,7 +277,7 @@ export const MatrixQuestion = ({
           {layoutType === "standard" && CategoryListJSX}
             <QuestionExplanation 
               content={question.explanations?.[0]?.content}
-              label="View General Explanation"
+              label="Explanation"
             />
         </div>
       )}

@@ -59,7 +59,7 @@ export default function MatrixEditor({ data, onChange }: MatrixEditorProps) {
                 </Form.Item>
                 <Form.Item label="Legend Title (optional)" className="mb-0 flex-1">
                     <Input
-                        placeholder='E.g. "Which writer mentions the following?"'
+                        placeholder="List of options"
                         value={data.legendTitle ?? ""}
                         onChange={(e) => update("legendTitle", e.target.value)}
                     />

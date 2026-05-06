@@ -122,6 +122,7 @@ function toIPracticeSingle(
                 return Array.isArray(lt) ? lt[0] : lt;
               })(),
               summaryText: matchingQ.summary_text ?? matchingQ.summaryText ?? "",
+              optionsTitle: matchingQ.options_title ?? matchingQ.optionsTitle ?? "",
               matchingItems: (Array.isArray(matchingQ.matching_items) ? matchingQ.matching_items
                 : Array.isArray(matchingQ.matchingItems) ? matchingQ.matchingItems : []).map((mi: any) => ({
                 questionPart: mi.questionPart ?? mi.question_part ?? "",

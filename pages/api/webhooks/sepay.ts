@@ -352,6 +352,28 @@ export default async function handler(
               (result.fraudFlag ? ` (flagged: ${result.fraudFlag})` : " (7-day waiting period)"),
             );
 
+            // Mark the most recent unconverted visit as converted
+            try {
+              const { data: recentVisit } = await supabaseAdmin
+                .from("affiliate_visits")
+                .select("id")
+                .eq("affiliate_id", resolved.affiliateId)
+                .eq("converted", false)
+                .order("created_at", { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+              if (recentVisit) {
+                await supabaseAdmin
+                  .from("affiliate_visits")
+                  .update({ converted: true, order_id: order.order_id })
+                  .eq("id", recentVisit.id);
+                log(`[Sepay Webhook] ✔ Visit ${recentVisit.id} marked as converted`);
+              }
+            } catch (visitErr) {
+              log.error(`[Sepay Webhook] ✗ Failed to mark visit as converted:`, visitErr);
+            }
+
             // Notify affiliate
             try {
               const affUser = (affiliateData as any)?.users;

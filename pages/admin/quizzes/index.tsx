@@ -798,17 +798,47 @@ function AddToMockTestModal({
 // ---------------------------------------------------------------------------
 export default function AdminQuizzesPage() {
     const router = useRouter();
+    // Hydrate pagination + filter state from the URL so navigating into an
+    // edit page and back (or sharing/reopening the URL) keeps the same view —
+    // previously every navigation reset to page 1, making the editor have to
+    // re-find their quiz.
+    const initialPage = Number(router.query.page) || 1;
+    const initialPageSize = Number(router.query.pageSize) || 20;
+    const initialSearch = (router.query.search as string) || "";
+    const initialSkill = (router.query.skill as string) || undefined;
+    const initialType = (router.query.type as string) || undefined;
+    const initialStatus = (router.query.status as string) || undefined;
+
     const [quizzes, setQuizzes] = useState<QuizRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
-    const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(20);
-    const [search, setSearch] = useState("");
-    const [skillFilter, setSkillFilter] = useState<string | undefined>(undefined);
-    const [typeFilter, setTypeFilter] = useState<string | undefined>(undefined);
-    const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
+    const [page, setPage] = useState(initialPage);
+    const [pageSize, setPageSize] = useState(initialPageSize);
+    const [search, setSearch] = useState(initialSearch);
+    const [skillFilter, setSkillFilter] = useState<string | undefined>(initialSkill);
+    const [typeFilter, setTypeFilter] = useState<string | undefined>(initialType);
+    const [statusFilter, setStatusFilter] = useState<string | undefined>(initialStatus);
     const [showAddModal, setShowAddModal] = useState(false);
     const [selectedQuizForMockTest, setSelectedQuizForMockTest] = useState<QuizRow | null>(null);
+
+    // Push current state back to the URL (replace, not push, so the back
+    // button still works as expected). Skip while the router isn't ready.
+    useEffect(() => {
+        if (!router.isReady) return;
+        const query: Record<string, string> = {};
+        if (page !== 1) query.page = String(page);
+        if (pageSize !== 20) query.pageSize = String(pageSize);
+        if (search) query.search = search;
+        if (skillFilter) query.skill = skillFilter;
+        if (typeFilter) query.type = typeFilter;
+        if (statusFilter) query.status = statusFilter;
+        router.replace(
+            { pathname: router.pathname, query },
+            undefined,
+            { shallow: true, scroll: false }
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page, pageSize, search, skillFilter, typeFilter, statusFilter, router.isReady]);
 
     const fetchQuizzes = useCallback(async () => {
         setLoading(true);

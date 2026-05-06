@@ -50,6 +50,7 @@ export type QuestionData = {
         matchingItems: { questionPart: string; correctAnswer: string; explanation?: string }[];
         answerOptions: { optionText: string }[];
         summaryText?: string;
+        optionsTitle?: string;
     };
     matrix_question?: {
         matrixCategories: { categoryLetter: string; categoryText: string }[];
