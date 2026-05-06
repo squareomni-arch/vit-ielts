@@ -16,16 +16,15 @@ type FilterProps = {
 
 const FILTER_CONFIGS = {
   listening: [
-    { slug: "0", name: "Part 1" },
-    { slug: "1", name: "Part 2" },
-    { slug: "2", name: "Part 3" },
-    { slug: "3", name: "Part 4" },
+    { slug: "1", name: "Part 1" },
+    { slug: "2", name: "Part 2" },
+    { slug: "3", name: "Part 3" },
+    { slug: "4", name: "Part 4" },
   ],
   reading: [
-    { slug: "0", name: "Part 1" },
-    { slug: "1", name: "Part 2" },
-    { slug: "2", name: "Part 3" },
-    { slug: "3", name: "Part 4" },
+    { slug: "1", name: "Passage 1" },
+    { slug: "2", name: "Passage 2" },
+    { slug: "3", name: "Passage 3" },
   ],
   status: [
     { value: "pending", label: "Pending" },
