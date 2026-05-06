@@ -98,7 +98,12 @@ export default function AdminAffiliatePage() {
                 return <Tag color={colors[s]}>{s}</Tag>;
             },
         },
-        { title: "Rate", dataIndex: "commission_rate", key: "commission_rate", width: 80, render: (v: number) => `${v}%` },
+        {
+            title: "Rate", dataIndex: "commission_rate", key: "commission_rate", width: 80,
+            // DB stores commission_rate as decimal (0.1 = 10%), so multiply by 100 for display.
+            render: (v: number | null | undefined) =>
+                v == null ? "—" : `${+(v * 100).toFixed(2)}%`,
+        },
         { title: "Ngày", dataIndex: "created_at", key: "created_at", width: 120, render: (d: string) => dayjs(d).format("DD/MM/YYYY") },
         {
             title: "", key: "actions", width: 100,
@@ -109,8 +114,18 @@ export default function AdminAffiliatePage() {
     ];
 
     const commColumns: ColumnsType<CommissionRow> = [
-        { title: "Affiliate", dataIndex: "affiliate_id", key: "affiliate_id", width: 150, render: (v: string | null) => <span className="font-mono text-xs">{v?.substring(0, 12)}...</span> },
-        { title: "Order", dataIndex: "order_id", key: "order_id", width: 150, render: (v: string | null) => <span className="font-mono text-xs">{v?.substring(0, 12)}...</span> },
+        {
+            title: "Affiliate", dataIndex: "affiliate_id", key: "affiliate_id",
+            render: (v: string | null) => (
+                <span className="font-mono text-xs break-all">{v ?? "—"}</span>
+            ),
+        },
+        {
+            title: "Order", dataIndex: "order_id", key: "order_id",
+            render: (v: string | null) => (
+                <span className="font-mono text-xs break-all">{v ?? "—"}</span>
+            ),
+        },
         { title: "Amount", dataIndex: "amount", key: "amount", width: 120, render: (v: number | null) => v ? formatPrice(v) : "—" },
         { title: "Commission", dataIndex: "commission_amount", key: "commission_amount", width: 120, render: (v: number | null) => v ? <span className="font-bold text-green-600">{formatPrice(v)}</span> : "—" },
         {

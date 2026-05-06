@@ -5,6 +5,7 @@ export const ROUTES = {
     `/account/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ""}`,
   REGISTER: "/account/register",
   FORGOT_PASSWORD: "/account/forgot-password",
+  RESET_PASSWORD: "/account/reset-password",
 
   ADMIN: {
     LOGIN: "/admin/login",

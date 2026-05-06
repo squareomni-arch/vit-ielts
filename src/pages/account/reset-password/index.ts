@@ -1,0 +1,1 @@
+export { PageResetPassword } from "./ui";

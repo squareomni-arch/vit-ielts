@@ -589,63 +589,65 @@ export default function AdminUserDetailPage() {
 
         <Card
           title={
-            <Space>
-              <Avatar src={user.avatar_url} icon={<UserOutlined />} size={48} />
-              <div>
-                <h2 className="text-xl font-bold m-0">
-                  {user.name || user.email}
-                </h2>
-                <span className="text-gray-500 text-sm">{user.email}</span>
+            <div className="flex flex-col gap-3 py-2 whitespace-normal md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <Avatar src={user.avatar_url} icon={<UserOutlined />} size={48} />
+                <div className="min-w-0">
+                  <h2 className="text-xl font-bold m-0 truncate">
+                    {user.name || user.email}
+                  </h2>
+                  <span className="text-gray-500 text-sm truncate block">
+                    {user.email}
+                  </span>
+                </div>
               </div>
-            </Space>
-          }
-          extra={
-            <Space>
-              <Button icon={<EditOutlined />} onClick={openEditModal}>
-                Sửa
-              </Button>
-              <Button icon={<KeyOutlined />} onClick={openPasswordModal}>
-                Đặt lại mật khẩu
-              </Button>
-              <Popconfirm
-                title="Xoá User này?"
-                description="Hành động này không thể hoàn tác."
-                onConfirm={handleDeleteUser}
-                okText="Xoá"
-                cancelText="Hủy"
-                okButtonProps={{ danger: true }}
-                getPopupContainer={(triggerNode) => triggerNode.parentNode as HTMLElement}
-              >
-                <Button danger icon={<DeleteOutlined />}>
-                  Xoá
+              <Space wrap size={[8, 8]} className="shrink-0">
+                <Button icon={<EditOutlined />} onClick={openEditModal}>
+                  Sửa
                 </Button>
-              </Popconfirm>
-              {user.is_pro ? (
-                <>
-                  <Button icon={<EditOutlined />} onClick={openSetDateModal}>
-                    Sửa ngày PRO
-                  </Button>
-                  <Popconfirm
-                    title="Hủy Pro?"
-                    description="User sẽ không còn quyền truy cập Pro"
-                    onConfirm={() => handleTogglePro("deactivate")}
-                    okText="Xác nhận"
-                    cancelText="Hủy"
-                    getPopupContainer={(triggerNode) => triggerNode.parentNode as HTMLElement}
-                  >
-                    <Button danger>Hủy Pro</Button>
-                  </Popconfirm>
-                </>
-              ) : (
-                <Button
-                  type="primary"
-                  icon={<CrownOutlined />}
-                  onClick={() => setProModalVisible(true)}
+                <Button icon={<KeyOutlined />} onClick={openPasswordModal}>
+                  Đặt lại mật khẩu
+                </Button>
+                <Popconfirm
+                  title="Xoá User này?"
+                  description="Hành động này không thể hoàn tác."
+                  onConfirm={handleDeleteUser}
+                  okText="Xoá"
+                  cancelText="Hủy"
+                  okButtonProps={{ danger: true }}
+                  getPopupContainer={(triggerNode) => triggerNode.parentNode as HTMLElement}
                 >
-                  Kích hoạt Pro
-                </Button>
-              )}
-            </Space>
+                  <Button danger icon={<DeleteOutlined />}>
+                    Xoá
+                  </Button>
+                </Popconfirm>
+                {user.is_pro ? (
+                  <>
+                    <Button icon={<EditOutlined />} onClick={openSetDateModal}>
+                      Sửa ngày PRO
+                    </Button>
+                    <Popconfirm
+                      title="Hủy Pro?"
+                      description="User sẽ không còn quyền truy cập Pro"
+                      onConfirm={() => handleTogglePro("deactivate")}
+                      okText="Xác nhận"
+                      cancelText="Hủy"
+                      getPopupContainer={(triggerNode) => triggerNode.parentNode as HTMLElement}
+                    >
+                      <Button danger>Hủy Pro</Button>
+                    </Popconfirm>
+                  </>
+                ) : (
+                  <Button
+                    type="primary"
+                    icon={<CrownOutlined />}
+                    onClick={() => setProModalVisible(true)}
+                  >
+                    Kích hoạt Pro
+                  </Button>
+                )}
+              </Space>
+            </div>
           }
         >
           <Descriptions bordered column={{ xs: 1, sm: 2 }}>
