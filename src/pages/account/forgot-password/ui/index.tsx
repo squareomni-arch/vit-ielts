@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AuthLayout } from "@/widgets/layouts";
 import { HeroBanner } from "@/shared/ui/ds/organisms/hero-banner";
 import { ROUTES } from "@/shared/routes";
+import { createClient } from "~supabase/client";
 
 type FormData = {
   email: string;
@@ -19,26 +20,15 @@ export function PageForgotPassword() {
   const [sentTo, setSentTo] = useState<string | null>(null);
 
   const onSubmit = async ({ email }: FormData) => {
-    // Hit our API route (which uses the branded SMTP template) instead of
-    // calling supabase.auth.resetPasswordForEmail directly.
-    try {
-      const res = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      if (!res.ok) {
-        setError("email", {
-          type: "manual",
-          message: "Có lỗi xảy ra, vui lòng thử lại sau.",
-        });
-        return;
-      }
-    } catch {
-      setError("email", {
-        type: "manual",
-        message: "Không kết nối được đến máy chủ. Kiểm tra lại mạng và thử lại.",
-      });
+    const supabase = createClient();
+    const redirectTo = `${window.location.origin}${ROUTES.RESET_PASSWORD}`;
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    });
+
+    if (error) {
+      setError("email", { type: "manual", message: error.message });
       return;
     }
     setSentTo(email);

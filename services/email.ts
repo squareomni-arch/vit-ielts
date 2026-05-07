@@ -81,12 +81,6 @@ export type EmailTemplateConfig = {
         headerTitle: string;
         bodyHtml: string;
     };
-    passwordReset: {
-        subject: string;
-        headerTitle: string;
-        bodyHtml: string;
-        ctaButton?: { text: string; link: string };
-    };
     style: {
         headerBgColor: string;
         headerBgGradient: string;
@@ -205,15 +199,6 @@ const DEFAULT_CONFIG: EmailTemplateConfig = {
         headerTitle: "Thanh toán thành công",
         bodyHtml: "Xin chào {{affiliateName}},\n\nTin vui! Chúng tôi đã thực hiện chuyển khoản số tiền <strong>{{payoutAmount}}</strong> theo yêu cầu rút tiền của bạn.\n\nGiao dịch đã được hoàn tất. Vui lòng kiểm tra tài khoản ngân hàng của bạn trong vòng 24h làm việc.\n\nCảm ơn bạn đã luôn là đối tác tin cậy của {{brandName}}!",
     },
-    passwordReset: {
-        subject: "Yêu cầu đặt lại mật khẩu - {{brandName}}",
-        headerTitle: "Đặt lại mật khẩu của bạn",
-        bodyHtml: "Xin chào,\n\nChúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong>{{customerEmail}}</strong> tại {{brandName}}.\n\nNhấn vào nút bên dưới để chọn mật khẩu mới. Link có hiệu lực trong vòng 60 phút.\n\nNếu bạn không gửi yêu cầu này, vui lòng bỏ qua email — mật khẩu hiện tại của bạn vẫn an toàn.",
-        ctaButton: {
-            text: "Đặt lại mật khẩu",
-            link: "{{resetLink}}",
-        },
-    },
     style: {
         headerBgColor: "#D94A56",
         headerBgGradient: "linear-gradient(135deg, #D94A56 0%, #c62828 100%)",
@@ -270,7 +255,6 @@ async function getEmailConfig(): Promise<EmailTemplateConfig> {
         payoutRequest: { ...DEFAULT_CONFIG.payoutRequest, ...(dbConfig.payoutRequest || {}) },
         payoutRejected: { ...DEFAULT_CONFIG.payoutRejected, ...(dbConfig.payoutRejected || {}) },
         payoutCompleted: { ...DEFAULT_CONFIG.payoutCompleted, ...(dbConfig.payoutCompleted || {}) },
-        passwordReset: { ...DEFAULT_CONFIG.passwordReset, ...(dbConfig.passwordReset || {}) },
         style: { ...DEFAULT_CONFIG.style, ...(dbConfig.style || {}) },
     };
 }
@@ -883,48 +867,6 @@ export async function sendPayoutStatusEmail(
     const html = buildEmailHtml(config, template.headerTitle, body, vars);
 
     return sendEmail(affiliateEmail, subject, html);
-}
-
-// ============================================================
-// Password Reset Email
-// ============================================================
-
-/**
- * Gửi email reset password cho user.
- *
- * `resetLink` là URL recovery do `supabaseAdmin.auth.admin.generateLink({ type: 'recovery' })`
- * trả về — đã chứa token và `redirect_to` trỏ về trang `/account/reset-password`.
- */
-export async function sendPasswordResetEmail(
-    userEmail: string,
-    resetLink: string,
-): Promise<boolean> {
-    const config = await getEmailConfig();
-    const template = config.passwordReset;
-
-    const vars: Record<string, string> = {
-        "{{customerEmail}}": encode(userEmail),
-        "{{resetLink}}": resetLink,
-        "{{brandName}}": config.brand.name,
-        "{{brandPhone}}": config.brand.phone,
-        "{{brandEmail}}": config.brand.email,
-        "{{brandWebsite}}": config.brand.website,
-        "{{currentYear}}": String(new Date().getFullYear()),
-    };
-
-    const subject = replaceVariables(template.subject, vars);
-    const body = replaceVariables(template.bodyHtml, vars);
-    const ctaButton = template.ctaButton
-        ? {
-              text: replaceVariables(template.ctaButton.text, vars),
-              link: replaceVariables(template.ctaButton.link, vars),
-          }
-        : undefined;
-    const html = buildEmailHtml(config, template.headerTitle, body, vars, {
-        ctaButton,
-    });
-
-    return sendEmail(userEmail, subject, html);
 }
 
 // ============================================================
