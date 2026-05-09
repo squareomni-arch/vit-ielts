@@ -787,11 +787,20 @@ function ReviewExplanation({
     const filteredPassages = filteredPassagesWithOriginalIndex.map(({ passage, originalIndex }, newIndex) => {
       // Deep clone passage để tránh mutate original
       const clonedPassage = JSON.parse(JSON.stringify(passage));
-      
+
       _.set(clonedPassage, "partIndex", newIndex);
       // Preserve originalPartIndex for display purposes
       _.set(clonedPassage, "originalPartIndex", originalIndex);
-      
+
+      // Honor admin-configured start_question_number for practice extracts
+      // (e.g. a single-passage Passage 3 quiz that should number 27–40, not
+      // 1–14). Mirrors the take-the-test footer logic so question numbering
+      // and form-value lookups line up between modes.
+      const explicitStart = (clonedPassage as any).start_question_number;
+      if (explicitStart && !isNaN(Number(explicitStart))) {
+        currentIndex = Number(explicitStart) - 1;
+      }
+
       clonedPassage.questions.forEach((question: any, questionIndex: number) => {
         const questionType = question.type?.[0];
         let numberOfSubQuestions = 1;
@@ -1763,21 +1772,34 @@ function ReviewExplanation({
   const passagesFooterInfo = useMemo(() => {
     return (newPost?.quizFields?.passages ?? []).map((passage: any, idx: number) => {
       const questionIndices: number[] = [];
+      const displayNumbers: number[] = [];
 
       // Compute startIndex for each question in this passage.
       // QUAN TRỌNG: phải truyền passage_content để countQuestion có thể đếm gaps
       // cho matching/heading, nếu không nó sẽ fallback về 1 và toàn bộ câu sau lệch.
       let runningIdx = 0;
+      // Display numbering follows take-the-test footer: it's a separate
+      // counter that resets to (start_question_number - 1) only when a
+      // passage explicitly sets it, and otherwise continues across passages.
+      let displayIdx = 0;
       (newPost?.quizFields?.passages ?? []).forEach((p: any, pIdx: number) => {
+        const explicitStart = (p as any).start_question_number;
+        if (explicitStart && !isNaN(Number(explicitStart))) {
+          displayIdx = Number(explicitStart) - 1;
+        }
         (p.questions ?? []).forEach((q: any) => {
           const count = countQuestion({
             questions: [q],
             passage_content: p.passage_content,
           } as any);
           if (pIdx === idx) {
-            for (let i = 0; i < count; i++) questionIndices.push(runningIdx + i);
+            for (let i = 0; i < count; i++) {
+              questionIndices.push(runningIdx + i);
+              displayNumbers.push(displayIdx + i + 1);
+            }
           }
           runningIdx += count;
+          displayIdx += count;
         });
       });
 
@@ -1786,7 +1808,12 @@ function ReviewExplanation({
         (qi) => slotStatus[qi] !== "unanswered",
       ).length;
 
-      return { questions: questionIndices, total: questionIndices.length, answered: answeredCount };
+      return {
+        questions: questionIndices,
+        displayNumbers,
+        total: questionIndices.length,
+        answered: answeredCount,
+      };
     });
   }, [newPost, slotStatus]);
 
@@ -1802,7 +1829,12 @@ function ReviewExplanation({
       quiz.quizFields.skill[0] === "reading" ? "Passage" : "Part";
     const originalPartIndex = (currentPassage as any).originalPartIndex;
     const partNumber = (originalPartIndex !== undefined ? originalPartIndex : (currentPassage as any).partIndex) + 1;
-    const startQuestion = (currentPassage.questions[0]?.startIndex ?? 0) + 1;
+    // Honor the admin-configured start_question_number for practice extracts
+    // (e.g. a single Passage 3 quiz starts at question 27, not 1).
+    const explicitStart = (currentPassage as any).start_question_number;
+    const startQuestion = explicitStart && !isNaN(Number(explicitStart))
+      ? Number(explicitStart)
+      : (currentPassage.questions[0]?.startIndex ?? 0) + 1;
     let questionCountInPassage = 0;
     currentPassage.questions.forEach((q:any) => questionCountInPassage += countSubQuestions(q, (currentPassage as any).passage_content));
     const endQuestion = startQuestion + questionCountInPassage - 1;
@@ -1990,7 +2022,7 @@ function ReviewExplanation({
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-1 overflow-x-auto py-1">
-                                  {info.questions.map((qi: number) => {
+                                  {info.questions.map((qi: number, localIdx: number) => {
                                     const status = slotStatus[qi];
                                     const barClass =
                                       status === "correct"
@@ -1998,20 +2030,26 @@ function ReviewExplanation({
                                         : status === "incorrect"
                                           ? "bg-red-500"
                                           : "bg-gray-200";
+                                    const displayNum = info.displayNumbers?.[localIdx] ?? qi + 1;
+                                    // Absolute index lines up with q.startIndex now that newPost
+                                    // honors start_question_number — pass it to scroll/active so
+                                    // a click on "27" actually targets the question with
+                                    // startIndex=26 and lights it up.
+                                    const absoluteIdx = displayNum - 1;
                                     return (
                                       <div key={qi} className="flex flex-col items-center gap-2 flex-shrink-0">
                                         <div className={twMerge("w-full h-[3px] rounded-sm", barClass)} />
-                                        <span 
+                                        <span
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            handleScrollToQuestion(qi);
+                                            handleScrollToQuestion(absoluteIdx);
                                           }}
                                           className={twMerge(
                                             "text-[#000] p-1 pb-[2px] flex items-center leading-[16px]! justify-center text-[16px] border-2 border-transparent rounded cursor-pointer",
-                                            activeQuestionIndex === qi && "font-semibold border-2 border-[#418FC6]"
+                                            activeQuestionIndex === absoluteIdx && "font-semibold border-2 border-[#418FC6]"
                                           )}
                                         >
-                                          {qi + 1}
+                                          {displayNum}
                                         </span>
                                       </div>
                                     );

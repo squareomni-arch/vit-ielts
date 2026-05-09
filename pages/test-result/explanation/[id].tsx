@@ -44,6 +44,10 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
         passage_content: p.content ?? "",
         audio_start: p.audio_start?.toString() ?? null,
         audio_end: p.audio_end?.toString() ?? null,
+        start_question_number:
+          (p as any).start_question_number !== null && (p as any).start_question_number !== undefined
+            ? Number((p as any).start_question_number)
+            : null,
         questions: (p.questions ?? []).map((q) => {
           const listOfQuestions = safeParseJsonb<any[]>(q.list_of_questions);
           const listOfOptions = safeParseJsonb<any[]>(q.list_of_options);

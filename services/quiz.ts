@@ -141,7 +141,30 @@ export async function getQuizzes(
     if (filters.year) query = query.eq("year", filters.year);
     if (filters.source) query = query.eq("source", filters.source);
     if (filters.quarter) query = query.eq("quarter", filters.quarter);
-    if (filters.part) query = query.eq("part", filters.part);
+    if (filters.part) {
+        // Listing cards show "Part N" via normalizeSectionBadge, which accepts
+        // many CMS shapes: bare digits, "passage1", "task-2", or null (which
+        // falls back to Part 1). The filter must match all of those, otherwise
+        // a Part-1 card whose DB value is "passage1" or null disappears when
+        // the user ticks the Part 1 checkbox.
+        const num = parseInt(filters.part, 10);
+        if (!isNaN(num) && num >= 1) {
+            const variants = [
+                String(num),
+                `passage${num}`, `passage ${num}`, `passage-${num}`,
+                `task${num}`, `task ${num}`, `task-${num}`,
+                `part${num}`, `part ${num}`, `part-${num}`,
+            ];
+            const conditions = variants.map((v) => `part.ilike.${v}`);
+            if (num === 1) {
+                // Default fallback: missing/empty part renders as Part 1.
+                conditions.push("part.is.null", "part.eq.0");
+            }
+            query = query.or(conditions.join(","));
+        } else {
+            query = query.eq("part", filters.part);
+        }
+    }
     if (filters.questionForm) {
         query = query.ilike("question_form", `%${sanitizeFilterValue(filters.questionForm)}%`);
     }
