@@ -192,6 +192,20 @@ export const ExamProvider = ({
   // Submit test answers via API route
   const handleSubmitAnswer = useCallback(async (data: AnswerFormValues) => {
     try {
+      // Pass quizId + testPart so the server can salvage the submission if
+      // the original draft row has been pruned (cleanup cron) or removed
+      // by a concurrent retake from another tab.
+      let parsedTestPart: number[] | undefined;
+      try {
+        const tp = (testResult as any)?.testPart;
+        if (typeof tp === "string" && tp.trim() !== "") {
+          parsedTestPart = JSON.parse(tp);
+        } else if (Array.isArray(tp)) {
+          parsedTestPart = tp;
+        }
+      } catch {
+        parsedTestPart = undefined;
+      }
       const response = await fetch("/api/test-flow/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -199,6 +213,8 @@ export const ExamProvider = ({
           testId: testID,
           answers: data,
           timeLeft: timer?.format("mm:ss") || "00:00",
+          quizId: post?.id,
+          testPart: parsedTestPart,
         }),
       });
 
@@ -212,7 +228,11 @@ export const ExamProvider = ({
       // user on /take-the-test with their submission already persisted.
       // router.push has been observed to fail silently in production,
       // leaving students staring at the test screen with no feedback.
-      const target = ROUTES.TEST_RESULT(testID);
+      // Prefer the id the server returned — when the original draft row
+      // was missing the server inserts a brand-new row whose id differs
+      // from the in-memory testID, and the old id would 404 on /test-result.
+      const resultId = result?.data?.id || testID;
+      const target = ROUTES.TEST_RESULT(resultId);
       try {
         await router.push(target);
       } catch {
@@ -250,7 +270,7 @@ export const ExamProvider = ({
         duration: 5,
       });
     }
-  }, [testID, timer, router]);
+  }, [testID, timer, router, post?.id, testResult]);
 
   const contextValue = useMemo(
     () => ({

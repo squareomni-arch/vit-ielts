@@ -333,6 +333,13 @@ export async function submitTestResult(
     testId: string,
     answers: { answers: unknown[] },
     timeLeft: string,
+    /**
+     * Optional fallback metadata. If the test_results row keyed by `testId`
+     * is gone (cleanup cron, retake from another tab, etc.) we can still
+     * persist the user's answers by inserting a fresh published row. The
+     * client passes these from page props so we don't lose the submission.
+     */
+    fallback?: { quizId?: string; testPart?: number[] },
 ): Promise<TestResult> {
     const userId = await requireAuth(supabase);
 
@@ -344,7 +351,25 @@ export async function submitTestResult(
         .eq("user_id", userId)
         .single();
 
+    let quizId: string | null = testResult?.quiz_id ?? null;
+    let testPart: number[] = (testResult?.test_part as number[] | null) ?? [];
+    let recoveredFromMissingRow = false;
+
     if (testError || !testResult) {
+        if (!fallback?.quizId) {
+            throw new TestNotFoundError();
+        }
+        // Recovery path: the original draft has been deleted (cleanup cron
+        // runs Sunday 3am UTC and prunes drafts >30 days; concurrent
+        // retakes also delete drafts). Salvage the user's submission by
+        // inserting a brand-new published row using the slug-derived quiz
+        // id the client sent along with the answers.
+        quizId = fallback.quizId;
+        testPart = Array.isArray(fallback.testPart) ? fallback.testPart : [];
+        recoveredFromMissingRow = true;
+    }
+
+    if (!quizId) {
         throw new TestNotFoundError();
     }
 
@@ -352,11 +377,19 @@ export async function submitTestResult(
     const { data: quizData, error: quizError } = await supabase
         .from("quizzes")
         .select(`*, passages(*, questions(*))`)
-        .eq("id", testResult.quiz_id)
+        .eq("id", quizId)
         .single();
 
     if (quizError || !quizData) {
         throw new Error("Quiz not found for scoring.");
+    }
+
+    // For recovery, derive a default test_part covering all passages when
+    // the client didn't supply one — matches what takeTheTest does for new
+    // sessions and avoids handing calculateScore an empty list.
+    if (recoveredFromMissingRow && testPart.length === 0) {
+        const passageCount = ((quizData as any).passages ?? []).length;
+        testPart = Array.from({ length: passageCount }, (_, i) => i);
     }
 
     // Convert to scoring engine format and calculate score
@@ -364,7 +397,7 @@ export async function submitTestResult(
     const scoreResult = calculateScore(
         answers.answers as Parameters<typeof calculateScore>[0],
         quizForScoring,
-        testResult.test_part as number[],
+        testPart,
     );
     const score = scoreResult.score;
 
@@ -375,6 +408,32 @@ export async function submitTestResult(
         totalCorrect: scoreResult.totalCorrect,
         totalQuestions: scoreResult.totalQuestions,
     };
+
+    if (recoveredFromMissingRow) {
+        const { data: inserted, error: insertError } = await supabase
+            .from("test_results")
+            .insert({
+                user_id: userId,
+                quiz_id: quizId,
+                test_part: testPart,
+                test_time: (quizData as any).time_minutes ?? 0,
+                test_mode: "practice",
+                answers: answersWithBreakdown,
+                time_left: timeLeft,
+                score,
+                status: "published",
+                submitted_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+
+        if (insertError || !inserted) {
+            throw new Error(
+                `Failed to recover test result: ${insertError?.message ?? "unknown"}`,
+            );
+        }
+        return inserted as TestResult;
+    }
 
     // Update test result: publish with score
     const { data: updatedResult, error: updateError } = await supabase

@@ -55,6 +55,11 @@ export const SubmitTestSchema = z.object({
     testId: z.string().uuid(),
     answers: z.any(),
     timeLeft: z.string().optional(),
+    // Optional fallback metadata so the server can salvage submissions
+    // when the original draft row was pruned by the cleanup cron or
+    // deleted by a concurrent retake from another tab.
+    quizId: z.string().uuid().optional(),
+    testPart: z.array(z.number().int().min(0)).optional(),
 });
 
 // ──────────────────────────────────────────────

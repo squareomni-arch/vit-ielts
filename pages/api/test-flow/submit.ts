@@ -38,7 +38,7 @@ export default async function handler(
       });
     }
 
-    const { testId, answers, timeLeft } = parsed.data;
+    const { testId, answers, timeLeft, quizId, testPart } = parsed.data;
 
     // Parse answers if string
     const parsedAnswers = typeof answers === "string" ? JSON.parse(answers) : answers;
@@ -47,7 +47,8 @@ export default async function handler(
       supabase,
       testId,
       parsedAnswers,
-      timeLeft || "00:00"
+      timeLeft || "00:00",
+      { quizId, testPart },
     );
 
     return res.status(200).json({
