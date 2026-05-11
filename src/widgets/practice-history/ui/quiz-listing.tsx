@@ -82,8 +82,12 @@ export const QuizListing = ({
         const { data: quizzes } = await supabase
           .from("quizzes")
           .select(
+            // start_question_number is required for scoring practice
+            // extracts (e.g. a Passage 3 quiz with start=27): without it,
+            // calculateScore reads answers from slots 0–13 instead of 26–39
+            // and every question shows up as "missed" in history.
             `id, title, slug, skill, type, score_type, status, time_minutes,
-             passages(content, sort_order,
+             passages(content, sort_order, start_question_number,
                questions(type, question_text, list_of_questions, list_of_options,
                          matching_question, matrix_question, explanations, sort_order)
              )`,

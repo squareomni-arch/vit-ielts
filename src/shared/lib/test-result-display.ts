@@ -384,6 +384,11 @@ export const toLegacyQuizForScore = (
         .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
         .map((passage) => ({
           passage_content: String(passage.content ?? ""),
+          // calculateScore reads start_question_number off each passage to
+          // shift the running answer index (e.g. Passage 3 practice → 27..40).
+          // Forward it untouched; the scorer accepts number | string | null.
+          start_question_number: (passage as { start_question_number?: unknown })
+            .start_question_number ?? null,
           questions: (Array.isArray(passage.questions) ? [...passage.questions] : [])
             .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
             .map((question) => ({
