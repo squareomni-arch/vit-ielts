@@ -242,7 +242,7 @@ export const PageSingle = ({ post }: { post: IPost & { pro_user_only?: boolean; 
 
                 <div className="bg-white rounded-[24px] border border-[rgba(0,0,0,0.06)] p-6 md:p-8 mt-6 overflow-hidden">
                   <div
-                    className="text-sm md:text-base text-[#2D3142] leading-relaxed prose prose-sm md:prose-base max-w-none prose-p:!mb-2 break-words [overflow-wrap:anywhere] [&_*]:[overflow-wrap:anywhere] [&_img]:max-w-full [&_img]:h-auto [&_table]:max-w-full [&_table]:overflow-x-auto [&_pre]:overflow-x-auto [&_ol]:pl-6 [&_ul]:pl-6"
+                    className="text-sm md:text-base text-[#2D3142] leading-relaxed prose prose-sm md:prose-base max-w-none prose-p:!mb-2 prose-strong:font-extrabold prose-strong:text-[#1a1d2b] break-words [overflow-wrap:anywhere] [&_*]:[overflow-wrap:anywhere] [&_strong]:font-extrabold [&_strong]:text-[#1a1d2b] [&_b]:font-extrabold [&_b]:text-[#1a1d2b] [&_img]:max-w-full [&_img]:h-auto [&_table]:max-w-full [&_table]:overflow-x-auto [&_pre]:overflow-x-auto [&_ol]:pl-6 [&_ul]:pl-6"
                     dangerouslySetInnerHTML={{
                       __html: (post.content || "").replace(
                         /&nbsp;|\u00A0/g,

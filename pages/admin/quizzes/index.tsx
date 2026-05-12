@@ -913,6 +913,29 @@ export default function AdminQuizzesPage() {
         } catch { message.error("Error"); }
     };
 
+    const handleToggleStatus = async (id: string, nextStatus: "draft" | "published") => {
+        // Optimistic toggle so the UI feels instant; revert on failure.
+        const prevQuizzes = quizzes;
+        setQuizzes(prev => prev.map(item => item.id === id ? { ...item, status: nextStatus } : item));
+        try {
+            const res = await fetch(`/api/admin/quizzes/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: nextStatus }),
+            });
+            const json = await res.json();
+            if (json.success) {
+                message.success(nextStatus === "published" ? "Đã publish" : "Đã chuyển về draft");
+            } else {
+                setQuizzes(prevQuizzes);
+                message.error(json.error || "Lỗi");
+            }
+        } catch {
+            setQuizzes(prevQuizzes);
+            message.error("Error");
+        }
+    };
+
     const columns: ColumnsType<QuizRow> = [
         {
             title: "Title",
@@ -942,8 +965,22 @@ export default function AdminQuizzesPage() {
             title: "Status",
             dataIndex: "status",
             key: "status",
-            width: 100,
-            render: (s: string) => <Tag color={s === "published" ? "green" : "default"}>{s}</Tag>,
+            width: 110,
+            render: (s: string, record) => {
+                const isPublished = s === "published";
+                const next = isPublished ? "draft" : "published";
+                return (
+                    <Tooltip title={`Bấm để chuyển sang ${next}`}>
+                        <Tag
+                            color={isPublished ? "green" : "default"}
+                            style={{ cursor: "pointer", userSelect: "none" }}
+                            onClick={() => handleToggleStatus(record.id, next)}
+                        >
+                            {s}
+                        </Tag>
+                    </Tooltip>
+                );
+            },
         },
         {
             title: "Lượt làm",

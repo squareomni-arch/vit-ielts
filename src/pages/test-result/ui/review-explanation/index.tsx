@@ -416,11 +416,6 @@ function ReviewExplanation({
     if (quiz?.quizFields?.passages) {
       quiz.quizFields.passages.forEach((passage: any, passageIndex: number) => {
         if (passage && passage.questions) {
-          // Debug logging cho Passage 2 để xem tất cả questions
-          if (passageIndex === 1) {
-            console.log(`[Mapping] Passage 2 has ${passage.questions.length} questions`);
-          }
-          
           passage.questions.forEach((question: any, questionIndex: number) => {
             const questionType = question.type?.[0];
             let numberOfSubQuestions = 1;
@@ -442,18 +437,7 @@ function ReviewExplanation({
             
             const key = question.id || `passage-${passageIndex}-question-${questionIndex}`;
             originalStartIndexMap.set(key, originalCurrentIndex);
-            
-            // Debug logging cho tất cả questions trong Passage 2
-            if (passageIndex === 1) {
-              console.log(`[Mapping] Passage 2 question ${questionIndex}:`, {
-                questionType,
-                originalStartIndex: originalCurrentIndex,
-                numberOfSubQuestions,
-                questionTitle: question.title?.substring(0, 50),
-                key,
-              });
-            }
-            
+
             originalCurrentIndex += numberOfSubQuestions;
           });
         }
@@ -495,34 +479,11 @@ function ReviewExplanation({
             return;
           }
           
-          // Debug logging cho Passage 2 fillup
-          if (passageIndex === 1 && (questionType === 'fillup' || questionType === 'select')) {
-            console.log(`[Mapping] Mapping Passage 2 ${questionType}:`, {
-              passageIndex,
-              questionIndex,
-              key,
-              originalStartIndex,
-              newStartIndex: newIndex,
-              numberOfSubQuestions,
-              questionTitle: question.title?.substring(0, 50),
-              countQuestionResult: countQuestion({ questions: [question] } as any),
-            });
-          }
-          
           // Map từng sub-question
           for (let i = 0; i < numberOfSubQuestions; i++) {
             indexMapping.set(originalStartIndex + i, newIndex + i);
-            
-            // Debug logging cho Passage 2 fillup mapping
-            if (passageIndex === 1 && (questionType === 'fillup' || questionType === 'select') && i < 5) {
-              console.log(`[Mapping] Mapping sub-question ${i}:`, {
-                originalIndex: originalStartIndex + i,
-                newIndex: newIndex + i,
-                originalValue: parsedAnswers[originalStartIndex + i],
-              });
-            }
           }
-          
+
           newIndex += numberOfSubQuestions;
         });
       }
@@ -539,33 +500,9 @@ function ReviewExplanation({
     indexMapping.forEach((newIdx, originalIdx) => {
       if (originalIdx >= 0 && originalIdx < parsedAnswers.length) {
         remappedAnswers[newIdx] = parsedAnswers[originalIdx];
-        
-        // Debug logging cho Passage 2 fillup answers (index 20-25 trong original)
-        if (originalIdx >= 20 && originalIdx <= 25) {
-          console.log(`[Mapping] Remapping answer:`, {
-            originalIdx,
-            newIdx,
-            originalValue: parsedAnswers[originalIdx],
-            newValue: remappedAnswers[newIdx],
-            originalValueType: typeof parsedAnswers[originalIdx],
-            isEmpty: parsedAnswers[originalIdx] === "" || parsedAnswers[originalIdx] === null || parsedAnswers[originalIdx] === undefined,
-          });
-        }
       }
     });
-    
-    // Debug logging tổng hợp cho Passage 2 fillup
-    const passage2FillupMappings = Array.from(indexMapping.entries()).filter(([orig, _]) => orig >= 20 && orig <= 25);
-    if (passage2FillupMappings.length > 0) {
-      console.log(`[Mapping] Passage 2 fillup mappings (original 20-25):`, {
-        mappings: passage2FillupMappings,
-        remappedAnswersAtNewIndex: remappedAnswers.slice(passage2FillupMappings[0]?.[1] || 0, (passage2FillupMappings[passage2FillupMappings.length - 1]?.[1] || 0) + 1),
-        originalAnswersAt20to25: parsedAnswers.slice(20, 26),
-        newStartIndex: passage2FillupMappings[0]?.[1],
-        newEndIndex: passage2FillupMappings[passage2FillupMappings.length - 1]?.[1],
-      });
-    }
-    
+
     return remappedAnswers;
   }, [parsedAnswers, quiz, testResult.testResultFields.testPart]);
 
@@ -829,18 +766,6 @@ function ReviewExplanation({
           currentIndex
         );
 
-        // Debug logging cho Passage 2 fillup/select
-        if (originalIndex === 1 && (questionType === 'fillup' || questionType === 'select')) {
-          console.log(`[newPost] Setting startIndex for Passage 2 ${questionType}:`, {
-            passageIndex: originalIndex,
-            newPassageIndex: newIndex,
-            questionIndex,
-            startIndex: currentIndex,
-            numberOfSubQuestions,
-            questionTitle: question.title?.substring(0, 50),
-          });
-        }
-
         currentIndex += numberOfSubQuestions;
       });
       
@@ -1013,15 +938,8 @@ function ReviewExplanation({
               let reactChildren: any;
               try {
                 reactChildren = domToReact(childrenArray, parserOptions);
-                console.log('[parserOptions.replace] domToReact result type:', typeof reactChildren, 'Is array:', Array.isArray(reactChildren), 'Is valid element:', React.isValidElement(reactChildren), reactChildren);
-                
-                // Normalize kết quả để đảm bảo không có object với numeric keys
                 reactChildren = normalizeParseResult(reactChildren);
-                console.log('[parserOptions.replace] Normalized reactChildren type:', typeof reactChildren, 'Is array:', Array.isArray(reactChildren), 'Is valid element:', React.isValidElement(reactChildren), reactChildren);
-                
-                // Kiểm tra lại sau khi normalize
                 if (reactChildren && typeof reactChildren === 'object' && !React.isValidElement(reactChildren) && !Array.isArray(reactChildren)) {
-                  console.error('[parserOptions.replace] reactChildren is still an object after normalize:', reactChildren);
                   reactChildren = <>{reactChildren}</>;
                 }
               } catch (error) {
@@ -1073,18 +991,10 @@ function ReviewExplanation({
               : Object.values(domNode.children);
             try {
               const reactChildren = domToReact(childrenArray, parserOptions);
-              console.log('[parserOptions.replace fallback] domToReact result type:', typeof reactChildren, 'Is array:', Array.isArray(reactChildren), 'Is valid element:', React.isValidElement(reactChildren), reactChildren);
-              
-              // Normalize kết quả để đảm bảo không có object với numeric keys
               const normalized = normalizeParseResult(reactChildren);
-              console.log('[parserOptions.replace fallback] Normalized result type:', typeof normalized, 'Is array:', Array.isArray(normalized), 'Is valid element:', React.isValidElement(normalized), normalized);
-              
-              // Kiểm tra lại sau khi normalize
               if (normalized && typeof normalized === 'object' && !React.isValidElement(normalized) && !Array.isArray(normalized)) {
-                console.error('[parserOptions.replace fallback] Normalized result is still an object:', normalized);
                 return <>{normalized}</>;
               }
-              
               return normalized;
             } catch (error) {
               console.error("Error converting domNode to React element:", error);
@@ -1096,15 +1006,11 @@ function ReviewExplanation({
       };
 
       const parsedResult = parse((currentPassage.passage_content || '').replace(/&nbsp;|\u00A0/g, ' '), parserOptions);
-      console.log('[processedPassageComponent] Parsed result type:', typeof parsedResult, 'Is array:', Array.isArray(parsedResult), 'Is valid element:', React.isValidElement(parsedResult), parsedResult);
-      
       const normalized = normalizeParseResult(parsedResult);
-      console.log('[processedPassageComponent] Normalized result type:', typeof normalized, 'Is array:', Array.isArray(normalized), 'Is valid element:', React.isValidElement(normalized), normalized);
       
       // Đảm bảo kết quả cuối cùng luôn là React element hoặc array hợp lệ
       // Nếu vẫn là object, wrap trong div
       if (normalized && typeof normalized === 'object' && !React.isValidElement(normalized) && !Array.isArray(normalized)) {
-        console.error('[processedPassageComponent] Normalized result is still an object, wrapping in div:', normalized);
         return <div>{normalized}</div>;
       }
       
@@ -1114,7 +1020,6 @@ function ReviewExplanation({
           item && typeof item === 'object' && !React.isValidElement(item) && !Array.isArray(item)
         );
         if (invalidItems.length > 0) {
-          console.error('[processedPassageComponent] Array contains invalid items:', invalidItems);
           return <div>{normalized.map((item, idx) => {
             if (item && typeof item === 'object' && !React.isValidElement(item) && !Array.isArray(item)) {
               return <React.Fragment key={idx}>{item}</React.Fragment>;
@@ -1299,11 +1204,27 @@ function ReviewExplanation({
   }, [currentPassage]);
 
   const passageAudioEnd = useMemo(() => {
+    // 1) Honor an explicit audio_end if admin set one.
     const raw = (currentPassage as any)?.audio_end;
-    if (raw === null || raw === undefined || raw === "") return undefined;
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : undefined;
-  }, [currentPassage]);
+    if (raw !== null && raw !== undefined && raw !== "") {
+      const n = Number(raw);
+      if (Number.isFinite(n)) return n;
+    }
+    // 2) Fall back to the next passage's audio_start. Listening admins
+    // typically only configure audio_start for each part — without this
+    // derivation a Part 1 review would keep playing past 6:29 into Part 2
+    // and the student hears the wrong section.
+    const passages = newPost?.quizFields?.passages ?? [];
+    for (let i = currentPassageIndex + 1; i < passages.length; i++) {
+      const nextStart = (passages[i] as any)?.audio_start;
+      if (nextStart !== null && nextStart !== undefined && nextStart !== "") {
+        const n = Number(nextStart);
+        if (Number.isFinite(n)) return n;
+      }
+    }
+    // 3) No cap available — play to the end of the file.
+    return undefined;
+  }, [currentPassage, currentPassageIndex, newPost]);
 
   const PlyrComponent = useMemo(() => {
     if (!quiz.quizFields.audio) return null;
@@ -1419,11 +1340,9 @@ function ReviewExplanation({
 
     const explanationsHtml = allHtml.join('<hr class="my-3"/>');
     const parsedExplanations = parse(explanationsHtml);
-    console.log('[ExplanationsPanelContent] Parsed result type:', typeof parsedExplanations, 'Is array:', Array.isArray(parsedExplanations), 'Is valid element:', React.isValidElement(parsedExplanations), parsedExplanations);
-    
     const validExplanations = normalizeParseResult(parsedExplanations);
-    console.log('[ExplanationsPanelContent] Normalized result type:', typeof validExplanations, 'Is array:', Array.isArray(validExplanations), 'Is valid element:', React.isValidElement(validExplanations), validExplanations);
-    
+
+
     // Đảm bảo kết quả cuối cùng luôn là React element hoặc array hợp lệ
     let finalExplanations = validExplanations;
     if (validExplanations && typeof validExplanations === 'object' && !React.isValidElement(validExplanations) && !Array.isArray(validExplanations)) {
@@ -1489,36 +1408,9 @@ function ReviewExplanation({
                 }
                 // Debug: Log để kiểm tra question.startIndex và mappedAnswers cho fillup
                 if (question.type?.[0] === 'fillup') {
-                  const fillupStartIndex = question.startIndex || 0;
-                  const numberOfGaps = countQuestion({ questions: [question] } as any);
-                  const fillupAnswers = mappedAnswers.slice(fillupStartIndex, fillupStartIndex + numberOfGaps);
-                  
-                  // Debug chi tiết hơn cho Passage 2
-                  if (currentPassageIndex === 1) {
-                    console.log(`[QuestionsPanelContent] Rendering fillup question (Passage ${currentPassageIndex + 1}):`, {
-                      passageIndex: currentPassageIndex,
-                      questionIndex: index,
-                      questionStartIndex: question.startIndex,
-                      numberOfGaps,
-                      fillupAnswers: fillupAnswers,
-                      fillupAnswersLength: fillupAnswers.length,
-                      mappedAnswersLength: mappedAnswers.length,
-                      questionTitle: question.title?.substring(0, 50),
-                      mappedAnswersAtStartIndex: mappedAnswers.slice(fillupStartIndex, fillupStartIndex + numberOfGaps + 2), // Lấy thêm 2 để debug
-                      mappedAnswersAt20to25: mappedAnswers.slice(20, 26), // Debug index 20-25
-                    });
-                  } else {
-                    console.log(`[QuestionsPanelContent] Rendering fillup question (Passage ${currentPassageIndex + 1}):`, {
-                      passageIndex: currentPassageIndex,
-                      questionIndex: index,
-                      questionStartIndex: question.startIndex,
-                      numberOfGaps,
-                      fillupAnswers: fillupAnswers,
-                      fillupAnswersLength: fillupAnswers.length,
-                      mappedAnswersLength: mappedAnswers.length,
-                      questionTitle: question.title?.substring(0, 50),
-                    });
-                  }
+                  // (debug logging removed)
+                  void question;
+                  void index;
                 }
                 
                 return (
