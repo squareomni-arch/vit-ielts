@@ -409,17 +409,26 @@ function ReviewExplanation({
       );
     }
     
-    // Tính original startIndex cho tất cả questions (từ tất cả passages)
+    // Tính original startIndex cho tất cả questions (từ tất cả passages).
+    // Phải honor start_question_number — take-the-test lưu answers ở slot
+    // (start - 1), nên originalIndex của câu đầu tiên của một passage có
+    // start_question_number=27 là 26, không phải 0. Nếu không reset, lookup
+    // form value của câu đó sẽ trả về ô rỗng (mảng mappedAnswers chỉ có
+    // entries ở 0..N-1) và mọi đáp án trong review hiện ra "missed".
     const originalStartIndexMap = new Map<string, number>();
     let originalCurrentIndex = 0;
-    
+
     if (quiz?.quizFields?.passages) {
       quiz.quizFields.passages.forEach((passage: any, passageIndex: number) => {
         if (passage && passage.questions) {
+          const explicitStart = (passage as any).start_question_number;
+          if (explicitStart && !isNaN(Number(explicitStart))) {
+            originalCurrentIndex = Number(explicitStart) - 1;
+          }
           passage.questions.forEach((question: any, questionIndex: number) => {
             const questionType = question.type?.[0];
             let numberOfSubQuestions = 1;
-            
+
             if (questionType === 'matching' && String(question.matchingQuestion?.layoutType).trim().toLowerCase() === 'heading') {
               let gapCount = 0;
               (passage.passage_content || "").replace(/\{(.*?)\}/g, () => { gapCount++; return ''; });
@@ -430,11 +439,11 @@ function ReviewExplanation({
             } else {
               numberOfSubQuestions = countQuestion({ questions: [question] } as any);
             }
-            
+
             if (isNaN(numberOfSubQuestions) || numberOfSubQuestions < 1) {
               numberOfSubQuestions = 1;
             }
-            
+
             const key = question.id || `passage-${passageIndex}-question-${questionIndex}`;
             originalStartIndexMap.set(key, originalCurrentIndex);
 
@@ -443,19 +452,26 @@ function ReviewExplanation({
         }
       });
     }
-    
-    // Tạo mapping từ original index sang new index (chỉ cho passages đã chọn)
+
+    // Tạo mapping từ original index sang new index (chỉ cho passages đã chọn).
+    // newIndex cũng phải honor start_question_number cho khớp với newPost —
+    // matching/select/fillup component đọc form value tại question.startIndex
+    // (= offset), nên mảng mappedAnswers cần có entries tại các slot đó.
     const indexMapping = new Map<number, number>();
     let newIndex = 0;
-    
+
     quiz.quizFields.passages.forEach((passage: any, passageIndex: number) => {
       if (!testParts.includes(passageIndex)) return;
-      
+
       if (passage && passage.questions) {
+        const explicitStart = (passage as any).start_question_number;
+        if (explicitStart && !isNaN(Number(explicitStart))) {
+          newIndex = Number(explicitStart) - 1;
+        }
         passage.questions.forEach((question: any, questionIndex: number) => {
           const questionType = question.type?.[0];
           let numberOfSubQuestions = 1;
-          
+
           if (questionType === 'matching' && String(question.matchingQuestion?.layoutType).trim().toLowerCase() === 'heading') {
             let gapCount = 0;
             (passage.passage_content || "").replace(/\{(.*?)\}/g, () => { gapCount++; return ''; });
@@ -466,19 +482,19 @@ function ReviewExplanation({
           } else {
             numberOfSubQuestions = countQuestion({ questions: [question] } as any);
           }
-          
+
           if (isNaN(numberOfSubQuestions) || numberOfSubQuestions < 1) {
             numberOfSubQuestions = 1;
           }
-          
+
           const key = question.id || `passage-${passageIndex}-question-${questionIndex}`;
           const originalStartIndex = originalStartIndexMap.get(key);
-          
+
           if (originalStartIndex === undefined) {
             console.warn(`[Mapping] Could not find originalStartIndex for key: ${key}, passageIndex: ${passageIndex}, questionIndex: ${questionIndex}`);
             return;
           }
-          
+
           // Map từng sub-question
           for (let i = 0; i < numberOfSubQuestions; i++) {
             indexMapping.set(originalStartIndex + i, newIndex + i);
