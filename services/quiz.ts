@@ -172,10 +172,16 @@ export async function getQuizzes(
         query = query.ilike("title", `%${sanitizeFilterValue(filters.search)}%`);
     }
 
-    // Pagination + ordering
+    // Pagination + ordering.
+    // The secondary `id` sort is critical: many quizzes share the same
+    // `published_at` (or it's NULL for drafts pulled in by edge cases) and
+    // without a stable tiebreaker Postgres returns each tied group in
+    // arbitrary order per request, which makes the same quiz show up on
+    // both page 1 and page 2 of the library listing.
     query = query
         .range((page - 1) * pageSize, page * pageSize - 1)
-        .order("published_at", { ascending: false });
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .order("id", { ascending: false });
 
     const { data, error, count } = await query;
 
