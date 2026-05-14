@@ -390,7 +390,28 @@ export async function updateQuiz(
 ): Promise<QuizWithPassages | null> {
     const { passages: passagesInput, ...quizData } = input;
 
-    // 1. Update quiz metadata fields (if any)
+    // 1. Update quiz metadata fields (if any).
+    //
+    // When status transitions to "published" we also want to stamp
+    // `published_at` so the listing's "Newest" sort puts the freshly-
+    // published quiz at the top. The admin status quick-toggle only sends
+    // `{ status }` and otherwise the column would stay NULL — that's how
+    // [COM] MUFS ended up nowhere near the top of the library listing
+    // even though admin had just flipped it to published.
+    if (
+        (quizData as Record<string, unknown>).status === "published" &&
+        !("published_at" in (quizData as Record<string, unknown>))
+    ) {
+        const { data: existing } = await supabase
+            .from("quizzes")
+            .select("published_at")
+            .eq("id", id)
+            .maybeSingle();
+        if (!existing?.published_at) {
+            (quizData as Record<string, unknown>).published_at = new Date().toISOString();
+        }
+    }
+
     if (Object.keys(quizData).length > 0) {
         const { error } = await supabase.from("quizzes").update(quizData).eq("id", id);
         if (error) throw error;
