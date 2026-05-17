@@ -12,7 +12,11 @@ const nextConfig: NextConfig = {
   // /admin/login (which 302s to /admin for already-signed-in admins).
   // Listing the packages here tells Next to leave them as runtime `require`s
   // and include their full node_modules tree in the function bundle.
-  serverExternalPackages: ["recharts", "@reduxjs/toolkit", "react-redux"],
+  // Recharts itself is left to Next's normal bundling — it conflicts with
+  // transpilePackages (Next refuses to have a package in both lists) and we
+  // don't need it external. Only the redux runtime deps need this escape
+  // hatch since they're the ones the tracer drops.
+  serverExternalPackages: ["@reduxjs/toolkit", "react-redux"],
   outputFileTracingIncludes: {
     "/admin": [
       "./node_modules/@reduxjs/toolkit/**/*",
