@@ -879,6 +879,7 @@ footer.shrink-0 > .flex-grow.mr-\[110px\] {
   overflow-x: auto;
   overflow-y: visible;
   scrollbar-width: thin;
+  justify-content: space-around;
 }
 footer.fixed > div > .flex-grow.mr-10 > div,
 footer.shrink-0 > .flex-grow.mr-\[110px\] > div {
