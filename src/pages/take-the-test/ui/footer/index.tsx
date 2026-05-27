@@ -487,97 +487,116 @@ function Footer() {
           );
         })()}
         <div className="flex items-center w-full p-[12px] pr-[0] pt-[0]">
-          <div className="flex justify-between items-center h-full flex-grow mr-10">
+          <div className="flex justify-between items-stretch h-full flex-grow mr-10 min-w-0">
             {passagesInfo.map(info => {
               const isCurrent = info.partIndex === part.current;
+              const isComplete = info.totalQuestions > 0 && info.answeredCount === info.totalQuestions;
               return (
                 <div
                   key={info.partIndex}
                   onClick={() => part.setCurrent(info.partIndex)}
-                  className="h-full flex items-center cursor-pointer w-full"
+                  className={twMerge(
+                    "flex flex-col cursor-pointer mt-[-1px] md:flex-1 md:min-w-0",
+                    isCurrent ? "flex-grow min-w-0" : "flex-shrink-0"
+                  )}
                 >
                   {isCurrent ? (
-                    <div className="justify-center w-full">
-                      <div className="flex items-center gap-[5px] h-full">
-                        <div className={twMerge("flex items-center border-t-[3px] pt-2 mt-[-1px]", info.totalQuestions > 0 && info.answeredCount === info.totalQuestions ? "border-green-700" : "border-gray-200")}>
-                          <span className="font-semibold text-[16px] text-[#000] whitespace-nowrap pl-[20px] pr-[30px] flex items-center gap-1.5">
-                            {info.totalQuestions > 0 && info.answeredCount === info.totalQuestions && (
-                              <span className="text-green-700 material-symbols-rounded text-[18px] leading-none bold">check</span>
-                            )}
-                            {info.customTitle || (isReadingTest ? "Passage" : "Part") + " " + ((info.displayPartIndex !== undefined ? info.displayPartIndex : info.partIndex) + 1)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 overflow-x-auto py-1">
-                          {info.questionGroups.map((group, groupIdx) => (
-                            <div key={`group-${groupIdx}`} className="flex flex-col gap-2 flex-shrink-0">
-                              <div className="flex w-full gap-0 h-[3px]">
-                                {group.map(questionIndex => (
-                                  <div
-                                    key={questionIndex}
-                                    className={twMerge(
-                                      "flex-1 h-full",
-                                      answeredMap.has(questionIndex)
-                                        ? "bg-green-700"
-                                        : "bg-gray-200"
-                                    )}
-                                  />
-                                ))}
-                              </div>
-                              <div className="flex justify-center gap-1 w-full">
-                                {group.length > 1 ? (
+                    <div className="flex items-stretch w-full">
+                      <div className="flex flex-col flex-shrink-0">
+                        <div className={twMerge(
+                          "h-[3px] w-full",
+                          isComplete ? "bg-green-700" : "bg-gray-200"
+                        )} />
+                        <span className="font-semibold text-[14px] md:text-[16px] text-[#000] whitespace-nowrap pl-2 pr-3 md:pl-[20px] md:pr-[30px] pt-2 flex items-center gap-1.5">
+                          {isComplete && (
+                            <span className="text-green-700 material-symbols-rounded text-[16px] md:text-[18px] leading-none bold">check</span>
+                          )}
+                          {info.customTitle || (isReadingTest ? "Passage" : "Part") + " " + ((info.displayPartIndex !== undefined ? info.displayPartIndex : info.partIndex) + 1)}
+                        </span>
+                      </div>
+                      <div className="flex items-start gap-1 overflow-x-auto min-w-0 flex-1 justify-around md:flex-initial md:justify-start">
+                        {info.questionGroups.map((group, groupIdx) => (
+                          <div key={`group-${groupIdx}`} className="flex flex-col gap-2 flex-shrink-0 pb-1">
+                            <div className="flex w-full gap-0 h-[3px]">
+                              {group.map(questionIndex => (
+                                <div
+                                  key={questionIndex}
+                                  className={twMerge(
+                                    "flex-1 h-full",
+                                    answeredMap.has(questionIndex)
+                                      ? "bg-green-700"
+                                      : "bg-gray-200"
+                                  )}
+                                />
+                              ))}
+                            </div>
+                            <div className="flex justify-center gap-1 w-full">
+                              {group.length > 1 ? (
+                                <span
+                                  key={`label-range-${group[0]}`}
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    handleScrollToQuestion(group[0]);
+                                  }}
+                                  className={twMerge(
+                                    "text-[#000] p-1 pb-[2px] flex items-center leading-[16px]! justify-center text-[14px] md:text-[16px] border-2 border-transparent rounded cursor-pointer whitespace-nowrap",
+                                    group.includes(activeQuestionIndex) &&
+                                    "font-semibold border-2 border-[#418FC6]"
+                                  )}
+                                >
+                                  {group[0] + 1}-{group[group.length - 1] + 1}
+                                </span>
+                              ) : (
+                                group.map(questionIndex => (
                                   <span
-                                    key={`label-range-${group[0]}`}
+                                    key={`label-${questionIndex}`}
                                     onClick={e => {
                                       e.stopPropagation();
-                                      handleScrollToQuestion(group[0]);
+                                      handleScrollToQuestion(questionIndex);
                                     }}
                                     className={twMerge(
-                                      "text-[#000] p-1 pb-[2px] flex items-center leading-[16px]! justify-center text-[16px] border-2 border-transparent rounded cursor-pointer whitespace-nowrap",
-                                      group.includes(activeQuestionIndex) &&
+                                      "text-[#000] p-1 pb-[2px] flex items-center leading-[16px]! justify-center text-[14px] md:text-[16px] border-2 border-transparent rounded cursor-pointer",
+                                      activeQuestionIndex === questionIndex &&
                                       "font-semibold border-2 border-[#418FC6]"
                                     )}
                                   >
-                                    {group[0] + 1}-{group[group.length - 1] + 1}
+                                    {questionIndex + 1}
                                   </span>
-                                ) : (
-                                  group.map(questionIndex => (
-                                    <span
-                                      key={`label-${questionIndex}`}
-                                      onClick={e => {
-                                        e.stopPropagation();
-                                        handleScrollToQuestion(questionIndex);
-                                      }}
-                                      className={twMerge(
-                                        "text-[#000] p-1 pb-[2px] flex items-center leading-[16px]! justify-center text-[16px] border-2 border-transparent rounded cursor-pointer",
-                                        activeQuestionIndex === questionIndex &&
-                                        "font-semibold border-2 border-[#418FC6]"
-                                      )}
-                                    >
-                                      {questionIndex + 1}
-                                    </span>
-                                  ))
-                                )}
-                              </div>
+                                ))
+                              )}
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="hidden md:flex md:flex-1 md:self-stretch md:flex-col">
+                        <div className="h-[3px] w-full bg-transparent" />
                       </div>
                     </div>
                   ) : (
-                    <div className={twMerge(
-                      "flex items-center gap-3 h-full w-full justify-center pt-2 mt-[-1px] border-t-[3px]",
-                      info.totalQuestions > 0 && info.answeredCount === info.totalQuestions ? "border-green-700" : "border-transparent"
-                    )}>
-                      <span className="pl-[20px] text-[16px] text-gray-700 whitespace-nowrap flex items-center gap-1.5">
-                        {info.totalQuestions > 0 && info.answeredCount === info.totalQuestions && (
-                          <span className="text-green-700 material-symbols-rounded text-[18px] leading-none bold">check</span>
-                        )}
-                        {info.customTitle || (isReadingTest ? "Passage" : "Part") + " " + ((info.displayPartIndex !== undefined ? info.displayPartIndex : info.partIndex) + 1)}
-                      </span>
-                      <span className="text-[16px] text-gray-500 whitespace-nowrap">
-                        {info.answeredCount} of {info.totalQuestions}
-                      </span>
-                    </div>
+                    <>
+                      <div className="h-[3px] w-full flex gap-0">
+                        {info.questions.map(qIdx => (
+                          <div
+                            key={qIdx}
+                            className={twMerge(
+                              "flex-1 h-full",
+                              answeredMap.has(qIdx) ? "bg-green-700" : "bg-transparent"
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2 md:gap-3 w-full justify-center pt-2">
+                        <span className="pl-2 md:pl-[20px] text-[14px] md:text-[16px] text-gray-700 whitespace-nowrap flex items-center gap-1.5">
+                          {isComplete && (
+                            <span className="text-green-700 material-symbols-rounded text-[16px] md:text-[18px] leading-none bold">check</span>
+                          )}
+                          {info.customTitle || (isReadingTest ? "Passage" : "Part") + " " + ((info.displayPartIndex !== undefined ? info.displayPartIndex : info.partIndex) + 1)}
+                        </span>
+                        <span className="text-[13px] md:text-[16px] text-gray-500 whitespace-nowrap">
+                          {info.answeredCount} of {info.totalQuestions}
+                        </span>
+                      </div>
+                    </>
                   )}
                 </div>
               );
