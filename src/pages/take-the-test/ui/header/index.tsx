@@ -185,7 +185,7 @@ function Header({ post }: { post: IPracticeSingle }) {
               <div className="flex">
                 <div
                   title="Home"
-                  className="h-full md:h-12 aspect-[750/449] relative duration-300"
+                  className="h-10 md:h-12 aspect-[750/449] relative duration-300 flex-shrink-0"
                 >
                   <Link href="/">
                     <Image
@@ -216,7 +216,7 @@ function Header({ post }: { post: IPracticeSingle }) {
               </div>
             </div>
 
-            <div className="w-1/2">
+            <div className="flex-1 md:w-1/2 md:flex-none">
               <div className="flex items-center justify-end space-x-3 md:space-x-6">
                 {isFormDisabled && (
                   <>
