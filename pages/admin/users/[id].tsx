@@ -37,6 +37,7 @@ import {
   CustomerServiceOutlined,
   BookOutlined,
   CalendarOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import AdminLayout from "../_layout";
@@ -201,6 +202,7 @@ export default function AdminUserDetailPage() {
   // ── Pro Activation Modal State ──
   const [proModalVisible, setProModalVisible] = useState(false);
   const [proActivating, setProActivating] = useState(false);
+  const [teacherUpdating, setTeacherUpdating] = useState(false);
   const [proMode, setProMode] = useState<"month" | "day">("month");
   const [durationMonths, setDurationMonths] = useState(1);
   const [durationDays, setDurationDays] = useState(7);
@@ -322,6 +324,28 @@ export default function AdminUserDetailPage() {
     }
   };
 
+  const handleToggleTeacher = async (action: "grant" | "revoke") => {
+    setTeacherUpdating(true);
+    try {
+      const res = await fetch(`/api/admin/users/${id}/toggle-teacher`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        message.success(json.message);
+        fetchUser();
+      } else {
+        message.error(json.error);
+      }
+    } catch {
+      message.error("Lỗi khi cập nhật quyền Giáo viên");
+    } finally {
+      setTeacherUpdating(false);
+    }
+  };
+
   const openSetDateModal = () => {
     setSetDateValue(
       user?.pro_expiration_date ? dayjs(user.pro_expiration_date) : null,
@@ -367,11 +391,21 @@ export default function AdminUserDetailPage() {
   const handleUpdateUser = async (values: EditUserFormValues) => {
     setUpdating(true);
     try {
+      // Preserve the teacher role (managed by the dedicated toggle) so editing
+      // other profile fields doesn't silently revoke it.
+      const hadTeacher = Array.isArray(user?.roles)
+        ? user.roles.includes("teacher")
+        : user?.roles === "teacher";
+      const nextRoles = [
+        ...(values.role ? [values.role] : []),
+        ...(hadTeacher ? ["teacher"] : []),
+      ];
+
       const updateData = {
         name: values.name,
         gender: values.gender,
         phone_number: values.phone_number,
-        roles: values.role ? [values.role] : [],
+        roles: Array.from(new Set(nextRoles)),
         date_of_birth: values.date_of_birth
           ? values.date_of_birth.format("YYYY-MM-DD")
           : null,
@@ -581,7 +615,9 @@ export default function AdminUserDetailPage() {
       <div>
         <Button
           icon={<ArrowLeftOutlined />}
-          onClick={() => router.push("/admin/users")}
+          onClick={() =>
+            window.history.length > 1 ? router.back() : router.push("/admin/users")
+          }
           className="mb-4"
         >
           Quay lại
@@ -646,6 +682,32 @@ export default function AdminUserDetailPage() {
                     Kích hoạt Pro
                   </Button>
                 )}
+                {(
+                  Array.isArray(user.roles)
+                    ? user.roles.includes("teacher")
+                    : user.roles === "teacher"
+                ) ? (
+                  <Popconfirm
+                    title="Thu hồi quyền Giáo viên?"
+                    description="User sẽ không còn tạo/quản lý lớp học được."
+                    onConfirm={() => handleToggleTeacher("revoke")}
+                    okText="Xác nhận"
+                    cancelText="Hủy"
+                    getPopupContainer={(triggerNode) => triggerNode.parentNode as HTMLElement}
+                  >
+                    <Button danger loading={teacherUpdating}>
+                      Thu hồi Giáo viên
+                    </Button>
+                  </Popconfirm>
+                ) : (
+                  <Button
+                    icon={<TeamOutlined />}
+                    loading={teacherUpdating}
+                    onClick={() => handleToggleTeacher("grant")}
+                  >
+                    Cấp quyền Giáo viên
+                  </Button>
+                )}
               </Space>
             </div>
           }
@@ -694,18 +756,34 @@ export default function AdminUserDetailPage() {
             <Descriptions.Item label="Ngày đăng ký">
               {dayjs(user.created_at).format("DD/MM/YYYY HH:mm")}
             </Descriptions.Item>
-            <Descriptions.Item label="Target Score" span={2}>
-              {user.target_score ? (
-                <Space>
-                  {Object.entries(user.target_score).map(([k, v]) => (
-                    <Tag key={k}>
-                      {k}: {String(v)}
-                    </Tag>
-                  ))}
-                </Space>
-              ) : (
-                "—"
-              )}
+            <Descriptions.Item label="Mục tiêu (Target Score)" span={2}>
+              {(() => {
+                const ts = (user.target_score || {}) as Record<string, unknown>;
+                const SKILL_LABELS: Record<string, string> = {
+                  reading: "Reading",
+                  listening: "Listening",
+                  speaking: "Speaking",
+                  writing: "Writing",
+                };
+                const skills = (["listening", "reading", "writing", "speaking"] as const)
+                  .filter((k) => ts[k] != null && ts[k] !== "")
+                  .map((k) => ({ k, label: SKILL_LABELS[k], v: ts[k] }));
+                const examDate = ts.exam_date ? dayjs(ts.exam_date as string) : null;
+                const hasExam = examDate && examDate.isValid();
+                if (skills.length === 0 && !hasExam) return "—";
+                return (
+                  <Space wrap size={[8, 8]}>
+                    {skills.map(({ k, label, v }) => (
+                      <Tag key={k} color="blue">
+                        {label}: {String(v)}
+                      </Tag>
+                    ))}
+                    {hasExam ? (
+                      <Tag color="gold">Ngày thi: {examDate!.format("DD/MM/YYYY")}</Tag>
+                    ) : null}
+                  </Space>
+                );
+              })()}
             </Descriptions.Item>
             <Descriptions.Item label="Devices" span={2}>
               <DevicesDisplay devices={user.devices as DevicesMap} />

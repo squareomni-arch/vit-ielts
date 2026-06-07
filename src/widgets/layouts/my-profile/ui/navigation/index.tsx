@@ -8,6 +8,7 @@ import Image from "next/image";
 const ICON_MAP: Record<string, string> = {
   person: "person",
   home: "grid_view",
+  class: "school",
   shopping_cart: "shopping_cart",
   link: "group",
   payment: "credit_card",
@@ -21,6 +22,8 @@ export const Navigation = ({
     label?: string;
     icon?: string;
     link?: string;
+    match?: string;
+    notMatch?: string;
     type?: string;
     danger?: boolean;
   }>;
@@ -60,7 +63,10 @@ export const Navigation = ({
             );
           }
 
-          const isActive = router.pathname === item.link;
+          const isActive =
+            !(item.notMatch && router.pathname.startsWith(item.notMatch)) &&
+            (router.pathname === item.link ||
+              (!!item.match && router.pathname.startsWith(item.match)));
           const iconName = item.icon ? (ICON_MAP[item.icon] ?? item.icon) : null;
 
           if (item.danger) {

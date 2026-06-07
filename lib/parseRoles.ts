@@ -35,6 +35,23 @@ export function isAdminRole(roles: unknown): boolean {
 }
 
 /**
+ * Global teacher capability — admin-granted. Gates the teacher dashboard and
+ * creating classes ("Tạo lớp mới"). Per-class roles live in classroom_members.
+ * Administrators are implicitly teachers.
+ */
+export function isTeacherRole(roles: unknown): boolean {
+    const parsed = parseRoles(roles);
+    return parsed.includes("teacher")
+        || parsed.includes("administrator")
+        || parsed.includes("admin");
+}
+
+/** Whether the user may create/own classes from the teacher dashboard. */
+export function canManageClassroom(roles: unknown): boolean {
+    return isTeacherRole(roles);
+}
+
+/**
  * Full admin = administrator only. Editors are admin-lite:
  * they can read/edit content but cannot delete, view revenue,
  * or change payment configuration.

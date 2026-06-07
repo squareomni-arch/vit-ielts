@@ -5,8 +5,8 @@ import { Navigation } from "./ui";
 import { ROUTES } from "@/shared/routes";
 import { useRouter } from "next/router";
 
-import Link from "next/link";
 import { HeroBanner } from "@/shared/ui/ds";
+import { ACCOUNT_NAVIGATION } from "../account-nav";
 
 export const MyProfileLayout = ({
   children,
@@ -14,43 +14,6 @@ export const MyProfileLayout = ({
   children: React.ReactNode;
 }) => {
   const router = useRouter();
-
-  const ACCOUNT_NAVIGATION = [
-    {
-      label: "Tài Khoản Của Tôi",
-      icon: "person",
-      link: ROUTES.ACCOUNT.MY_PROFILE,
-    },
-    {
-      label: "Bảng điều khiển",
-      icon: "home",
-      link: ROUTES.ACCOUNT.DASHBOARD,
-    },
-    {
-      label: "Lịch sử đơn hàng",
-      icon: "shopping_cart",
-      link: ROUTES.ACCOUNT.ORDER_HISTORY,
-    },
-    {
-      label: "Cộng tác viên",
-      icon: "link",
-      link: ROUTES.ACCOUNT.AFFILIATE,
-    },
-    {
-      label: "Thanh toán",
-      icon: "payment",
-      link: ROUTES.CHECKOUT,
-    },
-    {
-      type: "divider",
-    },
-    {
-      label: "Đăng xuất",
-      icon: "logout",
-      link: "#",
-      danger: true,
-    },
-  ];
 
   const getBannerConfig = () => {
     const pathname = router.pathname;

@@ -21,6 +21,23 @@ export const ROUTES = {
 
   SUBSCRIPTION: "/subscription",
 
+  CLASSROOM: {
+    // Teacher
+    LIST: "/classroom",
+    DETAIL: (id: string) => `/classroom/${id}`,
+    ASSIGNMENTS: (id: string) => `/classroom/${id}/assignments`,
+    ASSIGNMENT_DETAIL: (id: string, aid: string) =>
+      `/classroom/${id}/assignments/${aid}`,
+    TRACKING: (id: string) => `/classroom/${id}/tracking`,
+    STUDENT_HISTORY: (id: string, studentId: string) =>
+      `/classroom/${id}/tracking/${studentId}`,
+    // Student
+    MY_ASSIGNMENTS: "/classroom/my-assignments",
+    MY_ASSIGNMENT: (id: string) => `/classroom/my-assignments/${id}`,
+    // Invite link (?role=student|teacher)
+    JOIN: (code: string) => `/join/${code}`,
+  },
+
   EXAM: {
     ARCHIVE: "/ielts-exam-library",
     SINGLE: (slug: string) => `/ielts-exam-library/${slug}`,

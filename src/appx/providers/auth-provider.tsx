@@ -4,7 +4,7 @@ import { createClient } from "~supabase/client";
 import { useAppContext } from "@/appx/providers";
 import { useRouter } from "next/router";
 import { ROUTES } from "@/shared/routes";
-import { isAdminRole } from "~lib/parseRoles";
+import { isAdminRole, isTeacherRole } from "~lib/parseRoles";
 
 type SignUpParams = {
   name: string;
@@ -23,6 +23,12 @@ export const useAuth = () => {
   // Safe access with default values for SSR/prerender
   const viewer = masterData?.viewer;
   const isSignedIn = Boolean(viewer);
+
+  // Global teacher capability (admin-granted) — gates the teacher dashboard /
+  // "Tạo lớp mới" entrypoints. Derived from the roles already on the viewer.
+  const isTeacher = isTeacherRole(
+    (viewer?.roles?.nodes ?? []).map((n) => n.name)
+  );
 
   const signIn = async ({
     email,
@@ -111,6 +117,7 @@ export const useAuth = () => {
 
   return {
     isSignedIn,
+    isTeacher,
     currentUser: viewer,
     signIn,
     signInWithGoogle,

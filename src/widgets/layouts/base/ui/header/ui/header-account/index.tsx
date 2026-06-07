@@ -50,6 +50,10 @@ export function HeaderAccount() {
         key: "affiliate",
         label: <Link href={ROUTES.ACCOUNT.AFFILIATE}>Affiliate</Link>,
       },
+      {
+        key: "classroom",
+        label: <Link href={ROUTES.CLASSROOM.LIST}>Lớp học</Link>,
+      },
       ...(currentUser?.roles.nodes[0].name === "administrator"
         ? [
             { type: "divider" as const },
