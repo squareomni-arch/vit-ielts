@@ -81,10 +81,8 @@ const ModalHeader = ({ title, onClose }: { title: string; onClose: () => void })
 const ClassRow = ({ c, showRoleBadge }: { c: ClassroomSummary; showRoleBadge: boolean }) => {
   const tint = tintFor(c.id);
   const isStudent = c.viewer_role === "student";
-  // Students go to their assignments view; teachers go to the management page.
-  const primaryHref = isStudent
-    ? `${ROUTES.CLASSROOM.MY_ASSIGNMENTS}?class=${c.id}`
-    : ROUTES.CLASSROOM.DETAIL(c.id);
+  // Both roles open the class detail page; students see a read-only view there.
+  const primaryHref = ROUTES.CLASSROOM.DETAIL(c.id);
   return (
     <div className={`${ROW_GRID} border-b border-[#F3F4F6] px-2 py-4 last:border-0`}>
       <div className="flex min-w-0 items-center gap-3">
@@ -203,8 +201,11 @@ export const PageClassroomList = ({ isTeacher, classrooms, stats, studentStats }
     if (router.query.join_error) {
       message.error("Mã mời không hợp lệ hoặc lớp đã đóng.");
       router.replace(ROUTES.CLASSROOM.LIST, undefined, { shallow: true });
+    } else if (router.query.join_pending) {
+      message.success("Đã gửi yêu cầu vào lớp. Vui lòng chờ giáo viên duyệt.");
+      router.replace(ROUTES.CLASSROOM.LIST, undefined, { shallow: true });
     }
-  }, [router.query.join_error, router]);
+  }, [router.query.join_error, router.query.join_pending, router]);
 
   const closeCreate = () => {
     if (submitting) return;
@@ -250,15 +251,29 @@ export const PageClassroomList = ({ isTeacher, classrooms, stats, studentStats }
       const code = trimmed.includes("/join/")
         ? trimmed.split("/join/")[1].split(/[?/]/)[0]
         : trimmed;
+      // Honor ?role=teacher in a pasted invite link (teacher invite link).
+      const role: "teacher" | "student" = /[?&]role=teacher\b/i.test(trimmed)
+        ? "teacher"
+        : "student";
       if (!code) {
         setJoinErr(true);
         return;
       }
       setSubmitting(true);
       try {
-        const classroom = await joinClassroomByCode(supabase, code, "student");
-        message.success(`Đã tham gia lớp ${classroom.name}!`);
-        router.push(ROUTES.CLASSROOM.DETAIL(classroom.id));
+        const result = await joinClassroomByCode(supabase, code, role);
+        if (result.status === "pending") {
+          message.success(
+            `Đã gửi yêu cầu vào lớp ${result.name}. Vui lòng chờ giáo viên duyệt.`
+          );
+          setSubmitting(false);
+          setJoinOpen(false);
+          setJoinCode("");
+          setScanOpen(false);
+          return;
+        }
+        message.success(`Đã tham gia lớp ${result.name}!`);
+        router.push(ROUTES.CLASSROOM.DETAIL(result.id));
       } catch (e) {
         const msg = e instanceof Error ? e.message : "";
         message.error(

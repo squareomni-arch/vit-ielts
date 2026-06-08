@@ -8,6 +8,10 @@ export type AccountNavItem = {
   match?: string;
   /** suppress active state when pathname starts with this prefix (more specific sibling wins) */
   notMatch?: string;
+  /** hide this item for users with the teacher role */
+  studentOnly?: boolean;
+  /** small label shown next to the item (e.g. "Beta") */
+  badge?: string;
   type?: string;
   danger?: boolean;
 };
@@ -25,12 +29,14 @@ export const ACCOUNT_NAVIGATION: AccountNavItem[] = [
     link: ROUTES.CLASSROOM.LIST,
     match: "/classroom",
     notMatch: "/classroom/my-assignments",
+    badge: "Beta",
   },
   {
     label: "Bài tập của tôi",
     icon: "assignment",
     link: ROUTES.CLASSROOM.MY_ASSIGNMENTS,
     match: "/classroom/my-assignments",
+    studentOnly: true,
   },
   { label: "Lịch sử đơn hàng", icon: "shopping_cart", link: ROUTES.ACCOUNT.ORDER_HISTORY },
   { label: "Cộng tác viên", icon: "link", link: ROUTES.ACCOUNT.AFFILIATE },

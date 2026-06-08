@@ -6,7 +6,6 @@ import {
   DatePicker,
   Dropdown,
   Modal,
-  Popconfirm,
   Tag,
   TimePicker,
   message,
@@ -19,15 +18,19 @@ import {
   addMemberByEmail,
   createAssignments,
   deleteAssignment,
+  updateAssignmentDueAt,
   deleteClassroom,
   regenerateInviteCode,
   removeMember,
+  approveJoinRequest,
+  rejectJoinRequest,
 } from "~services/classroom";
 import type {
   AssignmentWithStats,
   Classroom,
   ClassroomMemberWithUser,
   ClassroomRole,
+  StudentAssignmentView,
 } from "~services/types/classroom";
 import type { Quiz } from "~services/types/database";
 import { ROUTES } from "@/shared/routes";
@@ -37,8 +40,11 @@ type Props = {
   classroom: Classroom;
   members: ClassroomMemberWithUser[];
   assignments: AssignmentWithStats[];
+  studentAssignments: StudentAssignmentView[];
+  joinRequests: ClassroomMemberWithUser[];
   viewerRole: ClassroomRole;
   isOwner: boolean;
+  viewerId: string;
 };
 
 // avatar tints for member rows (matches Figma colored initials)
@@ -94,12 +100,14 @@ const StatCard = ({
 const MemberRow = ({
   m,
   isClassOwner,
+  isCurrentUser,
   canManage,
   historyHref,
   onRemove,
 }: {
   m: ClassroomMemberWithUser;
   isClassOwner: boolean;
+  isCurrentUser: boolean;
   canManage: boolean;
   historyHref?: string | null;
   onRemove: (m: ClassroomMemberWithUser) => void;
@@ -128,26 +136,21 @@ const MemberRow = ({
           ) : (
             name
           )}
-          {isClassOwner ? <span className="ml-1 font-normal text-[#6A7282]">(Bạn)</span> : null}
+          {isCurrentUser ? <span className="ml-1 font-normal text-[#6A7282]">(Bạn)</span> : null}
         </div>
         <div className="truncate text-[13px] text-[#6A7282]">{m.email || "—"}</div>
       </div>
       <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-[#E5F8EC] px-2 text-[13px] font-medium text-[#16A34A]">
         <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A]" /> Đã tham gia
       </span>
-      {canManage && !isClassOwner ? (
-        <Popconfirm
-          title="Xóa thành viên khỏi lớp?"
-          onConfirm={() => onRemove(m)}
-          okText="Xóa"
-          cancelText="Hủy"
-          okButtonProps={{ danger: true }}
+      {canManage && !isClassOwner && !isCurrentUser ? (
+        <button
+          onClick={() => onRemove(m)}
+          className="inline-flex items-center gap-2 rounded-[8px] border border-[#E5E7EB] px-3.5 py-1 text-[14px] font-semibold text-[#374151] hover:bg-gray-50"
         >
-          <button className="inline-flex items-center gap-2 rounded-[8px] border border-[#E5E7EB] px-3.5 py-1 text-[14px] font-semibold text-[#374151] hover:bg-gray-50">
-            <span className="material-symbols-rounded text-[18px]">delete</span>
-            Xóa
-          </button>
-        </Popconfirm>
+          <span className="material-symbols-rounded text-[18px]">delete</span>
+          Xóa
+        </button>
       ) : (
         <span className="w-7" />
       )}
@@ -169,11 +172,13 @@ const AssignmentRow = ({
   studentTotal,
   classroomId,
   onDelete,
+  onEditDue,
 }: {
   a: AssignmentWithStats;
   studentTotal: number;
   classroomId: string;
   onDelete: (id: string) => void;
+  onEditDue: (a: AssignmentWithStats) => void;
 }) => {
   const ratio = a.target_count ? Math.round((a.submitted_count / a.target_count) * 100) : 0;
   let dueLabel = "";
@@ -247,12 +252,14 @@ const AssignmentRow = ({
           trigger={["click"]}
           menu={{
             items: [
+              { key: "due", label: "Đổi hạn nộp" },
               { key: "report", label: <Link href={ROUTES.CLASSROOM.TRACKING(classroomId)}>Báo cáo</Link> },
               { type: "divider" },
               { key: "delete", label: "Xóa bài giao", danger: true },
             ],
             onClick: ({ key }) => {
               if (key === "delete") onDelete(a.id);
+              else if (key === "due") onEditDue(a);
             },
           }}
         >
@@ -265,12 +272,200 @@ const AssignmentRow = ({
   );
 };
 
+// Pending student join requests (teacher approval) — class detail "Yêu cầu vào lớp" tab.
+const JoinRequestsList = ({
+  requests,
+  onApprove,
+  onReject,
+}: {
+  requests: ClassroomMemberWithUser[];
+  onApprove: (userId: string) => void;
+  onReject: (r: ClassroomMemberWithUser) => void;
+}) => {
+  if (requests.length === 0) {
+    return (
+      <div className="flex flex-col items-center py-16 text-center">
+        <span className="flex h-20 w-20 items-center justify-center rounded-full bg-[#FCE8EA]">
+          <span className="material-symbols-rounded !text-[36px] leading-none text-[#D94A56]">
+            group_add
+          </span>
+        </span>
+        <p className="mt-5 text-xl font-bold text-[#191D24]">Chưa có yêu cầu nào</p>
+        <p className="mt-1 text-[14px] text-[#6A7282]">
+          Học sinh tham gia bằng mã/link sẽ xuất hiện ở đây để bạn duyệt.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-3">
+      {requests.map((r) => {
+        const [bg, fg] = tintFor(r.user_id);
+        const name = r.name || r.email || "Học sinh";
+        return (
+          <div
+            key={r.id}
+            className="flex flex-wrap items-center gap-4 rounded-[12px] border border-[#E5E7EB] bg-[#FAFAFB] p-5"
+          >
+            {r.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={r.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
+            ) : (
+              <span
+                className="flex h-12 w-12 items-center justify-center rounded-full text-base font-bold"
+                style={{ background: bg, color: fg }}
+              >
+                {initial(r.name, r.email)}
+              </span>
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[15px] font-bold text-[#191D24]">{name}</span>
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-[12px] font-bold ${
+                    r.role === "teacher"
+                      ? "bg-[#EEF2FF] text-[#4F46E5]"
+                      : "bg-blue-50 text-blue-600"
+                  }`}
+                >
+                  {r.role === "teacher" ? "Giáo viên" : "Học sinh"}
+                </span>
+              </div>
+              <div className="text-[14px] text-[#6A7282]">Email: {r.email || "—"}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onReject(r)}
+                className="rounded-[10px] border border-[#E5E7EB] px-4 py-2.5 text-[14px] font-bold text-[#6A7282] hover:bg-gray-50"
+              >
+                Từ chối
+              </button>
+              <button
+                onClick={() => onApprove(r.user_id)}
+                className="rounded-[10px] bg-[#D94A56] px-6 py-2.5 text-[14px] font-bold text-white shadow-[0_4px_12px_0_rgba(217,74,87,0.25)] hover:bg-[#c8404b]"
+              >
+                Chấp nhận
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// Read-only assignment list shown to STUDENTS in the class detail "Bài giao" tab.
+// No per-student stats, no "Chi tiết" (can't view other students), no "Giao bài".
+const STUDENT_ASSIGN_GRID = "grid grid-cols-[1fr_104px_160px_120px_150px] items-center gap-3";
+
+const studentStatusMeta = (a: StudentAssignmentView) => {
+  if (a.status === "submitted" || a.status === "late")
+    return { label: "Đã nộp", cls: "bg-green-50 text-green-600" };
+  if (a.status === "overdue") return { label: "Quá hạn", cls: "bg-red-50 text-[#D94A56]" };
+  if (a.in_progress) return { label: "Đang làm", cls: "bg-blue-50 text-blue-600" };
+  return { label: "Chưa làm", cls: "bg-gray-100 text-gray-600" };
+};
+
+const StudentAssignmentList = ({ items }: { items: StudentAssignmentView[] }) => {
+  if (items.length === 0) {
+    return (
+      <div className="flex flex-col items-center py-16 text-center">
+        <span className="flex h-20 w-20 items-center justify-center rounded-full bg-[#FCE8EA]">
+          <span className="material-symbols-rounded !text-[36px] leading-none text-[#D94A56]">
+            assignment
+          </span>
+        </span>
+        <p className="mt-5 text-xl font-bold text-[#191D24]">Chưa có bài giao nào</p>
+        <p className="mt-1 text-[14px] text-[#6A7282]">
+          Giáo viên chưa giao bài tập nào cho bạn trong lớp này.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="overflow-x-auto">
+      <div className="min-w-[720px] overflow-hidden rounded-[12px] border border-[#E5E7EB]">
+        <div
+          className={`${STUDENT_ASSIGN_GRID} bg-[#FAFAFA] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.06em] text-[#9CA3AF]`}
+        >
+          <span>Tên bài</span>
+          <span>Kỹ năng</span>
+          <span>Hạn nộp</span>
+          <span>Trạng thái</span>
+          <span />
+        </div>
+        {items.map((a) => {
+          const meta = studentStatusMeta(a);
+          const done = a.status === "submitted" || a.status === "late";
+          return (
+            <div
+              key={a.assignment_id}
+              className={`${STUDENT_ASSIGN_GRID} border-t border-[#F3F4F6] px-5 py-4`}
+            >
+              <span className="truncate text-[15px] font-bold text-[#191D24]">
+                {a.quiz_title || "Đề không khả dụng"}
+              </span>
+              <span>
+                {a.quiz_skill ? (
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-[12px] font-medium capitalize ${
+                      SKILL_PILL[a.quiz_skill] ?? "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {a.quiz_skill}
+                  </span>
+                ) : null}
+              </span>
+              <span className="text-[13px] text-[#6A7282]">
+                {a.due_at ? dayjs(a.due_at).format("DD/MM/YYYY HH:mm") : "Không thời hạn"}
+              </span>
+              <span>
+                <span className={`rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${meta.cls}`}>
+                  {meta.label}
+                </span>
+              </span>
+              <span className="flex justify-end">
+                {done ? (
+                  <Link
+                    href={
+                      a.test_result_id
+                        ? ROUTES.TEST_RESULT(a.test_result_id)
+                        : ROUTES.CLASSROOM.MY_ASSIGNMENT(a.assignment_id)
+                    }
+                    className="inline-flex items-center gap-1 whitespace-nowrap rounded-[10px] bg-[#16A34A] px-4 py-2 text-[13px] font-bold text-white hover:bg-[#138a3e]"
+                  >
+                    Xem kết quả →
+                  </Link>
+                ) : (
+                  <Link
+                    href={ROUTES.CLASSROOM.MY_ASSIGNMENT(a.assignment_id)}
+                    className="inline-flex items-center gap-1 whitespace-nowrap rounded-[10px] bg-[#D94A56] px-4 py-2 text-[13px] font-bold text-white shadow-[0_4px_12px_0_rgba(217,74,87,0.25)] hover:bg-[#c8404b]"
+                  >
+                    {a.status === "overdue"
+                      ? "Nộp muộn →"
+                      : a.in_progress
+                        ? "Tiếp tục làm →"
+                        : "Bắt đầu làm →"}
+                  </Link>
+                )}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export const PageClassroomDetail = ({
   classroom: initialClassroom,
   members,
   assignments,
+  studentAssignments,
+  joinRequests,
   viewerRole,
   isOwner,
+  viewerId,
 }: Props) => {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -288,8 +483,12 @@ export const PageClassroomDetail = ({
     link.download = `qr-lop-${classroom.invite_code}.png`;
     link.click();
   };
-  const [activeTab, setActiveTab] = useState<"members" | "assignments">(
-    router.query.tab === "assignments" ? "assignments" : "members"
+  const [activeTab, setActiveTab] = useState<"members" | "assignments" | "requests">(
+    router.query.tab === "assignments"
+      ? "assignments"
+      : router.query.tab === "requests"
+        ? "requests"
+        : "members"
   );
   const [memberFilter, setMemberFilter] = useState<"teacher" | "student">("student");
   const [assignFilter, setAssignFilter] = useState<"all" | "open" | "expired">("all");
@@ -409,7 +608,11 @@ export const PageClassroomDetail = ({
     }
   };
 
-  const handleRemove = async (m: ClassroomMemberWithUser) => {
+  const [confirmRemove, setConfirmRemove] = useState<ClassroomMemberWithUser | null>(null);
+  const [confirmReject, setConfirmReject] = useState<ClassroomMemberWithUser | null>(null);
+
+  const doRemove = async (m: ClassroomMemberWithUser) => {
+    setConfirmRemove(null);
     try {
       await removeMember(supabase, classroom.id, m.user_id);
       message.success("Đã xóa thành viên");
@@ -506,6 +709,59 @@ export const PageClassroomDetail = ({
       refresh();
     } catch {
       message.error("Không xóa được bài giao.");
+    }
+  };
+
+  const handleApprove = async (userId: string) => {
+    try {
+      await approveJoinRequest(supabase, classroom.id, userId);
+      message.success("Đã duyệt học sinh vào lớp");
+      refresh();
+    } catch {
+      message.error("Không duyệt được yêu cầu.");
+    }
+  };
+
+  const doReject = async (userId: string) => {
+    setConfirmReject(null);
+    try {
+      await rejectJoinRequest(supabase, classroom.id, userId);
+      message.success("Đã từ chối yêu cầu");
+      refresh();
+    } catch {
+      message.error("Không từ chối được yêu cầu.");
+    }
+  };
+
+  // Edit due-date modal state
+  const [dueEdit, setDueEdit] = useState<AssignmentWithStats | null>(null);
+  const [editDate, setEditDate] = useState<Dayjs | null>(null);
+  const [editTime, setEditTime] = useState<Dayjs | null>(null);
+
+  const openEditDue = (a: AssignmentWithStats) => {
+    setDueEdit(a);
+    setEditDate(a.due_at ? dayjs(a.due_at) : null);
+    setEditTime(a.due_at ? dayjs(a.due_at) : null);
+  };
+
+  const handleSaveDue = async () => {
+    if (!dueEdit) return;
+    setSubmitting(true);
+    try {
+      const due = editDate
+        ? editDate
+            .hour(editTime ? editTime.hour() : 23)
+            .minute(editTime ? editTime.minute() : 59)
+            .second(0)
+        : null;
+      await updateAssignmentDueAt(supabase, dueEdit.id, due ? due.toISOString() : null);
+      message.success("Đã cập nhật hạn nộp");
+      setDueEdit(null);
+      refresh();
+    } catch {
+      message.error("Không cập nhật được hạn nộp.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -611,42 +867,47 @@ export const PageClassroomDetail = ({
 
       {/* ── Tab card ── */}
       <div className="overflow-hidden rounded-[16px] border border-[#E5E7EB] bg-white shadow-[0_2px_8px_0_rgba(0,0,0,0.04)]">
-        {isTeacher ? (
-          <div className="flex gap-1 px-6 pt-4">
-            {([
+        <div className="flex flex-wrap gap-1 px-6 pt-4">
+          {(
+            [
               { key: "members", label: "Thành viên", count: members.length },
-              { key: "assignments", label: "Bài giao", count: assignments.length },
-            ] as const).map((t) => {
-              const on = activeTab === t.key;
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => setActiveTab(t.key)}
-                  className={`-mb-px flex items-center gap-2.5 px-4 pb-4 pt-3 text-[15px] ${
-                    on
-                      ? "border-b-[3px] border-[#D94A56] font-bold text-[#D94A56]"
-                      : "border-b-[3px] border-transparent font-medium text-[#6A7282]"
+              {
+                key: "assignments",
+                label: "Bài giao",
+                count: isTeacher ? assignments.length : studentAssignments.length,
+              },
+              ...(isTeacher
+                ? [{ key: "requests", label: "Yêu cầu vào lớp", count: joinRequests.length }]
+                : []),
+            ] as { key: "members" | "assignments" | "requests"; label: string; count: number }[]
+          ).map((t) => {
+            const on = activeTab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setActiveTab(t.key)}
+                className={`-mb-px flex items-center gap-2.5 px-4 pb-4 pt-3 text-[15px] ${
+                  on
+                    ? "border-b-[3px] border-[#D94A56] font-bold text-[#D94A56]"
+                    : "border-b-[3px] border-transparent font-medium text-[#6A7282]"
+                }`}
+              >
+                {t.label}
+                <span
+                  className={`rounded-[8px] px-2 py-0.5 text-[12px] font-bold ${
+                    on ? "bg-[#FCE8EA] text-[#D94A56]" : "bg-[#F3F4F6] text-[#6A7282]"
                   }`}
                 >
-                  {t.label}
-                  <span
-                    className={`rounded-[8px] px-2 py-0.5 text-[12px] font-bold ${
-                      on ? "bg-[#FCE8EA] text-[#D94A56]" : "bg-[#F3F4F6] text-[#6A7282]"
-                    }`}
-                  >
-                    {t.count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="px-6 pt-5 text-[15px] font-bold text-[#191D24]">Thành viên</div>
-        )}
+                  {t.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
         <div className="border-t border-[#E5E7EB]" />
 
         <div className="flex flex-col gap-4 p-6">
-          {activeTab === "members" || !isTeacher ? (
+          {activeTab === "members" ? (
             <>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex gap-2.5">
@@ -723,19 +984,28 @@ export const PageClassroomDetail = ({
                         key={m.id}
                         m={m}
                         isClassOwner={m.user_id === classroom.owner_id}
+                        isCurrentUser={m.user_id === viewerId}
                         canManage={isTeacher}
                         historyHref={
                           isTeacher && m.role === "student"
                             ? ROUTES.CLASSROOM.STUDENT_HISTORY(classroom.id, m.user_id)
                             : null
                         }
-                        onRemove={handleRemove}
+                        onRemove={setConfirmRemove}
                       />
                     ))}
                   </div>
                 </div>
               )}
             </>
+          ) : activeTab === "requests" ? (
+            <JoinRequestsList
+              requests={joinRequests}
+              onApprove={handleApprove}
+              onReject={setConfirmReject}
+            />
+          ) : !isTeacher ? (
+            <StudentAssignmentList items={studentAssignments} />
           ) : (
             <>
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -815,6 +1085,7 @@ export const PageClassroomDetail = ({
                               studentTotal={students.length}
                               classroomId={classroom.id}
                               onDelete={handleDeleteAssignment}
+                              onEditDue={openEditDue}
                             />
                           ))
                         )}
@@ -1386,6 +1657,151 @@ export const PageClassroomDetail = ({
               Tải mã QR
             </button>
           </div>
+        </div>
+      </Modal>
+
+      {/* ── Edit due-date modal ── */}
+      <Modal
+        open={!!dueEdit}
+        onCancel={() => setDueEdit(null)}
+        footer={null}
+        closable={false}
+        width={460}
+        centered
+        styles={{ content: { borderRadius: 16, padding: 28 } }}
+        destroyOnClose
+      >
+        <div className="mb-4 flex items-start justify-between">
+          <h3 className="text-[20px] font-bold text-[#191D24]">Đổi hạn nộp</h3>
+          <button
+            onClick={() => setDueEdit(null)}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F3F4F6] text-[#6A7282] hover:bg-[#E5E7EB]"
+            aria-label="Đóng"
+          >
+            <span className="material-symbols-rounded text-[18px]">close</span>
+          </button>
+        </div>
+        <p className="mb-4 text-[14px] text-[#6A7282]">
+          {dueEdit?.quiz_title || "Bài giao"}
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <div className="flex-1">
+            <label className="mb-1.5 block text-[13px] font-bold text-[#191D24]">Ngày</label>
+            <DatePicker
+              value={editDate}
+              onChange={setEditDate}
+              format="DD/MM/YYYY"
+              placeholder="Chọn ngày"
+              className="w-full"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="mb-1.5 block text-[13px] font-bold text-[#191D24]">Giờ</label>
+            <TimePicker
+              value={editTime}
+              onChange={setEditTime}
+              format="HH:mm"
+              placeholder="23:59"
+              className="w-full"
+            />
+          </div>
+        </div>
+        <p className="mt-2 text-[13px] text-[#6A7282]">
+          Để trống ngày = không có hạn nộp. Bỏ trống giờ sẽ mặc định 23:59.
+        </p>
+        <div className="mt-6 flex justify-between gap-3">
+          <button
+            onClick={() => {
+              setEditDate(null);
+              setEditTime(null);
+            }}
+            className="rounded-[10px] border border-[#E5E7EB] px-4 py-2.5 text-[14px] font-bold text-[#6A7282] hover:bg-gray-50"
+          >
+            Xóa hạn
+          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setDueEdit(null)}
+              className="rounded-[10px] border border-[#E5E7EB] px-5 py-2.5 text-[14px] font-bold text-[#374151] hover:bg-gray-50"
+            >
+              Huỷ
+            </button>
+            <button
+              onClick={handleSaveDue}
+              disabled={submitting}
+              className="rounded-[10px] bg-[#D94A56] px-6 py-2.5 text-[14px] font-bold text-white shadow-[0_4px_12px_0_rgba(217,74,87,0.25)] hover:bg-[#c8404b] disabled:opacity-60"
+            >
+              {submitting ? "Đang lưu…" : "Lưu"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── Remove member confirm ── */}
+      <Modal
+        open={!!confirmRemove}
+        onCancel={() => setConfirmRemove(null)}
+        footer={null}
+        closable={false}
+        width={420}
+        centered
+        styles={{ content: { borderRadius: 16, padding: 28 } }}
+      >
+        <h3 className="text-[20px] font-bold text-[#191D24]">Xóa thành viên khỏi lớp?</h3>
+        <p className="mt-2 text-[14px] text-[#6A7282]">
+          Bạn có chắc muốn xóa{" "}
+          <span className="font-semibold text-[#191D24]">
+            {confirmRemove?.name || confirmRemove?.email || "thành viên này"}
+          </span>{" "}
+          khỏi lớp? Hành động này không thể hoàn tác.
+        </p>
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            onClick={() => setConfirmRemove(null)}
+            className="rounded-[10px] border border-[#E5E7EB] px-5 py-2.5 text-[14px] font-bold text-[#374151] hover:bg-gray-50"
+          >
+            Hủy
+          </button>
+          <button
+            onClick={() => confirmRemove && doRemove(confirmRemove)}
+            className="rounded-[10px] bg-[#D94A56] px-6 py-2.5 text-[14px] font-bold text-white shadow-[0_4px_12px_0_rgba(217,74,87,0.25)] hover:bg-[#c8404b]"
+          >
+            Xóa
+          </button>
+        </div>
+      </Modal>
+
+      {/* ── Reject join request confirm ── */}
+      <Modal
+        open={!!confirmReject}
+        onCancel={() => setConfirmReject(null)}
+        footer={null}
+        closable={false}
+        width={420}
+        centered
+        styles={{ content: { borderRadius: 16, padding: 28 } }}
+      >
+        <h3 className="text-[20px] font-bold text-[#191D24]">Từ chối yêu cầu vào lớp?</h3>
+        <p className="mt-2 text-[14px] text-[#6A7282]">
+          Từ chối yêu cầu của{" "}
+          <span className="font-semibold text-[#191D24]">
+            {confirmReject?.name || confirmReject?.email || "người này"}
+          </span>
+          ? Họ sẽ cần gửi lại yêu cầu nếu muốn tham gia.
+        </p>
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            onClick={() => setConfirmReject(null)}
+            className="rounded-[10px] border border-[#E5E7EB] px-5 py-2.5 text-[14px] font-bold text-[#374151] hover:bg-gray-50"
+          >
+            Hủy
+          </button>
+          <button
+            onClick={() => confirmReject && doReject(confirmReject.user_id)}
+            className="rounded-[10px] bg-[#D94A56] px-6 py-2.5 text-[14px] font-bold text-white shadow-[0_4px_12px_0_rgba(217,74,87,0.25)] hover:bg-[#c8404b]"
+          >
+            Từ chối
+          </button>
         </div>
       </Modal>
     </div>

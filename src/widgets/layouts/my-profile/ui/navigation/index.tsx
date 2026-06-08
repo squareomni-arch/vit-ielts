@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { twMerge } from "tailwind-merge";
 import { useRouter } from "next/router";
@@ -24,13 +25,24 @@ export const Navigation = ({
     link?: string;
     match?: string;
     notMatch?: string;
+    studentOnly?: boolean;
+    badge?: string;
     type?: string;
     danger?: boolean;
   }>;
 }) => {
   const router = useRouter();
-  const { currentUser } = useAuth();
+  const { currentUser, isTeacher } = useAuth();
   const userName = currentUser?.name || "User";
+
+  // Filter student-only items for teachers AFTER mount so the first client render
+  // matches the server HTML exactly (avoids a hydration mismatch when the SSR
+  // viewer role isn't reflected identically on the client first paint).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const items = ACCOUNT_NAVIGATION.filter(
+    (item) => !(item.studentOnly && isTeacher && mounted)
+  );
 
   return (
     <div
@@ -54,7 +66,7 @@ export const Navigation = ({
 
       {/* === Navigation Items === */}
       <ul className="py-2">
-        {ACCOUNT_NAVIGATION.map((item, index) => {
+        {items.map((item, index) => {
           if (item.type === "divider") {
             return (
               <li key={index}>
@@ -139,6 +151,18 @@ export const Navigation = ({
                 >
                   {item.label}
                 </span>
+                {item.badge ? (
+                  <span
+                    className={twMerge(
+                      "ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase leading-none tracking-wide",
+                      isActive
+                        ? "bg-white/25 text-white"
+                        : "bg-[#FCE8EA] text-[#D94A56]"
+                    )}
+                  >
+                    {item.badge}
+                  </span>
+                ) : null}
               </Link>
             </li>
           );

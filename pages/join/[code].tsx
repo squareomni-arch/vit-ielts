@@ -26,9 +26,15 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const role: ClassroomRole = roleParam === "teacher" ? "teacher" : "student";
 
   try {
-    const classroom = await joinClassroomByCode(supabase, code, role);
+    const result = await joinClassroomByCode(supabase, code, role);
+    // Students await teacher approval → send them to the list with a notice.
+    if (result.status === "pending") {
+      return {
+        redirect: { destination: `${ROUTES.CLASSROOM.LIST}?join_pending=1`, statusCode: 302 },
+      };
+    }
     return {
-      redirect: { destination: ROUTES.CLASSROOM.DETAIL(classroom.id), statusCode: 302 },
+      redirect: { destination: ROUTES.CLASSROOM.DETAIL(result.id), statusCode: 302 },
     };
   } catch {
     return {

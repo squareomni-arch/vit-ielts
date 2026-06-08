@@ -70,7 +70,11 @@ export async function adminListClassrooms(
 
     const ids = classrooms.map((c) => c.id);
     const [membersRes, assignmentsRes] = await Promise.all([
-        supabase.from("classroom_members").select("classroom_id, role").in("classroom_id", ids),
+        supabase
+            .from("classroom_members")
+            .select("classroom_id, role")
+            .eq("status", "active")
+            .in("classroom_id", ids),
         supabase.from("classroom_assignments").select("classroom_id").in("classroom_id", ids),
     ]);
 
@@ -120,6 +124,7 @@ export async function adminGetClassroomDetail(
         .from("classroom_members")
         .select("id, user_id, role, joined_at, users(name, email, avatar_url)")
         .eq("classroom_id", classroomId)
+        .eq("status", "active")
         .order("joined_at", { ascending: true });
 
     const { data: assignments } = await supabase
@@ -264,7 +269,8 @@ export async function adminListStudents(
     const { data: rows, error } = await supabase
         .from("classroom_members")
         .select("user_id, users(name, email, avatar_url), classrooms(id, name)")
-        .eq("role", "student");
+        .eq("role", "student")
+        .eq("status", "active");
     if (error) throw error;
 
     const byStudent = new Map<string, AdminStudentRow>();

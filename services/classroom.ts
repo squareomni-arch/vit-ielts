@@ -66,7 +66,8 @@ export async function getClassroomsForUser(
     const { data: memberships, error } = await supabase
         .from("classroom_members")
         .select("classroom_id, role")
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .eq("status", "active");
     if (error) throw error;
     if (!memberships?.length) return [];
 
@@ -84,6 +85,7 @@ export async function getClassroomsForUser(
         supabase
             .from("classroom_members")
             .select("classroom_id, role")
+            .eq("status", "active")
             .in("classroom_id", classIds),
         supabase
             .from("classroom_assignments")
@@ -129,6 +131,7 @@ export async function getTeacherDashboardStats(
             .from("classroom_members")
             .select("user_id")
             .eq("role", "student")
+            .eq("status", "active")
             .in("classroom_id", managedIds);
         const studentIds = [...new Set((studentRows ?? []).map((r) => r.user_id))];
         totalStudents = studentIds.length;
@@ -188,6 +191,7 @@ export async function getClassroom(
         .from("classroom_members")
         .select("id, classroom_id, user_id, role, joined_at, users(name, email, avatar_url)")
         .eq("classroom_id", classroomId)
+        .eq("status", "active")
         .order("joined_at", { ascending: true });
     if (memberError) throw memberError;
 
@@ -256,13 +260,74 @@ export async function joinClassroomByCode(
     supabase: SupabaseClient,
     code: string,
     role: ClassroomRole = "student"
-): Promise<Classroom> {
+): Promise<{ id: string; name: string; status: "pending" | "active"; role: ClassroomRole }> {
     const { data, error } = await supabase.rpc("join_classroom_by_code", {
         p_code: code,
         p_role: role,
     });
     if (error) throw error;
-    return data as Classroom;
+    return data as {
+        id: string;
+        name: string;
+        status: "pending" | "active";
+        role: ClassroomRole;
+    };
+}
+
+/** Pending students awaiting a teacher's approval to enter the class. */
+export async function getJoinRequests(
+    supabase: SupabaseClient,
+    classroomId: string
+): Promise<ClassroomMemberWithUser[]> {
+    const { data, error } = await supabase
+        .from("classroom_members")
+        .select("id, classroom_id, user_id, role, joined_at, status, users(name, email, avatar_url)")
+        .eq("classroom_id", classroomId)
+        .eq("status", "pending")
+        .order("joined_at", { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map((m) => {
+        const u = (m.users ?? {}) as { name?: string; email?: string; avatar_url?: string };
+        return {
+            id: m.id,
+            classroom_id: m.classroom_id,
+            user_id: m.user_id,
+            role: m.role,
+            joined_at: m.joined_at,
+            name: u.name ?? null,
+            email: u.email ?? "",
+            avatar_url: u.avatar_url ?? null,
+        };
+    });
+}
+
+/** Approve a pending student (status → active). */
+export async function approveJoinRequest(
+    supabase: SupabaseClient,
+    classroomId: string,
+    userId: string
+): Promise<void> {
+    const { error } = await supabase
+        .from("classroom_members")
+        .update({ status: "active" })
+        .eq("classroom_id", classroomId)
+        .eq("user_id", userId);
+    if (error) throw error;
+}
+
+/** Reject a pending student (remove the row). */
+export async function rejectJoinRequest(
+    supabase: SupabaseClient,
+    classroomId: string,
+    userId: string
+): Promise<void> {
+    const { error } = await supabase
+        .from("classroom_members")
+        .delete()
+        .eq("classroom_id", classroomId)
+        .eq("user_id", userId)
+        .eq("status", "pending");
+    if (error) throw error;
 }
 
 /** Teacher adds a member by email (RPC verifies teacher + looks up the user). */
@@ -359,6 +424,19 @@ export async function deleteAssignment(
     if (error) throw error;
 }
 
+/** Update an assignment's due date (teacher only; null = no deadline). */
+export async function updateAssignmentDueAt(
+    supabase: SupabaseClient,
+    assignmentId: string,
+    dueAt: string | null
+): Promise<void> {
+    const { error } = await supabase
+        .from("classroom_assignments")
+        .update({ due_at: dueAt })
+        .eq("id", assignmentId);
+    if (error) throw error;
+}
+
 /**
  * Teacher's "Bài giao" list for a class, each with target/submitted counts.
  * Submission counts are derived from test_results.
@@ -380,7 +458,8 @@ export async function getClassroomAssignments(
         .from("classroom_members")
         .select("user_id")
         .eq("classroom_id", classroomId)
-        .eq("role", "student");
+        .eq("role", "student")
+        .eq("status", "active");
     const allStudentIds = (studentRows ?? []).map((r) => r.user_id);
 
     // Per-assignment targets (for subset assignments)
@@ -471,7 +550,8 @@ export async function getAssignmentDetail(
             .from("classroom_members")
             .select("user_id")
             .eq("classroom_id", a.classroom_id)
-            .eq("role", "student");
+            .eq("role", "student")
+            .eq("status", "active");
         targetIds = (rows ?? []).map((r) => r.user_id);
     } else {
         const { data: rows } = await supabase
@@ -585,7 +665,8 @@ export async function getStudentAssignments(
         .from("classroom_members")
         .select("classroom_id")
         .eq("user_id", userId)
-        .eq("role", "student");
+        .eq("role", "student")
+        .eq("status", "active");
     const classIds = (memberships ?? []).map((m) => m.classroom_id);
     if (!classIds.length) return [];
 
@@ -669,7 +750,8 @@ export async function getStudentDashboardStats(
         .from("classroom_members")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
-        .eq("role", "student");
+        .eq("role", "student")
+        .eq("status", "active");
 
     const assignments = await getStudentAssignments(supabase, userId);
     const submitted = assignments.filter(
@@ -854,6 +936,7 @@ export async function getClassroomTracking(
         .select("user_id, users(name, email, avatar_url)")
         .eq("classroom_id", classroomId)
         .eq("role", "student")
+        .eq("status", "active")
         .order("joined_at", { ascending: true });
     const students = studentRows ?? [];
 
@@ -972,6 +1055,7 @@ export async function getStudentHistory(
         .select("user_id, joined_at, users(name, email, avatar_url), classrooms(name)")
         .eq("classroom_id", classroomId)
         .eq("user_id", studentId)
+        .eq("status", "active")
         .maybeSingle();
 
     const u = (memberRow?.users ?? null) as
