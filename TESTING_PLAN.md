@@ -1,6 +1,6 @@
 # 🧪 Kế hoạch Kiểm thử Toàn diện — IELTS Prediction
 
-> Xem plan đầy đủ tại: `C:\Users\LIGKT\.gemini\antigravity\brain\201c96e5-05da-4435-8d0f-434dd7441939\implementation_plan.md`
+> ⚠️ **TÀI LIỆU LỖI THỜI — CẦN LẬP KẾ HOẠCH LẠI.** Plan này gắn với quy trình migration cũ (`implementation_plan.md`, `CODE_CONVENTIONS.md`, `UI_MIGRATION_RULES.md` — đã xóa). Việc kiểm thử cho đợt UI rebuild sẽ được lập lại theo `AGENT_UI_REBUILD_GUIDE.md` + `DESIGN_SYSTEM_REBUILD.md` (3 gate: `pnpm test`, `pnpm typecheck`, `pnpm test:visual`). Giữ file để tham khảo lịch sử.
 
 ## Tổng quan
 

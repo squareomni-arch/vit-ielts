@@ -9,7 +9,7 @@ Thay thế toàn bộ WordPress JWT auth bằng Supabase Auth. Rewrite auth prov
 ## Context cần đọc
 - `LEGACY_CODEBASE_DOCS.md` → mục 2 (Authentication & Authorization) — hiểu flow cũ
 - `NEW_CODEBASE_ANALYSIS.md` → mục 4 (Authentication Flow mới) — code mẫu
-- `CODE_CONVENTIONS.md` → mục 3, 4 (React, State)
+- `CLAUDE.md` → mục Architecture (HOCs/State) & Naming Conventions
 - File cũ: `src/appx/providers/auth-provider.tsx` (321 dòng)
 - File cũ: `src/appx/providers/apollo-provider.tsx` (69 dòng)
 - File cũ: `src/shared/graphql/createServerApolloClient.ts` (136 dòng)

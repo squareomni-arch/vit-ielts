@@ -1,17 +1,22 @@
 'use client';
 
+/**
+ * Header — Figma node 3040:226
+ *
+ * Full-width white bar with bottom shadow.
+ * Logo: green icon-box + "VIT" / "IELTS" text (logoSrc overrides to img).
+ * Nav: 16px Inter Regular, gap-18px. Active = #9ad534 + bold.
+ * Unauthenticated: "Sign in" ghost pill + "Start free" brand pill.
+ * Authenticated: avatar + user-name + dropdown menu (preserved from prev implementation).
+ * Mobile: hamburger → slide-down drawer with accordion for nested items.
+ */
+
 import { useState } from 'react';
-import { Button } from '../../atoms/button';
+import { twMerge } from 'tailwind-merge';
 import { Avatar } from '../../atoms/avatar';
 import { UserAccountTypeBadge } from '@/shared/ui/user-account-type-badge';
 
-/**
- * Design System Header
- *
- * @figma IELTS Prediction Test — "Header" component
- * Glassmorphism pill: white/50 bg, blur, rounded-[60px], sticky top-5
- * Tailwind-only — NO custom CSS classes
- */
+// ─── Types ──────────────────────────────────────────────────────────────────
 
 export type HeaderNavItem = {
   label: string;
@@ -30,6 +35,7 @@ export type HeaderUserMenuItem = {
 };
 
 export type HeaderProps = {
+  /** Override logo with a custom image. When omitted shows the text-based VIT IELTS logo. */
   logoSrc?: string;
   logoAlt?: string;
   navItems: HeaderNavItem[];
@@ -44,11 +50,17 @@ export type HeaderProps = {
   className?: string;
   userMenuItems?: HeaderUserMenuItem[];
   isPro?: boolean;
+  /** Label for the ghost "Sign in" button. Defaults to "Sign in". */
+  loginLabel?: string;
+  /** Label for the brand "Start free" button. Defaults to "Start free". */
+  signupLabel?: string;
 };
 
+// ─── Component ──────────────────────────────────────────────────────────────
+
 export const Header = ({
-  logoSrc = '/assets/figma/logos/logo-color.png',
-  logoAlt = 'IELTS Prediction Test',
+  logoSrc,
+  logoAlt = 'VIT IELTS',
   navItems,
   isAuthenticated = false,
   authLoading = false,
@@ -61,141 +73,192 @@ export const Header = ({
   className = '',
   userMenuItems = [],
   isPro = false,
+  loginLabel = 'Sign in',
+  signupLabel = 'Start free',
 }: HeaderProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className={`sticky top-4 z-50 h-0 overflow-visible bg-transparent pointer-events-none px-5 font-[var(--font-primary)] ${className}`}>
-      {/* Glassmorphism Pill Container */}
-      <div
-        id="navbar-container"
-        data-component-name="NavbarContainer"
-        className="flex items-center justify-between max-w-[1360px] mx-auto px-4 md:px-[20px] py-3 md:py-[15px] rounded-full bg-white/50 shadow-[0_4px_10px_rgba(0,0,0,0.25)] backdrop-blur-[7.5px] pointer-events-auto mt-3"
-      >
+    <header
+      className={twMerge(
+        'sticky top-0 z-50 bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]',
+        className,
+      )}
+    >
+      {/* ── Desktop bar ─────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between max-w-[1400px] mx-auto px-[90px] py-[18px]">
 
         {/* Logo */}
-        <a href="/" className="flex items-center shrink-0 no-underline" onClick={onLogoClick}>
-          <img src={logoSrc} alt={logoAlt} className="h-[30px] min-[1025px]:h-12 w-auto object-contain" />
+        <a
+          href="/"
+          onClick={onLogoClick}
+          className="flex items-center gap-[10px] shrink-0 no-underline w-[230px]"
+        >
+          {logoSrc ? (
+            <img src={logoSrc} alt={logoAlt} className="h-[47px] w-auto object-contain" />
+          ) : (
+            <>
+              {/* Icon box */}
+              <div className="bg-[#b3e653] flex items-center justify-center w-[47px] h-[47px] rounded-[10px] shadow-[0px_4px_5px_0px_rgba(25,29,36,0.25)] shrink-0">
+                <span
+                  className="font-display font-bold text-[19px] leading-none text-[#191d24] select-none"
+                  aria-hidden="true"
+                >
+                  ≡
+                </span>
+              </div>
+              {/* Wordmark */}
+              <span className="font-display font-bold text-[19px] leading-[1.3] whitespace-nowrap">
+                <span className="text-[#191d24]">VIT</span>
+                <span className="text-[#9ad534]">IELTS</span>
+              </span>
+            </>
+          )}
         </a>
 
-        {/* Desktop Navigation */}
-        <nav
-          id="main-desktop-navbar"
-          data-component-name="DesktopNavbar"
-          className="hidden min-[1025px]:flex flex-1 justify-center"
-        >
-          <ul className="flex justify-center items-center m-0 list-none gap-[16px]">
-            {navItems.map((item) => {
-              const hasChildren = item.children && item.children.length > 0;
-              return (
-              <li key={item.href} className={`relative ${hasChildren ? 'group' : ''}`}>
+        {/* Desktop nav */}
+        <nav className="hidden lg:flex items-center gap-[18px]" aria-label="Main navigation">
+          {navItems.map((item) => {
+            const hasChildren = Boolean(item.children?.length);
+            return (
+              <div key={item.href} className={twMerge('relative', hasChildren && 'group')}>
                 <a
                   href={item.href}
-                  className={`inline-flex items-center no-underline transition-colors duration-150 gap-[16px] text-center font-['Noto_Sans',sans-serif] text-[14px] font-bold py-[15px] px-[16px] ${item.active ? 'text-[var(--color-primary-500)]' : 'text-[#191D24] hover:text-[var(--color-primary-500)]'
-                    }`}
+                  className={twMerge(
+                    'font-inter text-[16px] leading-[1.5] text-[#191d24] no-underline',
+                    'transition-colors duration-150 hover:text-[#9ad534]',
+                    'whitespace-nowrap flex items-center gap-1',
+                    item.active && 'text-[#9ad534] font-bold',
+                  )}
                 >
                   {item.label}
                   {hasChildren && (
-                    <svg viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 group-hover:rotate-90 transition-transform duration-150" aria-hidden="true">
-                      <path d="M37.6074 21.4746L19.4531 3.32031C17.5 1.36719 14.3457 1.36719 12.3926 3.32031C10.4395 5.27344 10.4395 8.42773 12.3926 10.3809L27.0215 25L12.3926 39.6191C10.4395 41.5723 10.4395 44.7266 12.3926 46.6797C14.3457 48.6328 17.5 48.6328 19.4531 46.6797L37.6074 28.5254C39.5508 26.582 39.5508 23.418 37.6074 21.4746Z" fill="currentColor" />
+                    <svg
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round"
+                      className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-200"
+                      aria-hidden="true"
+                    >
+                      <path d="M6 9l6 6 6-6" />
                     </svg>
                   )}
                 </a>
+
+                {/* Dropdown */}
                 {hasChildren && (
-                  <div className="absolute top-full left-0 min-w-[210px] bg-white border border-[var(--border-default)] rounded-xl shadow-lg p-3 opacity-0 invisible translate-y-2 transition-all duration-150 z-[var(--z-dropdown)] group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
+                  <div className="absolute top-full left-0 mt-2 min-w-[200px] bg-white rounded-xl border border-[rgba(25,29,36,0.08)] shadow-[0px_8px_20px_rgba(25,29,36,0.12)] p-2 opacity-0 invisible translate-y-1 transition-all duration-150 z-50 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
                     {item.children!.map((child) => (
                       <a
                         key={child.href}
                         href={child.href}
-                        className="block px-3 py-2 text-sm text-[var(--text-secondary)] no-underline rounded-sm transition-colors duration-150 hover:bg-[var(--color-neutral-50)] hover:text-[var(--text-primary)]"
+                        className="block px-3 py-2 text-[14px] font-inter text-[#6a7282] no-underline rounded-lg transition-colors duration-150 hover:bg-[#f4f5f7] hover:text-[#191d24]"
                       >
                         {child.label}
                       </a>
                     ))}
                   </div>
                 )}
-              </li>
-            )})}
-          </ul>
+              </div>
+            );
+          })}
         </nav>
 
-        {/* Auth Actions */}
-        <div className="hidden min-[1025px]:flex items-center gap-3 shrink-0" suppressHydrationWarning>
+        {/* Desktop actions */}
+        <div
+          className="hidden lg:flex items-center gap-[12px] justify-end w-[230px] shrink-0"
+          suppressHydrationWarning
+        >
           {authLoading ? (
             <div className="w-[180px]" />
           ) : isAuthenticated ? (
+            /* ── Authenticated user ── */
             <div className="relative group flex items-center gap-3 cursor-pointer py-2">
-              <span className="flex items-center text-[var(--text-primary)] transition-transform duration-150 group-hover:rotate-180">
-                <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <span className="flex items-center text-[#191d24] transition-transform duration-150 group-hover:rotate-180">
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
                   <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </span>
               <div className="flex items-center gap-2">
-                <span className="text-base font-bold text-[var(--text-primary)]">{userName || 'Username'}</span>
+                <span className="font-inter font-bold text-[16px] text-[#191d24]">{userName || 'Username'}</span>
                 <UserAccountTypeBadge isPro={isPro} />
               </div>
               <Avatar size="md" name={userName || 'U'} src={userAvatar} />
 
-              <div className="absolute top-full right-0 mt-0 min-w-[220px] bg-white border border-[var(--border-default)] rounded-xl shadow-lg p-2 opacity-0 invisible translate-y-2 transition-all duration-150 z-[var(--z-dropdown)] group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
+              {/* User dropdown */}
+              <div className="absolute top-full right-0 mt-1 min-w-[220px] bg-white rounded-xl border border-[rgba(25,29,36,0.08)] shadow-[0px_8px_20px_rgba(25,29,36,0.12)] p-2 opacity-0 invisible translate-y-1 transition-all duration-150 z-50 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
                 {userMenuItems.map((item, index) => {
-                  if (item.divider) return <div key={index} className="h-px bg-[var(--color-neutral-100)] my-1" />;
-                  
-                  const Content = () => (
-                    <span className={`flex items-center gap-2 px-3 py-2 text-sm no-underline rounded-sm transition-colors duration-150 ${item.danger ? 'text-red-600 hover:bg-red-50' : 'text-[var(--text-secondary)] hover:bg-[var(--color-neutral-50)] hover:text-[var(--text-primary)]'}`}>
-                      {item.icon}
-                      {item.label}
-                    </span>
-                  );
-
-                  if (item.href) {
-                     return <a key={index} href={item.href} onClick={item.onClick} className="block"><Content /></a>;
-                  }
-                  
+                  if (item.divider) return <div key={index} className="h-px bg-[#e5e6e8] my-1" />;
+                  const cls = `flex items-center gap-2 px-3 py-2 text-[14px] font-inter no-underline rounded-lg transition-colors duration-150 ${item.danger ? 'text-[#e5484d] hover:bg-[#fff2f2]' : 'text-[#6a7282] hover:bg-[#f4f5f7] hover:text-[#191d24]'}`;
+                  if (item.href) return <a key={index} href={item.href} onClick={item.onClick} className={cls}>{item.icon}{item.label}</a>;
                   return (
-                    <button key={index} onClick={item.onClick} className="block w-full text-left bg-transparent border-none cursor-pointer p-0 m-0 font-[inherit]">
-                      <Content />
+                    <button key={index} onClick={item.onClick} className={`${cls} w-full text-left bg-transparent border-none cursor-pointer font-inherit p-0 px-3 py-2`}>
+                      {item.icon}{item.label}
                     </button>
                   );
                 })}
+                {onLogout && (
+                  <>
+                    <div className="h-px bg-[#e5e6e8] my-1" />
+                    <button
+                      onClick={onLogout}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-[14px] font-inter text-[#e5484d] hover:bg-[#fff2f2] rounded-lg transition-colors duration-150 bg-transparent border-none cursor-pointer font-inherit text-left"
+                    >
+                      Sign out
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ) : (
+            /* ── Unauthenticated — Figma: "Sign in" ghost + "Start free" brand ── */
             <>
-              <Button variant="primary" size="md" onClick={onLogin}>
-                Đăng ký / Đăng nhập
-              </Button>
+              <button
+                type="button"
+                onClick={onLogin}
+                className="bg-white border-[1.5px] border-[rgba(25,29,36,0.1)] px-[26px] py-[15px] rounded-full font-inter font-bold text-[14px] leading-[1.2] text-[#191d24] transition-colors duration-150 hover:border-[rgba(25,29,36,0.25)] whitespace-nowrap shrink-0"
+              >
+                {loginLabel}
+              </button>
+              <button
+                type="button"
+                onClick={onSignup}
+                className="bg-[#b3e653] px-[26px] py-[15px] rounded-full font-inter font-bold text-[14px] leading-[1.2] text-[#191d24] transition-colors duration-150 hover:bg-[#9ad534] whitespace-nowrap shrink-0"
+              >
+                {signupLabel}
+              </button>
             </>
           )}
         </div>
 
-        {/* Mobile Toggle */}
+        {/* Mobile hamburger */}
         <button
-          className="min-[1025px]:hidden flex flex-col items-center justify-center gap-[5px] w-10 h-10 bg-transparent border-none cursor-pointer"
+          type="button"
+          className="lg:hidden flex flex-col items-center justify-center gap-[5px] w-10 h-10 bg-transparent border-none cursor-pointer"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
+          aria-expanded={mobileOpen}
         >
-          <span className={`block w-[22px] h-[2px] bg-[var(--text-primary)] rounded-[1px] transition-all duration-200 origin-center ${mobileOpen ? 'rotate-45 translate-y-[7px]' : ''}`} />
-          <span className={`block w-[22px] h-[2px] bg-[var(--text-primary)] rounded-[1px] transition-all duration-200 ${mobileOpen ? 'opacity-0 scale-0' : ''}`} />
-          <span className={`block w-[22px] h-[2px] bg-[var(--text-primary)] rounded-[1px] transition-all duration-200 origin-center ${mobileOpen ? '-rotate-45 -translate-y-[7px]' : ''}`} />
+          <span className={twMerge('block w-[22px] h-[2px] bg-[#191d24] rounded-[1px] transition-all duration-200 origin-center', mobileOpen && 'rotate-45 translate-y-[7px]')} />
+          <span className={twMerge('block w-[22px] h-[2px] bg-[#191d24] rounded-[1px] transition-all duration-200', mobileOpen && 'opacity-0 scale-0')} />
+          <span className={twMerge('block w-[22px] h-[2px] bg-[#191d24] rounded-[1px] transition-all duration-200 origin-center', mobileOpen && '-rotate-45 -translate-y-[7px]')} />
         </button>
       </div>
 
-      {/* Mobile Nav */}
+      {/* ── Mobile drawer ───────────────────────────────────────────────── */}
       {mobileOpen && (
-        <div className="min-[1025px]:hidden flex flex-col bg-white rounded-b-3xl mt-1 pointer-events-auto shadow-lg overflow-hidden max-h-[calc(100dvh-80px)] overflow-y-auto">
-          {/* Nav items with children */}
+        <div className="lg:hidden flex flex-col bg-white border-t border-[rgba(25,29,36,0.06)] shadow-[0px_8px_20px_rgba(25,29,36,0.12)] overflow-hidden max-h-[calc(100dvh-80px)] overflow-y-auto">
           <div className="flex flex-col px-6 py-2">
             {navItems.map((item) => {
-              const hasChildren = item.children && item.children.length > 0;
+              const hasChildren = Boolean(item.children?.length);
               return (
-                <div key={item.href} className="border-b border-[var(--color-neutral-100)]">
+                <div key={item.href} className="border-b border-[rgba(25,29,36,0.06)]">
                   {hasChildren ? (
                     <MobileAccordion label={item.label} href={item.href} active={item.active}>
                       {item.children!.map((child) => (
                         <a
                           key={child.href}
                           href={child.href}
-                          className="block py-2.5 pl-4 text-sm text-[var(--text-secondary)] no-underline hover:text-[var(--color-primary-500)] transition-colors"
+                          className="block py-2.5 pl-4 text-[14px] font-inter text-[#6a7282] no-underline hover:text-[#9ad534] transition-colors"
                         >
                           {child.label}
                         </a>
@@ -204,7 +267,10 @@ export const Header = ({
                   ) : (
                     <a
                       href={item.href}
-                      className={`block py-3.5 text-base no-underline transition-colors ${item.active ? 'text-[var(--color-primary-500)] font-bold' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                      className={twMerge(
+                        'block py-3.5 text-[16px] font-inter no-underline transition-colors',
+                        item.active ? 'text-[#9ad534] font-bold' : 'text-[#6a7282] hover:text-[#191d24]',
+                      )}
                     >
                       {item.label}
                     </a>
@@ -214,44 +280,51 @@ export const Header = ({
             })}
           </div>
 
-          {/* User section */}
-          <div className="px-6 py-4 border-t border-[var(--color-neutral-100)] bg-[var(--color-neutral-50)]">
+          {/* Mobile auth section */}
+          <div className="px-6 py-4 border-t border-[rgba(25,29,36,0.06)] bg-[#f4f5f7]" suppressHydrationWarning>
             {authLoading ? null : isAuthenticated ? (
               <>
-                {/* Profile info */}
                 <div className="flex items-center gap-3 mb-4">
                   <Avatar size="lg" name={userName || 'U'} src={userAvatar} />
                   <div className="min-w-0 flex-1 flex flex-col items-start gap-1">
-                    <p className="text-base font-bold text-[var(--text-primary)] truncate">{userName || 'User'}</p>
+                    <p className="font-inter font-bold text-[16px] text-[#191d24] truncate">{userName || 'User'}</p>
                     <UserAccountTypeBadge isPro={isPro} />
                   </div>
                 </div>
-                {/* User menu items */}
                 <div className="flex flex-col gap-0.5">
                   {userMenuItems.map((item, index) => {
-                    if (item.divider) return <div key={index} className="h-px bg-[var(--color-neutral-200)] my-2" />;
-                    const cls = `flex items-center gap-2 py-2.5 px-1 text-sm no-underline rounded-lg transition-colors ${item.danger ? 'text-red-600 hover:bg-red-50' : 'text-[var(--text-secondary)] hover:bg-white hover:text-[var(--text-primary)]'}`;
-                    if (item.href) {
-                      return (
-                        <a key={index} href={item.href} onClick={item.onClick} className={cls}>
-                          {item.icon}
-                          {item.label}
-                        </a>
-                      );
-                    }
+                    if (item.divider) return <div key={index} className="h-px bg-[#e5e6e8] my-2" />;
+                    const cls = `flex items-center gap-2 py-2.5 px-1 text-[14px] font-inter no-underline rounded-lg transition-colors ${item.danger ? 'text-[#e5484d] hover:bg-[#fff2f2]' : 'text-[#6a7282] hover:bg-white hover:text-[#191d24]'}`;
+                    if (item.href) return <a key={index} href={item.href} onClick={item.onClick} className={cls}>{item.icon}{item.label}</a>;
                     return (
-                      <button key={index} onClick={item.onClick} className={`${cls} bg-transparent border-none cursor-pointer p-0 m-0 font-[inherit] w-full text-left px-1 py-2.5`}>
-                        {item.icon}
-                        {item.label}
+                      <button key={index} onClick={item.onClick} className={`${cls} bg-transparent border-none cursor-pointer font-inherit w-full text-left`}>
+                        {item.icon}{item.label}
                       </button>
                     );
                   })}
+                  {onLogout && (
+                    <button onClick={onLogout} className="flex items-center gap-2 py-2.5 px-1 text-[14px] font-inter text-[#e5484d] hover:bg-[#fff2f2] rounded-lg transition-colors bg-transparent border-none cursor-pointer font-inherit w-full text-left">
+                      Sign out
+                    </button>
+                  )}
                 </div>
               </>
             ) : (
               <div className="flex flex-col gap-3">
-                <Button variant="primary" fullWidth onClick={onSignup}>Đăng ký</Button>
-                <Button variant="secondary" fullWidth onClick={onLogin}>Đăng nhập</Button>
+                <button
+                  type="button"
+                  onClick={onSignup}
+                  className="w-full bg-[#b3e653] py-[15px] rounded-full font-inter font-bold text-[14px] text-[#191d24] transition-colors hover:bg-[#9ad534]"
+                >
+                  {signupLabel}
+                </button>
+                <button
+                  type="button"
+                  onClick={onLogin}
+                  className="w-full bg-white border-[1.5px] border-[rgba(25,29,36,0.1)] py-[15px] rounded-full font-inter font-bold text-[14px] text-[#191d24] transition-colors hover:border-[rgba(25,29,36,0.25)]"
+                >
+                  {loginLabel}
+                </button>
               </div>
             )}
           </div>
@@ -261,7 +334,8 @@ export const Header = ({
   );
 };
 
-/* ── Mobile Accordion for parent menu items with children ── */
+// ─── Mobile accordion ────────────────────────────────────────────────────────
+
 const MobileAccordion = ({
   label,
   href,
@@ -279,34 +353,29 @@ const MobileAccordion = ({
       <div className="flex items-center justify-between">
         <a
           href={href}
-          className={`flex-1 py-3.5 text-base no-underline transition-colors ${active ? 'text-[var(--color-primary-500)] font-bold' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+          className={twMerge(
+            'flex-1 py-3.5 text-[16px] font-inter no-underline transition-colors',
+            active ? 'text-[#9ad534] font-bold' : 'text-[#6a7282] hover:text-[#191d24]',
+          )}
         >
           {label}
         </a>
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          className="flex items-center justify-center w-8 h-8 bg-transparent border-none cursor-pointer text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+          className="flex items-center justify-center w-8 h-8 bg-transparent border-none cursor-pointer text-[#6a7282] hover:text-[#191d24] transition-colors"
           aria-label={`Expand ${label}`}
         >
           <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            className={`w-4 h-4 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            className={twMerge('w-4 h-4 transition-transform duration-200', open && 'rotate-180')}
           >
             <path d="M6 9l6 6 6-6" />
           </svg>
         </button>
       </div>
-      {open && (
-        <div className="pb-2">
-          {children}
-        </div>
-      )}
+      {open && <div className="pb-2">{children}</div>}
     </div>
   );
 };

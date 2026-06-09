@@ -2,26 +2,28 @@
 /**
  * Button — Design System Button (Tailwind-only)
  *
- * @figma IELTS Prediction Test — "BUTTONS" node 1076-2183
+ * @figma IELTS Prediction Test — "Buttons & controls" node 3034-224
  *
- * Migrated from button.css (BEM) to Tailwind classes.
- * All Figma values extracted from API are preserved in comments.
+ * Variants (Figma-canonical):
+ *   primary      — #B3E653 lime green, Ink/900 text, drop-shadow; hover #9AD534
+ *   dark         — #191D24 bg, white text; hover #31384D
+ *   outlined     — Figma "Ghost": white bg, 1.5px border rgba(25,29,36,.1), Ink text
+ *   ghost        — Transparent bg, Ink text, hover bg black/10
+ *   icon-circle  — 48px circle, white bg/border; hover #B3E653
  *
- * Variants:
- *   primary      — Solid #D94A56, white text, glow on hover
- *   secondary    — White bg, red border → fills red on hover
- *   outlined     — White bg, dark border → fills red on hover
- *   ghost        — Transparent, dark text, light bg on hover
- *   accent       — White bg, red border → fills red with glow on hover
- *   link         — Text only, underline on hover
- *   danger       — Error red bg
- *   icon-circle  — Round icon button (NO position:absolute — consumer decides layout)
+ * Utility variants (kept for backward compat, not in Figma DS):
+ *   secondary    — white bg, brand border, fills on hover
+ *   accent       — brand outlined → fills on hover
+ *   link         — text-only
+ *   danger       — error red
+ *   white        — for use on dark/colored backgrounds
  */
 
 import { twMerge } from "tailwind-merge";
 
 export type ButtonVariant =
   | 'primary'
+  | 'dark'
   | 'secondary'
   | 'outlined'
   | 'ghost'
@@ -53,76 +55,93 @@ export type ButtonProps = {
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   Variant classes — exact Figma values preserved
+   Variant classes — values from Figma node 3034:224
    ═══════════════════════════════════════════════════════════════ */
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  /* Figma: Button1 — fill #d94a56, hover #e3636e + glow blur=10 */
+  /* Figma: Primary / Default — #B3E653, Ink/900 text, shadow 0 12 13 rgba(25,29,36,.42)
+     Figma: Primary / Hover   — #9AD534, no shadow */
   primary: [
-    'bg-[#d94a56] text-white',
-    'hover:bg-[#e3636e] hover:shadow-[0_0_10px_#d94a56]',
+    'bg-[#b3e653] text-[#191d24]',
+    'shadow-[0px_12px_13px_rgba(25,29,36,0.42)]',
+    'hover:bg-[#9ad534] hover:shadow-none',
   ].join(' '),
 
-  /* Figma: Button2 — white bg, text/border #d94a56, hover fills #e3636e */
-  secondary: [
-    'bg-white text-[#d94a56] border-[#d94a56]',
-    'hover:bg-[#e3636e] hover:text-white hover:border-white',
-    'hover:shadow-[0_2px_3px_rgba(0,0,0,0.5),0_6px_10px_4px_rgba(0,0,0,0.2)]',
+  /* Figma: Dark / Default — #191D24, white text
+     Figma: Dark / Hover   — #31384D */
+  dark: [
+    'bg-[#191d24] text-white border-transparent',
+    'hover:bg-[#31384d]',
   ].join(' '),
 
-  /* Figma: Button4 — white bg, border #191d24, hover fills #d94a56 */
+  /* Figma: Ghost / Default — white bg, 1.5px border rgba(25,29,36,.1), Ink/900 text
+     (kept as "outlined" key for backward compat) */
   outlined: [
-    'bg-white text-[#191d24] border-[#191d24] font-normal',
-    'hover:bg-[#d94a56] hover:text-white hover:border-transparent',
-    'disabled:bg-[#b6b6b6]',
+    'bg-white text-[#191d24] border-[1.5px] border-[rgba(25,29,36,0.1)]',
+    'hover:border-[rgba(25,29,36,0.2)] hover:shadow-[0_2px_8px_rgba(25,29,36,0.08)]',
   ].join(' '),
 
-  /* Figma: Button3 — transparent, text #191d24, hover bg 10% black */
+  /* Transparent ghost — utility, not in Figma DS spec */
   ghost: [
     'bg-transparent text-[#191d24] border-transparent',
     'hover:bg-black/10',
   ].join(' '),
 
-  /* Similar to outlined but uses Primary colors */
+  /* Utility: brand-colored outlined — not in Figma DS */
   accent: [
-    'bg-white text-[#d94a56] border-[#d94a56]',
-    'hover:bg-[#d94a56] hover:text-white',
-    'hover:shadow-[0_4px_16px_rgba(217,74,86,0.4)]',
+    'bg-white text-[#b3e653] border-[#b3e653]',
+    'hover:bg-[#b3e653] hover:text-[#191d24]',
+    'hover:shadow-[0_4px_16px_rgba(179,230,83,0.4)]',
   ].join(' '),
 
-  /* Text-only link style */
+  /* Utility: text-only link */
   link: [
-    'bg-transparent text-[#d94a56] border-transparent',
+    'bg-transparent text-[#b3e653] border-transparent',
     '!p-0 !min-h-0 !rounded-none',
-    'hover:text-[#e3636e] hover:underline',
+    'hover:text-[#9ad534] hover:underline',
   ].join(' '),
 
-  /* Error/delete actions */
+  /* Utility: destructive action */
   danger: [
-    'bg-[#ef4444] text-white border-transparent',
-    'hover:bg-[#dc2626]',
+    'bg-[#e54552] text-white border-transparent',
+    'hover:bg-[#c93340]',
   ].join(' '),
 
-  /* Figma: Button-Next/Prev — 28×28, radius 14px
+  /* Figma: Icon button — 48×48 circle, white bg, 1.5px border rgba(25,29,36,.1)
+     Figma: Icon button Hover — #B3E653 fill
      ⚠️ NO position:absolute — consumer decides layout via className */
   'icon-circle': [
-    'w-7 h-7 !min-h-7 !p-0',
-    'bg-[#d94a56] !rounded-full border-transparent text-white',
-    'hover:bg-[#ea8d95]',
+    '!p-0 !rounded-full',
+    'bg-white border-[1.5px] border-[rgba(25,29,36,0.1)] text-[#191d24]',
+    'hover:bg-[#b3e653] hover:border-[#b3e653]',
   ].join(' '),
 
-  /* Figma: In Testimonials — white bg, hover fills lighter red with white border */
+  /* Utility: for use on dark/colored backgrounds */
   white: [
-    'bg-white text-[#d94a56] border-white',
-    'hover:bg-[#e3636e] hover:text-white hover:border-white hover:border-2',
-    'disabled:bg-white/50 disabled:text-white/50',
+    'bg-white text-[#191d24] border-white',
+    'hover:bg-[#b3e653] hover:border-[#b3e653]',
+    'disabled:bg-white/50 disabled:text-[#191d24]/50',
+  ].join(' '),
+
+  /* Utility: kept for backward compat */
+  secondary: [
+    'bg-white text-[#b3e653] border-[#b3e653]',
+    'hover:bg-[#b3e653] hover:text-[#191d24] hover:border-[#b3e653]',
+    'hover:shadow-[0_4px_16px_rgba(179,230,83,0.35)]',
   ].join(' '),
 };
 
-/* ═══ Size classes — Figma measurements ═══ */
+/* ═══ Size classes — Figma: px-[26px] py-[15px] for md ═══ */
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  sm: 'h-9 px-4 text-sm',                    /* 36px height */
-  md: 'min-h-[49px] px-5 text-sm', /* Figma: 49px, padding [15,20] */
-  lg: 'min-h-[56px] px-6 text-sm',
+  sm: 'h-9 px-[18px] text-sm',               /* ~36px */
+  md: 'py-[15px] px-[26px] text-sm',          /* Figma: px-26 py-15 */
+  lg: 'py-[18px] px-[32px] text-sm',
+};
+
+/* ═══ Icon-circle sizes — Figma default = 48px ═══ */
+const ICON_CIRCLE_SIZE: Record<ButtonSize, string> = {
+  sm: 'w-9 h-9',    /* 36px */
+  md: 'w-12 h-12',  /* 48px — Figma */
+  lg: 'w-14 h-14',  /* 56px */
 };
 
 /* ═══ Icon sizing per context ═══ */
@@ -130,7 +149,7 @@ const ICON_SIZE: Record<string, string> = {
   sm:            '[&>svg]:w-4 [&>svg]:h-4 [&>img]:w-4 [&>img]:h-4',
   md:            '[&>svg]:w-5 [&>svg]:h-5 [&>img]:w-5 [&>img]:h-5',
   lg:            '[&>svg]:w-6 [&>svg]:h-6 [&>img]:w-6 [&>img]:h-6',
-  'icon-circle': '[&>svg]:w-3.5 [&>svg]:h-auto [&>img]:w-3.5 [&>img]:h-auto', /* 14px in 28px circle */
+  'icon-circle': '[&>svg]:w-5 [&>svg]:h-5 [&>img]:w-5 [&>img]:h-5',
 };
 
 /* ═══ Component ═══ */
@@ -153,21 +172,22 @@ export const Button = ({
   const isIconOnly = variant === 'icon-circle' && !children;
 
   const classNames = twMerge(
-    // Base styles (Figma: gap 16px, radius 25px, font Noto Sans 700)
-    'inline-flex items-center justify-center gap-4',
+    // Base — Figma: Inter Bold, gap 8px, radius 100px
+    'inline-flex items-center justify-center gap-2',
     'border border-transparent rounded-[100px]',
-    'font-bold cursor-pointer whitespace-nowrap select-none leading-normal',
+    'font-bold font-inter cursor-pointer whitespace-nowrap select-none',
     'transition-[background,color,border-color,box-shadow,transform] duration-[180ms]',
     'active:enabled:scale-[0.96]',
     'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
-    // Size (icon-circle has own sizing via variant)
-    variant !== 'icon-circle' && SIZE_CLASSES[size],
+    // Size
+    variant === 'icon-circle'
+      ? ICON_CIRCLE_SIZE[size]
+      : SIZE_CLASSES[size],
     // Variant
     VARIANT_CLASSES[variant],
     // Modifiers
     fullWidth && 'w-full',
     loading && 'pointer-events-none',
-    // Consumer className last — twMerge lets these win
     className,
   );
 

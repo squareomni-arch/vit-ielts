@@ -5,11 +5,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev        # Start dev server with Turbopack
-npm run build      # Production build
-npm run lint       # ESLint
-npm run test       # Run tests (Vitest)
-npm run test:watch # Watch mode for tests
+pnpm run dev        # Start dev server with Turbopack
+pnpm run build      # Production build
+pnpm run lint       # ESLint
+pnpm run test       # Run tests (Vitest)
+pnpm run test:watch # Watch mode for tests
 ```
 
 ## Architecture
@@ -88,3 +88,40 @@ Copy link uses `navigator.clipboard.writeText` with a textarea fallback and `set
 ## Key Supabase Tables
 
 `sample_essays`, `quiz` (practice/prediction tests), `test_sessions`, `test_answers`, `users`, `blog_posts`. RLS policies protect user data. Custom RPC functions for view counters (`increment_sample_essay_views`, `increment_quiz_views`).
+
+---
+
+## UI Rebuild — Agent Rules (non-negotiable)
+
+> Resolved from `AGENT_UI_REBUILD_GUIDE.md` Phase 0 (see `PHASE0_DISCOVERY_REPORT.md`). These two documents — together with `DESIGN_SYSTEM_REBUILD.md` — are now the **single source of truth** for the UI rebuild. The previous migration docs (`UI_MIGRATION_RULES.md`, `implementation_plan.md`, `CODE_CONVENTIONS.md`, `AGENTS.md`) have been removed — do not reference them.
+
+**Prime directive.** Rebuild the **UI only** to match Figma. Backend logic, data fetching, and business rules must stay behavior-identical. If a task seems to require changing logic, **stop and ask the human** — do not change it.
+
+**Do-not-touch (import-only — never edit/move/rename/refactor):**
+
+```
+/services/**            /services/types/**
+/lib/supabase/**        /lib/server/**        /lib/admin-auth.ts  /lib/rate-limit.ts
+/pages/api/**           /middleware.ts
+/src/shared/types/**    /src/types/**
+/tests/**
+```
+
+**Protected pages (do not restyle):** `pages/take-the-test/**`, `pages/admin/**`, `pages/preview.tsx`.
+
+**Design-system rules.**
+- **No magic values.** Every color, font size, weight, spacing, radius, shadow, breakpoint must reference a design token. Canonical token source = the `@theme` block in `src/appx/styles/globals.css` (drives Tailwind utilities), re-extracted from Figma. `src/shared/ui/ds/design-tokens.css` is being retired — see `DESIGN_SYSTEM_REBUILD.md`. Raw hex / arbitrary px/rem / one-off colors are forbidden.
+- **Reuse primitives** from `src/shared/ui/ds/` (atoms → molecules → organisms). Do not re-implement a primitive inline.
+- **Match Figma via the Dev Mode MCP server**, not screenshots. If MCP data and a screenshot disagree, MCP wins. *(MCP not yet connected — connect before token/Figma work.)*
+- If a needed token or primitive doesn't exist, **stop and flag it** — do not invent a value.
+
+**Component contract rules.**
+- Screens receive data/callbacks via **props**; preserve existing prop signatures and the hooks/services they connect to. Logic stays in `getServerSideProps` + `/services`; `src/pages/{name}/ui/**` stays presentational.
+- Do not add data fetching or business logic inside components.
+
+**Scope & process.** One screen (or one component) per task. Work leaf-to-root: primitives → composites → screens. All three gates must pass before "done".
+
+**Verification gates (must pass; never weaken a test or loosen a type to pass):**
+1. **Behavior** — `pnpm test` green (exclude `*-live.test.ts` from the UI gate).
+2. **Types** — `pnpm typecheck` clean (`tsc --noEmit`).
+3. **Visual** — `pnpm test:visual` green (Playwright; baseline = `pages/preview.tsx` gallery) **and** a manual side-by-side vs. the Figma frame for screen-level tasks.

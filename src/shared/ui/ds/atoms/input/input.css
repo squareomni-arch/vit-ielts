@@ -1,31 +1,37 @@
-/* ═══ Input ═══ */
+/* ═══ Input — Figma node 3035:228 ═══
+   Default  : 1.5px border rgba(25,29,36,.1), radius 14px
+   Focused  : 2px border #B3E653, glow rgba(179,230,83,.4)
+   Error    : 2px border #E5484D
+*/
 
 .input {
   display: inline-flex;
   align-items: center;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  background: var(--bg-primary);
-  font-family: var(--font-primary);
+  border: 1.5px solid rgba(25, 29, 36, 0.1);
+  border-radius: 14px;
+  background: #ffffff;
+  font-family: "Inter", sans-serif;
   transition:
-    border-color var(--duration-fast) var(--ease-default),
-    box-shadow var(--duration-fast) var(--ease-default);
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   position: relative;
+  overflow: hidden;
 }
 
 .input:focus-within {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(235, 87, 87, 0.12);
+  border-width: 2px;
+  border-color: #b3e653;
+  box-shadow: 0 0 0 3px rgba(179, 230, 83, 0.4);
 }
 
 /* ─── Sizes ─── */
-.input--sm { height: 32px; }
-.input--md { height: 40px; }
+.input--sm { height: 36px; }
+.input--md { height: 44px; }
 .input--lg { height: 48px; }
 
-.input--sm .input__field { font-size: var(--text-xs); padding: 0 var(--space-3); }
-.input--md .input__field { font-size: var(--text-sm); padding: 0 var(--space-4); }
-.input--lg .input__field { font-size: var(--text-base); padding: 0 var(--space-5); }
+.input--sm .input__field { font-size: 13px; padding: 0 12px; }
+.input--md .input__field { font-size: 14px; padding: 0 14px; }
+.input--lg .input__field { font-size: 16px; padding: 0 16px; }
 
 /* ─── Field ─── */
 .input__field {
@@ -36,42 +42,44 @@
   outline: none;
   background: transparent;
   font-family: inherit;
-  color: var(--text-primary);
+  color: #191d24;
   min-width: 0;
 }
 
 .input__field::placeholder {
-  color: var(--text-muted);
+  color: #9ca3af;
 }
 
 /* ─── Icons ─── */
 .input__icon {
   display: flex;
   align-items: center;
-  color: var(--text-muted);
+  color: #6a7282;
   flex-shrink: 0;
-  font-size: 1.1em;
 }
 
-.input__icon--left { padding-left: var(--space-3); }
-.input__icon--right { padding-right: var(--space-3); }
+.input__icon--left { padding-left: 12px; }
+.input__icon--right { padding-right: 12px; }
 
-.input--has-left-icon .input__field { padding-left: var(--space-2); }
-.input--has-right-icon .input__field { padding-right: var(--space-2); }
+.input--has-left-icon .input__field { padding-left: 8px; }
+.input--has-right-icon .input__field { padding-right: 8px; }
 
-/* ─── States ─── */
+/* ─── Error state ─── */
 .input--error {
-  border-color: var(--border-error);
+  border-width: 2px;
+  border-color: #e5484d;
 }
 
 .input--error:focus-within {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+  border-color: #e5484d;
+  box-shadow: 0 0 0 3px rgba(229, 72, 77, 0.15);
 }
 
+/* ─── Disabled ─── */
 .input--disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: var(--bg-tertiary);
+  background: #f4f5f7;
 }
 
 .input--disabled .input__field {

@@ -44,7 +44,7 @@ PHASE 7: Bug Fixes & Security (từ API audit 10/03/2026)
 
 ## Quy tắc cho Agent
 
-1. **Đọc trước khi code**: `CODE_CONVENTIONS.md` + `LEGACY_CODEBASE_DOCS.md` + `NEW_CODEBASE_ANALYSIS.md`
+1. **Đọc trước khi code**: `CLAUDE.md` + `LEGACY_CODEBASE_DOCS.md` + `NEW_CODEBASE_ANALYSIS.md`
 2. **Mỗi task**: Độc lập, có acceptance criteria rõ ràng
 3. **Không chồng chéo**: Mỗi file chỉ thuộc 1 task
 4. **Tham chiếu**: Dùng `@origin` comment khi port PHP code

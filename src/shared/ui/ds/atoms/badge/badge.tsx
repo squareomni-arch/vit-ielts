@@ -5,7 +5,7 @@
  * @figma IELTS Prediction Test — "BlogTag" + skill indicators
  */
 
-export type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info' | 'reading' | 'listening' | 'speaking' | 'writing';
+export type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info' | 'reading' | 'listening' | 'speaking' | 'writing' | 'pro' | 'new';
 export type BadgeSize = 'sm' | 'md';
 
 export type BadgeProps = {

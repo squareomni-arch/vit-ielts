@@ -4,6 +4,11 @@
    Extracted from Figma: IELTS Prediction Test
    ═══════════════════════════════════════════════════════════════ */
 
+/* ⚠️ DEPRECATED LAYER — being retired. Canonical tokens now live in the
+   @theme block of src/appx/styles/globals.css (re-extracted from Figma,
+   node 3033-249). Values here are rebranded to match for now; this file
+   will be deleted once the component CSS that imports it is migrated to
+   Tailwind utilities. Do not add new tokens here. See DESIGN_SYSTEM_REBUILD.md. */
 :root {
   /* ══════════════════════════════════════
      1. COLOR PRIMITIVES — from Figma COLOR PALETTE
@@ -11,7 +16,7 @@
      ══════════════════════════════════════ */
 
   /* ── Brand (Solid, no gradient) ── */
-  --color-brand: #D94A56;
+  --color-brand: #B3E653; /* REBRANDED green (Figma Brand/Primary) */
 
   /* ── Figma Palette: Column 1 — Red (Brand) ── */
   --color-red:       #D94A56;   /* Row 1 — Saturated */
@@ -43,19 +48,19 @@
   --color-navy-mid:   #616B7B;   /* Row 2 — Visible in Figma as gray */
   --color-navy-light: #DADDE3;   /* Row 3 */
 
-  /* ── Primary — Derived scale from brand #D94A56 ── */
-  --color-primary-50:  #FDF2F3;
-  --color-primary-100: #FCE4E6;
-  --color-primary-200: #F9CCD0;
-  --color-primary-300: #F2A0A8;
-  --color-primary-400: #E6717C;
-  --color-primary-450: #E3636E;  /* Figma hover fill — TestCard button */
-  --color-primary-500: #D94A56;  /* = Brand */
-  --color-primary-600: #C33040;
-  --color-primary-700: #A42535;
-  --color-primary-800: #892231;
-  --color-primary-900: #76202F;
-  --color-primary-950: #410D15;
+  /* ── Primary — REBRANDED: green ramp anchored on Figma Brand/* ── */
+  --color-primary-50:  #FBFEF3;
+  --color-primary-100: #F2FADD;  /* Brand/Tint (Figma) */
+  --color-primary-200: #E9F6D4;  /* Brand/Surface (Figma) */
+  --color-primary-300: #D8EFAE;
+  --color-primary-400: #C6EA82;
+  --color-primary-450: #9AD534;  /* Brand/Hover (Figma) */
+  --color-primary-500: #B3E653;  /* = Brand (Figma Brand/Primary) */
+  --color-primary-600: #9AD534;  /* Brand/Hover (Figma) */
+  --color-primary-700: #7DB024;
+  --color-primary-800: #5E8420;
+  --color-primary-900: #466420;
+  --color-primary-950: #26380E;
 
   /* ── Neutral — Gray scale ── */
   --color-neutral-0:   #FFFFFF;

@@ -11,8 +11,12 @@ export type AvatarProps = {
   src?: string | null;
   alt?: string;
   name?: string;
+  fallback?: string;
   size?: AvatarSize;
   className?: string;
+  status?: boolean;
+  bg?: string;
+  textColor?: string;
 };
 
 const getInitials = (name: string) => {
@@ -28,8 +32,12 @@ export const Avatar = ({
   src,
   alt = '',
   name = '',
+  fallback,
   size = 'md',
   className = '',
+  status = false,
+  bg,
+  textColor,
 }: AvatarProps) => {
   const classNames = [
     'avatar',
@@ -37,17 +45,21 @@ export const Avatar = ({
     className,
   ].filter(Boolean).join(' ');
 
-  if (src) {
-    return (
-      <div className={classNames}>
-        <img src={src} alt={alt || name} className="avatar__img" />
-      </div>
-    );
-  }
+  const style: React.CSSProperties = {};
+  if (bg) style.background = bg;
+  if (textColor) style.color = textColor;
+
+  const displayName = name || fallback || '';
+  const inner = src ? (
+    <img src={src} alt={alt || displayName} className="avatar__img" />
+  ) : (
+    <span className="avatar__initials">{displayName ? getInitials(displayName) : '?'}</span>
+  );
 
   return (
-    <div className={classNames}>
-      <span className="avatar__initials">{name ? getInitials(name) : '?'}</span>
+    <div className={classNames} style={Object.keys(style).length ? style : undefined}>
+      {inner}
+      {status && <span className="avatar__status" />}
     </div>
   );
 };

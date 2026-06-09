@@ -4,27 +4,43 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-full);
-  overflow: hidden;
-  background: var(--bg-brand);
-  color: var(--text-inverse);
-  font-family: var(--font-primary);
-  font-weight: var(--font-semibold);
+  border-radius: 100px;
+  overflow: visible;
+  position: relative;
+  background: var(--color-brand, #B3E653);
+  color: var(--color-ink-900, #191D24);  /* dark text on brand-green per Figma */
+  font-family: var(--font-inter, "Inter", sans-serif);
+  font-weight: 700;
   flex-shrink: 0;
+  line-height: 1;
 }
 
-.avatar--xs { width: 24px; height: 24px; font-size: 10px; }
-.avatar--sm { width: 32px; height: 32px; font-size: var(--text-xs); }
-.avatar--md { width: 40px; height: 40px; font-size: var(--text-sm); }
-.avatar--lg { width: 56px; height: 56px; font-size: var(--text-lg); }
-.avatar--xl { width: 80px; height: 80px; font-size: var(--text-2xl); }
+/* Exact px from Figma: XS=11px · SM=13px · MD=15px · LG=20px · XL=24px */
+.avatar--xs { width: 24px; height: 24px; font-size: 11px; }
+.avatar--sm { width: 32px; height: 32px; font-size: 13px; }
+.avatar--md { width: 40px; height: 40px; font-size: 15px; }
+.avatar--lg { width: 56px; height: 56px; font-size: 20px; }
+.avatar--xl { width: 80px; height: 80px; font-size: 24px; }
 
 .avatar__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: inherit;
+  overflow: hidden;
 }
 
 .avatar__initials {
   line-height: 1;
+}
+
+.avatar__status {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-brand, #B3E653);
+  border: 2px solid white;
 }
