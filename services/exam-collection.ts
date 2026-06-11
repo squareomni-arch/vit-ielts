@@ -118,10 +118,20 @@ export async function getExamCollections(
     // filter is applied separately below — searching only quiz.title misses
     // the case where the user types "28" looking for the mock test "Test 28"
     // (whose name lives on mock_tests.title, not on the inner quizzes).
+    //
+    // When a `parts` filter is active we also fetch passage ids so we can
+    // count them in JS and discard quizzes whose passage count is not in the
+    // requested set. The passages relation is small (≤4 rows per quiz) so
+    // the extra data is negligible.
     // -----------------------------------------------------------------------
+    const selectColumns =
+        filters.parts && filters.parts.length > 0
+            ? "id, passages(id)"
+            : "id";
+
     let quizQuery = supabase
         .from("quizzes")
-        .select("id")
+        .select(selectColumns)
         .eq("status", "published")
         .neq("type", "practice");
 
@@ -129,17 +139,49 @@ export async function getExamCollections(
         quizQuery = quizQuery.eq("type", filters.type);
     }
     if (filters.questionForm) {
-        // questionForm is comma-separated in DB; use ilike for partial match
-        quizQuery = quizQuery.ilike(
-            "question_form",
-            `%${sanitizeFilterValue(filters.questionForm)}%`
-        );
+        // Support comma-separated list of question-form slugs.
+        // Each slug is matched with ilike (partial) against the DB column,
+        // which itself stores a comma-separated list of canonical slugs.
+        // Multiple slugs use OR logic: a quiz qualifies if it contains ANY.
+        const forms = filters.questionForm
+            .split(",")
+            .map((f) => sanitizeFilterValue(f.trim()))
+            .filter((f) => f.length > 0);
+
+        if (forms.length === 1) {
+            // Single value — simple ilike (backward-compatible)
+            quizQuery = quizQuery.ilike("question_form", `%${forms[0]}%`);
+        } else if (forms.length > 1) {
+            // Multiple values — Supabase .or() with ilike filters
+            const orFilter = forms
+                .map((f) => `question_form.ilike.%${f}%`)
+                .join(",");
+            quizQuery = quizQuery.or(orFilter);
+        }
+    }
+    if (filters.subscription === "pro") {
+        quizQuery = quizQuery.eq("pro_user_only", true);
+    } else if (filters.subscription === "free") {
+        quizQuery = quizQuery.eq("pro_user_only", false);
     }
 
     const { data: matchedQuizzes, error: quizError } = await quizQuery;
     if (quizError) throw quizError;
 
-    const matchedQuizIds = (matchedQuizzes ?? []).map((q) => q.id as string);
+    // Apply parts filter in JS: keep only quizzes whose passage count is in
+    // the requested set. When parts is empty/undefined this is a no-op.
+    const partsSet =
+        filters.parts && filters.parts.length > 0
+            ? new Set(filters.parts)
+            : null;
+
+    const matchedQuizIds = (matchedQuizzes ?? [])
+        .filter((q: any) => {
+            if (!partsSet) return true;
+            const count = Array.isArray(q.passages) ? q.passages.length : 0;
+            return partsSet.has(count);
+        })
+        .map((q: any) => q.id as string);
 
     // No matching quizzes (after type/questionForm) → empty response
     if (matchedQuizIds.length === 0) {

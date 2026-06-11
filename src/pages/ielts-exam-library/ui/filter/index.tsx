@@ -6,22 +6,26 @@
  *   functional controls but stacked.
  *
  * FUNCTIONAL chips (wired to react-hook-form):
- *   - Type         → form field `type`     (all | academic | general)
- *   - Skill        → form field `skill`    (all | reading | listening)
- *   - Sort         → form field `sort`     (newest | popular | high-ranking)
- *   - Collection   → form field `collection`
- *   - Search       → form field `search`
+ *   - Type          → form field `type`         (all | academic | general)
+ *   - Skill         → form field `skill`         (all | reading | listening)
+ *   - Question type → form field `questionForm`  (multi-select, comma-separated)
+ *   - Subscription  → form field `subscription`  (pro | free | "")
+ *   - Parts         → form field `parts`         (multi-select, comma-separated, 1–4)
+ *   - Sort          → form field `sort`          (newest | popular | high-ranking)
+ *   - Collection    → form field `collection`
+ *   - Search        → form field `search`
  *
- * DECORATIVE chips (styled, no handlers — Figma-only at this stage):
- *   - Question type (with badge count "3")
- *   - Parts
- *   - Subscription
+ * DECORATIVE chips (styled, no handlers — not yet backed by backend data):
  *   - Band
  */
 
 import { useEffect, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import type { FilterFormValues } from "..";
+import {
+  READING_QUESTION_FORMS,
+  LISTENING_QUESTION_FORMS,
+} from "@/shared/constants";
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
 
@@ -180,6 +184,31 @@ const SORT_OPTIONS = [
   { value: "high-ranking" as const, label: "High Ranking" },
 ];
 
+/** Deduplicated union of reading + listening question form options */
+const QUESTION_FORM_OPTIONS: { value: string; label: string }[] = (() => {
+  const seen = new Set<string>();
+  const result: { value: string; label: string }[] = [];
+  for (const opt of [...READING_QUESTION_FORMS, ...LISTENING_QUESTION_FORMS]) {
+    if (!seen.has(opt.value)) {
+      seen.add(opt.value);
+      result.push({ value: opt.value, label: opt.label });
+    }
+  }
+  return result;
+})();
+
+const SUBSCRIPTION_OPTIONS = [
+  { value: "pro" as const, label: "PRO only" },
+  { value: "free" as const, label: "Free" },
+];
+
+const PARTS_OPTIONS = [
+  { value: 1, label: "1 part" },
+  { value: 2, label: "2 parts" },
+  { value: 3, label: "3 parts" },
+  { value: 4, label: "4 parts" },
+];
+
 /* ─── Main component ─────────────────────────────────────────────────── */
 
 export const Filter = ({
@@ -203,12 +232,54 @@ export const Filter = ({
     if (mobile) onClose?.();
   };
 
+  /** Parse comma-separated questionForm string → Set of active slugs */
+  const activeQuestionForms = new Set<string>(
+    values.questionForm
+      ? values.questionForm.split(",").filter((s) => s.length > 0)
+      : []
+  );
+
+  /** Toggle a single question-form slug in/out of the comma-separated field */
+  const toggleQuestionForm = (slug: string) => {
+    const next = new Set(activeQuestionForms);
+    if (next.has(slug)) {
+      next.delete(slug);
+    } else {
+      next.add(slug);
+    }
+    setValue("questionForm", Array.from(next).join(","), { shouldDirty: true });
+    setValue("page", 1, { shouldDirty: true });
+  };
+
+  /** Parse comma-separated parts string → Set of active counts (as strings for Set lookup) */
+  const activePartsSet = new Set<string>(
+    values.parts
+      ? values.parts.split(",").filter((s) => s.length > 0)
+      : []
+  );
+
+  /** Toggle a single part count in/out of the comma-separated parts field */
+  const togglePart = (count: number) => {
+    const key = String(count);
+    const next = new Set(activePartsSet);
+    if (next.has(key)) {
+      next.delete(key);
+    } else {
+      next.add(key);
+    }
+    setValue("parts", Array.from(next).join(","), { shouldDirty: true });
+    setValue("page", 1, { shouldDirty: true });
+  };
+
   const resetFilters = () => {
     setValue("type", "academic", { shouldDirty: true });
     setValue("skill", "reading", { shouldDirty: true });
     setValue("collection", "", { shouldDirty: true });
     setValue("sort", "newest", { shouldDirty: true });
     setValue("search", "", { shouldDirty: true });
+    setValue("questionForm", "", { shouldDirty: true });
+    setValue("subscription", "", { shouldDirty: true });
+    setValue("parts", "", { shouldDirty: true });
     setValue("page", 1, { shouldDirty: true });
     if (mobile) onClose?.();
   };
@@ -218,7 +289,10 @@ export const Filter = ({
     (values.type && values.type !== "academic") ||
     (values.skill && values.skill !== "all") ||
     !!values.collection ||
-    (values.sort && values.sort !== "newest");
+    (values.sort && values.sort !== "newest") ||
+    !!values.questionForm ||
+    !!values.subscription ||
+    !!values.parts;
 
   /* ── Mobile drawer variant ─────────────────────────────────────── */
   if (mobile) {
@@ -302,6 +376,58 @@ export const Filter = ({
           </div>
         </div>
 
+        {/* Question type */}
+        <div>
+          <p className="mb-2 text-caption-bold font-bold text-ink-muted uppercase tracking-[0.08em]">Question type</p>
+          <div className="flex flex-col gap-2">
+            {QUESTION_FORM_OPTIONS.map((opt) => (
+              <DropdownOption
+                key={opt.value}
+                label={opt.label}
+                checked={activeQuestionForms.has(opt.value)}
+                onToggle={() => toggleQuestionForm(opt.value)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Subscription */}
+        <div>
+          <p className="mb-2 text-caption-bold font-bold text-ink-muted uppercase tracking-[0.08em]">Subscription</p>
+          <div className="flex flex-col gap-2">
+            {SUBSCRIPTION_OPTIONS.map((opt) => (
+              <DropdownOption
+                key={opt.value}
+                label={opt.label}
+                checked={values.subscription === opt.value}
+                onToggle={() => {
+                  setValue(
+                    "subscription",
+                    values.subscription === opt.value ? "" : opt.value,
+                    { shouldDirty: true }
+                  );
+                  setValue("page", 1, { shouldDirty: true });
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Parts */}
+        <div>
+          <p className="mb-2 text-caption-bold font-bold text-ink-muted uppercase tracking-[0.08em]">Parts</p>
+          <div className="flex flex-col gap-2">
+            {PARTS_OPTIONS.map((opt) => (
+              <DropdownOption
+                key={opt.value}
+                label={opt.label}
+                checked={activePartsSet.has(String(opt.value))}
+                onToggle={() => togglePart(opt.value)}
+              />
+            ))}
+          </div>
+        </div>
+
         {/* Collection */}
         {collections.length > 0 && (
           <div>
@@ -378,14 +504,65 @@ export const Filter = ({
         ))}
       </ChipDropdown>
 
-      {/* ── DECORATIVE: Question type (badge 3) ── */}
-      <Chip label="Question type" badge={3} decorative />
+      {/* ── FUNCTIONAL: Question type multi-select dropdown ── */}
+      <ChipDropdown
+        label="Question type"
+        active={activeQuestionForms.size > 0}
+        badge={activeQuestionForms.size > 0 ? activeQuestionForms.size : undefined}
+      >
+        {QUESTION_FORM_OPTIONS.map((opt) => (
+          <DropdownOption
+            key={opt.value}
+            label={opt.label}
+            checked={activeQuestionForms.has(opt.value)}
+            onToggle={() => toggleQuestionForm(opt.value)}
+          />
+        ))}
+      </ChipDropdown>
 
-      {/* ── DECORATIVE: Parts ── */}
-      <Chip label="Parts" decorative />
+      {/* ── FUNCTIONAL: Parts multi-select dropdown ── */}
+      <ChipDropdown
+        label="Parts"
+        active={activePartsSet.size > 0}
+        badge={activePartsSet.size > 0 ? activePartsSet.size : undefined}
+      >
+        {PARTS_OPTIONS.map((opt) => (
+          <DropdownOption
+            key={opt.value}
+            label={opt.label}
+            checked={activePartsSet.has(String(opt.value))}
+            onToggle={() => togglePart(opt.value)}
+          />
+        ))}
+      </ChipDropdown>
 
-      {/* ── DECORATIVE: Subscription ── */}
-      <Chip label="Subscription" decorative />
+      {/* ── FUNCTIONAL: Subscription dropdown ── */}
+      <ChipDropdown
+        label={
+          values.subscription === "pro"
+            ? "PRO only"
+            : values.subscription === "free"
+            ? "Free"
+            : "Subscription"
+        }
+        active={!!values.subscription}
+      >
+        {SUBSCRIPTION_OPTIONS.map((opt) => (
+          <DropdownOption
+            key={opt.value}
+            label={opt.label}
+            checked={values.subscription === opt.value}
+            onToggle={() => {
+              setValue(
+                "subscription",
+                values.subscription === opt.value ? "" : opt.value,
+                { shouldDirty: true }
+              );
+              setValue("page", 1, { shouldDirty: true });
+            }}
+          />
+        ))}
+      </ChipDropdown>
 
       {/* ── DECORATIVE: Band ── */}
       <Chip label="Band" decorative />

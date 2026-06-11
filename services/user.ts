@@ -28,6 +28,8 @@ type UserProfileUpdate = {
     gender?: string;
     date_of_birth?: string;
     phone_number?: string;
+    country?: string;
+    native_language?: string;
 };
 
 type TargetScoreUpdate = {

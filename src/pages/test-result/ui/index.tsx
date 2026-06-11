@@ -18,6 +18,7 @@ import { Button } from "@/shared/ui/ds/atoms/button";
 import { AppShell } from "@/widgets/layouts";
 
 import type { IPracticeSingle, ITestResult, IUser } from "../api";
+import type { ResultAnalytics } from "~services/test-analytics";
 import AnswerKeys from "./answer-keys";
 
 dayjs.extend(duration);
@@ -42,6 +43,7 @@ type PageTestResultProps = {
   testResult: ITestResult;
   user: IUser;
   scoreData: ReturnType<typeof calculateScore>;
+  analytics?: ResultAnalytics;
 };
 
 export function PageTestResult({
@@ -49,6 +51,7 @@ export function PageTestResult({
   testResult,
   user,
   scoreData,
+  analytics,
 }: PageTestResultProps) {
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -328,7 +331,6 @@ export function PageTestResult({
         </div>
 
         {/* ── Stat Cards row ── */}
-        {/* Backed: Accuracy, Score/Band, Time taken (if hasDuration). No Band uplift / Percentile. */}
         <div className="flex gap-5 flex-wrap">
           {/* Accuracy */}
           <div className="bg-surface-card border border-border-hairline rounded-3xl p-[22px] flex-1 min-w-[140px] flex flex-col gap-2.5">
@@ -361,6 +363,35 @@ export function PageTestResult({
                   {timeSpent.spent}
                 </span>
                 <span className="font-body text-[13px] text-ink-muted">Time taken</span>
+              </div>
+            </div>
+          )}
+
+          {/* Percentile — only when analytics data is available */}
+          {analytics?.percentile != null && (
+            <div className="bg-surface-card border border-border-hairline rounded-3xl p-[22px] flex-1 min-w-[140px] flex flex-col gap-2.5">
+              <div className="rounded-xl w-[42px] h-[42px] shrink-0 bg-[rgba(34,197,94,0.14)]" />
+              <div className="flex flex-col gap-0.5">
+                <span className="font-display font-bold text-[22px] text-ink-900">
+                  Top {100 - analytics.percentile}%
+                </span>
+                <span className="font-body text-[13px] text-ink-muted">
+                  Percentile
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Band uplift — only when a prior result exists */}
+          {analytics?.bandUplift != null && (
+            <div className="bg-surface-card border border-border-hairline rounded-3xl p-[22px] flex-1 min-w-[140px] flex flex-col gap-2.5">
+              <div className="rounded-xl w-[42px] h-[42px] shrink-0 bg-[rgba(168,85,247,0.14)]" />
+              <div className="flex flex-col gap-0.5">
+                <span className="font-display font-bold text-[22px] text-ink-900">
+                  {analytics.bandUplift > 0 ? "+" : ""}
+                  {analytics.bandUplift}
+                </span>
+                <span className="font-body text-[13px] text-ink-muted">Band uplift</span>
               </div>
             </div>
           )}

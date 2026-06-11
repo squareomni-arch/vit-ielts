@@ -1,68 +1,21 @@
 import { AppShell } from "@/widgets/layouts";
+import type { ProgressOverview } from "~services/progress";
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
+// ─── Skill display config ─────────────────────────────────────────────────────
 
-const STAT_CARDS = [
-  {
-    icon: "trophy",
-    iconBg: "rgba(179,230,83,0.16)",
-    iconColor: "#b3e653",
-    value: "7.0",
-    label: "Overall band",
-    sub: "+0.5 this month",
-  },
-  {
-    icon: "assignment",
-    iconBg: "rgba(82,129,249,0.16)",
-    iconColor: "#5281f9",
-    value: "42",
-    label: "Tests taken",
-    sub: "8 this week",
-  },
-  {
-    icon: "calendar_today",
-    iconBg: "rgba(252,148,89,0.16)",
-    iconColor: "#fc945a",
-    value: "6 days",
-    label: "Study streak",
-    sub: "Personal best",
-  },
-  {
-    icon: "schedule",
-    iconBg: "rgba(124,110,249,0.16)",
-    iconColor: "#7c6ef9",
-    value: "68h",
-    label: "Study time",
-    sub: "12h this week",
-  },
-] as const;
+const SKILL_COLOR: Record<string, string> = {
+  listening: "#5281f9",
+  reading: "#b3e653",
+  writing: "#fc945a",
+  speaking: "#7c6ef9",
+};
 
-// Bar heights (px) from Figma: W1–W6 are muted, W7–W8 are green
-const BAND_BARS: { week: string; height: number; active: boolean }[] = [
-  { week: "W1", height: 46, active: false },
-  { week: "W2", height: 46, active: false },
-  { week: "W3", height: 82, active: false },
-  { week: "W4", height: 82, active: false },
-  { week: "W5", height: 118, active: false },
-  { week: "W6", height: 118, active: false },
-  { week: "W7", height: 154, active: true },
-  { week: "W8", height: 154, active: true },
-];
-
-// skill score out of 9 → flex ratio out of 90
-const SKILLS = [
-  { name: "Listening", score: 7.5, color: "#5281f9" },
-  { name: "Reading", score: 7.0, color: "#b3e653" },
-  { name: "Writing", score: 6.5, color: "#fc945a" },
-  { name: "Speaking", score: 6.5, color: "#7c6ef9" },
-] as const;
-
-const RECENT_TESTS = [
-  { title: "Cambridge 18 — Reading Test 1", meta: "Reading · 5 Jun 2026", band: "Band 7.0", last: false },
-  { title: "Cambridge 17 — Listening Test 3", meta: "Listening · 3 Jun 2026", band: "Band 7.5", last: false },
-  { title: "Cambridge 19 — Writing Task 2", meta: "Writing · 1 Jun 2026", band: "Band 6.5", last: false },
-  { title: "Cambridge 16 — Reading Test 2", meta: "Reading · 28 May 2026", band: "Band 6.5", last: true },
-] as const;
+const SKILL_LABEL: Record<string, string> = {
+  listening: "Listening",
+  reading: "Reading",
+  writing: "Writing",
+  speaking: "Speaking",
+};
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -72,14 +25,12 @@ const StatCard = ({
   iconColor,
   value,
   label,
-  sub,
 }: {
   icon: string;
   iconBg: string;
   iconColor: string;
   value: string;
   label: string;
-  sub: string;
 }) => (
   <div className="flex-1 min-w-0 bg-white border border-[rgba(25,29,36,0.1)] rounded-[24px] p-[22px] flex flex-col gap-[10px]">
     <div
@@ -96,7 +47,6 @@ const StatCard = ({
     <div className="flex flex-col gap-[2px]">
       <p className="font-display font-bold text-[24px] text-[#191d24] leading-none">{value}</p>
       <p className="font-inter font-normal text-[13px] text-[#6a7282] leading-normal">{label}</p>
-      <p className="font-inter font-semibold text-[12px] text-[#9ad534] leading-normal">{sub}</p>
     </div>
   </div>
 );
@@ -110,7 +60,6 @@ const SkillBar = ({
   score: number;
   color: string;
 }) => {
-  // score / 9 gives the fill ratio; remaining = (9 - score) / 9
   const filled = Math.round((score / 9) * 100);
   const remaining = 100 - filled;
   return (
@@ -130,9 +79,45 @@ const SkillBar = ({
   );
 };
 
+// ─── Props ────────────────────────────────────────────────────────────────────
+
+interface PageMyProgressProps {
+  progressOverview: ProgressOverview;
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export const PageMyProgress = () => {
+export const PageMyProgress = ({ progressOverview }: PageMyProgressProps) => {
+  const { latestBand, totalTests, skillAverages, recentResults, bandTrend } =
+    progressOverview;
+
+  // ── Stat cards: only show cards backed by real data ──────────────────────
+  const bandValue = latestBand !== null ? String(latestBand) : "—";
+  const testsValue = String(totalTests);
+
+  // ── Band trend chart ──────────────────────────────────────────────────────
+  // Normalise bar heights to a 46–154px range (as in Figma).
+  const MIN_H = 46;
+  const MAX_H = 154;
+  const maxBand = bandTrend.length > 0 ? Math.max(...bandTrend.map((t) => t.band)) : 9;
+  const minBand = bandTrend.length > 0 ? Math.min(...bandTrend.map((t) => t.band)) : 0;
+  const bandRange = maxBand - minBand || 1;
+
+  const trendBars = bandTrend.map((t, i) => {
+    const ratio = (t.band - minBand) / bandRange;
+    const h = Math.round(MIN_H + ratio * (MAX_H - MIN_H));
+    // The last bar(s) are "active" (green)
+    const active = i >= bandTrend.length - 2;
+    return { label: `W${i + 1}`, height: h, active, band: t.band };
+  });
+
+  // ── Skill bars: only render skills that have real results ────────────────
+  const skillBars = skillAverages.map((s) => ({
+    name: SKILL_LABEL[s.skill] ?? s.skill,
+    score: s.average ?? 0,
+    color: SKILL_COLOR[s.skill] ?? "#b3e653",
+  }));
+
   return (
     <div className="space-y-[28px]">
 
@@ -148,9 +133,20 @@ export const PageMyProgress = () => {
 
       {/* ── Stat cards row ── */}
       <div className="flex gap-[20px] items-stretch">
-        {STAT_CARDS.map((card) => (
-          <StatCard key={card.label} {...card} />
-        ))}
+        <StatCard
+          icon="trophy"
+          iconBg="rgba(179,230,83,0.16)"
+          iconColor="#b3e653"
+          value={bandValue}
+          label="Overall band"
+        />
+        <StatCard
+          icon="assignment"
+          iconBg="rgba(82,129,249,0.16)"
+          iconColor="#5281f9"
+          value={testsValue}
+          label="Tests taken"
+        />
       </div>
 
       {/* ── Analytics row: Band trend + By skill ── */}
@@ -164,71 +160,91 @@ export const PageMyProgress = () => {
           <p className="font-inter font-normal text-[13px] text-[#6a7282] whitespace-nowrap">
             Estimated band over the last 8 weeks
           </p>
-          {/* Chart */}
-          <div className="flex gap-[16px] items-end pt-[24px]">
-            {BAND_BARS.map(({ week, height, active }) => (
-              <div key={week} className="flex-1 min-w-0 flex flex-col gap-[8px] items-center justify-end">
+          {trendBars.length > 0 ? (
+            <div className="flex gap-[16px] items-end pt-[24px]">
+              {trendBars.map(({ label, height, active, band }) => (
                 <div
-                  className="rounded-[8px] w-[40px] shrink-0"
-                  style={{
-                    height: `${height}px`,
-                    background: active ? "#b3e653" : "#d9e0cf",
-                  }}
-                />
-                <p className="font-inter font-medium text-[11px] text-[#6a7282] whitespace-nowrap">
-                  {week}
-                </p>
-              </div>
-            ))}
-          </div>
+                  key={label}
+                  className="flex-1 min-w-0 flex flex-col gap-[8px] items-center justify-end"
+                  title={`Band ${band}`}
+                >
+                  <div
+                    className="rounded-[8px] w-[40px] shrink-0"
+                    style={{
+                      height: `${height}px`,
+                      background: active ? "#b3e653" : "#d9e0cf",
+                    }}
+                  />
+                  <p className="font-inter font-medium text-[11px] text-[#6a7282] whitespace-nowrap">
+                    {label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="pt-[24px] font-inter text-[13px] text-[#6a7282]">
+              No data yet — submit a test to see your trend.
+            </p>
+          )}
         </div>
 
-        {/* By skill */}
-        <div className="bg-white border border-[rgba(25,29,36,0.1)] rounded-[24px] p-[26px] flex flex-col gap-[16px] shrink-0 w-[380px]">
-          <p className="font-display font-bold text-[18px] text-[#191d24] leading-none whitespace-nowrap">
-            By skill
-          </p>
-          {SKILLS.map((skill) => (
-            <SkillBar key={skill.name} name={skill.name} score={skill.score} color={skill.color} />
-          ))}
-        </div>
+        {/* By skill — only render when there is at least one skill result */}
+        {skillBars.length > 0 && (
+          <div className="bg-white border border-[rgba(25,29,36,0.1)] rounded-[24px] p-[26px] flex flex-col gap-[16px] shrink-0 w-[380px]">
+            <p className="font-display font-bold text-[18px] text-[#191d24] leading-none whitespace-nowrap">
+              By skill
+            </p>
+            {skillBars.map((skill) => (
+              <SkillBar
+                key={skill.name}
+                name={skill.name}
+                score={skill.score}
+                color={skill.color}
+              />
+            ))}
+          </div>
+        )}
 
       </div>
 
       {/* ── Recent tests ── */}
-      <div className="bg-white border border-[rgba(25,29,36,0.1)] rounded-[24px] p-[26px]">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-[8px]">
-          <p className="font-display font-bold text-[18px] text-[#191d24] whitespace-nowrap">
-            Recent tests
-          </p>
-          <button className="font-inter font-semibold text-[14px] text-[#9ad534] hover:text-[#b3e653] transition-colors">
-            View all
-          </button>
-        </div>
-
-        {/* Rows */}
-        {RECENT_TESTS.map(({ title, meta, band, last }) => (
-          <div
-            key={title}
-            className={`flex items-center justify-between py-[14px] ${last ? "" : "border-b border-[rgba(25,29,36,0.1)]"}`}
-          >
-            <div className="flex-1 min-w-0 flex flex-col gap-[2px]">
-              <p className="font-inter font-semibold text-[15px] text-[#191d24] whitespace-nowrap">
-                {title}
-              </p>
-              <p className="font-inter font-normal text-[13px] text-[#6a7282] whitespace-nowrap">
-                {meta}
-              </p>
-            </div>
-            <div className="bg-[#b3e653] flex items-center justify-center px-[14px] py-[6px] rounded-full shrink-0">
-              <p className="font-inter font-bold text-[13px] text-[#191d24] whitespace-nowrap">
-                {band}
-              </p>
-            </div>
+      {recentResults.length > 0 && (
+        <div className="bg-white border border-[rgba(25,29,36,0.1)] rounded-[24px] p-[26px]">
+          {/* Header */}
+          <div className="flex items-center justify-between pb-[8px]">
+            <p className="font-display font-bold text-[18px] text-[#191d24] whitespace-nowrap">
+              Recent tests
+            </p>
           </div>
-        ))}
-      </div>
+
+          {/* Rows */}
+          {recentResults.map(({ id, title, meta, bandLabel }, idx) => {
+            const isLast = idx === recentResults.length - 1;
+            return (
+              <div
+                key={id}
+                className={`flex items-center justify-between py-[14px] ${
+                  isLast ? "" : "border-b border-[rgba(25,29,36,0.1)]"
+                }`}
+              >
+                <div className="flex-1 min-w-0 flex flex-col gap-[2px]">
+                  <p className="font-inter font-semibold text-[15px] text-[#191d24] whitespace-nowrap">
+                    {title}
+                  </p>
+                  <p className="font-inter font-normal text-[13px] text-[#6a7282] whitespace-nowrap">
+                    {meta}
+                  </p>
+                </div>
+                <div className="bg-[#b3e653] flex items-center justify-center px-[14px] py-[6px] rounded-full shrink-0">
+                  <p className="font-inter font-bold text-[13px] text-[#191d24] whitespace-nowrap">
+                    {bandLabel}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
     </div>
   );

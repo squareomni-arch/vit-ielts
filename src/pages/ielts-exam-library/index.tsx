@@ -40,10 +40,36 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
     const type = parseType(query.type);
     const search = typeof query.search === "string" ? query.search : undefined;
     const page = Number(query.page) || 1;
+    const questionForm =
+      typeof query.questionForm === "string" && query.questionForm
+        ? query.questionForm
+        : undefined;
+    const rawSub = Array.isArray(query.subscription)
+      ? query.subscription[0]
+      : query.subscription;
+    const subscription: "pro" | "free" | undefined =
+      rawSub === "pro" || rawSub === "free" ? rawSub : undefined;
+
+    const rawParts = Array.isArray(query.parts) ? query.parts[0] : query.parts;
+    const parts: number[] | undefined =
+      typeof rawParts === "string" && rawParts.length > 0
+        ? rawParts
+            .split(",")
+            .map((v) => parseInt(v.trim(), 10))
+            .filter((n) => !isNaN(n) && n > 0)
+        : undefined;
 
     const [heroResult, dataResult] = await Promise.allSettled([
       readConfig<ExamLibraryHeroConfig>(supabase, "ielts-exam-library/hero-banner"),
-      getExamCollections(supabase, { type, search, page, pageSize: PAGE_SIZE }),
+      getExamCollections(supabase, {
+        type,
+        search,
+        page,
+        pageSize: PAGE_SIZE,
+        questionForm,
+        subscription,
+        parts,
+      }),
     ]);
 
     const heroConfig: ExamLibraryHeroConfig =

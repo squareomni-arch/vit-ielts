@@ -21,6 +21,9 @@ type UserDataForm = {
   password: string;
   confirm_password: string;
   phoneNumber: string;
+  country?: string;
+  native_language?: string;
+  target_band?: number;
 };
 
 export const PageMyProfile = () => {
@@ -71,6 +74,9 @@ export const PageMyProfile = () => {
               gender: profile.gender ? [profile.gender] : ["male"],
               dateOfBirth: profile.date_of_birth,
               phoneNumber: profile.phone_number || "",
+              country: profile.country || "",
+              nativeLanguage: profile.native_language || "",
+              targetScore: profile.target_score || null,
               avatar: profile.avatar_url
                 ? {
                     node: {
@@ -109,6 +115,12 @@ export const PageMyProfile = () => {
       if (data.viewer.userData.dateOfBirth)
         setValue("date_of_birth", dayjs(data.viewer.userData.dateOfBirth));
       setValue("phoneNumber", data.viewer.userData.phoneNumber);
+      setValue("country", data.viewer.userData.country || "");
+      setValue("native_language", data.viewer.userData.nativeLanguage || "");
+      const tb =
+        data.viewer.userData.targetScore?.reading ??
+        data.viewer.userData.targetScore?.listening;
+      if (tb != null) setValue("target_band", tb);
     }
   }, [data, setValue]);
 
@@ -123,6 +135,20 @@ export const PageMyProfile = () => {
       if (dirtyFields.phoneNumber) updateData.phone_number = formData.phoneNumber;
       if (dirtyFields.date_of_birth)
         updateData.date_of_birth = formData.date_of_birth?.format("YYYY-MM-DD");
+      if (dirtyFields.country) updateData.country = formData.country;
+      if (dirtyFields.native_language)
+        updateData.native_language = formData.native_language;
+      // The page exposes a single "target band"; store it across all four
+      // skills in the per-skill target_score JSONB column.
+      if (dirtyFields.target_band && formData.target_band != null) {
+        const b = formData.target_band;
+        updateData.target_score = {
+          reading: b,
+          listening: b,
+          speaking: b,
+          writing: b,
+        };
+      }
 
       // Update profile fields only when something actually changed (an empty
       // update would be a wasted write — and breaks "password only" saves).
@@ -163,6 +189,11 @@ export const PageMyProfile = () => {
           ? dayjs(data.viewer.userData.dateOfBirth)
           : undefined,
         phoneNumber: data.viewer.userData.phoneNumber,
+        country: data.viewer.userData.country || "",
+        native_language: data.viewer.userData.nativeLanguage || "",
+        target_band:
+          data.viewer.userData.targetScore?.reading ??
+          data.viewer.userData.targetScore?.listening,
         password: "",
         confirm_password: "",
         avatar: null,
@@ -412,6 +443,71 @@ export const PageMyProfile = () => {
                         {errors.date_of_birth.message}
                       </span>
                     )}
+                  </div>
+
+                  {/* Country + Native language row */}
+                  <div className="flex flex-col sm:flex-row gap-5">
+                    <div className="flex-1">
+                      <label className="block text-label-bold font-bold text-ink-900 mb-1.5">
+                        Country
+                      </label>
+                      <Controller
+                        control={control}
+                        name="country"
+                        render={({ field }) => (
+                          <Input
+                            size="large"
+                            {...field}
+                            disabled={!isEditing}
+                            placeholder="Enter your country"
+                            className="rounded-xl!"
+                          />
+                        )}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-label-bold font-bold text-ink-900 mb-1.5">
+                        Native language
+                      </label>
+                      <Controller
+                        control={control}
+                        name="native_language"
+                        render={({ field }) => (
+                          <Input
+                            size="large"
+                            {...field}
+                            disabled={!isEditing}
+                            placeholder="Enter your native language"
+                            className="rounded-xl!"
+                          />
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Target band */}
+                  <div>
+                    <label className="block text-label-bold font-bold text-ink-900 mb-1.5">
+                      Target band
+                    </label>
+                    <Controller
+                      control={control}
+                      name="target_band"
+                      render={({ field }) => (
+                        <Select
+                          size="large"
+                          className="w-full sm:w-[220px]"
+                          disabled={!isEditing}
+                          placeholder="Select target band"
+                          allowClear
+                          options={[5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9].map((b) => ({
+                            value: b,
+                            label: `Band ${b.toFixed(1)}`,
+                          }))}
+                          {...field}
+                        />
+                      )}
+                    />
                   </div>
 
                   {/* Password row — only shown when editing */}

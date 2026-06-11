@@ -119,6 +119,28 @@ export type VoteEntry = {
 // Users
 // ============================================================================
 
+/**
+ * Persisted per-user preferences stored as JSONB in users.settings.
+ *
+ * NOTE: Storing the preference is the full scope of this feature.
+ * - Applying `appearance` (theming) and `language` (i18n) are future work.
+ * - Applying `timezone` to date/time formatting is future work.
+ * - Actually sending the notification types is future work.
+ *   For now we only persist the user's intent.
+ */
+export type UserSettings = {
+    notifications?: {
+        weeklyReport?: boolean;
+        studyReminders?: boolean;
+        newMockTests?: boolean;
+        communityReplies?: boolean;
+        productUpdates?: boolean;
+    };
+    language?: string;
+    timezone?: string;
+    appearance?: "light" | "dark";
+};
+
 export type User = {
     id: string;
     email: string;
@@ -131,8 +153,12 @@ export type User = {
     gender: string | null;
     date_of_birth: string | null;
     phone_number: string | null;
+    country: string | null;
+    native_language: string | null;
     roles: string[];
     devices: Record<string, { device_id: string }>;
+    /** Persisted user preferences — see UserSettings for the typed shape. */
+    settings: UserSettings;
     created_at: string;
 };
 
@@ -406,7 +432,21 @@ export type SampleEssayFilters = {
 export type ExamCollectionFilters = {
     type?: string;
     search?: string;
+    /**
+     * Comma-separated list of question-form slugs.
+     * When multiple values are provided, a quiz matches if its question_form
+     * contains ANY of them (OR logic via ilike per value).
+     * Single values are backward-compatible.
+     */
     questionForm?: string;
+    /** Filter by subscription tier: "pro" → pro_user_only=true, "free" → pro_user_only=false */
+    subscription?: "pro" | "free";
+    /**
+     * Filter by number of passages (parts) in a quiz.
+     * A quiz matches if its passage count is in this array.
+     * Empty array or undefined = no filter (all counts pass through).
+     */
+    parts?: number[];
     page?: number;
     pageSize?: number;
 };

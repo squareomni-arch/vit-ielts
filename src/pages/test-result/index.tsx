@@ -4,10 +4,12 @@ import { createServerSupabase } from "~supabase/server";
 import { getTestResult } from "~services/test-flow";
 import { getQuizBySlug } from "~services/quiz";
 import { getUserProfile } from "~services/user";
+import { getResultAnalytics } from "~services/test-analytics";
 import { calculateScore } from "@/shared/lib";
 import { safeParseJsonb } from "~services/lib/safeParseJsonb";
 import type { ITestResult, IUser, IPracticeSingle } from "./api";
 import type { QuizWithPassages } from "~services/types/database";
+import type { ResultAnalytics } from "~services/test-analytics";
 
 export { PageTestResult } from "./ui";
 
@@ -223,12 +225,21 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
       parsedTestPart
     );
 
+    // 6. Analytics — percentile + band uplift (read-only, never throws)
+    const analytics: ResultAnalytics = await getResultAnalytics(supabase, {
+      quizId: testResultRow.quiz_id,
+      userId: testResultRow.user_id,
+      score: testResultRow.score ?? 0,
+      resultId: testResultRow.id,
+    });
+
     return {
       props: {
         post,
         testResult,
         user,
         scoreData,
+        analytics,
       },
     };
   }

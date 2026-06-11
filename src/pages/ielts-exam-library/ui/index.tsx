@@ -17,6 +17,12 @@ export type FilterFormValues = {
   collection: string;
   sort: "newest" | "popular" | "high-ranking";
   search: string;
+  /** Comma-separated canonical question-form slugs, or empty string for "all" */
+  questionForm: string;
+  /** "pro" | "free" | "" (empty = all) */
+  subscription: "pro" | "free" | "";
+  /** Comma-separated part counts, e.g. "1,3" — empty string = all */
+  parts: string;
   page: number;
   size: number;
 };
@@ -52,6 +58,9 @@ export const PageIELTSExamLibrary = ({
       collection: (router.query.collection as string) || "",
       sort: (router.query.sort as FilterFormValues["sort"]) || "newest",
       search: (router.query.search as string) || "",
+      questionForm: (router.query.questionForm as string) || "",
+      subscription: ((router.query.subscription as string) || "") as FilterFormValues["subscription"],
+      parts: (router.query.parts as string) || "",
       page: Number(router.query.page) || 1,
       size: PAGE_SIZE,
     }),
@@ -108,6 +117,9 @@ export const PageIELTSExamLibrary = ({
       collection: (router.query.collection as string) || "",
       sort: (router.query.sort as FilterFormValues["sort"]) || "newest",
       search: (router.query.search as string) || "",
+      questionForm: (router.query.questionForm as string) || "",
+      subscription: ((router.query.subscription as string) || "") as FilterFormValues["subscription"],
+      parts: (router.query.parts as string) || "",
       page: Number(router.query.page) || 1,
       size: PAGE_SIZE,
     });
@@ -123,6 +135,9 @@ export const PageIELTSExamLibrary = ({
     if (values.collection) q.collection = values.collection;
     if (values.search) q.search = values.search;
     if (values.sort !== "newest") q.sort = values.sort;
+    if (values.questionForm) q.questionForm = values.questionForm;
+    if (values.subscription) q.subscription = values.subscription;
+    if (values.parts) q.parts = values.parts;
     if (values.page > 1) q.page = String(values.page);
 
     const currentQ = JSON.stringify(router.query);
@@ -136,7 +151,7 @@ export const PageIELTSExamLibrary = ({
   // new reference every render, which would fire this effect every render
   // and keep pushing while SSR navigation is still in flight.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values.type, values.skill, values.collection, values.search, values.sort, values.page, isDirty]);
+  }, [values.type, values.skill, values.collection, values.search, values.sort, values.questionForm, values.subscription, values.parts, values.page, isDirty]);
 
   // Group exams by collection, filtering individual exams by search term
   const groupedCollections = useMemo(() => {
