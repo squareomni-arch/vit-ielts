@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Avatar } from "antd";
 import dayjs from "dayjs";
 import { AppShell } from "@/widgets/layouts";
 import type { AssignmentDetail } from "~services/types/classroom";
@@ -7,45 +6,130 @@ import { ROUTES } from "@/shared/routes";
 
 type Props = { detail: AssignmentDetail };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 const tints = ["#D94A56", "#2563EB", "#7C3AED", "#0EA5E9", "#16A34A", "#EA580C"];
-const tintFor = (k: string) => tints[[...k].reduce((a, c) => a + c.charCodeAt(0), 0) % tints.length];
-const skillPill: Record<string, string> = {
+const tintFor = (k: string) =>
+  tints[[...k].reduce((a, c) => a + c.charCodeAt(0), 0) % tints.length];
+
+const avatarInitials = (name: string) =>
+  name
+    .trim()
+    .toUpperCase()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("") || "?";
+
+const SKILL_PILL: Record<string, string> = {
   reading: "bg-blue-50 text-blue-600",
   listening: "bg-purple-50 text-purple-600",
   writing: "bg-green-50 text-green-600",
   speaking: "bg-amber-50 text-amber-600",
 };
 
-const StatCard = ({
-  icon,
-  label,
-  value,
-  tint,
-}: {
+const skillPillCls = (skill: string) =>
+  `rounded-full px-2.5 py-0.5 text-[12px] font-medium capitalize ${
+    SKILL_PILL[skill] ?? "bg-gray-100 text-gray-600"
+  }`;
+
+// ─── Stat card ─────────────────────────────────────────────────────────────────
+
+type StatCardProps = {
   icon: string;
   label: string;
   value: string;
-  tint: string;
-}) => (
-  <div className="flex items-center gap-[14px] rounded-[13px] border border-[#E5E7EB] bg-white px-5 py-[18px] shadow-[0_2px_6px_0_rgba(0,0,0,0.04)]">
+  iconColor: string;
+  iconBg: string;
+};
+
+const StatCard = ({ icon, label, value, iconColor, iconBg }: StatCardProps) => (
+  <div className="flex items-center gap-4 rounded-[16px] border border-[#e7e9e4] bg-white px-5 py-[18px] shadow-[0_2px_4px_0_rgba(0,0,0,0.04)]">
     <span
-      className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[10px]"
-      style={{ background: `${tint}1A` }}
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[11px]"
+      style={{ background: iconBg }}
     >
-      <span className="material-symbols-rounded text-[22px] leading-none" style={{ color: tint }}>
+      <span
+        className="material-symbols-rounded text-[22px] leading-none"
+        style={{ color: iconColor }}
+      >
         {icon}
       </span>
     </span>
-    <div className="flex flex-col gap-1">
-      <span className="text-[13px] font-medium text-[#6A7282]">{label}</span>
-      <span className="text-[28px] font-bold leading-none text-[#191D24]">{value}</span>
+    <div>
+      <p className="text-[13px] font-medium text-[#6a7282]">{label}</p>
+      <p className="text-[28px] font-bold leading-tight text-[#191d24]">{value}</p>
     </div>
   </div>
 );
 
-const ROW_GRID = "grid grid-cols-[1fr_130px_120px_160px_140px] items-center gap-3";
+// ─── Status badge ──────────────────────────────────────────────────────────────
+
+const StatusBadge = ({ status }: { status: string }) => {
+  if (status === "submitted" || status === "late") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f2fadd] px-2.5 py-1 text-[12px] font-bold text-[#219653]">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#219653]" />
+        Submitted
+      </span>
+    );
+  }
+  if (status === "pending_grade") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-[12px] font-bold text-amber-600">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+        Pending grade
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[12px] font-bold text-[#6a7282]">
+      <span className="h-1.5 w-1.5 rounded-full bg-[#9ca3af]" />
+      Not submitted
+    </span>
+  );
+};
+
+// ─── Score badge ───────────────────────────────────────────────────────────────
+
+const ScoreBadge = ({ score }: { score: number | null }) => {
+  if (score == null)
+    return <span className="text-[15px] text-[#9ca3af]">—</span>;
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f2fadd] px-2.5 py-1 text-[13px] font-bold text-[#219653]">
+      <span className="h-1.5 w-1.5 rounded-full bg-[#219653]" />
+      Band {score}
+    </span>
+  );
+};
+
+// ─── Table column widths ───────────────────────────────────────────────────────
+
+const COL = "grid grid-cols-[1fr_150px_130px_100px_140px_120px] items-center gap-3";
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export const PageAssignmentDetail = ({ detail }: Props) => {
+  const isOpen = !detail.due_at || dayjs(detail.due_at).isAfter(dayjs());
+
+  const pendingGradeCount = detail.rows.filter((r) => {
+    // Writing/speaking need manual grading; approximate by "submitted but no score"
+    return (r.status === "submitted" || r.status === "late") && r.score == null;
+  }).length;
+
+  const avgTimeMin =
+    detail.rows.length > 0
+      ? Math.round(
+          detail.rows
+            .filter((r) => r.duration_min != null)
+            .reduce((sum, r) => sum + (r.duration_min ?? 0), 0) /
+            Math.max(
+              1,
+              detail.rows.filter((r) => r.duration_min != null).length
+            )
+        )
+      : null;
+
   const exportCsv = () => {
     const header = ["Học sinh", "Email", "Thời gian làm (phút)", "Band", "Ngày nộp", "Trạng thái"];
     const lines = detail.rows.map((r) =>
@@ -71,148 +155,249 @@ export const PageAssignmentDetail = ({ detail }: Props) => {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-[24px]">
+      {/* ── Top bar ── */}
+      <div>
+        <h1 className="font-display font-bold text-[26px] tracking-[-0.52px] text-[#191d24] leading-none">
+          Assignment
+        </h1>
+        <p className="mt-[6px] font-inter font-normal text-[15px] text-[#6a7282]">
+          Submissions and results for this assignment.
+        </p>
+      </div>
+
+      {/* ── Back link ── */}
       <Link
         href={`${ROUTES.CLASSROOM.DETAIL(detail.classroom_id)}?tab=assignments`}
-        className="inline-flex items-center gap-1 text-sm text-[#6A7282] hover:text-[#D94A56]"
+        className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#6a7282] hover:text-[#191d24] transition-colors"
       >
-        <span className="material-symbols-rounded text-[18px]">arrow_back</span>
-        Quay lại danh sách bài giao
+        <span className="material-symbols-rounded text-[16px]">arrow_back</span>
+        Back to assignments
       </Link>
 
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-extrabold text-[#191D24]">
-            {detail.classroom_name} — Kết quả làm bài
-          </h2>
-          <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-[#6A7282]">
-            <span className="h-2 w-2 rounded-full bg-[#16A34A]" />
-            Điểm số cập nhật tự động khi học sinh nộp bài
-          </p>
-        </div>
-        <Link href={`${ROUTES.CLASSROOM.DETAIL(detail.classroom_id)}?tab=assignments`}>
-          <button className="rounded-[10px] bg-[#D94A56] px-5 py-2.5 text-[15px] font-bold text-white shadow-[0_4px_12px_0_rgba(217,74,87,0.25)] hover:bg-[#c8404b]">
-            + Giao bài mới
-          </button>
-        </Link>
-      </div>
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard icon="group" label="Tổng học sinh" value={String(detail.total)} tint="#F59E0B" />
-        <StatCard icon="task_alt" label="Đã nộp" value={String(detail.submitted)} tint="#16A34A" />
-        <StatCard icon="grade" label="Điểm trung bình" value={detail.avg_band != null ? String(detail.avg_band) : "—"} tint="#2563EB" />
-        <StatCard icon="percent" label="Tỷ lệ nộp" value={`${detail.submit_rate}%`} tint="#8B5CF6" />
-      </div>
-
-      {/* Info banner */}
-      <div className="flex items-start gap-2 rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-700">
-        <span className="material-symbols-rounded text-[18px]">info</span>
-        <span>
-          Điểm số Reading &amp; Listening được đồng bộ tự động ngay khi học sinh nhấn &quot;Nộp
-          bài&quot;. Cột kết quả sẽ cập nhật theo thời gian thực.
-        </span>
-      </div>
-
-      {/* Results table */}
-      <div className="rounded-[13px] border border-gray-100 bg-white p-5 shadow-sm">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <h3 className="text-base font-bold text-[#191D24]">
-              Danh sách bài giao · {detail.quiz_title}
-            </h3>
-            {detail.quiz_skill ? (
-              <span
-                className={`rounded-full px-2.5 py-0.5 text-[12px] font-medium capitalize ${
-                  skillPill[detail.quiz_skill] ?? "bg-gray-100 text-gray-600"
-                }`}
-              >
-                {detail.quiz_skill}
-              </span>
-            ) : null}
+      {/* ── Assignment header card ── */}
+      <div className="rounded-[20px] border border-[#e7e9e4] bg-white px-6 py-5 shadow-[0_2px_4px_0_rgba(0,0,0,0.04)]">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          {/* Left: skill, status, title, meta */}
+          <div className="min-w-0 flex-1">
+            <div className="mb-2 flex items-center gap-2">
+              {detail.quiz_skill ? (
+                <span className={skillPillCls(detail.quiz_skill)}>
+                  {detail.quiz_skill.charAt(0).toUpperCase() + detail.quiz_skill.slice(1)}
+                </span>
+              ) : null}
+              {isOpen ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f2fadd] px-2.5 py-0.5 text-[12px] font-bold text-[#219653]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#219653]" />
+                  Open
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-[12px] font-bold text-[#6a7282]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#9ca3af]" />
+                  Closed
+                </span>
+              )}
+            </div>
+            <h2 className="font-display font-bold text-[22px] text-[#191d24] truncate">
+              {detail.quiz_title}
+            </h2>
+            <p className="mt-1 text-[13px] text-[#6a7282]">
+              {detail.classroom_name}
+              {detail.due_at
+                ? ` · Due ${dayjs(detail.due_at).format("DD/MM/YYYY HH:mm")}`
+                : ""}
+            </p>
           </div>
-          <span className="inline-flex items-center gap-1 text-[13px] font-medium text-[#16A34A]">
-            <span className="material-symbols-rounded text-[16px]">autorenew</span>
-            Tự động cập nhật
-          </span>
+
+          {/* Right: Edit + Close buttons */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button className="inline-flex items-center gap-1.5 rounded-full border border-[#e7e9e4] bg-white px-4 py-2.5 text-[14px] font-bold text-[#191d24] hover:bg-[#f6f7f4] transition-colors">
+              <span className="material-symbols-rounded text-[16px]">edit</span>
+              Edit
+            </button>
+            <button className="rounded-full border border-[#e7e9e4] bg-white px-4 py-2.5 text-[14px] font-bold text-[#191d24] hover:bg-[#f6f7f4] transition-colors">
+              Close assignment
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Stat cards ── */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard
+          icon="check_circle"
+          label="Submitted"
+          value={`${detail.submitted} / ${detail.total}`}
+          iconColor="#219653"
+          iconBg="rgba(33,150,83,0.10)"
+        />
+        <StatCard
+          icon="trending_up"
+          label="Avg band"
+          value={detail.avg_band != null ? String(detail.avg_band) : "—"}
+          iconColor="#8b5cf6"
+          iconBg="rgba(139,92,246,0.10)"
+        />
+        <StatCard
+          icon="timer"
+          label="Avg time"
+          value={avgTimeMin != null ? `${avgTimeMin} min` : "—"}
+          iconColor="#0ea5e9"
+          iconBg="rgba(14,165,233,0.10)"
+        />
+        <StatCard
+          icon="warning"
+          label="Pending grade"
+          value={String(pendingGradeCount)}
+          iconColor="#ea580c"
+          iconBg="rgba(234,88,12,0.10)"
+        />
+
+      </div>
+
+      {/* ── Submissions table ── */}
+      <div className="rounded-[20px] border border-[#e7e9e4] bg-white shadow-[0_2px_4px_0_rgba(0,0,0,0.04)] overflow-hidden">
+        {/* Table header */}
+        <div className="border-b border-[#e7e9e4] px-6 py-4">
+          <h3 className="font-display font-bold text-[16px] text-[#191d24]">Submissions</h3>
         </div>
 
         <div className="overflow-x-auto">
-          <div className="min-w-[760px]">
-            <div className={`${ROW_GRID} border-b border-[#E5E7EB] px-2 pb-3 text-[11px] font-bold uppercase tracking-[0.06em] text-[#9CA3AF]`}>
-              <span>Học sinh</span>
-              <span>Thời gian làm</span>
-              <span>Band / Điểm</span>
-              <span>Ngày nộp</span>
-              <span>Trạng thái</span>
+          <div className="min-w-[860px]">
+            {/* Column headers */}
+            <div
+              className={`${COL} border-b border-[#e7e9e4] bg-[#fafafa] px-6 py-3 text-[11px] font-bold uppercase tracking-[0.06em] text-[#9ca3af]`}
+            >
+              <span>Student</span>
+              <span>Status</span>
+              <span>Score</span>
+              <span>Time</span>
+              <span>Submitted</span>
+              <span />
             </div>
-            {detail.rows.map((r) => {
-              const done = r.status === "submitted" || r.status === "late";
-              return (
-                <div key={r.student_id} className={`${ROW_GRID} border-b border-[#F3F4F6] px-2 py-4 last:border-0`}>
-                  <div className="flex min-w-0 items-center gap-3">
-                    <Avatar size="small" style={{ background: tintFor(r.student_id) }} src={r.avatar_url || undefined}>
-                      {(r.name || r.email || "?").charAt(0).toUpperCase()}
-                    </Avatar>
-                    <div className="min-w-0">
-                      <div className="truncate font-bold text-[#191D24]">{r.name || r.email}</div>
-                      <Link
-                        href={ROUTES.CLASSROOM.STUDENT_HISTORY(detail.classroom_id, r.student_id)}
-                        className="text-[12px] font-medium text-[#D94A56] hover:underline"
+
+            {/* Rows */}
+            {detail.rows.length === 0 ? (
+              <p className="px-6 py-10 text-center text-[14px] text-[#6a7282]">
+                No students in this assignment yet.
+              </p>
+            ) : (
+              detail.rows.map((r) => {
+                const initials = avatarInitials(r.name || r.email || "?");
+                const tint = tintFor(r.student_id);
+                const done = r.status === "submitted" || r.status === "late";
+                const needsGrade = done && r.score == null;
+                const notSubmitted =
+                  r.status === "pending" || r.status === "overdue";
+
+                return (
+                  <div
+                    key={r.student_id}
+                    className={`${COL} border-b border-[#f3f4f6] px-6 py-4 last:border-0`}
+                  >
+                    {/* Student cell */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[13px] font-bold"
+                        style={{ background: `${tint}1A`, color: tint }}
                       >
-                        Xem lịch sử làm bài →
-                      </Link>
+                        {initials}
+                      </span>
+                      <span className="truncate text-[14px] font-semibold text-[#191d24]">
+                        {r.name || r.email}
+                      </span>
+                    </div>
+
+                    {/* Status */}
+                    <div>
+                      <StatusBadge status={r.status} />
+                    </div>
+
+                    {/* Score */}
+                    <div>
+                      <ScoreBadge score={r.score} />
+                    </div>
+
+                    {/* Time */}
+                    <span className="text-[14px] text-[#6a7282]">
+                      {r.duration_min != null ? `${r.duration_min} min` : "—"}
+                    </span>
+
+                    {/* Submitted at */}
+                    <span className="text-[14px] text-[#6a7282]">
+                      {r.submitted_at
+                        ? dayjs(r.submitted_at).format("DD/MM HH:mm")
+                        : "—"}
+                    </span>
+
+                    {/* Action */}
+                    <div className="flex justify-end">
+                      {needsGrade ? (
+                        r.test_result_id ? (
+                          <Link
+                            href={ROUTES.TEST_RESULT(r.test_result_id)}
+                            className="rounded-full bg-[#b3e653] px-4 py-1.5 text-[13px] font-bold text-[#191d24] hover:bg-[#9ad534] transition-colors"
+                          >
+                            Grade
+                          </Link>
+                        ) : (
+                          <span className="rounded-full bg-[#f2fadd] px-4 py-1.5 text-[13px] font-bold text-[#219653] opacity-50 cursor-not-allowed">
+                            Grade
+                          </span>
+                        )
+                      ) : done ? (
+                        r.test_result_id ? (
+                          <Link
+                            href={ROUTES.TEST_RESULT(r.test_result_id)}
+                            className="text-[13px] font-bold text-[#5281f9] hover:underline"
+                          >
+                            View
+                          </Link>
+                        ) : (
+                          <Link
+                            href={ROUTES.CLASSROOM.STUDENT_HISTORY(
+                              detail.classroom_id,
+                              r.student_id
+                            )}
+                            className="text-[13px] font-bold text-[#5281f9] hover:underline"
+                          >
+                            View
+                          </Link>
+                        )
+                      ) : notSubmitted ? (
+                        <button className="rounded-full border border-[#e7e9e4] bg-white px-4 py-1.5 text-[13px] font-bold text-[#6a7282] hover:bg-[#f6f7f4] transition-colors">
+                          Remind
+                        </button>
+                      ) : null}
                     </div>
                   </div>
-                  <div className="text-[14px] text-[#191D24]">
-                    {r.duration_min != null ? `${r.duration_min} phút` : "—"}
-                  </div>
-                  <div className="text-[15px] font-bold" style={{ color: r.score != null ? "#D94A56" : "#C7CBD1" }}>
-                    {r.score != null ? r.score : "—"}
-                  </div>
-                  <div className="text-[14px] text-[#6A7282]">
-                    {r.submitted_at ? dayjs(r.submitted_at).format("DD/MM HH:mm") : "Chưa nộp"}
-                  </div>
-                  <div>
-                    {done ? (
-                      <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#16A34A]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A]" /> Đã nộp
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#D94A56]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#D94A56]" /> Chưa nộp
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-            {detail.rows.length === 0 ? (
-              <p className="px-2 py-8 text-center text-[14px] text-[#6A7282]">
-                Chưa có học sinh nào trong nhóm được giao.
-              </p>
-            ) : null}
+                );
+              })
+            )}
           </div>
         </div>
 
-        {/* Footer summary */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#F3F4F6] pt-4 text-[13px] text-[#6A7282]">
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
+        {/* Table footer */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e7e9e4] bg-[#fafafa] px-6 py-4 text-[13px] text-[#6a7282]">
+          <div className="flex flex-wrap gap-x-5 gap-y-1">
             <span>
-              {detail.submitted}/{detail.total} học sinh đã nộp
+              {detail.submitted}/{detail.total} submitted
             </span>
-            <span>Band trung bình: {detail.avg_band ?? "—"}</span>
-            <span>Cao nhất: {detail.high_band != null ? `Band ${detail.high_band}` : "—"}</span>
-            <span>Thấp nhất: {detail.low_band != null ? `Band ${detail.low_band}` : "—"}</span>
+            <span>Avg band: {detail.avg_band ?? "—"}</span>
+            {detail.high_band != null && (
+              <span>Highest: Band {detail.high_band}</span>
+            )}
+            {detail.low_band != null && (
+              <span>Lowest: Band {detail.low_band}</span>
+            )}
           </div>
           <button
             onClick={exportCsv}
             disabled={detail.rows.length === 0}
-            className="inline-flex items-center gap-2 rounded-[10px] border border-[#E5E7EB] px-4 py-2 text-[14px] font-semibold text-[#374151] hover:bg-gray-50 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full border border-[#e7e9e4] bg-white px-4 py-2 text-[13px] font-semibold text-[#374151] hover:bg-[#f6f7f4] disabled:opacity-50 transition-colors"
           >
-            <span className="material-symbols-rounded text-[18px]">download</span>
-            Xuất báo cáo
+            <span className="material-symbols-rounded text-[16px]">download</span>
+            Export report
           </button>
         </div>
       </div>

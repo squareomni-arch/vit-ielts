@@ -47,6 +47,7 @@
   --color-ink-muted: #6A7282;      /* Ink/Muted */
   /* Surface — Figma exact */
   --color-surface-page: #1E1E1E;   /* Surface/Page */
+  --color-surface-app: #F6F7F4;    /* Surface/App */
   --color-surface-card: #FFFFFF;   /* Surface/Card */
   --color-surface-blush: #FFF2F2;  /* Surface/Blush */
   /* Borders — Figma exact */
@@ -63,6 +64,50 @@
   --color-accent-violet: #7C6EF9;
   /* State */
   --color-danger: #E54552;         /* State/Danger */
+
+  /* Sidebar shell */
+  --size-sidebar-expanded: 250px;
+  --size-sidebar-collapsed: 80px;
+  --size-sidebar-control: 44px;
+  --size-sidebar-icon: 22px;
+  --size-sidebar-avatar: 38px;
+  --size-sidebar-logo: 28px;
+  --size-sidebar-logo-full: 156px;
+  --size-sidebar-logo-row: 60px;
+  --size-sidebar-label-max: 180px;
+  --size-sidebar-profile-text-max: 200px;
+  --size-sidebar-logo-text-max: 160px;
+  --spacing-sidebar-outer-x: 14px;
+  --spacing-sidebar-outer-y: 22px;
+  --spacing-sidebar-section-x: 6px;
+  --spacing-sidebar-section-x-collapsed: 4px;
+  --spacing-sidebar-gap: 12px;
+  --spacing-sidebar-item-gap: 10px;
+  --spacing-sidebar-item-y: 9px;
+  --spacing-sidebar-item-x: 10px;
+  --spacing-sidebar-profile-text-gap: 2px;
+  --spacing-sidebar-logo-top: 4px;
+  --spacing-sidebar-logo-bottom: 16px;
+  --spacing-sidebar-logo-x: 8px;
+  --spacing-sidebar-logo-mark-inset: 4px;
+  --spacing-sidebar-profile-card-padding: 8px;
+  --spacing-sidebar-profile-card-padding-collapsed: 4px;
+  --spacing-sidebar-text-shift: -4px;
+  --radius-sidebar-item: 12px;
+  --radius-sidebar-row: 10px;
+  --radius-sidebar-card: 14px;
+  --radius-sidebar-avatar: 19px;
+
+  /* Motion */
+  --ease-sidebar-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-sidebar-width-duration: 300ms;
+  --motion-sidebar-reveal-enter-duration: 250ms;
+  --motion-sidebar-reveal-exit-duration: 200ms;
+  --motion-sidebar-fade-enter-duration: 200ms;
+  --motion-sidebar-fade-exit-duration: 130ms;
+  --motion-sidebar-label-enter-delay: 140ms;
+  --motion-sidebar-state-duration: 150ms;
+  --motion-sidebar-control-duration: 200ms;
 
   /* ── Type scale (Figma) — Tailwind v4 text-* tokens ── */
   --text-display-l: 60px;
@@ -267,6 +312,67 @@ body {
     "wght" 900,
     "GRAD" 200,
     "opsz" 24;
+}
+
+.ds-sidebar-shell {
+  width: var(--size-sidebar-expanded);
+  transition: width var(--motion-sidebar-width-duration) var(--ease-sidebar-standard);
+}
+
+.ds-sidebar-shell[data-collapsed="true"] {
+  width: var(--size-sidebar-collapsed);
+}
+
+.ds-sidebar-item {
+  transition:
+    padding var(--motion-sidebar-width-duration) var(--ease-sidebar-standard),
+    background-color var(--motion-sidebar-state-duration) ease;
+}
+
+.ds-sidebar-profile-card {
+  transition: padding var(--motion-sidebar-width-duration) var(--ease-sidebar-standard);
+}
+
+.ds-sidebar-profile-row {
+  transition: padding var(--motion-sidebar-width-duration) var(--ease-sidebar-standard);
+}
+
+.ds-sidebar-logout-btn {
+  transition:
+    padding var(--motion-sidebar-width-duration) var(--ease-sidebar-standard),
+    background-color var(--motion-sidebar-state-duration) ease,
+    color var(--motion-sidebar-state-duration) ease;
+}
+
+.ds-sidebar-reveal {
+  max-width: var(--sidebar-reveal-max-width, var(--size-sidebar-label-max));
+  opacity: 1;
+  transform: translateX(0);
+  margin-left: var(--spacing-sidebar-item-gap, 10px);
+  transition:
+    max-width var(--motion-sidebar-reveal-enter-duration) var(--ease-sidebar-standard),
+    margin-left var(--motion-sidebar-reveal-enter-duration) var(--ease-sidebar-standard),
+    opacity var(--motion-sidebar-fade-enter-duration) var(--motion-sidebar-label-enter-delay) ease-out,
+    transform var(--motion-sidebar-fade-enter-duration) var(--motion-sidebar-label-enter-delay) ease-out;
+}
+
+.ds-sidebar-reveal[data-collapsed="true"] {
+  max-width: 0;
+  opacity: 0;
+  transform: translateX(var(--spacing-sidebar-text-shift));
+  margin-left: 0;
+  transition:
+    max-width var(--motion-sidebar-reveal-exit-duration) var(--ease-sidebar-standard),
+    margin-left var(--motion-sidebar-reveal-exit-duration) var(--ease-sidebar-standard),
+    opacity var(--motion-sidebar-fade-exit-duration) ease-in,
+    transform var(--motion-sidebar-fade-exit-duration) ease-in;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-sidebar-shell,
+  .ds-sidebar-reveal {
+    transition: none !important;
+  }
 }
 
 .anticon-loading {

@@ -31,7 +31,10 @@ export const ROUTES = {
 
   CLASSROOM: {
     // Teacher
+    OVERVIEW: "/classroom/overview",
     LIST: "/classroom",
+    STUDENTS: "/classroom/students",
+    COLLABORATORS: "/classroom/collaborators",
     DETAIL: (id: string) => `/classroom/${id}`,
     ASSIGNMENTS: (id: string) => `/classroom/${id}/assignments`,
     ASSIGNMENT_DETAIL: (id: string, aid: string) =>

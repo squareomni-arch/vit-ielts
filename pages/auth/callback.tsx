@@ -32,10 +32,10 @@ export default function AuthCallback() {
                     // in the background, consuming the PKCE cookie before this line runs.
                     // If that happens, exchangeCodeForSession throws "PKCE code verifier not found",
                     // but the user is actually successfully logged in!
-                    const { data: sessionData } = await supabase.auth.getSession();
-                    
-                    if (sessionData?.session?.user) {
-                        user = sessionData.session.user;
+                    const { data: sessionData } = await supabase.auth.getUser();
+
+                    if (sessionData?.user) {
+                        user = sessionData.user;
                         console.log("Session recovered from background exchange.");
                     } else {
                         console.error("Code exchange failed:", error.message);

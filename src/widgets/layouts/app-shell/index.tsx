@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import {
   SidebarStudent,
+  SidebarTeacher,
   SidebarTopActions,
   type SidebarNavEntry,
 } from "@/shared/ui/ds/organisms/sidebar";
@@ -44,10 +45,26 @@ const STUDENT_ACCOUNT: SidebarNavEntry[] = [
   { id: "help", icon: "help", label: "Help & Support", href: ROUTES.HELP },
 ];
 
+// ── Teacher nav (Figma node 3689-174) ──────────────────────────────────────
+// Overview · My Classes · Assignments · Students · Collaborators, then the
+// shared Settings / Help account group. Items without a dedicated route yet are
+// visual-only (#) — pending pages.
+const TEACHER_MENU: SidebarNavEntry[] = [
+  { id: "overview", icon: "home", label: "Overview", href: ROUTES.CLASSROOM.OVERVIEW },
+  { id: "my-classes", icon: "school", label: "My Classes", href: ROUTES.CLASSROOM.LIST },
+  { id: "assignments", icon: "menu_book", label: "Assignments", href: ROUTES.CLASSROOM.LIST },
+  { id: "students", icon: "person", label: "Students", href: ROUTES.CLASSROOM.STUDENTS },
+  { id: "collaborators", icon: "group", label: "Collaborators", href: ROUTES.CLASSROOM.COLLABORATORS },
+];
+
+const TEACHER_ACCOUNT: SidebarNavEntry[] = [
+  { id: "settings", icon: "settings", label: "Settings", href: ROUTES.ACCOUNT.SETTINGS },
+  { id: "help", icon: "help", label: "Help & Support", href: ROUTES.HELP },
+];
+
 const activeFromPath = (pathname: string): string => {
   if (pathname.startsWith("/account/dashboard")) return "home";
   if (pathname.startsWith("/classroom/my-assignments")) return "assignments";
-  if (pathname.startsWith("/classroom")) return "my-classes";
   if (pathname.startsWith(ROUTES.STUDY_PLAN)) return "study-plan";
   if (pathname.startsWith(ROUTES.MY_PROGRESS)) return "progress";
   if (pathname.startsWith(ROUTES.VOCABULARY)) return "vocabulary";
@@ -55,6 +72,7 @@ const activeFromPath = (pathname: string): string => {
   if (pathname.startsWith("/blog")) return "blog";
   if (pathname.startsWith(ROUTES.ACCOUNT.SETTINGS)) return "settings";
   if (pathname.startsWith(ROUTES.HELP)) return "help";
+  if (pathname.startsWith("/classroom")) return "my-classes";
   if (
     pathname.startsWith("/ielts-exam-library") ||
     pathname.startsWith("/take-the-test") ||
@@ -63,6 +81,19 @@ const activeFromPath = (pathname: string): string => {
     return "mock-tests";
   return "";
 };
+
+// Teacher sidebar active-item resolution (distinct routes from student nav).
+const teacherActiveFromPath = (pathname: string): string => {
+  if (pathname.startsWith(ROUTES.CLASSROOM.OVERVIEW)) return "overview";
+  if (pathname.startsWith(ROUTES.CLASSROOM.STUDENTS)) return "students";
+  if (pathname.startsWith(ROUTES.CLASSROOM.COLLABORATORS)) return "collaborators";
+  if (pathname.startsWith(ROUTES.ACCOUNT.SETTINGS)) return "settings";
+  if (pathname.startsWith(ROUTES.HELP)) return "help";
+  if (pathname.startsWith("/classroom")) return "my-classes";
+  return "";
+};
+
+const APP_SIDEBAR_COLLAPSED_KEY = "app-sidebar-collapsed";
 
 const initialsFromName = (name?: string | null): string => {
   if (!name) return "U";
@@ -74,26 +105,53 @@ const initialsFromName = (name?: string | null): string => {
 
 export const AppShell = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
-  const { currentUser, isSignedIn } = useAuth();
+  const { currentUser, isSignedIn, isTeacher, signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
 
-  const name = currentUser?.name ?? "Học viên";
+  useEffect(() => {
+    const savedCollapsed = window.localStorage.getItem(APP_SIDEBAR_COLLAPSED_KEY);
+    if (savedCollapsed === "true") setCollapsed(true);
+  }, []);
+
+  const toggleSidebar = useCallback(() => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      window.localStorage.setItem(APP_SIDEBAR_COLLAPSED_KEY, String(next));
+      return next;
+    });
+  }, []);
+
+  const name = currentUser?.name ?? (isTeacher ? "Giáo viên" : "Học viên");
   const initials = initialsFromName(currentUser?.name);
-  const activeItem = activeFromPath(router.pathname);
 
   return (
-    <div className="flex min-h-dvh bg-[#f6f7f4]">
-      <SidebarStudent
-        state={collapsed ? "collapsed" : "expanded"}
-        activeItem={activeItem}
-        user={{ name, role: "Student", initials }}
-        menu={STUDENT_MENU}
-        community={STUDENT_COMMUNITY}
-        account={STUDENT_ACCOUNT}
-        profileHref={ROUTES.ACCOUNT.MY_PROFILE}
-        onCollapse={() => setCollapsed((c) => !c)}
-        className="hidden lg:flex sticky top-0 h-dvh self-start"
-      />
+    <div className="flex min-h-dvh bg-[var(--color-surface-app)]">
+      {isTeacher ? (
+        <SidebarTeacher
+          state={collapsed ? "collapsed" : "expanded"}
+          activeItem={teacherActiveFromPath(router.pathname)}
+          user={{ name, role: "Teacher", initials }}
+          menu={TEACHER_MENU}
+          account={TEACHER_ACCOUNT}
+          profileHref={ROUTES.ACCOUNT.MY_PROFILE}
+          onCollapse={toggleSidebar}
+          onLogout={signOut}
+          className="hidden lg:flex sticky top-0 h-dvh self-start"
+        />
+      ) : (
+        <SidebarStudent
+          state={collapsed ? "collapsed" : "expanded"}
+          activeItem={activeFromPath(router.pathname)}
+          user={{ name, role: "Student", initials }}
+          menu={STUDENT_MENU}
+          community={STUDENT_COMMUNITY}
+          account={STUDENT_ACCOUNT}
+          profileHref={ROUTES.ACCOUNT.MY_PROFILE}
+          onCollapse={toggleSidebar}
+          onLogout={signOut}
+          className="hidden lg:flex sticky top-0 h-dvh self-start"
+        />
+      )}
 
       <div className="flex flex-col flex-1 min-w-0">
         <header className="flex items-center justify-end gap-4 px-6 lg:px-10 pt-6 pb-2 shrink-0">

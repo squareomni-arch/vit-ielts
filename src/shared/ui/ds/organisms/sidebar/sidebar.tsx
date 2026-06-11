@@ -29,6 +29,7 @@ export type SidebarStudentProps = {
   account?: readonly SidebarNavEntry[];
   /** When set, the bottom profile card links to this route. */
   profileHref?: string;
+  onLogout?: () => void;
   className?: string;
 };
 
@@ -41,6 +42,7 @@ export type SidebarTeacherProps = {
   account?: readonly SidebarNavEntry[];
   /** When set, the bottom profile card links to this route. */
   profileHref?: string;
+  onLogout?: () => void;
   className?: string;
 };
 
@@ -56,62 +58,114 @@ export type SidebarTopActionsProps = {
 
 // ── Shared sub-components ─────────────────────────────────────────────────────
 
+const IconSignOut = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M6.75 15.75H3.75C3.35218 15.75 2.97064 15.592 2.68934 15.3107C2.40804 15.0294 2.25 14.6478 2.25 14.25V3.75C2.25 3.35218 2.40804 2.97064 2.68934 2.68934C2.97064 2.40804 3.35218 2.25 3.75 2.25H6.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M12 12.75L15.75 9L12 5.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M15.75 9H6.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const ProfileSection = ({
+  user,
+  collapsed,
+  profileHref,
+  onLogout,
+}: {
+  user: SidebarUser;
+  collapsed: boolean;
+  profileHref?: string;
+  onLogout?: () => void;
+}) => {
+  const avatarNode = (
+    <div
+      className="flex items-center justify-center rounded-[var(--radius-sidebar-avatar)] w-[var(--size-sidebar-avatar)] h-[var(--size-sidebar-avatar)] shrink-0 text-white text-body-s font-bold font-inter"
+      style={{ background: user.avatarColor ?? 'var(--color-accent-blue)' }}
+    >
+      {user.initials}
+    </div>
+  );
+
+  // Text block: always in DOM, revealed via max-width + opacity + translateX
+  const textBlock = (
+    <div
+      aria-hidden={collapsed}
+      data-collapsed={collapsed}
+      className="ds-sidebar-reveal flex flex-col gap-[var(--spacing-sidebar-profile-text-gap)] overflow-hidden whitespace-nowrap"
+      style={{ '--sidebar-reveal-max-width': 'var(--size-sidebar-profile-text-max)' } as React.CSSProperties}
+    >
+      <span className="text-body-s font-bold font-inter text-[var(--color-ink-900)] leading-normal">
+        {user.name}
+      </span>
+      <span className="text-caption-bold font-inter font-normal text-[var(--color-ink-muted)] leading-normal">
+        {user.role}
+      </span>
+    </div>
+  );
+
+  const rowClass = [
+    'ds-sidebar-profile-row flex items-center w-full min-h-[var(--size-sidebar-control)] rounded-[var(--radius-sidebar-row)] overflow-hidden',
+    collapsed
+      ? 'p-[3px]'
+      : 'p-[var(--spacing-sidebar-section-x-collapsed)]',
+  ].join(' ');
+
+  const profileRow = profileHref ? (
+    <Link
+      href={profileHref}
+      aria-label="My Profile"
+      className={`${rowClass} no-underline cursor-pointer transition-colors duration-[var(--motion-sidebar-state-duration)] hover:bg-[var(--color-brand-tint)]`}
+    >
+      {avatarNode}
+      {textBlock}
+    </Link>
+  ) : (
+    <div className={rowClass}>
+      {avatarNode}
+      {textBlock}
+    </div>
+  );
+
+  const cardPadding = collapsed
+    ? 'p-[var(--spacing-sidebar-profile-card-padding-collapsed)]'
+    : 'p-[var(--spacing-sidebar-profile-card-padding)]';
+
+  return (
+    <div className={`ds-sidebar-profile-card flex flex-col w-full shrink-0 bg-white border border-[var(--color-border-hairline)] rounded-[var(--radius-sidebar-card)] gap-[var(--spacing-sidebar-section-x-collapsed)] overflow-hidden ${cardPadding}`}>
+      {profileRow}
+      <hr className="w-full border-0 border-t border-[var(--color-border-hairline)] m-0" />
+      <button
+        type="button"
+        onClick={onLogout}
+        aria-label="Logout"
+        className={[
+          'ds-sidebar-logout-btn flex items-center w-full min-h-[var(--size-sidebar-control)] rounded-[var(--radius-sidebar-row)] shrink-0 overflow-hidden',
+          collapsed
+            ? 'px-[11px] py-[var(--spacing-sidebar-section-x)]'
+            : 'px-[var(--spacing-sidebar-section-x-collapsed)] py-[var(--spacing-sidebar-section-x)]',
+          'bg-transparent border-none cursor-pointer transition-colors duration-[var(--motion-sidebar-state-duration)]',
+          'text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-blush)] hover:text-[var(--color-danger)]',
+        ].join(' ')}
+      >
+        <span aria-hidden="true" className="shrink-0 flex items-center justify-center w-[var(--size-sidebar-icon)] h-[var(--size-sidebar-icon)]">
+          <IconSignOut />
+        </span>
+        <span
+          aria-hidden={collapsed}
+          data-collapsed={collapsed}
+          className="ds-sidebar-reveal text-body-s font-medium font-inter leading-none whitespace-nowrap overflow-hidden"
+        >
+          Logout
+        </span>
+      </button>
+    </div>
+  );
+};
+
 const SidebarDivider = () => (
   <hr className="w-full border-0 border-t border-[var(--color-border-hairline)] shrink-0 m-0" />
 );
 
-const ProfileCard = ({
-  user,
-  collapsed,
-  href,
-}: {
-  user: SidebarUser;
-  collapsed: boolean;
-  href?: string;
-}) => {
-  const baseClassName = [
-    'flex items-center gap-[10px] bg-white border border-[rgba(25,29,36,0.1)] rounded-[14px] p-[10px] w-full shrink-0',
-    collapsed ? 'justify-center' : '',
-  ].join(' ');
-
-  const content = (
-    <>
-      <div
-        className="flex items-center justify-center rounded-[19px] w-[38px] h-[38px] shrink-0 text-white text-[14px] font-bold font-inter"
-        style={{ background: user.avatarColor ?? 'var(--color-accent-blue)' }}
-      >
-        {user.initials}
-      </div>
-      {!collapsed && (
-        <div className="flex flex-col gap-[2px] min-w-0 overflow-hidden">
-          <span className="text-[14px] font-bold font-inter text-[var(--color-ink-900)] truncate leading-normal">
-            {user.name}
-          </span>
-          <span className="text-[12px] font-inter text-[var(--color-ink-muted)] truncate leading-normal">
-            {user.role}
-          </span>
-        </div>
-      )}
-    </>
-  );
-
-  if (href) {
-    return (
-      <Link
-        href={href}
-        aria-label="My Profile"
-        className={twMerge(
-          baseClassName,
-          'no-underline cursor-pointer transition-colors hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-tint)]',
-        )}
-      >
-        {content}
-      </Link>
-    );
-  }
-
-  return <div className={baseClassName}>{content}</div>;
-};
 
 const SidebarLogo = ({
   collapsed,
@@ -120,40 +174,48 @@ const SidebarLogo = ({
   collapsed: boolean;
   onCollapse?: () => void;
 }) => (
-  <div
-    className={[
-      'flex items-center gap-[10px] pb-[16px] pt-[4px] px-[8px] w-full shrink-0',
-      collapsed ? 'justify-center' : '',
-    ].join(' ')}
-  >
-    {collapsed ? (
-      <button
-        type="button"
-        onClick={onCollapse}
-        className="bg-transparent border-none cursor-pointer p-0 flex items-center"
-        aria-label="Expand sidebar"
+  // Fixed h-[60px] = pt-4 (4) + content (40) + pb-16 (16) — keeps all items below stable
+  <div className="flex items-center h-[var(--size-sidebar-logo-row)] pt-[var(--spacing-sidebar-logo-top)] pb-[var(--spacing-sidebar-logo-bottom)] px-[var(--spacing-sidebar-logo-x)] w-full shrink-0 overflow-hidden">
+    <button
+      type="button"
+      onClick={onCollapse}
+      aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      aria-expanded={!collapsed}
+      className={[
+        'flex items-center h-[var(--size-sidebar-control)] rounded-[var(--radius-sidebar-item)] overflow-hidden',
+        'bg-transparent border-none cursor-pointer transition-[width,background-color] duration-[var(--motion-sidebar-control-duration)]',
+        'hover:bg-[var(--color-brand-tint)]',
+        'mr-auto justify-start pl-[var(--spacing-sidebar-logo-mark-inset)] pr-0',
+        collapsed ? 'w-[var(--size-sidebar-control)]' : 'w-[var(--size-sidebar-logo-full)]',
+      ].join(' ')}
+    >
+      <div
+        className="overflow-hidden shrink-0 flex items-center justify-start transition-[width] duration-[var(--motion-sidebar-control-duration)]"
+        style={{ width: collapsed ? 'var(--size-sidebar-logo)' : 'var(--size-sidebar-logo-full)' }}
       >
-        <span className="text-[20px] font-bold font-display" style={{ color: 'var(--color-brand)' }}>
-          V
-        </span>
-      </button>
-    ) : (
-      <>
         <img
           src="/assets/logos/logo-on-bright.svg"
           alt="VitIELTS"
-          className="h-[28px] w-auto object-contain shrink-0"
+          className="h-[var(--size-sidebar-logo)] w-auto max-w-none object-contain shrink-0"
         />
-        <button
-          type="button"
-          onClick={onCollapse}
-          className="ml-auto flex items-center justify-center w-[40px] h-[40px] rounded-[12px] bg-transparent border-none cursor-pointer hover:bg-[var(--color-brand-tint)] transition-colors"
-          aria-label="Collapse sidebar"
-        >
-          <span className="material-symbols-rounded text-[22px] text-[var(--color-ink-muted)]">menu</span>
-        </button>
-      </>
-    )}
+      </div>
+    </button>
+
+    {/* Expanded: separate menu affordance; logo itself stays one clipped asset. */}
+    <button
+      type="button"
+      onClick={onCollapse}
+      aria-label="Collapse sidebar"
+      aria-expanded={!collapsed}
+      className={[
+        'flex items-center justify-center h-[var(--size-sidebar-control)] rounded-[var(--radius-sidebar-item)]',
+        'bg-transparent border-none cursor-pointer transition-all duration-[var(--motion-sidebar-control-duration)] ease-in-out',
+        'hover:bg-[var(--color-brand-tint)] shrink-0 overflow-hidden',
+        collapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-[var(--size-sidebar-control)] opacity-100 pointer-events-auto',
+      ].join(' ')}
+    >
+      <span aria-hidden="true" className="material-symbols-rounded text-[var(--size-sidebar-icon)] text-[var(--color-ink-muted)]">menu</span>
+    </button>
   </div>
 );
 
@@ -162,7 +224,7 @@ const SidebarLogo = ({
 const ACCOUNT_ITEMS = [
   { id: 'settings', icon: 'settings', label: 'Settings' },
   { id: 'help',     icon: 'help',     label: 'Help & Support' },
-] as const;
+ ] as const;
 
 const STUDENT_MENU = [
   { id: 'home',        icon: 'home',           label: 'Home' },
@@ -198,24 +260,26 @@ export const SidebarStudent = ({
   community = STUDENT_COMMUNITY,
   account = ACCOUNT_ITEMS,
   profileHref,
+  onLogout,
   className = '',
 }: SidebarStudentProps) => {
   const collapsed = state === 'collapsed';
+  const navGroupX = 'px-[var(--spacing-sidebar-section-x-collapsed)]';
 
   return (
     <div
+      data-collapsed={collapsed}
       className={twMerge(
-        'flex flex-col gap-[12px] items-center bg-white',
-        collapsed ? 'px-[14px] w-[76px]' : 'px-[16px] w-[250px]',
-        'py-[22px] h-[900px] shrink-0',
+        'ds-sidebar-shell flex flex-col gap-[var(--spacing-sidebar-gap)] items-center bg-white overflow-hidden shrink-0',
+        'px-[var(--spacing-sidebar-outer-x)] py-[var(--spacing-sidebar-outer-y)]',
         className,
       )}
     >
       <SidebarLogo collapsed={collapsed} onCollapse={onCollapse} />
       <SidebarDivider />
 
-      <div className={`flex flex-col w-full px-[6px] shrink-0 ${collapsed ? 'items-center' : 'items-start'}`}>
-        <div className={`flex flex-col gap-[6px] w-full ${collapsed ? 'items-center' : ''}`}>
+      <div className={`flex flex-col w-full ${navGroupX} shrink-0`}>
+        <div className="flex flex-col gap-[var(--spacing-sidebar-section-x)] w-full">
           {menu.map(item => (
             <SidebarNavItem
               key={item.id}
@@ -231,23 +295,25 @@ export const SidebarStudent = ({
 
       <SidebarDivider />
 
-      <div className={`flex flex-col gap-[12px] w-full shrink-0 ${collapsed ? 'items-center' : 'items-start'}`}>
-        {community.map(item => (
-          <SidebarNavItem
-            key={item.id}
-            icon={item.icon}
-            label={item.label}
-            href={item.href}
-            active={activeItem === item.id}
-            collapsed={collapsed}
-          />
-        ))}
+      <div className={`flex flex-col w-full ${navGroupX} shrink-0`}>
+        <div className="flex flex-col gap-[var(--spacing-sidebar-section-x)] w-full">
+          {community.map(item => (
+            <SidebarNavItem
+              key={item.id}
+              icon={item.icon}
+              label={item.label}
+              href={item.href}
+              active={activeItem === item.id}
+              collapsed={collapsed}
+            />
+          ))}
+        </div>
       </div>
 
       <SidebarDivider />
 
-      <div className={`flex flex-col w-full px-[6px] shrink-0 ${collapsed ? 'items-center' : 'items-start'}`}>
-        <div className={`flex flex-col gap-[6px] w-full ${collapsed ? 'items-center' : ''}`}>
+      <div className={`flex flex-col w-full ${navGroupX} shrink-0`}>
+        <div className="flex flex-col gap-[var(--spacing-sidebar-section-x)] w-full">
           {account.map(item => (
             <SidebarNavItem
               key={item.id}
@@ -262,7 +328,7 @@ export const SidebarStudent = ({
       </div>
 
       <div className="flex-1 min-h-0 w-full" />
-      <ProfileCard user={user} collapsed={collapsed} href={profileHref} />
+      <ProfileSection user={user} collapsed={collapsed} profileHref={profileHref} onLogout={onLogout} />
     </div>
   );
 };
@@ -277,24 +343,26 @@ export const SidebarTeacher = ({
   menu = TEACHER_MENU,
   account = ACCOUNT_ITEMS,
   profileHref,
+  onLogout,
   className = '',
 }: SidebarTeacherProps) => {
   const collapsed = state === 'collapsed';
+  const navGroupX = 'px-[var(--spacing-sidebar-section-x-collapsed)]';
 
   return (
     <div
+      data-collapsed={collapsed}
       className={twMerge(
-        'flex flex-col gap-[12px] items-center bg-white',
-        collapsed ? 'px-[14px] w-[76px]' : 'px-[16px] w-[250px]',
-        'py-[22px] h-[900px] shrink-0',
+        'ds-sidebar-shell flex flex-col gap-[var(--spacing-sidebar-gap)] items-center bg-white overflow-hidden shrink-0',
+        'px-[var(--spacing-sidebar-outer-x)] py-[var(--spacing-sidebar-outer-y)]',
         className,
       )}
     >
       <SidebarLogo collapsed={collapsed} onCollapse={onCollapse} />
       <SidebarDivider />
 
-      <div className={`flex flex-col w-full px-[6px] shrink-0 ${collapsed ? 'items-center' : 'items-start'}`}>
-        <div className={`flex flex-col gap-[6px] w-full ${collapsed ? 'items-center' : ''}`}>
+      <div className={`flex flex-col w-full ${navGroupX} shrink-0`}>
+        <div className="flex flex-col gap-[var(--spacing-sidebar-section-x)] w-full">
           {menu.map(item => (
             <SidebarNavItem
               key={item.id}
@@ -310,8 +378,8 @@ export const SidebarTeacher = ({
 
       <SidebarDivider />
 
-      <div className={`flex flex-col w-full px-[6px] shrink-0 ${collapsed ? 'items-center' : 'items-start'}`}>
-        <div className={`flex flex-col gap-[6px] w-full ${collapsed ? 'items-center' : ''}`}>
+      <div className={`flex flex-col w-full ${navGroupX} shrink-0`}>
+        <div className="flex flex-col gap-[var(--spacing-sidebar-section-x)] w-full">
           {account.map(item => (
             <SidebarNavItem
               key={item.id}
@@ -326,7 +394,7 @@ export const SidebarTeacher = ({
       </div>
 
       <div className="flex-1 min-h-0 w-full" />
-      <ProfileCard user={user} collapsed={collapsed} href={profileHref} />
+      <ProfileSection user={user} collapsed={collapsed} profileHref={profileHref} onLogout={onLogout} />
     </div>
   );
 };

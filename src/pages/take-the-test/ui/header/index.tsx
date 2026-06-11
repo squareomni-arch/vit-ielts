@@ -192,7 +192,7 @@ function Header({ post }: { post: IPracticeSingle }) {
                       min-width="160px"
                       sizes="100%"
                       alt="logo"
-                      src="/logo.png"
+                      src="/assets/logos/logo-on-bright.svg"
                       priority
                       fill
                       className="object-contain"

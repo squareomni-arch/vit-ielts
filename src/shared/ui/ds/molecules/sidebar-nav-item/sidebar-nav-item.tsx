@@ -20,25 +20,31 @@ export const SidebarNavItem = ({
   <Link
     href={href}
     onClick={onClick}
+    aria-label={collapsed ? label : undefined}
+    aria-current={active ? 'page' : undefined}
+    title={collapsed ? label : undefined}
     className={[
-      'flex items-center rounded-[14px] px-[14px] py-[10px] no-underline transition-colors duration-150 shrink-0',
-      collapsed ? 'justify-center w-[44px]' : 'gap-[12px] w-full',
+      'ds-sidebar-item flex items-center w-full min-h-[var(--size-sidebar-control)] rounded-[var(--radius-sidebar-item)] py-[var(--spacing-sidebar-item-y)]',
+      'no-underline transition-colors duration-[var(--motion-sidebar-state-duration)] shrink-0 overflow-hidden',
+      collapsed ? 'px-[11px]' : 'px-[var(--spacing-sidebar-item-x)]',
       active ? 'bg-[var(--color-brand)]' : 'hover:bg-[var(--color-brand-tint)]',
     ].join(' ')}
   >
     <span
-      className="material-symbols-rounded text-[22px] leading-none shrink-0"
+      aria-hidden="true"
+      className="material-symbols-rounded text-[var(--size-sidebar-icon)] leading-none shrink-0 w-[var(--size-sidebar-icon)] flex items-center justify-center"
       style={{ color: active ? 'var(--color-ink-900)' : 'var(--color-ink-muted)' }}
     >
       {icon}
     </span>
-    {!collapsed && (
-      <span
-        className="text-[15px] font-bold font-inter leading-[1.2] flex-1 min-w-0 truncate"
-        style={{ color: active ? 'var(--color-ink-900)' : 'var(--color-ink-muted)' }}
-      >
-        {label}
-      </span>
-    )}
+
+    <span
+      aria-hidden={collapsed}
+      data-collapsed={collapsed}
+      className="ds-sidebar-reveal text-body-s font-semibold font-inter leading-none whitespace-nowrap overflow-hidden min-w-0"
+      style={{ color: active ? 'var(--color-ink-900)' : 'var(--color-ink-muted)' }}
+    >
+      {label}
+    </span>
   </Link>
 );

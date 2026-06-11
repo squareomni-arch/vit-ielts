@@ -77,8 +77,8 @@ export function PageResetPassword() {
         if (error) {
           // The Supabase client may have already exchanged the code in the
           // background; check for an active session before declaring failure.
-          const { data } = await supabase.auth.getSession();
-          if (!data?.session) {
+          const { data } = await supabase.auth.getUser();
+          if (!data?.user) {
             setErrorMsg(error.message);
             setStage("invalid");
             return;
@@ -89,9 +89,9 @@ export function PageResetPassword() {
       }
 
       // No code on URL — maybe the hash-based flow already created a session.
-      const { data } = await supabase.auth.getSession();
+      const { data } = await supabase.auth.getUser();
       if (cancelled) return;
-      if (data?.session) {
+      if (data?.user) {
         setStage("ready");
       } else {
         setErrorMsg("Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");

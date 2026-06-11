@@ -55,7 +55,7 @@ export const MockCollectionSection = ({ collections }: MockCollectionSectionProp
   if (mergedCollections.length === 0) return null;
 
   return (
-    <ScrollFadeIn data-section="mock-collections" className="bg-white">
+    <div data-section="mock-collections" className="w-full">
       <Container>
         {/* === SECTION: Mock Collections List === */}
         {/* Mỗi ExamCollection tự render tên bộ đề (data.title) */}
@@ -79,6 +79,6 @@ export const MockCollectionSection = ({ collections }: MockCollectionSectionProp
           </Link>
         </div>
       </Container>
-    </ScrollFadeIn>
+    </div>
   );
 };

@@ -50,9 +50,9 @@ const CheckoutPage = () => {
 
     // Resolve email from Supabase session (presentation-only — not sent to order API)
     const supabase = createClient();
-    void supabase.auth.getSession().then(
-      (result: Awaited<ReturnType<typeof supabase.auth.getSession>>) => {
-        setUserEmail(result.data.session?.user.email ?? null);
+    void supabase.auth.getUser().then(
+      (result: Awaited<ReturnType<typeof supabase.auth.getUser>>) => {
+        setUserEmail(result.data.user?.email ?? null);
       }
     );
   }, []);

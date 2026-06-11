@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Commands
 
@@ -110,8 +110,6 @@ Copy link uses `navigator.clipboard.writeText` with a textarea fallback and `set
 **Protected pages (do not restyle):** `pages/admin/**`, `pages/preview.tsx`.
 
 > **Note (unlocked 2026-06-10):** `pages/take-the-test/**` is no longer protected — it is open for a UI redesign to align with the current design system. UI-only rules still apply: preserve the test-taking logic, data flow, timers, autosave/submit, and prop signatures; restyle presentation only.
-
-> **Note (backend phase, 2026-06-11):** Wiring previously visual-only features to the backend is in progress. For this work `/services/**`, `/lib/supabase/**`, and `/pages/api/**` may be EXTENDED — new services, API routes, and Supabase migrations under `supabase/migrations/` (next: `024_*`). Follow existing patterns (services take a Supabase client; reads via `getServerSideProps`, mutations via `/pages/api`); do not change existing behavior. Migrations are ADDITIVE only — never `db reset` the local DB. Track remaining items in `VISUAL_ONLY_BACKLOG.md`.
 
 **Design-system rules.**
 - **No magic values.** Every color, font size, weight, spacing, radius, shadow, breakpoint must reference a design token. Canonical token source = the `@theme` block in `src/appx/styles/globals.css` (drives Tailwind utilities), re-extracted from Figma. `src/shared/ui/ds/design-tokens.css` is being retired — see `DESIGN_SYSTEM_REBUILD.md`. Raw hex / arbitrary px/rem / one-off colors are forbidden.

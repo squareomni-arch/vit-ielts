@@ -177,7 +177,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // the listener fires again on every reload — runaway hundreds of
       // reloads. Cool down for 5s after each reload so we surface the
       // problem instead of looping.
-      if (event === "SIGNED_IN" && !hasViewer && session?.user) {
+      if (event === "SIGNED_IN" && !hasViewer && session) {
         if (typeof window === "undefined") return;
         if (isPublicAuthPath(window.location.pathname)) return;
         const RELOAD_KEY = "_auth_signin_reload_at";

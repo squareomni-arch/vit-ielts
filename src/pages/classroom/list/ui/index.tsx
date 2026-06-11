@@ -33,43 +33,14 @@ const tintFor = (k: string) =>
 const avatarInitials = (name: string) =>
   name.trim().toUpperCase().split(/\s+/).slice(0, 2).map((w) => w[0]).join("") || "LC";
 
-// Pastel background from a hex tint: e.g. #D94A56 → "#D94A561A"
+// Pastel background from a hex tint: e.g. #D94A56 → "#D94A5626"
 const pastelBg = (tint: string) => `${tint}26`;
 
 const fieldBase =
   "w-full rounded-[11px] border px-4 py-3 text-[15px] text-[#191D24] placeholder:text-[#9CA3AF] outline-none transition focus:border-[#b3e653]";
 const labelCls = "mb-2 block text-[15px] font-bold text-[#191D24]";
 
-// ─── Teacher-only stat card (kept from original) ─────────────────────────────
-
-const StatCard = ({
-  icon,
-  label,
-  value,
-  tint,
-}: {
-  icon: string;
-  label: string;
-  value: number | string;
-  tint: string;
-}) => (
-  <div className="flex items-center gap-[14px] rounded-[13px] border border-[#e7e9e4] bg-white px-5 py-[18px] shadow-[0_2px_4px_0_rgba(0,0,0,0.04)]">
-    <span
-      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px]"
-      style={{ background: `${tint}1A` }}
-    >
-      <span className="material-symbols-rounded text-[22px] leading-none" style={{ color: tint }}>
-        {icon}
-      </span>
-    </span>
-    <div className="flex flex-col gap-1">
-      <span className="text-[13px] font-medium text-[#6a7282]">{label}</span>
-      <span className="text-[28px] font-bold leading-none text-[#191d24]">{value}</span>
-    </div>
-  </div>
-);
-
-// ─── Modal header (kept from original) ───────────────────────────────────────
+// ─── Modal header ─────────────────────────────────────────────────────────────
 
 const ModalHeader = ({ title, onClose }: { title: string; onClose: () => void }) => (
   <div className="flex items-start justify-between">
@@ -84,9 +55,8 @@ const ModalHeader = ({ title, onClose }: { title: string; onClose: () => void })
   </div>
 );
 
-// ─── Figma-style class card ───────────────────────────────────────────────────
-// Matches Figma node 3733:936 "class" card — bg-white, rounded-[20px], p-[20px],
-// avatar initials, class name, description/subtitle, assignment count, status badge, Open →
+// ─── Student class card (unchanged — student branch) ─────────────────────────
+// Matches Figma node 3733:936
 
 const ClassCard = ({ c }: { c: ClassroomSummary }) => {
   const tint = tintFor(c.id);
@@ -177,86 +147,138 @@ const ClassCard = ({ c }: { c: ClassroomSummary }) => {
   );
 };
 
-// ─── Teacher-only row (kept for teacher management view) ─────────────────────
+// ─── Teacher class card — Figma node 3756-544 ────────────────────────────────
+// Card: white bg, rounded-[16px], border hairline, shadow-sm
+// Header: rounded avatar (pastel initials or image) + class name + description/subtitle + ⋮ menu
+// Student count row with group icon
+// Progress bar row (label + %, green fill track) — backend gap: no progress field; defaults to 0
+// Footer: status badge + "Manage →" link
 
-const ROW_GRID = "grid grid-cols-[1fr_120px_110px_180px_150px] items-center gap-2";
-
-const ClassRow = ({ c, showRoleBadge }: { c: ClassroomSummary; showRoleBadge: boolean }) => {
+const TeacherClassCard = ({ c }: { c: ClassroomSummary }) => {
   const tint = tintFor(c.id);
-  const primaryHref = ROUTES.CLASSROOM.DETAIL(c.id);
+  const bg = pastelBg(tint);
+  const inits = avatarInitials(c.name);
+  const href = ROUTES.CLASSROOM.DETAIL(c.id);
+
+  const isActive = c.status === "active";
+
+  // Progress: no field in ClassroomSummary — show 0% as placeholder (backend gap)
+  const progress = 0;
+
   return (
-    <div className={`${ROW_GRID} border-b border-[#F3F4F6] px-2 py-4 last:border-0`}>
-      <div className="flex min-w-0 items-center gap-3">
-        {c.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={c.image_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
-        ) : (
-          <span
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-bold"
-            style={{ background: `${tint}1A`, color: tint }}
-          >
-            {c.name.trim().charAt(0).toUpperCase()}
-          </span>
-        )}
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <Link href={primaryHref} className="truncate font-bold text-[#191D24] hover:text-[#b3e653]">
-              {c.name}
-            </Link>
-            {showRoleBadge && c.viewer_role === "student" ? (
-              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-600">
-                Học sinh
+    <div className="bg-white border border-[#e5e6e8] rounded-[16px] p-5 flex flex-col gap-0 shadow-[0_1px_3px_0_rgba(25,29,36,0.06)]">
+      {/* Header row: avatar group + name/subtitle + ⋮ */}
+      <div className="flex items-start justify-between gap-3 pb-[14px]">
+        <div className="flex items-center gap-3 min-w-0">
+          {c.image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={c.image_url}
+              alt=""
+              className="h-[44px] w-[44px] rounded-[12px] object-cover shrink-0"
+            />
+          ) : (
+            <div
+              className="h-[44px] w-[44px] rounded-[12px] flex items-center justify-center shrink-0"
+              style={{ background: bg }}
+            >
+              <span
+                className="font-inter font-bold text-[14px] leading-none"
+                style={{ color: tint }}
+              >
+                {inits}
               </span>
-            ) : null}
-          </div>
-          <div className="truncate text-[13px] text-[#6A7282]">
-            {c.description || `Mã ${c.invite_code}`}
+            </div>
+          )}
+          <div className="flex flex-col gap-[2px] min-w-0">
+            <p className="font-inter font-bold text-[15px] leading-[1.3] text-ink-900 truncate">
+              {c.name}
+            </p>
+            <p className="font-inter font-normal text-[13px] leading-normal text-ink-muted truncate">
+              {c.description || `Mã: ${c.invite_code}`}
+            </p>
           </div>
         </div>
-      </div>
-      <span className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-[#191D24]">
-        <span className="material-symbols-rounded text-[18px] text-[#6A7282]">person</span>
-        {c.student_count}
-      </span>
-      <span className="text-[15px] font-semibold text-[#191D24]">{c.assignment_count}</span>
-      <span>
-        {c.status === "active" ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f2fadd] px-3 py-1 text-[13px] font-medium text-[#219653]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#219653]" />
-            Đang hoạt động
-          </span>
-        ) : (
-          <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-[13px] font-medium text-[#6A7282]">
-            Đã đóng
-          </span>
-        )}
-      </span>
-      <div className="flex items-center justify-end gap-1">
-        <Link
-          href={primaryHref}
-          className="rounded-[8px] bg-[#f6f7f4] px-4 py-2 text-[14px] font-semibold text-[#374151] hover:bg-[#e8ebe2]"
-        >
-          Quản lý
-        </Link>
+
+        {/* ⋮ dropdown */}
         <Dropdown
           trigger={["click"]}
           menu={{
             items: [
-              { key: "manage", label: <Link href={ROUTES.CLASSROOM.DETAIL(c.id)}>Quản lý lớp</Link> },
+              {
+                key: "manage",
+                label: <Link href={ROUTES.CLASSROOM.DETAIL(c.id)}>Quản lý lớp</Link>,
+              },
               {
                 key: "assign",
                 label: (
                   <Link href={`${ROUTES.CLASSROOM.DETAIL(c.id)}?tab=assignments`}>Giao bài</Link>
                 ),
               },
-              { key: "report", label: <Link href={ROUTES.CLASSROOM.TRACKING(c.id)}>Báo cáo</Link> },
+              {
+                key: "report",
+                label: <Link href={ROUTES.CLASSROOM.TRACKING(c.id)}>Báo cáo</Link>,
+              },
             ],
           }}
         >
-          <button className="flex h-9 w-9 items-center justify-center rounded-[8px] text-[#6A7282] hover:bg-gray-100">
+          <button
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] text-ink-muted hover:bg-[#f6f7f4] transition-colors"
+            aria-label="Thêm hành động"
+          >
             <span className="material-symbols-rounded text-[20px]">more_vert</span>
           </button>
         </Dropdown>
+      </div>
+
+      {/* Student count row */}
+      <div className="flex items-center gap-[6px] pb-[14px]">
+        <span className="material-symbols-rounded text-[16px] text-ink-muted">group</span>
+        <span className="font-inter font-medium text-[13px] text-ink-muted">
+          {c.student_count} students
+        </span>
+      </div>
+
+      {/* Progress row */}
+      <div className="flex flex-col gap-[8px] pb-[16px]">
+        <div className="flex items-center justify-between">
+          <span className="font-inter font-normal text-[13px] text-ink-muted">Progress</span>
+          <span className="font-inter font-semibold text-[13px] text-ink-900">
+            {progress}%
+          </span>
+        </div>
+        {/* Track */}
+        <div className="h-[6px] w-full rounded-full bg-[#e5e6e8] overflow-hidden">
+          <div
+            className="h-full rounded-full bg-brand transition-[width]"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Footer: status badge + Manage → */}
+      <div className="flex items-center justify-between pt-[2px] border-t border-[#f0f1f3]">
+        {isActive ? (
+          <div className="flex items-center gap-[6px] rounded-full bg-brand-tint px-[10px] py-[5px]">
+            <div className="h-[6px] w-[6px] rounded-full bg-[#219653] shrink-0" />
+            <span className="font-inter font-semibold text-[12px] text-[#219653] whitespace-nowrap">
+              Active
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-[6px] rounded-full bg-[rgba(25,29,36,0.06)] px-[10px] py-[5px]">
+            <div className="h-[6px] w-[6px] rounded-full bg-ink-muted shrink-0" />
+            <span className="font-inter font-semibold text-[12px] text-ink-muted whitespace-nowrap">
+              Starting soon
+            </span>
+          </div>
+        )}
+        <Link
+          href={href}
+          className="font-inter font-bold text-[13px] text-[#5b8a00] hover:text-[#9ad534] whitespace-nowrap transition-colors"
+        >
+          Manage →
+        </Link>
       </div>
     </div>
   );
@@ -402,7 +424,7 @@ export const PageClassroomList = ({ isTeacher, classrooms, stats, studentStats }
   const studentClasses = classrooms.filter((c) => c.viewer_role === "student");
   const teacherClasses = classrooms.filter((c) => c.viewer_role === "teacher");
 
-  // Subtitle line: how many classes the user is enrolled/managing
+  // Subtitle line
   const subtitle = isTeacher
     ? `You're managing ${counts.managed} class${counts.managed !== 1 ? "es" : ""}.`
     : `You're enrolled in ${counts.joined} class${counts.joined !== 1 ? "es" : ""}.`;
@@ -410,164 +432,198 @@ export const PageClassroomList = ({ isTeacher, classrooms, stats, studentStats }
   return (
     <div className="space-y-[28px]">
 
-      {/* ── Top bar: heading + subtitle ── */}
-      {/* Figma 3733:630 "Top Bar" */}
+      {/* ── Top bar: heading + subtitle — Figma 3756:241 "Greeting" ── */}
       <div data-section="classroom-top-bar">
-        <h1 className="font-display font-bold text-[26px] tracking-[-0.52px] text-[#191d24] leading-none">
-          My classes
+        <h1 className="font-display font-bold text-[26px] tracking-[-0.52px] text-ink-900 leading-none">
+          {isTeacher ? "Class management" : "My classes"}
         </h1>
-        <p className="mt-[6px] font-inter font-normal text-[15px] text-[#6a7282]">
-          {subtitle}
+        <p className="mt-[6px] font-inter font-normal text-[15px] text-ink-muted">
+          {isTeacher ? "Manage the classes you teach or join." : subtitle}
         </p>
       </div>
 
-      {/* ── Teacher stats (unchanged, only shown for teachers) ── */}
-      {isTeacher && stats ? (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard icon="menu_book" label="Số lớp quản lý" value={counts.managed} tint="#D94A56" />
-          <StatCard icon="school" label="Số lớp tham gia" value={counts.joined} tint="#2563EB" />
-          <StatCard icon="group" label="Tổng số học sinh" value={stats.total_students} tint="#16A34A" />
-          <StatCard icon="podcasts" label="Tổng số lớp" value={counts.total} tint="#EA580C" />
-        </div>
-      ) : !isTeacher && studentStats ? (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard icon="school" label="Số lớp tham gia" value={studentStats.joined_class_count} tint="#2563EB" />
-          <StatCard icon="assignment" label="Bài tập cần làm" value={studentStats.pending_count} tint="#D94A56" />
-          <StatCard icon="task_alt" label="Đã hoàn thành" value={studentStats.submitted_count} tint="#16A34A" />
-          <StatCard
-            icon="grade"
-            label="Điểm trung bình"
-            value={studentStats.avg_band != null ? studentStats.avg_band : "—"}
-            tint="#EA580C"
-          />
-        </div>
-      ) : null}
-
-      {/* ── Action buttons ── */}
-      <div className="flex flex-wrap gap-3">
-        <button
-          onClick={() => setCreateOpen(true)}
-          className="inline-flex items-center gap-2 rounded-full bg-[#b3e653] px-[22px] py-[11px] text-[14px] font-bold font-inter text-[#191d24] hover:bg-[#9ad534] transition-colors"
-        >
-          <span className="material-symbols-rounded text-[18px]">add</span>
-          Tạo lớp mới
-        </button>
-        <button
-          onClick={() => setJoinOpen(true)}
-          className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-[rgba(25,29,36,0.1)] bg-white px-[22px] py-[11px] text-[14px] font-bold font-inter text-[#191d24] hover:bg-[#f6f7f4] transition-colors"
-        >
-          <span className="material-symbols-rounded text-[18px]">link</span>
-          Tham gia bằng mã / link mời
-        </button>
-      </div>
-
-      {/* ── Student class cards — Figma node 3733:932 "Classes" ── */}
-      {!isTeacher && (
-        <section data-section="student-classes">
-          <div className="flex items-center justify-between mb-[16px]">
-            <p className="font-display font-bold text-[20px] text-[#191d24] leading-normal whitespace-nowrap">
-              Your classes
-            </p>
-          </div>
-
-          {studentClasses.length === 0 ? (
-            <div className="bg-white border border-[#e7e9e4] rounded-[20px] p-[40px] flex flex-col items-center text-center gap-4">
-              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f6f7f4]">
-                <span className="material-symbols-rounded text-[32px] text-[#6a7282]">school</span>
-              </span>
-              <p className="font-display font-bold text-[18px] text-[#191d24]">
-                Chưa có lớp học nào
-              </p>
-              <p className="font-inter font-normal text-[14px] text-[#6a7282] max-w-[360px]">
-                Tham gia lớp bằng mã mời hoặc link từ giáo viên để bắt đầu.
-              </p>
-              <button
-                onClick={() => setJoinOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-[rgba(25,29,36,0.1)] bg-white px-[22px] py-[11px] text-[14px] font-bold font-inter text-[#191d24] hover:bg-[#f6f7f4] transition-colors"
-              >
-                <span className="material-symbols-rounded text-[18px]">link</span>
-                Tham gia lớp
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-[20px] items-start">
-              {studentClasses.map((c) => (
-                <ClassCard key={c.id} c={c} />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* ── Teacher class table — kept from original ── */}
+      {/* ── Teacher view — Figma 3756-239 ── */}
       {isTeacher && (
-        <section data-section="teacher-classes">
-          <div className="rounded-[20px] border border-[#e7e9e4] bg-white p-5 shadow-[0_2px_4px_0_rgba(0,0,0,0.04)]">
-            <div className="mb-4 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2.5">
-                <h3 className="font-display font-bold text-[18px] text-[#191d24]">
-                  Danh sách lớp học
-                </h3>
-                <span className="rounded-full bg-[#f6f7f4] px-2.5 py-0.5 text-[12px] font-medium text-[#6a7282]">
-                  {classrooms.length} lớp
+        <>
+          {/* Section header: "My Classes" badge + action buttons — Figma 3756:528 "hr" */}
+          <div data-section="teacher-section-header" className="flex items-center justify-between gap-3 flex-wrap">
+            {/* Left: heading + count badge */}
+            <div className="flex items-center gap-[10px]">
+              <h2 className="font-display font-bold text-[22px] tracking-[-0.4px] text-ink-900 leading-none">
+                My Classes
+              </h2>
+              <div className="flex items-center gap-[6px] rounded-full bg-brand-tint px-[10px] py-[4px]">
+                <div className="h-[6px] w-[6px] rounded-full bg-brand shrink-0" />
+                <span className="font-inter font-semibold text-[12px] text-[#5b8a00] whitespace-nowrap">
+                  {counts.managed} {counts.managed === 1 ? "class" : "classes"}
                 </span>
               </div>
             </div>
 
-            {classrooms.length === 0 ? (
-              <div className="flex flex-col items-center py-14 text-center">
-                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-[#f6f7f4]">
-                  <span className="material-symbols-rounded text-[40px] leading-none text-[#6a7282]">
-                    school
-                  </span>
+            {/* Right: action buttons — Figma 3756:534 "ha" */}
+            <div className="flex items-center gap-[10px]">
+              <button
+                onClick={() => setCreateOpen(true)}
+                className="inline-flex items-center gap-[8px] rounded-full bg-brand px-[20px] py-[10px] font-inter font-bold text-[14px] text-ink-900 hover:bg-brand-hover transition-colors"
+              >
+                <span className="material-symbols-rounded text-[18px] leading-none">add</span>
+                Create class
+              </button>
+              <button
+                onClick={() => setJoinOpen(true)}
+                className="inline-flex items-center gap-[8px] rounded-full border border-[#e5e6e8] bg-white px-[20px] py-[10px] font-inter font-bold text-[14px] text-ink-900 hover:bg-[#f6f7f4] transition-colors"
+              >
+                <span className="material-symbols-rounded text-[18px] leading-none">link</span>
+                Join with code
+              </button>
+            </div>
+          </div>
+
+          {/* Teacher class card grid — Figma 3756:543 "grid" */}
+          <section data-section="teacher-classes">
+            {teacherClasses.length === 0 ? (
+              <div className="bg-white border border-[#e5e6e8] rounded-[20px] p-[40px] flex flex-col items-center text-center gap-4">
+                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f6f7f4]">
+                  <span className="material-symbols-rounded text-[32px] text-ink-muted">school</span>
                 </span>
-                <p className="mt-5 font-display font-bold text-[18px] text-[#191d24]">
-                  Chưa có lớp học nào
+                <p className="font-display font-bold text-[18px] text-ink-900">
+                  No classes yet
                 </p>
-                <p className="mt-1 text-[14px] text-[#6A7282]">
-                  Tạo lớp mới để bắt đầu quản lý học sinh.
+                <p className="font-inter font-normal text-[14px] text-ink-muted max-w-[360px]">
+                  Create your first class to start managing students and assignments.
                 </p>
                 <button
                   onClick={() => setCreateOpen(true)}
-                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#b3e653] px-[22px] py-[11px] text-[14px] font-bold font-inter text-[#191d24] hover:bg-[#9ad534] transition-colors"
+                  className="inline-flex items-center gap-2 rounded-full bg-brand px-[22px] py-[11px] text-[14px] font-bold font-inter text-ink-900 hover:bg-brand-hover transition-colors"
                 >
-                  Tạo lớp ngay
+                  <span className="material-symbols-rounded text-[18px]">add</span>
+                  Create class
                 </button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <div className="min-w-[760px]">
-                  <div
-                    className={`${ROW_GRID} border-b border-[#e7e9e4] px-2 pb-3 text-[11px] font-bold uppercase tracking-[0.06em] text-[#9CA3AF]`}
-                  >
-                    <span>Tên lớp</span>
-                    <span>Học sinh</span>
-                    <span>Bài giao</span>
-                    <span>Trạng thái</span>
-                    <span />
-                  </div>
-                  {classrooms.map((c) => (
-                    <ClassRow key={c.id} c={c} showRoleBadge={isTeacher} />
-                  ))}
-                </div>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {teacherClasses.map((c) => (
+                  <TeacherClassCard key={c.id} c={c} />
+                ))}
               </div>
             )}
-          </div>
-        </section>
+          </section>
+
+          {/* Teacher also enrolled as student in some classes */}
+          {studentClasses.length > 0 && (
+            <section data-section="teacher-student-classes">
+              <p className="font-display font-bold text-[20px] text-ink-900 leading-normal mb-[16px]">
+                Lớp bạn đang học
+              </p>
+              <div className="flex flex-wrap gap-[20px] items-start">
+                {studentClasses.map((c) => (
+                  <ClassCard key={c.id} c={c} />
+                ))}
+              </div>
+            </section>
+          )}
+        </>
       )}
 
-      {/* ── Teacher also sees their student classes as cards ── */}
-      {isTeacher && studentClasses.length > 0 && (
-        <section data-section="teacher-student-classes">
-          <p className="font-display font-bold text-[20px] text-[#191d24] leading-normal mb-[16px]">
-            Lớp bạn đang học
-          </p>
-          <div className="flex flex-wrap gap-[20px] items-start">
-            {studentClasses.map((c) => (
-              <ClassCard key={c.id} c={c} />
-            ))}
+      {/* ── Student branch — DO NOT MODIFY ── */}
+      {!isTeacher && (
+        <>
+          {/* Student stat cards */}
+          {studentStats ? (
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <div className="flex items-center gap-[14px] rounded-[13px] border border-[#e7e9e4] bg-white px-5 py-[18px] shadow-[0_2px_4px_0_rgba(0,0,0,0.04)]">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px]" style={{ background: "#2563EB1A" }}>
+                  <span className="material-symbols-rounded text-[22px] leading-none" style={{ color: "#2563EB" }}>school</span>
+                </span>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[13px] font-medium text-[#6a7282]">Số lớp tham gia</span>
+                  <span className="text-[28px] font-bold leading-none text-[#191d24]">{studentStats.joined_class_count}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-[14px] rounded-[13px] border border-[#e7e9e4] bg-white px-5 py-[18px] shadow-[0_2px_4px_0_rgba(0,0,0,0.04)]">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px]" style={{ background: "#D94A561A" }}>
+                  <span className="material-symbols-rounded text-[22px] leading-none" style={{ color: "#D94A56" }}>assignment</span>
+                </span>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[13px] font-medium text-[#6a7282]">Bài tập cần làm</span>
+                  <span className="text-[28px] font-bold leading-none text-[#191d24]">{studentStats.pending_count}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-[14px] rounded-[13px] border border-[#e7e9e4] bg-white px-5 py-[18px] shadow-[0_2px_4px_0_rgba(0,0,0,0.04)]">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px]" style={{ background: "#16A34A1A" }}>
+                  <span className="material-symbols-rounded text-[22px] leading-none" style={{ color: "#16A34A" }}>task_alt</span>
+                </span>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[13px] font-medium text-[#6a7282]">Đã hoàn thành</span>
+                  <span className="text-[28px] font-bold leading-none text-[#191d24]">{studentStats.submitted_count}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-[14px] rounded-[13px] border border-[#e7e9e4] bg-white px-5 py-[18px] shadow-[0_2px_4px_0_rgba(0,0,0,0.04)]">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px]" style={{ background: "#EA580C1A" }}>
+                  <span className="material-symbols-rounded text-[22px] leading-none" style={{ color: "#EA580C" }}>grade</span>
+                </span>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[13px] font-medium text-[#6a7282]">Điểm trung bình</span>
+                  <span className="text-[28px] font-bold leading-none text-[#191d24]">{studentStats.avg_band != null ? studentStats.avg_band : "—"}</span>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Student action buttons */}
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="inline-flex items-center gap-2 rounded-full bg-[#b3e653] px-[22px] py-[11px] text-[14px] font-bold font-inter text-[#191d24] hover:bg-[#9ad534] transition-colors"
+            >
+              <span className="material-symbols-rounded text-[18px]">add</span>
+              Tạo lớp mới
+            </button>
+            <button
+              onClick={() => setJoinOpen(true)}
+              className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-[rgba(25,29,36,0.1)] bg-white px-[22px] py-[11px] text-[14px] font-bold font-inter text-[#191d24] hover:bg-[#f6f7f4] transition-colors"
+            >
+              <span className="material-symbols-rounded text-[18px]">link</span>
+              Tham gia bằng mã / link mời
+            </button>
           </div>
-        </section>
+
+          {/* Student class cards */}
+          <section data-section="student-classes">
+            <div className="flex items-center justify-between mb-[16px]">
+              <p className="font-display font-bold text-[20px] text-[#191d24] leading-normal whitespace-nowrap">
+                Your classes
+              </p>
+            </div>
+
+            {studentClasses.length === 0 ? (
+              <div className="bg-white border border-[#e7e9e4] rounded-[20px] p-[40px] flex flex-col items-center text-center gap-4">
+                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f6f7f4]">
+                  <span className="material-symbols-rounded text-[32px] text-[#6a7282]">school</span>
+                </span>
+                <p className="font-display font-bold text-[18px] text-[#191d24]">
+                  Chưa có lớp học nào
+                </p>
+                <p className="font-inter font-normal text-[14px] text-[#6a7282] max-w-[360px]">
+                  Tham gia lớp bằng mã mời hoặc link từ giáo viên để bắt đầu.
+                </p>
+                <button
+                  onClick={() => setJoinOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-full border-[1.5px] border-[rgba(25,29,36,0.1)] bg-white px-[22px] py-[11px] text-[14px] font-bold font-inter text-[#191d24] hover:bg-[#f6f7f4] transition-colors"
+                >
+                  <span className="material-symbols-rounded text-[18px]">link</span>
+                  Tham gia lớp
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-[20px] items-start">
+                {studentClasses.map((c) => (
+                  <ClassCard key={c.id} c={c} />
+                ))}
+              </div>
+            )}
+          </section>
+        </>
       )}
 
       {/* ── Create class modal ── */}

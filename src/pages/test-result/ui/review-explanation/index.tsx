@@ -145,12 +145,16 @@ function ReviewHeader({
           <div className="flex items-center">
             <div className="md:w-1/3">
               <div className="flex">
-                <div className="h-full md:h-12 aspect-[750/449] relative duration-300">
+                <div
+                  title="Home"
+                  className="h-10 md:h-12 aspect-[750/449] relative duration-300 flex-shrink-0"
+                >
                   <Link href="/">
                     <Image
+                      min-width="160px"
                       sizes="100%"
                       alt="logo"
-                      src="/logo.png"
+                      src="/assets/logos/logo-on-bright.svg"
                       priority
                       fill
                       className="object-contain"

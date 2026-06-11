@@ -40,7 +40,7 @@ export const PageHome = ({
   speakingSamples,
   mockCollections,
 }: PageHomeProps) => {
-  const { isSignedIn } = useAuth();
+  // const { isSignedIn } = useAuth();
   return (
     <div className="w-full bg-[#f6f7f4]">
       {/* === SECTION: Hero Banner === */}
@@ -50,7 +50,7 @@ export const PageHome = ({
       <IeltsTestPlatformIntro config={testPlatformIntroConfig} />
 
       {/* === SECTION: Target Score & Practice History (Only for signed in users) === */}
-      {isSignedIn && (
+      {/* {isSignedIn && (
         <div className="w-full bg-[#f6f7f4] px-4 sm:px-6 py-6">
           <div className=" mx-auto bg-white rounded-[40px] px-8 sm:px-12 py-10 space-y-10">
             <TargetScore />
@@ -62,10 +62,10 @@ export const PageHome = ({
             </section>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* === SECTION: Practice Tests — "Practice like it's exam day" === */}
-      <div data-section="practice-tests" className="w-full bg-[#f6f7f4] px-4 sm:px-6 py-6">
+      <div data-section="practice-tests" className="w-full bg-[#f6f7f4]">
         <div className=" mx-auto bg-white rounded-[40px] px-8 sm:px-12 py-10 flex flex-col gap-10">
 
           {/* Section heading + View all */}

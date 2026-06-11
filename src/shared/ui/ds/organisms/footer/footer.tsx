@@ -140,8 +140,8 @@ export const Footer = ({
           © {new Date().getFullYear()} VIT IELTS. All rights reserved.
         </span>
         <div className="flex items-center gap-[24px]">
-          <a href="#" className="font-inter text-[13px] text-[#6a7282] no-underline hover:text-white transition-colors">Privacy Policy</a>
-          <a href="#" className="font-inter text-[13px] text-[#6a7282] no-underline hover:text-white transition-colors">Terms of Service</a>
+          <a href="/privacy-policy" className="font-inter text-[13px] text-[#6a7282] no-underline hover:text-white transition-colors">Privacy Policy</a>
+          <a href="/terms-of-use" className="font-inter text-[13px] text-[#6a7282] no-underline hover:text-white transition-colors">Terms of Service</a>
         </div>
       </div>
     )}

@@ -89,7 +89,7 @@ export const PracticeSection = ({
   if (items.length === 0) return null;
 
   return (
-    <ScrollFadeIn data-section="practice-carousel" className="bg-white">
+    <div data-section="practice-carousel" className="w-full">
       <Container>
         {/* Header */}
         <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between sm:items-center mb-8 pl-1 pr-1">
@@ -235,6 +235,6 @@ export const PracticeSection = ({
           navigateLink={ROUTES.TAKE_THE_TEST(selectedQuiz.slug)}
         />
       )}
-    </ScrollFadeIn>
+    </div>
   );
 };
