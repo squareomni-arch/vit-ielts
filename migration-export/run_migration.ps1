@@ -27,17 +27,15 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Connected OK" -ForegroundColor Green
 Write-Host $testResult
 
-# Danh sach files theo thu tu
+# Danh sach files theo thu tu — scope: quiz + blog + course config
 $FILES = @(
-    "01_schema.sql",
-    "02_auth_users.sql",
-    "03_small_tables.sql",
-    "data_quizzes_001.sql",
-    "data_activity_logs_001.sql",
-    "data_passages_001.sql",
+    "01_schema.sql",              # Tables, functions, RLS
+    "02_config.sql",              # site_settings, cms_configs, mock_test_collections, mock_tests
+    "data_quizzes_001.sql",       # Quiz list
+    "data_passages_001.sql",      # Passages (IELTS reading)
     "data_passages_002.sql",
     "data_passages_003.sql",
-    "data_questions_001.sql",
+    "data_questions_001.sql",     # Questions
     "data_questions_002.sql",
     "data_questions_003.sql",
     "data_questions_004.sql",
@@ -63,14 +61,8 @@ $FILES = @(
     "data_questions_024.sql",
     "data_questions_025.sql",
     "data_questions_026.sql",
-    "data_sample_essays_001.sql",
-    "data_sample_essays_002.sql",
-    "data_sample_essays_003.sql",
-    "data_sample_essays_004.sql",
-    "data_sample_essays_005.sql",
-    "data_posts_001.sql",
-    "data_posts_002.sql",
-    "data_posts_003.sql"
+    "data_sample_essays_001.sql", # Sample essays
+    "data_posts_001.sql"          # Blog posts
 )
 
 $total = $FILES.Count
@@ -136,6 +128,6 @@ $verifySql = "SELECT 'quizzes' AS tbl, count(*)::text FROM public.quizzes " +
              "UNION ALL SELECT 'questions', count(*)::text FROM public.questions " +
              "UNION ALL SELECT 'sample_essays', count(*)::text FROM public.sample_essays " +
              "UNION ALL SELECT 'posts', count(*)::text FROM public.posts " +
-             "UNION ALL SELECT 'users', count(*)::text FROM public.users " +
-             "UNION ALL SELECT 'auth.users', count(*)::text FROM auth.users;"
+             "UNION ALL SELECT 'mock_tests', count(*)::text FROM public.mock_tests " +
+             "UNION ALL SELECT 'mock_test_collections', count(*)::text FROM public.mock_test_collections;"
 docker exec $CONTAINER psql $ConnStr -c $verifySql

@@ -9,6 +9,7 @@ import type { PracticeLibraryBannerConfig } from "./types";
 import { Filter } from "./filter";
 import { HeroSection } from "./hero-section";
 import { PracticeCard } from "./practice-card";
+import { getQuizThumbnail } from "@/shared/lib/content-image";
 
 export type FilterFormValues = {
   progress: "pending" | "completed" | "in-progress";
@@ -75,9 +76,7 @@ const mapQuizToEdge = (quiz: Quiz): { node: IPracticeTest } => ({
     id: quiz.id,
     title: quiz.title,
     slug: quiz.slug,
-    featuredImage: quiz.featured_image
-      ? { node: { sourceUrl: quiz.featured_image, altText: quiz.title } }
-      : undefined,
+    featuredImage: { node: { sourceUrl: getQuizThumbnail(quiz.id), altText: quiz.title } },
     quizFields: {
       skill: [quiz.skill, quiz.skill] as IPracticeTest["quizFields"]["skill"],
       type: [quiz.type, quiz.type] as IPracticeTest["quizFields"]["type"],

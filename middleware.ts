@@ -38,6 +38,9 @@ export async function middleware(request: NextRequest) {
     request: { headers: request.headers },
   });
 
+  // Bypass ngrok warning page
+  response.headers.set("ngrok-skip-browser-warning", "true");
+
   // ─── 1. Refresh Supabase session ───────────────────────────────────────
   // Skip entirely for anonymous visitors (no auth cookie) — there is nothing
   // to refresh, and most traffic is anonymous. Also skip on /auth/callback,
@@ -116,6 +119,7 @@ export async function middleware(request: NextRequest) {
     maxAge: COOKIE_MAX_AGE_DAYS * 24 * 60 * 60,
     path: "/",
   });
+  redirect.headers.set("ngrok-skip-browser-warning", "true");
   return redirect;
 }
 

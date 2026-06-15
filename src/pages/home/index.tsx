@@ -7,6 +7,7 @@ import type { TestimonialsConfig } from "./ui/testimonials/types";
 import { createServerSupabase } from "~supabase/server";
 import { readConfig } from "~services/cms-config";
 import { getQuizzes } from "~services/quiz";
+import { getSampleEssays } from "~services/sample-essay";
 import { getExamCollections, getExamCollectionsByIds } from "~services/exam-collection";
 import type { ExamCollectionResponse } from "~services/types/database";
 import type { Quiz } from "~services/types/database";
@@ -30,18 +31,22 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
       testPlatformIntro,
       whyChooseUs,
       testimonials,
-      examQuizzes,
-      listeningQuizzes,
-      readingQuizzes,
+      examQuizzesRes,
+      listeningQuizzesRes,
+      readingQuizzesRes,
+      writingEssaysRes,
+      speakingEssaysRes,
       mockCollectionConfig,
     ] = await Promise.all([
       readConfig<HeroBannerConfig>(supabase, "home/hero-banner").catch(() => null),
       readConfig<TestPlatformIntroConfig>(supabase, "home/test-platform-intro").catch(() => null),
       readConfig<WhyChooseUsConfig>(supabase, "home/why-choose-us").catch(() => null),
       readConfig<TestimonialsConfig>(supabase, "home/testimonials").catch(() => null),
-      getQuizzes(supabase, { type: "exam", pageSize: 20 }).catch(() => ({ data: [] as Quiz[] })),
-      getQuizzes(supabase, { skill: "listening", type: "practice", pageSize: 8 }).catch(() => ({ data: [] as Quiz[] })),
-      getQuizzes(supabase, { skill: "reading", type: "practice", pageSize: 8 }).catch(() => ({ data: [] as Quiz[] })),
+      getQuizzes(supabase, { type: "exam", pageSize: 20 }).catch(() => ({ data: [] as Quiz[], count: 0 })),
+      getQuizzes(supabase, { skill: "listening", type: "practice", pageSize: 8 }).catch(() => ({ data: [] as Quiz[], count: 0 })),
+      getQuizzes(supabase, { skill: "reading", type: "practice", pageSize: 8 }).catch(() => ({ data: [] as Quiz[], count: 0 })),
+      getSampleEssays(supabase, { skill: "writing", pageSize: 1 }).catch(() => ({ data: [], count: 0 })),
+      getSampleEssays(supabase, { skill: "speaking", pageSize: 1 }).catch(() => ({ data: [], count: 0 })),
       readConfig<MockCollectionConfig>(supabase, "home/mock-collections").catch(() => null),
     ]);
 
@@ -64,10 +69,16 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
         testPlatformIntroConfig: testPlatformIntro ?? {},
         whyChooseUsConfig: whyChooseUs ?? {},
         testimonialsConfig: testimonials ?? {},
-        examQuizzes: examQuizzes.data,
-        listeningQuizzes: listeningQuizzes.data,
-        readingQuizzes: readingQuizzes.data,
+        examQuizzes: examQuizzesRes.data,
+        listeningQuizzes: listeningQuizzesRes.data,
+        readingQuizzes: readingQuizzesRes.data,
         mockCollections: mockCollections.data,
+        // Dynamic counts
+        totalExamsCount: examQuizzesRes.count || 0,
+        listeningCount: listeningQuizzesRes.count || 0,
+        readingCount: readingQuizzesRes.count || 0,
+        writingCount: writingEssaysRes.count || 0,
+        speakingCount: speakingEssaysRes.count || 0,
       },
     };
   }

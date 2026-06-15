@@ -24,9 +24,10 @@ const DEFAULTS: HeroBannerConfig = {
 
 export type HeroBannerProps = {
   config?: HeroBannerConfig;
+  totalTests?: number;
 };
 
-export const HeroBanner = ({ config }: HeroBannerProps) => {
+export const HeroBanner = ({ config, totalTests }: HeroBannerProps) => {
   // Per design decision (2026-06-09): the new Figma landing copy + mascot are the
   // canonical hero content — the legacy CMS "home/hero-banner" config held old-site
   // text/images, so heading/subtitle/mascot are no longer driven by it. Admin may
@@ -104,7 +105,9 @@ export const HeroBanner = ({ config }: HeroBannerProps) => {
                 <span className="font-inter font-normal text-[14px] leading-[1.4] text-[#6a7282]">avg. band uplift</span>
               </div>
               <div className="flex flex-col gap-[2px] whitespace-nowrap">
-                <span className="font-display font-bold text-[24px] leading-[1.2] tracking-[-0.24px] text-[#191d24]">920+</span>
+                <span className="font-display font-bold text-[24px] leading-[1.2] tracking-[-0.24px] text-[#191d24]">
+                  {totalTests && totalTests > 0 ? `${totalTests}+` : "920+"}
+                </span>
                 <span className="font-inter font-normal text-[14px] leading-[1.4] text-[#6a7282]">practice tests</span>
               </div>
               <div className="flex flex-col gap-[2px]">

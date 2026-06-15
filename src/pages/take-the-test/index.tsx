@@ -3,6 +3,7 @@ import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { ROUTES } from "@/shared/routes";
 import { createServerSupabase } from "~supabase/server";
 import { getQuizBySlug, getQuizBySlugPreview } from "~services/quiz";
+import { getQuizThumbnail } from "@/shared/lib/content-image";
 import { takeTheTest, getTestResult as getTestResultService } from "~services/test-flow";
 import { safeParseJsonb } from "~services/lib/safeParseJsonb";
 import type { ITestResult } from "./api";
@@ -42,9 +43,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
       },
     },
     date: quiz.published_at ?? quiz.created_at,
-    featuredImage: quiz.featured_image
-      ? { node: { sourceUrl: quiz.featured_image, altText: quiz.title } }
-      : null,
+    featuredImage: { node: { sourceUrl: getQuizThumbnail(quiz.id), altText: quiz.title } },
     quizFields: {
       testsTaken: quiz.tests_taken ?? 0,
       proUserOnly: quiz.pro_user_only,

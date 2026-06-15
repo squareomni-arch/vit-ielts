@@ -3,6 +3,7 @@ import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { ROUTES } from "@/shared/routes";
 import { createServerSupabase } from "~supabase/server";
 import { getQuizBySlug, getRelatedQuizzes } from "~services/quiz";
+import { getQuizThumbnail } from "@/shared/lib/content-image";
 import { safeParseJsonb } from "~services/lib/safeParseJsonb";
 import type { QuizWithPassages, Quiz } from "~services/types/database";
 import type { IPracticeSingle } from "./api";
@@ -39,7 +40,7 @@ function toIPracticeSingle(
       id: rq.id,
       databaseId: 0,
       title: rq.title,
-      featuredImage: rq.featured_image || false,
+      featuredImage: { node: { sourceUrl: getQuizThumbnail(rq.id), altText: rq.title } },
       excerpt: rq.excerpt ?? "",
       slug: rq.slug,
     })),
@@ -50,14 +51,7 @@ function toIPracticeSingle(
       },
     },
     date: quiz.published_at ?? quiz.created_at,
-    featuredImage: quiz.featured_image
-      ? {
-          node: {
-            sourceUrl: quiz.featured_image,
-            altText: quiz.title,
-          },
-        }
-      : undefined,
+    featuredImage: { node: { sourceUrl: getQuizThumbnail(quiz.id), altText: quiz.title } },
     quizFields: {
       testsTaken: quiz.tests_taken ?? 0,
       proUserOnly: quiz.pro_user_only,

@@ -3,6 +3,7 @@ import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { createServerSupabase } from "~supabase/server";
 import { getTestResult } from "~services/test-flow";
 import { getQuizBySlug } from "~services/quiz";
+import { getQuizThumbnail } from "@/shared/lib/content-image";
 import { getUserProfile } from "~services/user";
 import { getResultAnalytics } from "~services/test-analytics";
 import { calculateScore } from "@/shared/lib";
@@ -36,9 +37,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
       node: { name: "VitIELTS" },
     },
     date: quiz.published_at ?? quiz.created_at,
-    featuredImage: quiz.featured_image
-      ? { node: { sourceUrl: quiz.featured_image, altText: quiz.title } }
-      : null,
+    featuredImage: { node: { sourceUrl: getQuizThumbnail(quiz.id), altText: quiz.title } },
     quizFields: {
       testsTaken: quiz.tests_taken ?? 0,
       proUserOnly: quiz.pro_user_only,

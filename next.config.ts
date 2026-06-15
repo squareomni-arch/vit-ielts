@@ -4,6 +4,19 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
   devIndicators: false,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "ngrok-skip-browser-warning",
+            value: "true",
+          },
+        ],
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

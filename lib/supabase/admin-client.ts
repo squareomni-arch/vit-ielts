@@ -13,6 +13,11 @@ export function createAdminClient() {
       {
         isSingleton: false, // Prevent sharing the module-level singleton with the user client
         cookieOptions: { name: "sb-admin-auth" },
+        global: {
+          headers: {
+            "ngrok-skip-browser-warning": "true",
+          },
+        },
       }
     );
   }

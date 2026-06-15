@@ -2,6 +2,7 @@ import { withMasterData, withMultipleWrapper } from "@/shared/hoc";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { createServerSupabase } from "~supabase/server";
 import { getQuizBySlug, getQuizBySlugPreview, getRelatedQuizzes } from "~services/quiz";
+import { getQuizThumbnail } from "@/shared/lib/content-image";
 import { safeParseJsonb } from "~services/lib/safeParseJsonb";
 import type { QuizWithPassages, Quiz } from "~services/types/database";
 import type { IPracticeSingle } from "@/pages/ielts-practice-single/api";
@@ -38,7 +39,7 @@ function toExamSingleData(
       databaseId: 0,
       id: rq.id,
       title: rq.title,
-      featuredImage: rq.featured_image || false,
+      featuredImage: { node: { sourceUrl: getQuizThumbnail(rq.id), altText: rq.title } },
       excerpt: rq.excerpt ?? "",
       slug: rq.slug,
     })),
@@ -49,14 +50,7 @@ function toExamSingleData(
       },
     },
     date: quiz.published_at ?? quiz.created_at,
-    featuredImage: quiz.featured_image
-      ? {
-        node: {
-          sourceUrl: quiz.featured_image,
-          altText: quiz.title,
-        },
-      }
-      : undefined,
+    featuredImage: { node: { sourceUrl: getQuizThumbnail(quiz.id), altText: quiz.title } },
     quizFields: {
       testsTaken: quiz.tests_taken ?? 0,
       proUserOnly: quiz.pro_user_only,

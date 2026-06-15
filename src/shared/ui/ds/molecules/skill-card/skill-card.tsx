@@ -19,6 +19,7 @@ export type SkillCardProps = {
   href?: string;
   onClick?: () => void;
   className?: string;
+  lessons?: string;
 };
 
 // ── per-skill design tokens ────────────────────────────────────────────────
@@ -116,7 +117,7 @@ const SKILL: Record<SkillCardSkill, SkillConfig> = {
   },
 };
 
-export const SkillCard = ({ skill, href, onClick, className = '' }: SkillCardProps) => {
+export const SkillCard = ({ skill, href, onClick, className = '', lessons }: SkillCardProps) => {
   const s = SKILL[skill];
   const Tag = href ? 'a' : 'div';
   const Icon = s.icon;
@@ -181,9 +182,13 @@ export const SkillCard = ({ skill, href, onClick, className = '' }: SkillCardPro
 
         {/* Lessons + arrow */}
         <div className="flex items-center justify-between mt-1">
-          <p className="font-inter font-bold text-[12px] xl:text-[13px] 2xl:text-[14px] text-[#6a7282] group-hover:text-white group-focus-visible:text-white transition-colors duration-[250ms]">
-            {s.lessons}
-          </p>
+          {lessons ? (
+            <p className="font-inter font-bold text-[12px] xl:text-[13px] 2xl:text-[14px] text-[#6a7282] group-hover:text-white group-focus-visible:text-white transition-colors duration-[250ms]">
+              {lessons}
+            </p>
+          ) : (
+            <div />
+          )}
           <div className="flex items-center justify-center rounded-full w-[34px] h-[34px] xl:w-[38px] xl:h-[38px] 2xl:w-[44px] 2xl:h-[44px] shrink-0 bg-[#191d24] group-hover:[background:var(--accent)] group-focus-visible:[background:var(--accent)] transition-colors duration-[250ms]">
             <span className="text-white font-bold text-[14px] 2xl:text-[16px] leading-none">→</span>
           </div>

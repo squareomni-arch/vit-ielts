@@ -25,6 +25,11 @@ interface PageHomeProps {
   listeningQuizzes: Quiz[];
   readingQuizzes: Quiz[];
   mockCollections: ExamCollectionResponse["data"];
+  totalExamsCount: number;
+  listeningCount: number;
+  readingCount: number;
+  writingCount: number;
+  speakingCount: number;
 }
 
 export const PageHome = ({
@@ -36,15 +41,26 @@ export const PageHome = ({
   listeningQuizzes,
   readingQuizzes,
   mockCollections,
+  totalExamsCount,
+  listeningCount,
+  readingCount,
+  writingCount,
+  speakingCount,
 }: PageHomeProps) => {
   // const { isSignedIn } = useAuth();
   return (
     <div className="w-full bg-[#f6f7f4] flex flex-col gap-6 lg:gap-10 xl:gap-12">
       {/* === SECTION: Hero Banner === */}
-      <HeroBanner config={heroBannerConfig} />
+      <HeroBanner config={heroBannerConfig} totalTests={totalExamsCount + listeningCount + readingCount} />
 
       {/* === SECTION: Platform Intro (Skill Cards) === */}
-      <IeltsTestPlatformIntro config={testPlatformIntroConfig} />
+      <IeltsTestPlatformIntro
+        config={testPlatformIntroConfig}
+        listeningCount={listeningCount}
+        readingCount={readingCount}
+        writingCount={writingCount}
+        speakingCount={speakingCount}
+      />
 
       {/* === SECTION: Target Score & Practice History (Only for signed in users) === */}
       {/* {isSignedIn && (
@@ -74,7 +90,7 @@ export const PageHome = ({
               href={ROUTES.EXAM.ARCHIVE}
               className="inline-flex items-center gap-2 bg-white hover:bg-[#f6f7f4] border-[1.5px] border-[rgba(25,29,36,0.1)] text-[#191d24] font-inter font-bold text-[14px] leading-[1.2] px-[26px] py-[13px] rounded-full transition-colors duration-200 whitespace-nowrap shrink-0"
             >
-              View all 920 tests
+              View all {totalExamsCount} tests
             </Link>
           </div>
 

@@ -47,6 +47,11 @@ export function createServerSupabase(context: GetServerSidePropsContext) {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
+            global: {
+                headers: {
+                    "ngrok-skip-browser-warning": "true",
+                },
+            },
             cookies: {
                 getAll() {
                     return Object.entries(context.req.cookies).map(([name, value]) => ({
@@ -81,6 +86,11 @@ export function createAdminServerSupabase(context: GetServerSidePropsContext) {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             cookieOptions: { name: "sb-admin-auth" },
+            global: {
+                headers: {
+                    "ngrok-skip-browser-warning": "true",
+                },
+            },
             cookies: {
                 getAll() {
                     return Object.entries(context.req.cookies).map(([name, value]) => ({
@@ -114,6 +124,11 @@ export function createApiSupabase(req: NextApiRequest, res: NextApiResponse) {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
+            global: {
+                headers: {
+                    "ngrok-skip-browser-warning": "true",
+                },
+            },
             cookies: {
                 getAll() {
                     return Object.entries(req.cookies).map(([name, value]) => ({
@@ -148,6 +163,11 @@ export function createAdminApiSupabase(req: NextApiRequest, res: NextApiResponse
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             cookieOptions: { name: "sb-admin-auth" },
+            global: {
+                headers: {
+                    "ngrok-skip-browser-warning": "true",
+                },
+            },
             cookies: {
                 getAll() {
                     return Object.entries(req.cookies).map(([name, value]) => ({

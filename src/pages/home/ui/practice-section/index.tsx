@@ -1,5 +1,6 @@
 
 import { useCallback, useRef, useState } from "react";
+import { getQuizThumbnail } from "@/shared/lib/content-image";
 import { Container } from "@/shared/ui";
 import { TestCardWithScore } from "@/entities/practice-test";
 import { Splide, SplideSlide, SplideTrack } from "@splidejs/react-splide";
@@ -193,7 +194,7 @@ export const PracticeSection = ({
                       <TestCardWithScore
                         quizId={quiz.id}
                         title={quiz.title}
-                        image={quiz.featured_image ?? undefined}
+                        image={getQuizThumbnail(quiz.id)}
                         skill={quiz.skill as any}
                         part={partLabel}
                         attempts={hideAttempts ? undefined : (quiz.tests_taken || (quiz as any).views || 0)}

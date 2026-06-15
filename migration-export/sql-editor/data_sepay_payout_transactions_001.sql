@@ -30,4 +30,10 @@ INSERT INTO public.sepay_payout_transactions VALUES ('605f89a4-50fd-4c4a-aa59-26
 INSERT INTO public.sepay_payout_transactions VALUES ('b428334d-95fb-4dca-befc-28cc9412a9db', 228594, '66a2ce86-9241-4df9-9ec6-6c14541a54a3', 500000, 'REF123', '2026-06-15 04:44:18.876287+00');
 INSERT INTO public.sepay_payout_transactions VALUES ('cf8e31c6-23a8-416e-81f3-a22445a65e26', 575404, 'ed7f5a41-f841-4e0f-8604-839d106d9801', 500000, 'REF123', '2026-06-15 06:55:55.823358+00');
 INSERT INTO public.sepay_payout_transactions VALUES ('4bb38fa0-da25-4353-9489-fdd28310bfa0', 735591, '5814a484-de80-4f87-a7d2-373c6e30be72', 500000, 'REF123', '2026-06-15 08:07:41.227928+00');
+INSERT INTO public.sepay_payout_transactions VALUES ('f654fcde-9049-43e5-a65f-9b2ee19e7bda', 994141, '4cacafed-26a4-4846-b15c-08dcc2ca32b3', 500000, 'REF123', '2026-06-15 09:20:38.268597+00');
+INSERT INTO public.sepay_payout_transactions VALUES ('cee606c2-cdd2-4739-aab9-e474f53051e7', 326926, 'ba05159a-965c-431f-b589-ae219b469ce6', 500000, 'REF123', '2026-06-15 09:20:54.39511+00');
+INSERT INTO public.sepay_payout_transactions VALUES ('f375e70e-daad-498a-bb52-db6ed7b6deff', 827158, '23d3bd36-3362-4b0b-99e5-99f747860edd', 500000, 'REF123', '2026-06-15 09:50:02.161607+00');
+INSERT INTO public.sepay_payout_transactions VALUES ('78a23917-5f4d-44ed-a604-33468808f199', 885201, 'e6081462-1b06-492d-a276-4ddd64970411', 500000, 'REF123', '2026-06-15 11:01:55.117182+00');
+INSERT INTO public.sepay_payout_transactions VALUES ('cd18c79c-9c8d-4662-b6f7-ad83a8413f3c', 139655, '69564281-e53a-4271-b3e5-f84849552394', 500000, 'REF123', '2026-06-15 12:48:22.434141+00');
+INSERT INTO public.sepay_payout_transactions VALUES ('0b824d36-4ed4-4c7f-92d5-9a22aeba73f7', 643722, 'bc225da2-d831-4258-9d10-0c584530952a', 500000, 'REF123', '2026-06-15 14:34:57.030026+00');
 SET session_replication_role = DEFAULT;

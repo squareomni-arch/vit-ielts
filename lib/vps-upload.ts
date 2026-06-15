@@ -58,7 +58,10 @@ export async function uploadToVPS(
   try {
     response = await fetch(UPLOAD_URL, {
       method: "POST",
-      headers: { "X-Upload-Key": UPLOAD_SECRET },
+      headers: { 
+        "X-Upload-Key": UPLOAD_SECRET,
+        "ngrok-skip-browser-warning": "true",
+      },
       body: formData,
       signal: controller.signal,
     });
@@ -109,6 +112,7 @@ export async function deleteFromVPS(url: string): Promise<void> {
       headers: {
         "X-Upload-Key": UPLOAD_SECRET,
         "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
       },
       body: JSON.stringify({ url }),
       signal: controller.signal,

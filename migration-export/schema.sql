@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict E3QLI3rfWI0egmAvRuRcxgdv3EJ8uqWK10UK6HhcaMx2wHcC3NaDg10KRX53CgK
+\restrict zICheSRaVUwvSqJW8P48iqmCZbxf6b1LE0EERTNx9ZaevbbRb8afcz7PQbBooth
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -3590,5 +3590,5 @@ ALTER TABLE "public"."vocab_words" ENABLE ROW LEVEL SECURITY;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict E3QLI3rfWI0egmAvRuRcxgdv3EJ8uqWK10UK6HhcaMx2wHcC3NaDg10KRX53CgK
+\unrestrict zICheSRaVUwvSqJW8P48iqmCZbxf6b1LE0EERTNx9ZaevbbRb8afcz7PQbBooth
 

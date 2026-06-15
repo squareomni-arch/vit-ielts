@@ -3,6 +3,7 @@
 // Sections: greeting, stat cards, resume banner, my classes, homework due,
 // recommended tests, weekly activity + weekly goal
 import Link from "next/link";
+import { getQuizThumbnail } from "@/shared/lib/content-image";
 import dayjs from "dayjs";
 import { useMemo, useRef } from "react";
 import { AppShell } from "@/widgets/layouts";
@@ -400,7 +401,7 @@ const Recommended = ({ quizzes }: { quizzes: Quiz[] }) => {
             {quizzes.map((q) => (
               <SplideSlide key={q.id} className="pb-8 pt-[14px] px-1">
                 <TestCard
-                  image={q.featured_image ?? undefined}
+                  image={getQuizThumbnail(q.id)}
                   title={q.title}
                   skill={q.skill as "reading" | "listening" | "speaking" | "writing"}
                   attempts={q.tests_taken}

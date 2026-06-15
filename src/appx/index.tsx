@@ -13,6 +13,31 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
 import { BProgress } from "@bprogress/core";
 
+// Intercept global fetch in the browser to automatically add ngrok-skip-browser-warning header
+if (typeof window !== "undefined") {
+  const originalFetch = window.fetch;
+  window.fetch = async function (input, init) {
+    const newInit = init ? { ...init } : {};
+    let headers: any = newInit.headers || {};
+
+    if (headers instanceof Headers) {
+      if (!headers.has("ngrok-skip-browser-warning")) {
+        headers.set("ngrok-skip-browser-warning", "true");
+      }
+    } else if (Array.isArray(headers)) {
+      const hasHeader = headers.some(([key]) => key.toLowerCase() === "ngrok-skip-browser-warning");
+      if (!hasHeader) {
+        headers.push(["ngrok-skip-browser-warning", "true"]);
+      }
+    } else {
+      headers["ngrok-skip-browser-warning"] = "true";
+    }
+
+    newInit.headers = headers;
+    return originalFetch(input, newInit);
+  };
+}
+
 
 dayjs.locale("vi");
 import dynamic from "next/dynamic";

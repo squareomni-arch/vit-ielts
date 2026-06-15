@@ -19,5 +19,5 @@ INSERT INTO public.vocab_activity VALUES ('2d7dcd23-7142-48a5-9573-9e9f9270b398'
 -- PostgreSQL database dump complete
 --
 
-\unrestrict dBCdv77L5pnJYjW4PPfl3ukazMXf43hFq0MR6HRWOxopskluwg26wf9yOzVzn4l
+\unrestrict Adrca2pQWgFVoXlGuXjq2Zjvh95uwdQ2t0XFgdjLzjnlw9WfFXnZkhvlyOIqg0B
 SET session_replication_role = DEFAULT;

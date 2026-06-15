@@ -63,9 +63,10 @@ type FormData = {
 
 interface PageRegisterProps {
   registerConfig?: RegisterPageConfig;
+  totalTests?: number;
 }
 
-export function PageRegister({ registerConfig: _registerConfig }: PageRegisterProps) {
+export function PageRegister({ registerConfig: _registerConfig, totalTests = 920 }: PageRegisterProps) {
   const { masterData: _masterData } = useAppContext();
   const { signUp, signIn, signInWithGoogle } = useAuth();
   const {
@@ -83,6 +84,13 @@ export function PageRegister({ registerConfig: _registerConfig }: PageRegisterPr
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [selectedBand, setSelectedBand] = useState("Band 7.5");
   const submittingRef = useRef(false);
+
+  const features = [
+    `${totalTests}+ real mock tests, free to start`,
+    "Instant band scores & analytics",
+    "Feedback from expert teachers",
+    "A study plan built around your goal",
+  ];
 
   const onSubmit = async (data: FormData) => {
     if (submittingRef.current) return;
@@ -160,7 +168,7 @@ export function PageRegister({ registerConfig: _registerConfig }: PageRegisterPr
                 Band 8.0 journey.
               </h1>
 
-              {FEATURES.map((feat) => (
+              {features.map((feat) => (
                 <div key={feat} className="flex items-center gap-3">
                   <span className="flex items-center justify-center shrink-0 w-[26px] h-[26px] rounded-[13px] bg-[#b3e653]">
                     <span className="material-symbols-rounded text-[#191d24] text-[14px] leading-none font-bold select-none">
@@ -421,17 +429,19 @@ export function PageRegister({ registerConfig: _registerConfig }: PageRegisterPr
             </form>
 
             {/* === Google button === */}
-            <Button
-              type="button"
-              variant="outlined"
-              size="md"
-              fullWidth
-              disabled={isLoading || isSubmitting}
-              onClick={handleGoogleLogin}
-              leftIcon={<GoogleIcon />}
-            >
-              Continue with Google
-            </Button>
+            {false && (
+              <Button
+                type="button"
+                variant="outlined"
+                size="md"
+                fullWidth
+                disabled={isLoading || isSubmitting}
+                onClick={handleGoogleLogin}
+                leftIcon={<GoogleIcon />}
+              >
+                Continue with Google
+              </Button>
+            )}
 
             {/* === Login link === */}
             <div className="flex gap-[5px] items-center text-[14px]">

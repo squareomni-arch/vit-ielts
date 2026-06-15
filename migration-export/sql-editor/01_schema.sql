@@ -1,7 +1,6 @@
-﻿-- ============================================================
--- STEP 1: Schema — run ONCE in SQL Editor
--- Creates tables, functions, RLS policies, indexes
--- ============================================================
+﻿-- STEP 1: Schema
+-- Run ONCE on fresh Supabase project
+
 --
 -- PostgreSQL database dump
 --
@@ -3593,6 +3592,6 @@ ALTER TABLE "public"."vocab_words" ENABLE ROW LEVEL SECURITY;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict E3QLI3rfWI0egmAvRuRcxgdv3EJ8uqWK10UK6HhcaMx2wHcC3NaDg10KRX53CgK
+\unrestrict zICheSRaVUwvSqJW8P48iqmCZbxf6b1LE0EERTNx9ZaevbbRb8afcz7PQbBooth
 
 

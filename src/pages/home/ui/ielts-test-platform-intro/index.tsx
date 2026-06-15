@@ -7,9 +7,19 @@ import type { TestPlatformIntroConfig } from "./types";
 
 interface IeltsTestPlatformIntroProps {
   config?: TestPlatformIntroConfig;
+  listeningCount?: number;
+  readingCount?: number;
+  writingCount?: number;
+  speakingCount?: number;
 }
 
-export const IeltsTestPlatformIntro = ({ config: _config }: IeltsTestPlatformIntroProps) => {
+export const IeltsTestPlatformIntro = ({
+  config: _config,
+  listeningCount,
+  readingCount,
+  writingCount,
+  speakingCount,
+}: IeltsTestPlatformIntroProps) => {
   return (
     <ScrollFadeIn
       data-section="platform-intro"
@@ -24,10 +34,30 @@ export const IeltsTestPlatformIntro = ({ config: _config }: IeltsTestPlatformInt
 
         {/* Skill cards grid — full-width columns; cards fill each cell and scale with the viewport */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px] xl:gap-[20px] w-full">
-          <SkillCard skill="listening" href={ROUTES.PRACTICE.ARCHIVE_LISTENING} className="w-full" />
-          <SkillCard skill="reading"   href={ROUTES.PRACTICE.ARCHIVE_READING}   className="w-full" />
-          <SkillCard skill="writing"   href={`${ROUTES.BLOG.ARCHIVE}?skill=writing`}  className="w-full" />
-          <SkillCard skill="speaking"  href={`${ROUTES.BLOG.ARCHIVE}?skill=speaking`} className="w-full" />
+          <SkillCard
+            skill="listening"
+            href={ROUTES.PRACTICE.ARCHIVE_LISTENING}
+            className="w-full"
+            lessons={listeningCount ? `${listeningCount} tests` : undefined}
+          />
+          <SkillCard
+            skill="reading"
+            href={ROUTES.PRACTICE.ARCHIVE_READING}
+            className="w-full"
+            lessons={readingCount ? `${readingCount} tests` : undefined}
+          />
+          <SkillCard
+            skill="writing"
+            href={`${ROUTES.BLOG.ARCHIVE}?skill=writing`}
+            className="w-full"
+            lessons={writingCount ? `${writingCount} essays` : undefined}
+          />
+          <SkillCard
+            skill="speaking"
+            href={`${ROUTES.BLOG.ARCHIVE}?skill=speaking`}
+            className="w-full"
+            lessons={speakingCount ? `${speakingCount} lessons` : undefined}
+          />
         </div>
       </div>
     </ScrollFadeIn>
