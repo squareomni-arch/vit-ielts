@@ -24,7 +24,7 @@ export const PostCard = ({ image, title, date, isPro, href }: PostCardProps) => 
   const openProContentModal = useProContentModal((state) => state.open);
 
   const requiresLogin = isPro && !currentUser;
-  const requiresUpgrade = isPro && !currentUser?.userData.isPro;
+  const requiresUpgrade = isPro && !currentUser?.userData?.isPro;
   const needsIntercept = requiresLogin || requiresUpgrade;
 
   const handleProtectedAction = (event: MouseEvent) => {

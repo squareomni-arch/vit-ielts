@@ -57,7 +57,7 @@ export function PageIELTSPredictionSingle({ post }: { post: IPracticeSingle }) {
     : ROUTES.LOGIN(ROUTES.TAKE_THE_TEST(post.slug));
 
   const requiresUpgrade =
-    post.quizFields.proUserOnly && !currentUser?.userData.isPro;
+    post.quizFields.proUserOnly && !currentUser?.userData?.isPro;
 
   const handleStartPractice = (e: React.MouseEvent) => {
     if (requiresUpgrade) {

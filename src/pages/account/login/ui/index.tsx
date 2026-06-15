@@ -14,7 +14,7 @@ const imgDecorationTop =
   "https://www.figma.com/api/mcp/asset/9ac236a3-c745-4ad6-98dd-b1faa9a5568c";
 const imgDecorationBottom =
   "https://www.figma.com/api/mcp/asset/0dd2a09a-0301-4ed1-9274-438deab9261b";
-const imgLogoFull = "/assets/logos/Logo ON GREEN.svg";
+const imgLogoFull = "/assets/logos/logo-on-green.svg";
 const imgTrophy =
   "https://www.figma.com/api/mcp/asset/2175c9aa-8033-4dc5-8005-ab4f3c1df65c";
 

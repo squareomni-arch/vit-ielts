@@ -36,11 +36,12 @@ export const SEOHeader = ({
   const metaDescription = description
     ? stripHtml(description).slice(0, 160)
     : title
-      ? `${title} - VitIELTS`
+      ? `${title} - Vit IELTS`
       : undefined;
 
-  const ogTitle = title || "VitIELTS";
-  const siteName = "VitIELTS";
+  const ogTitle = title || "Vit IELTS";
+  const siteName = "Vit IELTS";
+  const ogImage = image || `${SITE_URL}/assets/logos/logo-on-bright.svg`;
 
   return (
     <Head>
@@ -62,7 +63,7 @@ export const SEOHeader = ({
           {metaDescription && (
             <meta property="og:description" content={metaDescription} />
           )}
-          {image && <meta property="og:image" content={image} />}
+          <meta property="og:image" content={ogImage} />
           <meta property="og:url" content={canonicalUrl} />
           <meta property="og:site_name" content={siteName} />
 
@@ -72,7 +73,7 @@ export const SEOHeader = ({
           {metaDescription && (
             <meta name="twitter:description" content={metaDescription} />
           )}
-          {image && <meta name="twitter:image" content={image} />}
+          <meta name="twitter:image" content={ogImage} />
         </>
       )}
     </Head>

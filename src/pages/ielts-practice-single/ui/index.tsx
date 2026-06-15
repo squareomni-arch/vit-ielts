@@ -30,7 +30,7 @@ export function PageIELTSPracticeSingle({ post, isPreview: isPreviewProp }: { po
     : ROUTES.LOGIN(ROUTES.TAKE_THE_TEST(post.slug) + previewSuffix);
 
   const requiresUpgrade =
-    !isPreview && post.quizFields.proUserOnly && !currentUser?.userData.isPro;
+    !isPreview && post.quizFields.proUserOnly && !currentUser?.userData?.isPro;
 
   const handleStartPractice = (e: React.MouseEvent) => {
     if (requiresUpgrade) {

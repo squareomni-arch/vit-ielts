@@ -61,7 +61,7 @@ export const ExamItem = ({
     return formatBandScore(latestScoreRaw) ?? `${latestScoreRaw}`;
   })();
 
-  const isProtected = quizFields.proUserOnly && !currentUser?.userData.isPro;
+  const isProtected = quizFields.proUserOnly && !currentUser?.userData?.isPro;
 
   // Handle card click: open mode modal if allowed
   const handleCardClick = useCallback(

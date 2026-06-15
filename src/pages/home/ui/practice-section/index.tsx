@@ -158,7 +158,7 @@ export const PracticeSection = ({
 
                   const isProtected = quiz.pro_user_only;
                   const requiresLogin = !currentUser;
-                  const requiresUpgrade = isProtected && !currentUser?.userData.isPro;
+                  const requiresUpgrade = isProtected && !currentUser?.userData?.isPro;
                   const isLocked = requiresUpgrade; // Only lock icon for PRO content
 
                   // For exam cards (useExamModal), delegate login/pro checks to handleCardClick

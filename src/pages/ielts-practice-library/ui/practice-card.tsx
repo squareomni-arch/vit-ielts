@@ -24,7 +24,7 @@ export const PracticeCard = ({ item, priority = false }: PracticeCardProps) => {
 
   const isProtected = item.quizFields.proUserOnly;
   const requiresLogin = !currentUser;
-  const requiresUpgrade = isProtected && !currentUser?.userData.isPro;
+  const requiresUpgrade = isProtected && !currentUser?.userData?.isPro;
   const isLocked = requiresUpgrade;
   const needsIntercept = requiresLogin || requiresUpgrade;
   

@@ -118,7 +118,7 @@ export const PracticeTestItem = ({ item }: { item: IPracticeTest }) => {
         title={item.title}
         className="block"
         {...(item.quizFields.proUserOnly &&
-          !currentUser?.userData.isPro && {
+          !currentUser?.userData?.isPro && {
             onClick: handleOpen,
           })}
       >
@@ -173,7 +173,7 @@ export const PracticeTestItem = ({ item }: { item: IPracticeTest }) => {
           title={item.title}
           className="block"
           {...(item.quizFields.proUserOnly &&
-            !currentUser?.userData.isPro && {
+            !currentUser?.userData?.isPro && {
               onClick: handleOpen,
             })}
         >
@@ -190,7 +190,7 @@ export const PracticeTestItem = ({ item }: { item: IPracticeTest }) => {
           <Skeleton.Button active />
         ) : (
           <> */}
-        {item.quizFields.proUserOnly && !currentUser?.userData.isPro ? (
+        {item.quizFields.proUserOnly && !currentUser?.userData?.isPro ? (
           <>
             <Button size="large" onClick={handleOpen}>
               <span className="material-symbols-rounded text-primary!">

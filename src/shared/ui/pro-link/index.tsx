@@ -39,7 +39,7 @@ export const ProLink = ({
   };
 
   // Nếu là pro content và user không phải pro
-  if (isPro && !currentUser?.userData.isPro) {
+  if (isPro && !currentUser?.userData?.isPro) {
     return (
       <button
         title={title}

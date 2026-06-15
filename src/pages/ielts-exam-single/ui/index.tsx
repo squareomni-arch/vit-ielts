@@ -23,7 +23,7 @@ export function PageIELTSExamSingle({ post, isPreview: isPreviewProp }: { post: 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const requiresUpgrade =
-    !isPreview && post.quizFields.proUserOnly && !currentUser?.userData.isPro;
+    !isPreview && post.quizFields.proUserOnly && !currentUser?.userData?.isPro;
 
   // Auto-open modal when ?autoStart=true (after login redirect)
   useEffect(() => {
