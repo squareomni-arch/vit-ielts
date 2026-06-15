@@ -28,7 +28,26 @@ import type {
 import type { QuizWithPassages as QuizForScoring } from "./types/quiz";
 import { calculateScore } from "./scoring";
 import { TEST_RESULT_COLUMNS, TEST_RESULT_SUMMARY_COLUMNS } from "./lib/columns";
-import localQuizzes from "../data/exported-quizzes.json";
+let localQuizzesCache: any[] | null = null;
+
+function getLocalQuizzes(): any[] {
+    if (localQuizzesCache) return localQuizzesCache;
+    if (typeof window === "undefined") {
+        try {
+            const fs = eval("require")("fs");
+            const path = eval("require")("path");
+            const filePath = path.join(process.cwd(), "data", "exported-quizzes.json");
+            if (fs.existsSync(filePath)) {
+                const rawData = fs.readFileSync(filePath, "utf-8");
+                localQuizzesCache = JSON.parse(rawData);
+                return localQuizzesCache || [];
+            }
+        } catch (err) {
+            console.error("Failed to load local quizzes:", err);
+        }
+    }
+    return [];
+}
 
 // In-memory store for mock test results when running database-less
 const mockResultsStore = new Map<string, any>();
@@ -165,7 +184,8 @@ export async function takeTheTest(
     supabase: SupabaseClient,
     params: TakeTheTestParams,
 ): Promise<TestResult> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        const localQuizzes = getLocalQuizzes();
         const quiz = (localQuizzes as any[]).find(q => q.id === params.quizId);
         const testTime = params.testTime || quiz?.time_minutes || 40;
         
@@ -397,6 +417,56 @@ export async function submitTestResult(
     timeLeft: string,
     fallback?: { quizId?: string; testPart?: number[] },
 ): Promise<TestResult> {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        const localQuizzes = getLocalQuizzes();
+        const quizId = fallback?.quizId || "mock-quiz-id";
+        const quizData = (localQuizzes as any[]).find(q => q.id === quizId);
+        if (!quizData) {
+            throw new Error("Quiz not found for scoring.");
+        }
+
+        let testPart = fallback?.testPart || [];
+        if (testPart.length === 0) {
+            const passageCount = (quizData.passages ?? []).length;
+            testPart = Array.from({ length: passageCount }, (_, i) => i);
+        }
+
+        const quizForScoring = toQuizForScoring(quizData);
+        const scoreResult = calculateScore(
+            answers.answers as Parameters<typeof calculateScore>[0],
+            quizForScoring,
+            testPart,
+        );
+        const score = scoreResult.score;
+
+        const answersWithBreakdown = {
+            ...answers,
+            totalCorrect: scoreResult.totalCorrect,
+            totalQuestions: scoreResult.totalQuestions,
+        };
+
+        const existing = mockResultsStore.get(testId) || {};
+        const updatedResult = {
+            ...existing,
+            id: testId || `mock-result-${Date.now()}`,
+            user_id: "mock-user-id",
+            quiz_id: quizId,
+            test_part: testPart,
+            test_time: quizData.time_minutes ?? 0,
+            test_mode: "practice",
+            answers: answersWithBreakdown,
+            time_left: timeLeft,
+            score,
+            status: "published",
+            submitted_at: new Date().toISOString(),
+            created_at: existing.created_at || new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        };
+
+        mockResultsStore.set(updatedResult.id, updatedResult);
+        return updatedResult as TestResult;
+    }
+
     const userId = await requireAuth(supabase);
 
     // Get test result to retrieve quiz_id and test_part
@@ -525,7 +595,8 @@ export async function getTestResult(
     supabase: SupabaseClient,
     testId: string,
 ): Promise<TestResultWithQuiz | null> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        const localQuizzes = getLocalQuizzes();
         const mockResult = mockResultsStore.get(testId);
         if (mockResult) {
             const quiz = (localQuizzes as any[]).find(q => q.id === mockResult.quiz_id);
@@ -603,7 +674,8 @@ export async function getUserTestHistory(
     userId: string,
     filters: TestHistoryFilters = {},
 ): Promise<PaginatedResponse<TestResultWithQuiz>> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        const localQuizzes = getLocalQuizzes();
         const page = filters.page ?? 1;
         const pageSize = Math.min(filters.pageSize ?? 10, 100);
 

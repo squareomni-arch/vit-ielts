@@ -23,7 +23,26 @@ import type {
     Question,
     SkillType,
 } from "./types/database";
-import localQuizzes from "../data/exported-quizzes.json";
+let localQuizzesCache: any[] | null = null;
+
+function getLocalQuizzes(): any[] {
+    if (localQuizzesCache) return localQuizzesCache;
+    if (typeof window === "undefined") {
+        try {
+            const fs = eval("require")("fs");
+            const path = eval("require")("path");
+            const filePath = path.join(process.cwd(), "data", "exported-quizzes.json");
+            if (fs.existsSync(filePath)) {
+                const rawData = fs.readFileSync(filePath, "utf-8");
+                localQuizzesCache = JSON.parse(rawData);
+                return localQuizzesCache || [];
+            }
+        } catch (err) {
+            console.error("Failed to load local quizzes:", err);
+        }
+    }
+    return [];
+}
 
 // ============================================================================
 // Public Read Functions
@@ -41,7 +60,8 @@ export async function getQuizBySlug(
     supabase: SupabaseClient,
     slug: string
 ): Promise<QuizWithPassages | null> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        const localQuizzes = getLocalQuizzes();
         const quiz = (localQuizzes as any[]).find(
             (q) => q.slug === slug && q.status === "published"
         );
@@ -101,7 +121,8 @@ export async function getQuizBySlugPreview(
     supabase: SupabaseClient,
     slug: string
 ): Promise<QuizWithPassages | null> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        const localQuizzes = getLocalQuizzes();
         const quiz = (localQuizzes as any[]).find(
             (q) => q.slug === slug
         );
@@ -162,7 +183,8 @@ export async function getQuizzes(
     supabase: SupabaseClient,
     filters: QuizFilters = {}
 ): Promise<PaginatedResponse<Quiz>> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        const localQuizzes = getLocalQuizzes();
         const page = filters.page || 1;
         const pageSize = Math.min(filters.pageSize || 12, 100);
 
@@ -325,7 +347,8 @@ export async function getQuizFilterOptions(supabase: SupabaseClient): Promise<{
     parts: string[];
     quarters: string[];
 }> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        const localQuizzes = getLocalQuizzes();
         const yearsSet = new Set<string>();
         const sourcesSet = new Set<string>();
         const partsSet = new Set<string>();
@@ -376,7 +399,8 @@ export async function getRelatedQuizzes(
     quizId: string,
     meta?: { skill: SkillType; source?: string | null; year?: string | null }
 ): Promise<Quiz[]> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        const localQuizzes = getLocalQuizzes();
         let currentMeta = meta;
         if (!currentMeta) {
             const current = (localQuizzes as any[]).find(q => q.id === quizId);
