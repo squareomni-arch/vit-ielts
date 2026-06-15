@@ -68,3 +68,6 @@ scripts/figma-data/design-system-page.json
 # supabase local dev (data dump filtered for local import — regenerate with scripts/filter-local-data.mjs)
 supabase/seed-local-data.sql
 .env.local.cloud-backup
+
+# Runtime mock store (NEXT_PUBLIC_MOCK_DB)
+data/mock-test-results.json

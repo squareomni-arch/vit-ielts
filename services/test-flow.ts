@@ -49,8 +49,52 @@ function getLocalQuizzes(): any[] {
     return [];
 }
 
-// In-memory store for mock test results when running database-less
+// Store for mock test results when running database-less.
+//
+// Backed by a JSON file (data/mock-test-results.json) so a submitted result
+// survives container restarts / redeploys and is served from any process — and,
+// crucially, always resolves to the EXACT quiz the user took (never falls back
+// to an unrelated quiz). The in-memory Map is just a hot cache over the file.
 const mockResultsStore = new Map<string, any>();
+let mockResultsLoaded = false;
+
+function mockResultsFilePath(): string {
+    const path = eval("require")("path");
+    return path.join(process.cwd(), "data", "mock-test-results.json");
+}
+
+function loadMockResults(): void {
+    if (mockResultsLoaded || typeof window !== "undefined") return;
+    mockResultsLoaded = true;
+    try {
+        const fs = eval("require")("fs");
+        const filePath = mockResultsFilePath();
+        if (fs.existsSync(filePath)) {
+            const rows = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+            if (Array.isArray(rows)) {
+                for (const row of rows) {
+                    if (row?.id) mockResultsStore.set(row.id, row);
+                }
+            }
+        }
+    } catch (err) {
+        console.error("Failed to load mock test results:", err);
+    }
+}
+
+function persistMockResults(): void {
+    if (typeof window !== "undefined") return;
+    try {
+        const fs = eval("require")("fs");
+        fs.writeFileSync(
+            mockResultsFilePath(),
+            JSON.stringify(Array.from(mockResultsStore.values())),
+            "utf-8",
+        );
+    } catch (err) {
+        console.error("Failed to persist mock test results:", err);
+    }
+}
 
 // ============================================================================
 // Custom Error Classes
@@ -185,10 +229,11 @@ export async function takeTheTest(
     params: TakeTheTestParams,
 ): Promise<TestResult> {
     if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        loadMockResults();
         const localQuizzes = getLocalQuizzes();
         const quiz = (localQuizzes as any[]).find(q => q.id === params.quizId);
         const testTime = params.testTime || quiz?.time_minutes || 40;
-        
+
         // Find if there is an existing draft
         let mockResult = Array.from(mockResultsStore.values()).find(
             (r) => r.quiz_id === params.quizId && r.status === "draft"
@@ -219,6 +264,7 @@ export async function takeTheTest(
             total_questions: null,
         };
         mockResultsStore.set(mockResult.id, mockResult);
+        persistMockResults();
         return mockResult as TestResult;
     }
 
@@ -355,6 +401,7 @@ export async function saveTestResult(
     timeLeft: string,
 ): Promise<void> {
     if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+        loadMockResults();
         const existing = mockResultsStore.get(testId);
         if (existing) {
             existing.answers = answers;
@@ -372,6 +419,7 @@ export async function saveTestResult(
                 updated_at: new Date().toISOString(),
             });
         }
+        persistMockResults();
         return;
     }
 
@@ -418,8 +466,12 @@ export async function submitTestResult(
     fallback?: { quizId?: string; testPart?: number[] },
 ): Promise<TestResult> {
     if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        loadMockResults();
         const localQuizzes = getLocalQuizzes();
-        const quizId = fallback?.quizId || "mock-quiz-id";
+        // Always resolve the quiz from the submission's quizId (or the draft we
+        // started) so scoring & review use the EXACT set the user took.
+        const existingDraft = mockResultsStore.get(testId);
+        const quizId = fallback?.quizId || existingDraft?.quiz_id || "mock-quiz-id";
         const quizData = (localQuizzes as any[]).find(q => q.id === quizId);
         if (!quizData) {
             throw new Error("Quiz not found for scoring.");
@@ -464,6 +516,7 @@ export async function submitTestResult(
         };
 
         mockResultsStore.set(updatedResult.id, updatedResult);
+        persistMockResults();
         return updatedResult as TestResult;
     }
 
@@ -596,40 +649,18 @@ export async function getTestResult(
     testId: string,
 ): Promise<TestResultWithQuiz | null> {
     if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        loadMockResults();
         const localQuizzes = getLocalQuizzes();
         const mockResult = mockResultsStore.get(testId);
-        if (mockResult) {
-            const quiz = (localQuizzes as any[]).find(q => q.id === mockResult.quiz_id);
-            return {
-                ...mockResult,
-                quizzes: quiz ? {
-                    id: quiz.id,
-                    title: quiz.title,
-                    slug: quiz.slug,
-                    skill: quiz.skill,
-                    type: quiz.type,
-                    time_minutes: quiz.time_minutes ?? 40,
-                    featured_image: quiz.featured_image,
-                } : null
-            } as any;
-        }
-        
-        // Return a blank default mock result if testId wasn't found in memory
-        const quiz = localQuizzes[0];
-        if (!quiz) return null;
+        // No blank fallback: if the result is unknown we MUST NOT invent one off
+        // an unrelated quiz (that would show the wrong test's answers). Returning
+        // null lets the page render notFound, which is the correct behavior.
+        if (!mockResult) return null;
+
+        const quiz = (localQuizzes as any[]).find(q => q.id === mockResult.quiz_id);
         return {
-            id: testId,
-            user_id: "mock-user-id",
-            quiz_id: quiz.id,
-            test_part: [0],
-            test_time: quiz.time_minutes ?? 40,
-            test_mode: "practice",
-            answers: { answers: [], totalCorrect: 0, totalQuestions: 0 },
-            time_left: "00:00",
-            score: 0,
-            status: "published",
-            submitted_at: new Date().toISOString(),
-            quizzes: {
+            ...mockResult,
+            quizzes: quiz ? {
                 id: quiz.id,
                 title: quiz.title,
                 slug: quiz.slug,
@@ -637,7 +668,7 @@ export async function getTestResult(
                 type: quiz.type,
                 time_minutes: quiz.time_minutes ?? 40,
                 featured_image: quiz.featured_image,
-            }
+            } : null
         } as any;
     }
 
@@ -675,6 +706,7 @@ export async function getUserTestHistory(
     filters: TestHistoryFilters = {},
 ): Promise<PaginatedResponse<TestResultWithQuiz>> {
     if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        loadMockResults();
         const localQuizzes = getLocalQuizzes();
         const page = filters.page ?? 1;
         const pageSize = Math.min(filters.pageSize ?? 10, 100);
