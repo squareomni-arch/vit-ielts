@@ -4,6 +4,16 @@ import type { ServerResponse } from "http";
 
 const isProduction = process.env.NODE_ENV === "production";
 
+function mockClientAuth(client: any) {
+    // Mock mode (NEXT_PUBLIC_MOCK_DB) mocks DATA at the service layer only (see
+    // services/*). Auth intentionally flows through the real (local) Supabase so
+    // login / sign-up / sign-out actually work and persist. This previously faked
+    // an always-signed-in user, which (a) disagreed with getMasterData's
+    // cookie-gated viewer and (b) made the guest-only /account/login & /register
+    // pages unreachable. Kept as a pass-through hook for future use.
+    return client;
+}
+
 /**
  * Append Set-Cookie values without clobbering any cookies already set on the
  * response (e.g. by middleware or earlier in the request lifecycle).
@@ -43,7 +53,7 @@ function buildCookieString(name: string, value: string, options?: CookieOptions)
 }
 
 export function createServerSupabase(context: GetServerSidePropsContext) {
-    return createServerClient(
+    return mockClientAuth(createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -73,7 +83,7 @@ export function createServerSupabase(context: GetServerSidePropsContext) {
                 },
             },
         }
-    );
+    ));
 }
 
 /**
@@ -81,7 +91,7 @@ export function createServerSupabase(context: GetServerSidePropsContext) {
  * keeping admin sessions isolated from regular user sessions.
  */
 export function createAdminServerSupabase(context: GetServerSidePropsContext) {
-    return createServerClient(
+    return mockClientAuth(createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -112,7 +122,7 @@ export function createAdminServerSupabase(context: GetServerSidePropsContext) {
                 },
             },
         }
-    );
+    ));
 }
 
 /**
@@ -120,7 +130,7 @@ export function createAdminServerSupabase(context: GetServerSidePropsContext) {
  * Similar to createServerSupabase but accepts NextApiRequest/NextApiResponse.
  */
 export function createApiSupabase(req: NextApiRequest, res: NextApiResponse) {
-    return createServerClient(
+    return mockClientAuth(createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -150,7 +160,7 @@ export function createApiSupabase(req: NextApiRequest, res: NextApiResponse) {
                 },
             },
         }
-    );
+    ));
 }
 
 /**
@@ -158,7 +168,7 @@ export function createApiSupabase(req: NextApiRequest, res: NextApiResponse) {
  * keeping admin sessions isolated from regular user sessions.
  */
 export function createAdminApiSupabase(req: NextApiRequest, res: NextApiResponse) {
-    return createServerClient(
+    return mockClientAuth(createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -189,6 +199,6 @@ export function createAdminApiSupabase(req: NextApiRequest, res: NextApiResponse
                 },
             },
         }
-    );
+    ));
 }
 

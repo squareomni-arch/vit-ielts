@@ -327,7 +327,7 @@ export function PageLogin({ loginConfig: _loginConfig }: PageLoginProps) {
 
       {/* === SECTION: Footer === */}
       <footer
-        className="bg-[#191d24] flex items-start justify-between px-[90px] py-[48px] shrink-0 w-full"
+        className="bg-[#191d24] flex flex-col gap-10 md:flex-row md:items-start md:justify-between px-6 sm:px-10 lg:px-[90px] py-12 lg:py-[48px] shrink-0 w-full"
         data-section="auth-footer"
       >
         <div className="flex flex-col gap-[14px]">
@@ -335,11 +335,12 @@ export function PageLogin({ loginConfig: _loginConfig }: PageLoginProps) {
             <span className="text-white">VIT</span>
             <span className="text-[#9ad534]">IELTS</span>
           </div>
-          <p className="font-inter font-normal text-[14px] leading-[1.4] text-[#6a7282] w-[280px]">
+          <p className="font-inter font-normal text-[14px] leading-[1.4] text-[#6a7282] max-w-[280px]">
             Smarter IELTS preparation for ambitious learners. Practice, track,
             improve — all in one place.
           </p>
         </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-10 md:contents">
         <div className="flex flex-col gap-[10px]">
           <p className="font-inter font-bold text-[12px] tracking-[0.96px] text-white">
             LEARN
@@ -381,6 +382,7 @@ export function PageLogin({ loginConfig: _loginConfig }: PageLoginProps) {
               {item}
             </p>
           ))}
+        </div>
         </div>
       </footer>
     </div>

@@ -137,11 +137,11 @@ export function PageRegister({ registerConfig: _registerConfig, totalTests = 920
         className="relative flex flex-1 min-h-screen"
         data-section="auth-register-body"
       >
-        {/* Dark bleed — fills left half of viewport edge-to-edge */}
-        <div className="absolute inset-y-0 left-0 right-1/2 bg-[#191d24]" aria-hidden="true" />
+        {/* Dark bleed — fills left half of viewport edge-to-edge (brand side, md+ only) */}
+        <div className="hidden md:block absolute inset-y-0 left-0 right-1/2 bg-[#191d24]" aria-hidden="true" />
 
-        {/* Decoration blobs — clipped within exact left-half boundary */}
-        <div className="absolute inset-y-0 left-0 w-1/2 overflow-hidden pointer-events-none z-[1]" aria-hidden="true">
+        {/* Decoration blobs — clipped within exact left-half boundary (md+ only) */}
+        <div className="hidden md:block absolute inset-y-0 left-0 w-1/2 overflow-hidden pointer-events-none z-[1]" aria-hidden="true">
           <div className="absolute right-[-40px] top-[-104px] w-[320px] h-[320px] rounded-full bg-white/10" />
           <div className="absolute left-[-157px] bottom-[-60px] w-[401px] h-[401px] rounded-full bg-white/10" />
         </div>
@@ -461,7 +461,7 @@ export function PageRegister({ registerConfig: _registerConfig, totalTests = 920
 
       {/* === SECTION: Footer === */}
       <footer
-        className="bg-[#191d24] flex items-start justify-between px-[90px] py-[48px] shrink-0 w-full"
+        className="bg-[#191d24] flex flex-col gap-10 md:flex-row md:items-start md:justify-between px-6 sm:px-10 lg:px-[90px] py-12 lg:py-[48px] shrink-0 w-full"
         data-section="auth-footer"
       >
         <div className="flex flex-col gap-[14px]">
@@ -469,11 +469,12 @@ export function PageRegister({ registerConfig: _registerConfig, totalTests = 920
             <span className="text-white">VIT</span>
             <span className="text-[#9ad534]">IELTS</span>
           </div>
-          <p className="font-inter font-normal text-[14px] leading-[1.4] text-[#6a7282] w-[280px]">
+          <p className="font-inter font-normal text-[14px] leading-[1.4] text-[#6a7282] max-w-[280px]">
             Smarter IELTS preparation for ambitious learners. Practice, track,
             improve — all in one place.
           </p>
         </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-10 md:contents">
         <div className="flex flex-col gap-[10px]">
           <p className="font-inter font-bold text-[12px] tracking-[0.96px] text-white">
             LEARN
@@ -515,6 +516,7 @@ export function PageRegister({ registerConfig: _registerConfig, totalTests = 920
               {item}
             </p>
           ))}
+        </div>
         </div>
       </footer>
     </div>
