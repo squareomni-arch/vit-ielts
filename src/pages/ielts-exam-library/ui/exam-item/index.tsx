@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ROUTES } from "@/shared/routes";
+import { getQuizThumbnail } from "@/shared/lib/content-image";
 import { useCallback, useState } from "react";
 import { IExamCollection } from "../../api";
 import ExamModeModal from "../exam-mode-modal";
@@ -101,17 +102,13 @@ export const ExamItem = ({
       >
         {/* Image */}
         <div className="relative h-[220px] shrink-0 overflow-hidden bg-secondary-50 rounded-t-[30px] rounded-b-[15px]">
-          {item.featuredImage ? (
-            <Image
-              src={item.featuredImage}
-              alt={item.title}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          ) : (
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_var(--color-secondary-200),_white_55%,_var(--color-primary-50))]" />
-          )}
+          <Image
+            src={getQuizThumbnail(item.id)}
+            alt={item.title}
+            fill
+            className="object-cover"
+            unoptimized
+          />
 
           {/* PRO Badge */}
           {quizFields.proUserOnly && (
