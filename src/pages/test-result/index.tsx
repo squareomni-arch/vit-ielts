@@ -2,7 +2,7 @@ import { withAuth, withMasterData, withMultipleWrapper } from "@/shared/hoc";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { createServerSupabase } from "~supabase/server";
 import { getTestResult } from "~services/test-flow";
-import { getQuizBySlug } from "~services/quiz";
+import { getQuizById } from "~services/quiz";
 import { getQuizThumbnail } from "@/shared/lib/content-image";
 import { getUserProfile } from "~services/user";
 import { getResultAnalytics } from "~services/test-analytics";
@@ -138,32 +138,10 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
       return { notFound: true };
     }
 
-    // 2. Fetch quiz data
-    const quiz = await getQuizBySlug(supabase, "").catch(() => null);
-    // Actually we need to get quiz by ID, not slug. Let's query directly.
-    let quizData: QuizWithPassages | null = null;
-    {
-      const { data, error } = await supabase
-        .from("quizzes")
-        .select(`*, passages(*, questions(*))`)
-        .eq("id", testResultRow.quiz_id)
-        .single();
-      if (!error && data) {
-        // Sort nested data
-        const sorted = {
-          ...data,
-          passages: ((data as any).passages ?? [])
-            .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-            .map((p: any) => ({
-              ...p,
-              questions: (p.questions ?? []).sort(
-                (a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
-              ),
-            })),
-        };
-        quizData = sorted as QuizWithPassages;
-      }
-    }
+    // 2. Fetch quiz data by id (mock-aware)
+    const quizData = await getQuizById(supabase, testResultRow.quiz_id).catch(
+      () => null
+    );
 
     if (!quizData) {
       return { notFound: true };

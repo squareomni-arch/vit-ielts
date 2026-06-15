@@ -2,6 +2,7 @@ import { withAuth, withMasterData, withMultipleWrapper } from "@/shared/hoc";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { createServerSupabase } from "~supabase/server";
 import { getTestResult } from "~services/test-flow";
+import { getQuizById } from "~services/quiz";
 import { safeParseJsonb } from "~services/lib/safeParseJsonb";
 import type { ITestResult, IPracticeSingle } from "@/pages/test-result/api";
 import type { QuizWithPassages } from "~services/types/database";
@@ -137,28 +138,9 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
       return { notFound: true };
     }
 
-    let quizData: QuizWithPassages | null = null;
-    {
-      const { data, error } = await supabase
-        .from("quizzes")
-        .select(`*, passages(*, questions(*))`)
-        .eq("id", testResultRow.quiz_id)
-        .single();
-      if (!error && data) {
-        const sorted = {
-          ...data,
-          passages: ((data as any).passages ?? [])
-            .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-            .map((p: any) => ({
-              ...p,
-              questions: (p.questions ?? []).sort(
-                (a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
-              ),
-            })),
-        };
-        quizData = sorted as QuizWithPassages;
-      }
-    }
+    const quizData = await getQuizById(supabase, testResultRow.quiz_id).catch(
+      () => null
+    );
 
     if (!quizData) return { notFound: true };
 

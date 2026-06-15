@@ -109,6 +109,58 @@ export async function getQuizBySlug(
 }
 
 /**
+ * Lấy quiz theo id, kèm nested passages + questions (sorted by sort_order).
+ * Mock-aware (NEXT_PUBLIC_MOCK_DB) — đọc từ exported-quizzes.json khi không có DB.
+ *
+ * @param supabase - Supabase client instance
+ * @param id - Quiz id
+ * @returns Quiz with nested passages/questions hoặc null
+ */
+export async function getQuizById(
+    supabase: SupabaseClient,
+    id: string
+): Promise<QuizWithPassages | null> {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
+        const localQuizzes = getLocalQuizzes();
+        const quiz = (localQuizzes as any[]).find((q) => q.id === id);
+        if (!quiz) return null;
+
+        const data = JSON.parse(JSON.stringify(quiz));
+        if (data.passages) {
+            data.passages.sort((a: any, b: any) => a.sort_order - b.sort_order);
+            data.passages.forEach((p: any) =>
+                p.questions?.sort((a: any, b: any) => a.sort_order - b.sort_order)
+            );
+        }
+        return data as QuizWithPassages;
+    }
+
+    const { data, error } = await supabase
+        .from("quizzes")
+        .select(`*, passages(*, questions(*))`)
+        .eq("id", id)
+        .single();
+
+    if (error) {
+        if (error.code === "PGRST116") return null; // Not found
+        throw error;
+    }
+
+    if (data?.passages) {
+        data.passages.sort(
+            (a: Passage, b: Passage) => a.sort_order - b.sort_order
+        );
+        data.passages.forEach((p: PassageWithQuestions) =>
+            p.questions?.sort(
+                (a: Question, b: Question) => a.sort_order - b.sort_order
+            )
+        );
+    }
+
+    return data as QuizWithPassages;
+}
+
+/**
  * Lấy quiz theo slug cho chế độ Preview (admin).
  * Giống getQuizBySlug nhưng KHÔNG lọc theo status,
  * cho phép xem quiz ở trạng thái draft.

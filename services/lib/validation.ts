@@ -51,8 +51,14 @@ export const StartTestSchema = z.object({
 // ──────────────────────────────────────────────
 // /api/test-flow/submit
 // ──────────────────────────────────────────────
+// In mock mode (NEXT_PUBLIC_MOCK_DB) takeTheTest returns synthetic ids like
+// `mock-test-...` instead of DB UUIDs, so the id fields are relaxed to plain
+// strings. Production keeps strict UUID validation.
+const isMockDb = process.env.NEXT_PUBLIC_MOCK_DB === "true";
+const testIdSchema = isMockDb ? z.string().min(1) : z.string().uuid();
+
 export const SubmitTestSchema = z.object({
-    testId: z.string().uuid(),
+    testId: testIdSchema,
     answers: z.any(),
     timeLeft: z.string().optional(),
     // Optional fallback metadata so the server can salvage submissions
