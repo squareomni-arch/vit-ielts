@@ -4,7 +4,6 @@ import { ArrowLeftOutlined, SaveOutlined, CheckCircleOutlined, EyeOutlined, Clou
 import { arrayMove } from "@dnd-kit/sortable";
 import AdminLayout from "../_layout";
 import { useRouter } from "next/router";
-import { supabaseAdmin } from "~supabase/admin";
 import {
     QuizEditorForm,
     DEFAULT_PASSAGE,

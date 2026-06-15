@@ -1,6 +1,5 @@
 import { withAuth, withMasterData, withMultipleWrapper } from "@/shared/hoc";
 import type { GetServerSideProps, GetServerSidePropsContext } from "next";
-import { supabaseAdmin } from "~supabase/admin";
 import { getOrderById } from "~services/order";
 import { MyProfileLayout } from "@/widgets/layouts";
 import Link from "next/link";
@@ -442,6 +441,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
         };
       }
 
+      const { supabaseAdmin } = await import("~supabase/admin");
       const orderRow = await getOrderById(supabaseAdmin, orderId);
 
       if (!orderRow) {
