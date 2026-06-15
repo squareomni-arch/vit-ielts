@@ -56,16 +56,23 @@ function getLocalQuizzes(): any[] {
 // crucially, always resolves to the EXACT quiz the user took (never falls back
 // to an unrelated quiz). The in-memory Map is just a hot cache over the file.
 const mockResultsStore = new Map<string, any>();
-let mockResultsLoaded = false;
 
 function mockResultsFilePath(): string {
     const path = eval("require")("path");
     return path.join(process.cwd(), "data", "mock-test-results.json");
 }
 
+// Always re-read the file and merge into the in-memory Map (file wins).
+//
+// Critical: in a Next.js production build, API routes and page getServerSideProps
+// live in SEPARATE server bundles and do NOT share this module's Map. The on-disk
+// file is the only channel between them, so a result written by
+// /api/test-flow/submit is only visible to /test-result/[id] if reads re-read the
+// file every time — a one-shot cache would make the result page 404. The file is
+// small; re-reading per request is cheap. We merge (not clear) so an entry that
+// failed to persist (e.g. read-only fs) still survives within its own process.
 function loadMockResults(): void {
-    if (mockResultsLoaded || typeof window !== "undefined") return;
-    mockResultsLoaded = true;
+    if (typeof window !== "undefined") return;
     try {
         const fs = eval("require")("fs");
         const filePath = mockResultsFilePath();
