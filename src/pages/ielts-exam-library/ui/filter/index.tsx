@@ -150,7 +150,7 @@ const DropdownOption = ({
   checked: boolean;
   onToggle: () => void;
 }) => (
-  <label className="flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-primary-100 transition">
+  <label className="flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-primary-100 transition whitespace-nowrap">
     <div
       className={[
         "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",

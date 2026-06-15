@@ -39,7 +39,7 @@ export const PageHome = ({
 }: PageHomeProps) => {
   // const { isSignedIn } = useAuth();
   return (
-    <div className="w-full bg-[#f6f7f4]">
+    <div className="w-full bg-[#f6f7f4] flex flex-col gap-6 lg:gap-10 xl:gap-12">
       {/* === SECTION: Hero Banner === */}
       <HeroBanner config={heroBannerConfig} />
 

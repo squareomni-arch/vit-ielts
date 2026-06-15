@@ -1,3 +1,4 @@
+import { useState } from 'react';
 
 /**
  * Design System Avatar
@@ -39,6 +40,8 @@ export const Avatar = ({
   bg,
   textColor,
 }: AvatarProps) => {
+  const [hasError, setHasError] = useState(false);
+
   const classNames = [
     'avatar',
     `avatar--${size}`,
@@ -50,8 +53,13 @@ export const Avatar = ({
   if (textColor) style.color = textColor;
 
   const displayName = name || fallback || '';
-  const inner = src ? (
-    <img src={src} alt={alt || displayName} className="avatar__img" />
+  const inner = (src && !hasError) ? (
+    <img
+      src={src}
+      alt={alt || displayName}
+      className="avatar__img"
+      onError={() => setHasError(true)}
+    />
   ) : (
     <span className="avatar__initials">{displayName ? getInitials(displayName) : '?'}</span>
   );

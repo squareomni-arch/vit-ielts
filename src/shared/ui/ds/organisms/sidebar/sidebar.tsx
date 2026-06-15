@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Link from 'next/link';
 import { twMerge } from 'tailwind-merge';
 import { SidebarNavItem } from '../../molecules/sidebar-nav-item';
@@ -89,11 +90,14 @@ const ProfileSection = ({
   profileHref?: string;
   onLogout?: () => void;
 }) => {
-  const avatarNode = user.avatarSrc ? (
+  const [hasError, setHasError] = useState(false);
+
+  const avatarNode = (user.avatarSrc && !hasError) ? (
     <img
       src={user.avatarSrc}
       alt={user.name}
       className="rounded-[var(--radius-sidebar-avatar)] w-[var(--size-sidebar-avatar)] h-[var(--size-sidebar-avatar)] shrink-0 object-cover"
+      onError={() => setHasError(true)}
     />
   ) : (
     <div
@@ -302,6 +306,7 @@ const STUDENT_MENU = [
   { id: 'vocabulary',  icon: 'BookOpenText',    label: 'Vocabulary' },
   { id: 'my-classes',  icon: 'Chalkboard',      label: 'My Classes' },
   { id: 'assignments', icon: 'ClipboardText',   label: 'My Assignments' },
+  { id: 'subscription', icon: 'CreditCard',      label: 'Subscription' },
 ] as const;
 
 const STUDENT_COMMUNITY = [
@@ -492,46 +497,8 @@ export const SidebarTopActions = ({
   profileHref,
   className = '',
 }: SidebarTopActionsProps) => {
-  const avatarContent = avatarSrc ? (
-    <img src={avatarSrc} alt="Avatar" className="w-full h-full rounded-full object-cover" />
-  ) : (
-    <span className="text-white text-[14px] font-bold font-inter">{userInitials}</span>
-  );
-
   return (
   <div className={`flex gap-[14px] items-center ${className}`}>
-    {/* Search bar */}
-    <label className="flex items-center gap-[10px] h-[46px] px-[18px] w-[280px] bg-white border border-[rgba(25,29,36,0.1)] rounded-full shrink-0 cursor-text">
-      <span className="material-symbols-rounded text-[18px] text-[var(--color-ink-muted)] shrink-0 leading-none">
-        search
-      </span>
-      <input
-        type="text"
-        placeholder="Search…"
-        onChange={e => onSearch?.(e.target.value)}
-        className="flex-1 bg-transparent border-none outline-none text-[14px] font-inter text-[var(--color-ink-muted)] placeholder:text-[var(--color-ink-muted)]"
-      />
-    </label>
-
-    {/* User avatar */}
-    {profileHref ? (
-      <Link
-        href={profileHref}
-        aria-label="My Profile"
-        className="flex items-center justify-center w-[46px] h-[46px] rounded-full shrink-0 overflow-hidden no-underline cursor-pointer transition-shadow hover:ring-2 hover:ring-[var(--color-brand)] hover:ring-offset-2"
-        style={avatarSrc ? undefined : { background: avatarColor ?? 'var(--color-accent-blue)' }}
-      >
-        {avatarContent}
-      </Link>
-    ) : (
-      <div
-        className="flex items-center justify-center w-[46px] h-[46px] rounded-full shrink-0 overflow-hidden"
-        style={avatarSrc ? undefined : { background: avatarColor ?? 'var(--color-accent-blue)' }}
-      >
-        {avatarContent}
-      </div>
-    )}
-
     {/* Notifications */}
     <button
       type="button"

@@ -13,7 +13,7 @@ export const IeltsTestPlatformIntro = ({ config: _config }: IeltsTestPlatformInt
   return (
     <ScrollFadeIn
       data-section="platform-intro"
-      className="w-full mb-[24px]"
+      className="w-full"
     >
       {/* Figma 3278:620 — flex-col gap-34px */}
       <div className="flex flex-col gap-[34px]">

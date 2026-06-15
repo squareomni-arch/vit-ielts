@@ -36,6 +36,7 @@ const STUDENT_MENU: SidebarNavEntry[] = [
   { id: "vocabulary", icon: "BookOpenText", label: "Vocabulary", href: ROUTES.VOCABULARY },
   { id: "my-classes", icon: "Chalkboard", label: "My Classes", href: ROUTES.CLASSROOM.LIST },
   { id: "assignments", icon: "ClipboardText", label: "My Assignments", href: ROUTES.CLASSROOM.MY_ASSIGNMENTS },
+  { id: "subscription", icon: "CreditCard", label: "Subscription", href: ROUTES.SUBSCRIPTION },
 ];
 
 const STUDENT_COMMUNITY: SidebarNavEntry[] = [
@@ -76,6 +77,7 @@ const activeFromPath = (pathname: string): string => {
   if (pathname.startsWith("/blog")) return "blog";
   if (pathname.startsWith(ROUTES.ACCOUNT.SETTINGS)) return "settings";
   if (pathname.startsWith(ROUTES.HELP)) return "help";
+  if (pathname.startsWith(ROUTES.SUBSCRIPTION)) return "subscription";
   if (pathname.startsWith("/classroom")) return "my-classes";
   if (
     pathname.startsWith("/ielts-exam-library") ||
@@ -271,21 +273,12 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
 
           {/* Desktop (≥lg): search / profile / notifications, or auth buttons. */}
           <div className="hidden lg:flex items-center justify-end gap-4 w-full">
-            {isSignedIn ? (
+            {isSignedIn && (
               <SidebarTopActions
                 userInitials={initials}
                 avatarSrc={avatarSrc}
                 profileHref={ROUTES.ACCOUNT.MY_PROFILE}
               />
-            ) : (
-              <div className="flex items-center gap-3">
-                <Button variant="outlined" size="sm" href={ROUTES.LOGIN()}>
-                  Log in
-                </Button>
-                <Button variant="primary" size="sm" href={ROUTES.REGISTER}>
-                  Sign up
-                </Button>
-              </div>
             )}
           </div>
         </header>

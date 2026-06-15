@@ -13,7 +13,6 @@
 
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { Avatar } from '../../atoms/avatar';
 import { UserAccountTypeBadge } from '@/shared/ui/user-account-type-badge';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -182,7 +181,6 @@ export const Header = ({
                 <span className="font-inter font-bold text-[16px] text-[#191d24]">{userName || 'Username'}</span>
                 <UserAccountTypeBadge isPro={isPro} />
               </div>
-              <Avatar size="md" name={userName || 'U'} src={userAvatar} />
 
               {/* User dropdown */}
               <div className="absolute top-full right-0 mt-1 min-w-[220px] bg-white rounded-xl border border-[rgba(25,29,36,0.08)] shadow-[0px_8px_20px_rgba(25,29,36,0.12)] p-2 opacity-0 invisible translate-y-1 transition-all duration-150 z-50 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
@@ -209,25 +207,7 @@ export const Header = ({
                 )}
               </div>
             </div>
-          ) : (
-            /* ── Unauthenticated — Figma: "Sign in" ghost + "Start free" brand ── */
-            <>
-              <button
-                type="button"
-                onClick={onLogin}
-                className="bg-white border-[1.5px] border-[rgba(25,29,36,0.1)] px-[26px] py-[15px] rounded-full font-inter font-bold text-[14px] leading-[1.2] text-[#191d24] transition-colors duration-150 hover:border-[rgba(25,29,36,0.25)] whitespace-nowrap shrink-0"
-              >
-                {loginLabel}
-              </button>
-              <button
-                type="button"
-                onClick={onSignup}
-                className="bg-[#b3e653] px-[26px] py-[15px] rounded-full font-inter font-bold text-[14px] leading-[1.2] text-[#191d24] transition-colors duration-150 hover:bg-[#9ad534] whitespace-nowrap shrink-0"
-              >
-                {signupLabel}
-              </button>
-            </>
-          )}
+          ) : null}
         </div>
 
         {/* Mobile hamburger */}
@@ -281,53 +261,33 @@ export const Header = ({
           </div>
 
           {/* Mobile auth section */}
-          <div className="px-6 py-4 border-t border-[rgba(25,29,36,0.06)] bg-[#f4f5f7]" suppressHydrationWarning>
-            {authLoading ? null : isAuthenticated ? (
-              <>
-                <div className="flex items-center gap-3 mb-4">
-                  <Avatar size="lg" name={userName || 'U'} src={userAvatar} />
-                  <div className="min-w-0 flex-1 flex flex-col items-start gap-1">
-                    <p className="font-inter font-bold text-[16px] text-[#191d24] truncate">{userName || 'User'}</p>
-                    <UserAccountTypeBadge isPro={isPro} />
-                  </div>
+          {authLoading ? null : isAuthenticated ? (
+            <div className="px-6 py-4 border-t border-[rgba(25,29,36,0.06)] bg-[#f4f5f7]" suppressHydrationWarning>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="min-w-0 flex-1 flex flex-col items-start gap-1">
+                  <p className="font-inter font-bold text-[16px] text-[#191d24] truncate">{userName || 'User'}</p>
+                  <UserAccountTypeBadge isPro={isPro} />
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  {userMenuItems.map((item, index) => {
-                    if (item.divider) return <div key={index} className="h-px bg-[#e5e6e8] my-2" />;
-                    const cls = `flex items-center gap-2 py-2.5 px-1 text-[14px] font-inter no-underline rounded-lg transition-colors ${item.danger ? 'text-[#e5484d] hover:bg-[#fff2f2]' : 'text-[#6a7282] hover:bg-white hover:text-[#191d24]'}`;
-                    if (item.href) return <a key={index} href={item.href} onClick={item.onClick} className={cls}>{item.icon}{item.label}</a>;
-                    return (
-                      <button key={index} onClick={item.onClick} className={`${cls} bg-transparent border-none cursor-pointer font-inherit w-full text-left`}>
-                        {item.icon}{item.label}
-                      </button>
-                    );
-                  })}
-                  {onLogout && (
-                    <button onClick={onLogout} className="flex items-center gap-2 py-2.5 px-1 text-[14px] font-inter text-[#e5484d] hover:bg-[#fff2f2] rounded-lg transition-colors bg-transparent border-none cursor-pointer font-inherit w-full text-left">
-                      Sign out
-                    </button>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <button
-                  type="button"
-                  onClick={onSignup}
-                  className="w-full bg-[#b3e653] py-[15px] rounded-full font-inter font-bold text-[14px] text-[#191d24] transition-colors hover:bg-[#9ad534]"
-                >
-                  {signupLabel}
-                </button>
-                <button
-                  type="button"
-                  onClick={onLogin}
-                  className="w-full bg-white border-[1.5px] border-[rgba(25,29,36,0.1)] py-[15px] rounded-full font-inter font-bold text-[14px] text-[#191d24] transition-colors hover:border-[rgba(25,29,36,0.25)]"
-                >
-                  {loginLabel}
-                </button>
               </div>
-            )}
-          </div>
+              <div className="flex flex-col gap-0.5">
+                {userMenuItems.map((item, index) => {
+                  if (item.divider) return <div key={index} className="h-px bg-[#e5e6e8] my-2" />;
+                  const cls = `flex items-center gap-2 py-2.5 px-1 text-[14px] font-inter no-underline rounded-lg transition-colors ${item.danger ? 'text-[#e5484d] hover:bg-[#fff2f2]' : 'text-[#6a7282] hover:bg-white hover:text-[#191d24]'}`;
+                  if (item.href) return <a key={index} href={item.href} onClick={item.onClick} className={cls}>{item.icon}{item.label}</a>;
+                  return (
+                    <button key={index} onClick={item.onClick} className={`${cls} bg-transparent border-none cursor-pointer font-inherit w-full text-left`}>
+                      {item.icon}{item.label}
+                    </button>
+                  );
+                })}
+                {onLogout && (
+                  <button onClick={onLogout} className="flex items-center gap-2 py-2.5 px-1 text-[14px] font-inter text-[#e5484d] hover:bg-[#fff2f2] rounded-lg transition-colors bg-transparent border-none cursor-pointer font-inherit w-full text-left">
+                    Sign out
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
     </header>

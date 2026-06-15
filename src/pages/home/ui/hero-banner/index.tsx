@@ -50,7 +50,7 @@ export const HeroBanner = ({ config }: HeroBannerProps) => {
   };
 
   return (
-    <section data-section="hero-banner" className="w-full mb-[24px]">
+    <section data-section="hero-banner" className="w-full">
       {/* White rounded card — Figma: bg-white rounded-[50px] shadow, px-64px py-56px */}
       <div className="bg-white rounded-[24px] sm:rounded-[36px] lg:rounded-[50px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.1)] overflow-hidden">
         <div className="flex flex-col lg:flex-row items-center gap-12 px-8 sm:px-12 lg:px-16 py-12 lg:py-14 relative min-h-[440px]">
