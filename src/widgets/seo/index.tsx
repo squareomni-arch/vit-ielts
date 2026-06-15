@@ -41,7 +41,7 @@ export const SEOHeader = ({
 
   const ogTitle = title || "Vit IELTS";
   const siteName = "Vit IELTS";
-  const ogImage = image || `${SITE_URL}/assets/logos/logo-on-bright.svg`;
+  const ogImage = image || `${SITE_URL}/assets/logos/Logo.png`;
 
   return (
     <Head>
