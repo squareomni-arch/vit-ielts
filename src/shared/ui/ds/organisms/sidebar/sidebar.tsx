@@ -34,6 +34,10 @@ export type SidebarStudentProps = {
   profileHref?: string;
   onLogout?: () => void;
   className?: string;
+  /** When false, replaces the profile card with Login / Sign up buttons. Defaults to true. */
+  isSignedIn?: boolean;
+  loginHref?: string;
+  registerHref?: string;
 };
 
 export type SidebarTeacherProps = {
@@ -47,6 +51,10 @@ export type SidebarTeacherProps = {
   profileHref?: string;
   onLogout?: () => void;
   className?: string;
+  /** When false, replaces the profile card with Login / Sign up buttons. Defaults to true. */
+  isSignedIn?: boolean;
+  loginHref?: string;
+  registerHref?: string;
 };
 
 export type SidebarTopActionsProps = {
@@ -170,11 +178,54 @@ const ProfileSection = ({
         <span
           aria-hidden={collapsed}
           data-collapsed={collapsed}
-          className="ds-sidebar-reveal text-body-s font-medium font-inter leading-none whitespace-nowrap overflow-hidden"
+          className="ds-sidebar-reveal text-body-s font-medium font-inter whitespace-nowrap overflow-hidden"
         >
           Logout
         </span>
       </button>
+    </div>
+  );
+};
+
+const AuthSection = ({
+  collapsed,
+  loginHref = '/account/login',
+  registerHref = '/account/register',
+}: {
+  collapsed: boolean;
+  loginHref?: string;
+  registerHref?: string;
+}) => {
+  const cardPadding = collapsed
+    ? 'p-[var(--spacing-sidebar-profile-card-padding-collapsed)]'
+    : 'p-[var(--spacing-sidebar-profile-card-padding)]';
+
+  return (
+    <div className={`ds-sidebar-auth-card flex flex-col w-full shrink-0 bg-white border border-[var(--color-border-hairline)] rounded-[var(--radius-sidebar-card)] overflow-hidden ${cardPadding} gap-2`}>
+      {collapsed ? (
+        <Link
+          href={loginHref}
+          aria-label="Log in"
+          className="flex items-center justify-center w-full min-h-[var(--size-sidebar-control)] rounded-[var(--radius-sidebar-row)] text-[var(--color-ink-muted)] hover:bg-[var(--color-brand-tint)] hover:text-[var(--color-brand)] transition-colors no-underline"
+        >
+          <span aria-hidden="true" className="material-symbols-rounded" style={{ fontSize: 'var(--size-sidebar-icon)' }}>login</span>
+        </Link>
+      ) : (
+        <>
+          <Link
+            href={loginHref}
+            className="flex items-center justify-center w-full h-[var(--size-sidebar-control)] rounded-[var(--radius-sidebar-row)] border border-[var(--color-border-hairline)] text-body-s font-medium font-inter text-[var(--color-ink-900)] no-underline cursor-pointer transition-colors hover:bg-[var(--color-brand-tint)]"
+          >
+            Log in
+          </Link>
+          <Link
+            href={registerHref}
+            className="flex items-center justify-center w-full h-[var(--size-sidebar-control)] rounded-[var(--radius-sidebar-row)] bg-[var(--color-brand)] text-body-s font-medium font-inter text-white no-underline cursor-pointer transition-opacity hover:opacity-90"
+          >
+            Sign up
+          </Link>
+        </>
+      )}
     </div>
   );
 };
@@ -279,6 +330,9 @@ export const SidebarStudent = ({
   profileHref,
   onLogout,
   className = '',
+  isSignedIn = true,
+  loginHref,
+  registerHref,
 }: SidebarStudentProps) => {
   const collapsed = state === 'collapsed';
   const navGroupX = 'px-[var(--spacing-sidebar-section-x-collapsed)]';
@@ -345,7 +399,11 @@ export const SidebarStudent = ({
       </div>
 
       <div className="flex-1 min-h-0 w-full" />
-      <ProfileSection user={user} collapsed={collapsed} profileHref={profileHref} onLogout={onLogout} />
+      {isSignedIn ? (
+        <ProfileSection user={user} collapsed={collapsed} profileHref={profileHref} onLogout={onLogout} />
+      ) : (
+        <AuthSection collapsed={collapsed} loginHref={loginHref} registerHref={registerHref} />
+      )}
     </div>
   );
 };
@@ -362,6 +420,9 @@ export const SidebarTeacher = ({
   profileHref,
   onLogout,
   className = '',
+  isSignedIn = true,
+  loginHref,
+  registerHref,
 }: SidebarTeacherProps) => {
   const collapsed = state === 'collapsed';
   const navGroupX = 'px-[var(--spacing-sidebar-section-x-collapsed)]';
@@ -411,7 +472,11 @@ export const SidebarTeacher = ({
       </div>
 
       <div className="flex-1 min-h-0 w-full" />
-      <ProfileSection user={user} collapsed={collapsed} profileHref={profileHref} onLogout={onLogout} />
+      {isSignedIn ? (
+        <ProfileSection user={user} collapsed={collapsed} profileHref={profileHref} onLogout={onLogout} />
+      ) : (
+        <AuthSection collapsed={collapsed} loginHref={loginHref} registerHref={registerHref} />
+      )}
     </div>
   );
 };

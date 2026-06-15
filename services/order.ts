@@ -49,7 +49,7 @@ type OrderFilters = {
 // ============================================================
 
 /**
- * Generate orderId — "IELTS PREDICTION {timestamp}{random4digits}"
+ * Generate orderId — "Vit IELTS {timestamp}{random4digits}"
  * @origin pages/api/orders/create.ts L56–60
  */
 function generateOrderId(): string {
@@ -57,7 +57,7 @@ function generateOrderId(): string {
     const random = crypto.randomInt(10000)
         .toString()
         .padStart(4, "0");
-    return `IELTS PREDICTION ${timestamp}${random}`;
+    return `Vit IELTS ${timestamp}${random}`;
 }
 
 /**

@@ -115,7 +115,7 @@ export const PageContact = ({ config }: PageContactProps) => {
 
       <section className="py-12 lg:py-20">
         <Container>
-          <div className="mx-auto max-w-5xl">
+          <div className="w-full">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
               
               {/* Left Column: Contact Form */}

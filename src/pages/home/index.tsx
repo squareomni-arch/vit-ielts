@@ -7,9 +7,8 @@ import type { TestimonialsConfig } from "./ui/testimonials/types";
 import { createServerSupabase } from "~supabase/server";
 import { readConfig } from "~services/cms-config";
 import { getQuizzes } from "~services/quiz";
-import { getSampleEssays } from "~services/sample-essay";
 import { getExamCollections, getExamCollectionsByIds } from "~services/exam-collection";
-import type { SampleEssay, ExamCollectionResponse } from "~services/types/database";
+import type { ExamCollectionResponse } from "~services/types/database";
 import type { Quiz } from "~services/types/database";
 import type { MockCollectionConfig } from "./ui/mock-collection-section/types";
 
@@ -34,8 +33,6 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
       examQuizzes,
       listeningQuizzes,
       readingQuizzes,
-      writingSamples,
-      speakingSamples,
       mockCollectionConfig,
     ] = await Promise.all([
       readConfig<HeroBannerConfig>(supabase, "home/hero-banner").catch(() => null),
@@ -45,8 +42,6 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
       getQuizzes(supabase, { type: "exam", pageSize: 20 }).catch(() => ({ data: [] as Quiz[] })),
       getQuizzes(supabase, { skill: "listening", type: "practice", pageSize: 8 }).catch(() => ({ data: [] as Quiz[] })),
       getQuizzes(supabase, { skill: "reading", type: "practice", pageSize: 8 }).catch(() => ({ data: [] as Quiz[] })),
-      getSampleEssays(supabase, { skill: "writing", pageSize: 8 }).catch(() => ({ data: [] as SampleEssay[] })),
-      getSampleEssays(supabase, { skill: "speaking", pageSize: 8 }).catch(() => ({ data: [] as SampleEssay[] })),
       readConfig<MockCollectionConfig>(supabase, "home/mock-collections").catch(() => null),
     ]);
 
@@ -72,8 +67,6 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
         examQuizzes: examQuizzes.data,
         listeningQuizzes: listeningQuizzes.data,
         readingQuizzes: readingQuizzes.data,
-        writingSamples: writingSamples.data,
-        speakingSamples: speakingSamples.data,
         mockCollections: mockCollections.data,
       },
     };

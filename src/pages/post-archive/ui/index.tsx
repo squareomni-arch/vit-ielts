@@ -80,7 +80,7 @@ export const PageArchive = ({
         title={category.name || "Blog"}
         breadcrumbs={dsBreadcrumbs}
       />
-      <section className="px-4 sm:px-6 py-10">
+      <section className="py-10">
       <Container>
         {posts.edges.length > 0 ? (
           <div className="space-y-4">

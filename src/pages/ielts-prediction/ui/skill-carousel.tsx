@@ -29,13 +29,12 @@ export const SkillCarousel = ({
         type="button"
         onClick={handlePrev}
         aria-label="Previous"
-        className="hidden sm:flex absolute left-0 -translate-x-1/2 top-[40%] -translate-y-1/2 z-10 shrink-0 items-center justify-center w-9 h-9 rounded-full bg-[#d94a56] hover:bg-[#ea8d95] shadow-lg transition-colors"
+        className="hidden sm:flex absolute left-0 -translate-x-1/2 top-[40%] -translate-y-1/2 z-10 shrink-0 items-center justify-center w-9 h-9 rounded-full bg-[#191d24] hover:bg-[#374151] shadow-lg transition-colors"
       >
         <img
-          src="/assets/figma/icons/Arrow1.svg"
+          src="/assets/icons/ArrowLeft.svg"
           alt=""
           className="w-3 h-3 [filter:brightness(0)_invert(1)]"
-          style={{ transform: "rotate(180deg)" }}
         />
       </button>
 
@@ -68,10 +67,10 @@ export const SkillCarousel = ({
         type="button"
         onClick={handleNext}
         aria-label="Next"
-        className="hidden sm:flex absolute right-0 translate-x-1/2 top-[40%] -translate-y-1/2 z-10 shrink-0 items-center justify-center w-9 h-9 rounded-full bg-[#d94a56] hover:bg-[#ea8d95] shadow-lg transition-colors"
+        className="hidden sm:flex absolute right-0 translate-x-1/2 top-[40%] -translate-y-1/2 z-10 shrink-0 items-center justify-center w-9 h-9 rounded-full bg-[#191d24] hover:bg-[#374151] shadow-lg transition-colors"
       >
         <img
-          src="/assets/figma/icons/Arrow1.svg"
+          src="/assets/icons/ArrowRight.svg"
           alt=""
           className="w-3 h-3 [filter:brightness(0)_invert(1)]"
         />

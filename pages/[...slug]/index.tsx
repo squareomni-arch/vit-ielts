@@ -16,6 +16,7 @@ import {
   getServerSidePropsSingle as getServerSidePropsSampleEssaySingle,
 } from "@/pages/sample-essay";
 import { createServerSupabase } from "~supabase/server";
+import { AppShell } from "@/widgets/layouts";
 
 const PageHandler = (props: {
   category?: unknown;
@@ -45,6 +46,8 @@ const PageHandler = (props: {
   );
 };
 
+PageHandler.Layout = AppShell;
+
 export default PageHandler;
 
 export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
@@ -64,20 +67,45 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
       };
     }
 
-    // Handle known sample essay routes
+    // Handle known sample essay routes -> redirect to exam library
     if (slug === "ielts-speaking-sample") {
-      return getServerSidePropsSampleEssayArchive(context, "speaking");
+      return {
+        redirect: {
+          destination: "/ielts-exam-library?skill=speaking",
+          permanent: true,
+        },
+      };
     } else if (slug === "ielts-writing-sample") {
-      return getServerSidePropsSampleEssayArchive(context, "writing");
+      return {
+        redirect: {
+          destination: "/ielts-exam-library?skill=writing",
+          permanent: true,
+        },
+      };
     } else if (slug === "ielts-reading-sample") {
-      return getServerSidePropsSampleEssayArchive(context, "reading");
+      return {
+        redirect: {
+          destination: "/ielts-exam-library?skill=reading",
+          permanent: true,
+        },
+      };
     } else if (slug === "ielts-listening-sample") {
-      return getServerSidePropsSampleEssayArchive(context, "listening");
+      return {
+        redirect: {
+          destination: "/ielts-exam-library?skill=listening",
+          permanent: true,
+        },
+      };
     }
 
-    // Handle known post category routes
+    // Handle known post category routes -> redirect to blog
     if (slug === "ielts-prediction") {
-      return getServerSidePropsArchive(context, "IELTS Prediction");
+      return {
+        redirect: {
+          destination: "/blog",
+          permanent: true,
+        },
+      };
     }
 
     // Resolve slug against Supabase tables
@@ -93,17 +121,6 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
 
     if (post) {
       return getServerSidePropsSingle(context, slug);
-    }
-
-    // 2. Check if slug is a sample essay
-    const { data: essay } = await supabase
-      .from("sample_essays")
-      .select("slug")
-      .eq("slug", slug)
-      .maybeSingle();
-
-    if (essay) {
-      return getServerSidePropsSampleEssaySingle(context, slug);
     }
 
     // 3. Check if slug matches a post category

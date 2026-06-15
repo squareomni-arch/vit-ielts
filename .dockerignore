@@ -12,3 +12,7 @@ visual-tests
 .claude
 *.tsbuildinfo
 next-env.d.ts
+migration-export
+e2e
+*-results.json
+playwright.e2e.config.ts

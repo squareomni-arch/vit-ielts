@@ -250,11 +250,11 @@ export default function SeoManagerPage() {
                                     layout="vertical"
                                 >
                                     <Form.Item name="siteTitle" label="Site Title" rules={[{ required: true }]}>
-                                        <Input placeholder="IELTS Prediction" />
+                                        <Input placeholder="Vit IELTS" />
                                     </Form.Item>
 
                                     <Form.Item name="titleSuffix" label="Title Suffix">
-                                        <Input placeholder=" | IELTS Prediction" />
+                                        <Input placeholder=" | Vit IELTS" />
                                     </Form.Item>
 
                                     <Form.Item name="defaultDescription" label="Default Meta Description">

@@ -232,7 +232,7 @@ export const PageArchive = ({
             );
           })()}
 
-        <section className="mt-12 px-4 sm:px-6">
+        <section className="mt-12">
         <Container>
           {/* === SECTION: Sample Essay === */}
           <section id="sample-essay" data-section="sample-essay">

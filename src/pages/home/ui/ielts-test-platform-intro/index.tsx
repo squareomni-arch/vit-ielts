@@ -22,12 +22,12 @@ export const IeltsTestPlatformIntro = ({ config: _config }: IeltsTestPlatformInt
           Master every part of the test
         </h2>
 
-        {/* Skill cards grid — Responsive columns with aspect ratio-based sizing */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[24px] w-full justify-items-center">
+        {/* Skill cards grid — full-width columns; cards fill each cell and scale with the viewport */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px] xl:gap-[20px] w-full">
           <SkillCard skill="listening" href={ROUTES.PRACTICE.ARCHIVE_LISTENING} className="w-full" />
           <SkillCard skill="reading"   href={ROUTES.PRACTICE.ARCHIVE_READING}   className="w-full" />
-          <SkillCard skill="writing"   href={ROUTES.SAMPLE_ESSAY.ARCHIVE_WRITING}  className="w-full" />
-          <SkillCard skill="speaking"  href={ROUTES.SAMPLE_ESSAY.ARCHIVE_SPEAKING} className="w-full" />
+          <SkillCard skill="writing"   href={`${ROUTES.BLOG.ARCHIVE}?skill=writing`}  className="w-full" />
+          <SkillCard skill="speaking"  href={`${ROUTES.BLOG.ARCHIVE}?skill=speaking`} className="w-full" />
         </div>
       </div>
     </ScrollFadeIn>

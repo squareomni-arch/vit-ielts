@@ -66,9 +66,9 @@ export const WhyChooseUs = ({ config: _config }: WhyChooseUsProps) => {
   return (
     <ScrollFadeIn
       data-section="why-choose-us"
-      className="w-full bg-surface-app px-4 sm:px-6 py-6"
+      className="w-full bg-surface-app "
     >
-      <div className="relative bg-ink-900 rounded-[40px] p-14 overflow-hidden">
+      <div className="relative bg-ink-900 rounded-[40px] mt-14 p-14 overflow-hidden">
         {/* Plus pattern overlay */}
         <div
           className="absolute inset-0 opacity-10 pointer-events-none"

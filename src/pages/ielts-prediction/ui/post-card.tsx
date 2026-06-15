@@ -87,13 +87,13 @@ export const PostCard = ({ image, title, date, isPro, href }: PostCardProps) => 
           <div className="flex items-center gap-[6px] min-w-0">
             <Image
               src="/red-logo.png"
-              alt="IELTS Prediction"
+              alt="Vit IELTS"
               width={100}
               height={18}
               className="h-[18px] w-auto shrink-0"
             />
             <span className="text-[14px] font-semibold text-primary-500 truncate">
-              IELTS Prediction
+              Vit IELTS
             </span>
           </div>
 

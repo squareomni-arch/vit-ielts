@@ -1,6 +1,5 @@
-import { MyProfileLayout } from "@/widgets/layouts";
-import { Card, Skeleton, Table, TableProps, Tag } from "antd";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { AppShell } from "@/widgets/layouts";
+import { useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { currencyFormat } from "@/shared/lib";
 import { createClient } from "~supabase/client";
@@ -12,6 +11,16 @@ import { ROUTES } from "@/shared/routes";
 const ORDER_TTL_MINUTES = 60;
 
 // ─── Helpers ─────────────────────────────────────────────────
+
+/** Badge tone → token-based classes (no magic colors) */
+type BadgeTone = "teal" | "red" | "gray" | "amber";
+
+const BADGE_TONE: Record<BadgeTone, string> = {
+  teal: "bg-brand-tint text-accent-teal",
+  red: "bg-surface-blush text-danger",
+  gray: "bg-surface-app text-ink-muted",
+  amber: "bg-surface-blush text-accent-orange",
+};
 
 /** Check if an order is still within the payment window */
 const isOrderPayable = (order: any): boolean => {
@@ -34,22 +43,24 @@ const formatCountdown = (totalSeconds: number): string => {
 };
 
 /** Compute status display */
-const getStatusDisplay = (order: any): { text: string; color: string; showContinue: boolean } => {
+const getStatusDisplay = (
+  order: any,
+): { text: string; tone: BadgeTone; showContinue: boolean } => {
   switch (order.status) {
     case "completed":
-      return { text: "Successful", color: "#34D399", showContinue: false };
+      return { text: "Thành công", tone: "teal", showContinue: false };
     case "cancelled":
-      return { text: "Cancelled", color: "#F87171", showContinue: false };
+      return { text: "Đã hủy", tone: "red", showContinue: false };
     case "expired":
-      return { text: "Expired", color: "#9CA3AF", showContinue: false };
+      return { text: "Hết hạn", tone: "gray", showContinue: false };
     case "pending":
       if (isOrderPayable(order)) {
-        return { text: "Awaiting payment", color: "#FBBF24", showContinue: true };
+        return { text: "Chờ thanh toán", tone: "amber", showContinue: true };
       }
       // Pending but past TTL (cron hasn't run yet)
-      return { text: "Expiring soon", color: "#F97316", showContinue: false };
+      return { text: "Sắp hết hạn", tone: "amber", showContinue: false };
     default:
-      return { text: order.status, color: "#9CA3AF", showContinue: false };
+      return { text: order.status, tone: "gray", showContinue: false };
   }
 };
 
@@ -60,6 +71,15 @@ const generateOrderId = (paymentDate: string, index: number): string => {
     .reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return `#${(hash + index).toString().slice(-4)}`;
 };
+
+// ─── Status badge ────────────────────────────────────────────
+const StatusBadge = ({ text, tone }: { text: string; tone: BadgeTone }) => (
+  <span
+    className={`inline-flex items-center rounded-full px-3 py-1 text-caption-bold whitespace-nowrap ${BADGE_TONE[tone]}`}
+  >
+    {text}
+  </span>
+);
 
 // ─── Countdown Component ─────────────────────────────────────
 const Countdown = ({ createdAt }: { createdAt: string }) => {
@@ -80,11 +100,79 @@ const Countdown = ({ createdAt }: { createdAt: string }) => {
   const isUrgent = remaining < 300; // < 5 minutes
 
   return (
-    <span className={`text-xs font-medium ${isUrgent ? "text-red-500" : "text-gray-400"}`}>
-      {formatCountdown(remaining)} left
+    <span className={`text-caption-bold ${isUrgent ? "text-danger" : "text-ink-muted"}`}>
+      {formatCountdown(remaining)} còn lại
     </span>
   );
 };
+
+// ─── Loading skeleton ────────────────────────────────────────
+const LoadingRows = () => (
+  <div className="divide-y divide-border-hairline">
+    {Array.from({ length: 4 }).map((_, i) => (
+      <div key={i} className="flex items-center gap-4 px-6 py-5">
+        <div className="h-4 w-16 rounded bg-surface-app animate-pulse" />
+        <div className="h-4 flex-1 rounded bg-surface-app animate-pulse" />
+        <div className="h-4 w-24 rounded bg-surface-app animate-pulse" />
+        <div className="h-4 w-20 rounded bg-surface-app animate-pulse" />
+        <div className="h-6 w-24 rounded-full bg-surface-app animate-pulse" />
+      </div>
+    ))}
+  </div>
+);
+
+// ─── Empty state ─────────────────────────────────────────────
+const EmptyState = () => (
+  <div className="flex flex-col items-center text-center px-6 py-16">
+    <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-surface-blush">
+      <span className="material-symbols-rounded text-[32px] text-ink-muted" aria-hidden="true">
+        receipt_long
+      </span>
+    </div>
+    <h2 className="font-display text-heading-2 text-ink-900 mb-2">
+      Chưa có đơn hàng nào
+    </h2>
+    <p className="text-body-s text-ink-muted max-w-sm mb-6">
+      Khi bạn đăng ký gói Pro, các đơn hàng và trạng thái thanh toán sẽ hiển thị tại đây.
+    </p>
+    <Link
+      href={ROUTES.SUBSCRIPTION}
+      className="inline-flex items-center justify-center rounded-full bg-ink-900 hover:bg-ink-700 text-surface-card font-display font-bold text-body-m px-8 py-3.5 transition-colors"
+    >
+      Xem các gói đăng ký
+    </Link>
+  </div>
+);
+
+// ─── Row type ────────────────────────────────────────────────
+interface OrderRow {
+  key: number;
+  orderId: string;
+  orderIdFull?: string;
+  content: string;
+  paymentDate: string;
+  amount: number;
+  status: { text: string; tone: BadgeTone; showContinue: boolean };
+  rawOrder: any;
+}
+
+/** Status cell — badge (clickable when an order can still be paid) + countdown */
+const StatusCell = ({ row }: { row: OrderRow }) => (
+  <div className="flex items-center gap-3">
+    {row.status.showContinue && row.orderIdFull ? (
+      <Link
+        href={`${ROUTES.ORDER_RECEIVED}?orderId=${encodeURIComponent(row.orderIdFull)}`}
+        className="transition-opacity hover:opacity-80"
+        title="Tiếp tục thanh toán"
+      >
+        <StatusBadge text={row.status.text} tone={row.status.tone} />
+      </Link>
+    ) : (
+      <StatusBadge text={row.status.text} tone={row.status.tone} />
+    )}
+    {row.status.showContinue && <Countdown createdAt={row.rawOrder.created_at} />}
+  </div>
+);
 
 // ─── Page Component ──────────────────────────────────────────
 export const PagePaymentHistory = () => {
@@ -117,12 +205,14 @@ export const PagePaymentHistory = () => {
     fetchOrders();
   }, [currentUser?.id]);
 
-  const dataSource = useMemo(() => {
+  const dataSource: OrderRow[] = useMemo(() => {
     return orders.map((order: any, index: number) => {
       const statusInfo = getStatusDisplay(order);
       return {
         key: index,
-        orderId: order.id ? `#${String(order.id).slice(-4)}` : generateOrderId(order.created_at || "", index),
+        orderId: order.id
+          ? `#${String(order.id).slice(-4)}`
+          : generateOrderId(order.created_at || "", index),
         orderIdFull: order.order_id,
         content: order.plan_name || order.transfer_content || "Pro Subscription",
         paymentDate: order.created_at,
@@ -133,135 +223,89 @@ export const PagePaymentHistory = () => {
     });
   }, [orders]);
 
-  const columns: TableProps<(typeof dataSource)[number]>["columns"] = [
-    {
-      title: "Order ID",
-      dataIndex: "orderId",
-      key: "orderId",
-      render: (orderId: string) => (
-        <span className="text-gray-700">{orderId}</span>
-      ),
-    },
-    {
-      title: "Course Name",
-      dataIndex: "content",
-      key: "content",
-      render: (content: string) => (
-        <span className="text-gray-700">{content}</span>
-      ),
-    },
-    {
-      title: "Date",
-      dataIndex: "paymentDate",
-      key: "paymentDate",
-      render: (paymentDate: string) => (
-        <span className="text-gray-700">
-          {dayjs(paymentDate).format("MMMM D, YYYY")}
-        </span>
-      ),
-    },
-    {
-      title: "Price",
-      dataIndex: "amount",
-      key: "amount",
-      render: (amount: number) => (
-        <span className="text-gray-700">{currencyFormat(amount)}</span>
-      ),
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status: { text: string; color: string; showContinue: boolean }, record: (typeof dataSource)[number]) => (
-        <div className="flex items-center gap-2">
-          {status.showContinue && record.orderIdFull ? (
-            <Link href={`${ROUTES.ORDER_RECEIVED}?orderId=${encodeURIComponent(record.orderIdFull)}`}>
-              <Tag
-                style={{
-                  backgroundColor: status.color,
-                  color: "#ffffff",
-                  border: "none",
-                  borderRadius: "4px",
-                  padding: "4px 12px",
-                  fontWeight: 500,
-                  cursor: "pointer",
-                }}
-              >
-                {status.text}
-              </Tag>
-            </Link>
-          ) : (
-            <Tag
-              style={{
-                backgroundColor: status.color,
-                color: "#ffffff",
-                border: "none",
-                borderRadius: "4px",
-                padding: "4px 12px",
-                fontWeight: 500,
-              }}
-            >
-              {status.text}
-            </Tag>
-          )}
-          {status.showContinue && (
-            <Countdown createdAt={record.rawOrder.created_at} />
-          )}
-        </div>
-      ),
-    },
-  ];
-
   return (
-    <>
-      <style jsx global>{`
-        .order-history-table .ant-table-thead > tr > th {
-          background: #c7ccf1 !important;
-          border-bottom: 1px solid #e5e7eb;
-          border-right: none !important;
-          padding: 12px 16px;
-          font-weight: 700 !important;
-          color: #000000 !important;
-        }
-        .order-history-table .ant-table-thead > tr > th::before {
-          display: none !important;
-        }
-        .order-history-table .ant-table-tbody > tr > td {
-          border-bottom: 1px solid #e5e7eb;
-          padding: 12px 16px;
-        }
-        .order-history-table .ant-table-tbody > tr:hover > td {
-          background: inherit !important;
-        }
-        .order-history-table .ant-table-tbody > tr.bg-gray-50 > td {
-          background-color: #f9fafb;
-        }
-        .order-history-table .ant-table-tbody > tr.bg-white > td {
-          background-color: #ffffff;
-        }
-      `}</style>
-      <Card className="shadow-sm rounded-lg" bodyStyle={{ padding: 0 }}>
-        <div className="p-6">
-          {!loading ? (
-            <div className="overflow-x-auto">
-              <Table
-                dataSource={dataSource}
-                columns={columns}
-                pagination={false}
-                className="order-history-table"
-                scroll={{ x: 600 }}
-                rowClassName={(_, index) =>
-                  index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                }
-              />
+    <div className="space-y-8 py-6" data-section="order-history">
+      {/* Page heading */}
+      <div>
+        <h1 className="font-display text-heading-1 text-ink-900 leading-tight">
+          Lịch sử đơn hàng
+        </h1>
+        <p className="text-body-s text-ink-muted mt-1">
+          Xem lại các đơn hàng và trạng thái thanh toán của bạn.
+        </p>
+      </div>
+
+      {/* Card */}
+      <div className="rounded-2xl border border-border-hairline bg-surface-card shadow-primary overflow-hidden">
+        {loading ? (
+          <LoadingRows />
+        ) : dataSource.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <>
+            {/* ── Desktop / tablet: table ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full min-w-[640px] text-left">
+                <thead>
+                  <tr className="bg-surface-blush">
+                    {["Mã đơn", "Khóa học", "Ngày", "Số tiền", "Trạng thái"].map((h) => (
+                      <th
+                        key={h}
+                        className="px-6 py-4 text-caption-bold uppercase tracking-wide text-ink-muted"
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {dataSource.map((row) => (
+                    <tr key={row.key} className="border-t border-border-hairline">
+                      <td className="px-6 py-5 text-body-s font-semibold text-ink-900 whitespace-nowrap">
+                        {row.orderId}
+                      </td>
+                      <td className="px-6 py-5 text-body-s text-ink-900">{row.content}</td>
+                      <td className="px-6 py-5 text-body-s text-ink-muted whitespace-nowrap">
+                        {dayjs(row.paymentDate).format("DD/MM/YYYY")}
+                      </td>
+                      <td className="px-6 py-5 text-body-s font-semibold text-ink-900 whitespace-nowrap">
+                        {currencyFormat(row.amount)}
+                      </td>
+                      <td className="px-6 py-5">
+                        <StatusCell row={row} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ) : (
-            <Skeleton active />
-          )}
-        </div>
-      </Card>
-    </>
+
+            {/* ── Mobile: stacked cards ── */}
+            <div className="md:hidden divide-y divide-border-hairline">
+              {dataSource.map((row) => (
+                <div key={row.key} className="px-5 py-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-body-m font-semibold text-ink-900 truncate">
+                        {row.content}
+                      </p>
+                      <p className="text-caption-bold text-ink-muted mt-0.5">
+                        {row.orderId} · {dayjs(row.paymentDate).format("DD/MM/YYYY")}
+                      </p>
+                    </div>
+                    <span className="text-body-m font-bold text-ink-900 whitespace-nowrap">
+                      {currencyFormat(row.amount)}
+                    </span>
+                  </div>
+                  <StatusCell row={row} />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 };
 
-PagePaymentHistory.Layout = MyProfileLayout;
+PagePaymentHistory.Layout = AppShell;

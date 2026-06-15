@@ -17,7 +17,7 @@ function createTransporter() {
   const smtpUser = process.env.SMTP_USER || 'admin@cms.ieltspredictiontest.com';
   const smtpPassword = process.env.SMTP_PASSWORD || 'ieltspredictiontest';
   const smtpFrom = process.env.SMTP_FROM || smtpUser;
-  const smtpFromName = process.env.SMTP_FROM_NAME || 'IELTS Prediction';
+  const smtpFromName = process.env.SMTP_FROM_NAME || 'Vit IELTS';
 
   return nodemailer.createTransport({
     host: smtpHost,
@@ -47,7 +47,7 @@ export async function sendEmail(
 ): Promise<boolean> {
   try {
     const smtpFrom = process.env.SMTP_FROM || process.env.SMTP_USER || 'admin@cms.ieltspredictiontest.com';
-    const smtpFromName = process.env.SMTP_FROM_NAME || 'IELTS Prediction';
+    const smtpFromName = process.env.SMTP_FROM_NAME || 'Vit IELTS';
 
     const transporter = createTransporter();
 

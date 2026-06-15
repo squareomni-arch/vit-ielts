@@ -41,7 +41,7 @@ const features = [
 
 export const SubscriptionFeatures = () => {
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full">
       <Card>
         <div className="overflow-x-auto">
           <table className="table-auto w-full">

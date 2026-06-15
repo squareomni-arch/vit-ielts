@@ -148,22 +148,22 @@ export default async function handler(
 
     // ═══════════════════════════════════════════════════════════
     // BRANCH 2: ORDER PAYMENT (existing logic)
-    // Content format: "IELTS PREDICTION {timestamp}{random}"
+    // Content format: "Vit IELTS {timestamp}{random}" / "IELTS PREDICTION {timestamp}{random}"
     // ═══════════════════════════════════════════════════════════
 
     // ── Parse orderId from content ──
     let orderId = "";
 
-    const orderIdPattern = /IELTS\s+PREDICTION\s+(\d+)/i;
+    const orderIdPattern = /(?:IELTS\s+PREDICTION|Vit\s+IELTS)\s+(\d+)/i;
     const match = content.match(orderIdPattern);
 
     if (match) {
-      const fullPattern = /IELTS\s+PREDICTION\s*\d+/i;
+      const fullPattern = /(?:IELTS\s+PREDICTION|Vit\s+IELTS)\s*\d+/i;
       const fullMatch = content.match(fullPattern);
       if (fullMatch) {
         orderId = fullMatch[0].replace(/\s+/g, " ").trim();
       } else {
-        orderId = `IELTS PREDICTION ${match[1]}`;
+        orderId = `Vit IELTS ${match[1]}`;
       }
     } else {
       orderId = content.trim();
@@ -188,6 +188,7 @@ export default async function handler(
     if (!order) {
       const orderIdNumbers = orderId
         .replace("IELTS PREDICTION", "")
+        .replace("Vit IELTS", "")
         .trim();
       if (orderIdNumbers) {
         order = await getOrderByTransferContent(

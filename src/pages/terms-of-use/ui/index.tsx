@@ -41,7 +41,7 @@ export const PageTermsOfUse = ({ termsOfUseConfig }: PageTermsOfUseProps) => {
           </div>
 
           {/* Main Content */}
-          <div className="max-w-4xl mx-auto prose prose-lg">
+          <div className="prose prose-lg max-w-none">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">
               {content.introTitle}
             </h2>

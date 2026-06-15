@@ -39,9 +39,9 @@ export const PageSubscription = ({
   return (
     <div className="bg-[#f6f7f4] min-h-screen">
       {/* === SECTION: Pricing header + billing toggle + plan cards ===
-          Figma 3336:2055 — Content block, max-w-[1126px], pt-56px pb-80px */}
+          Figma 3336:2055 — Content block, max-w-[1360px], pt-56px pb-80px */}
       <div data-section="subscription-plans" className="px-4 sm:px-6">
-        <div className="mx-auto max-w-[1126px]">
+        <div className="mx-auto max-w-[1360px]">
           <SubscriptionPlans buyProLink={buyProLink} />
         </div>
       </div>

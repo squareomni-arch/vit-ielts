@@ -1,15 +1,9 @@
-import { Container } from "@/shared/ui";
 import { SEOHeader } from "@/widgets";
-import { Breadcrumb, Avatar } from "@/shared/ui/ds";
 import Link from "next/link";
 import { IPost } from "@/shared/types";
 import Image from "next/image";
-import { StarRating } from "@/entities";
 import dayjs from "dayjs";
 import { useCallback, useEffect, useState } from "react";
-import SharePost from "./share-post";
-import RelatedPost from "./related-post";
-import { SimilarPostsSection } from "./similar-posts-section";
 import { decode } from "html-entities";
 import { createClient } from "~supabase/client";
 import {
@@ -18,25 +12,107 @@ import {
 } from "@/shared/lib/content-image";
 import { ProBadge } from "@/shared/ui/pro-badge";
 import type { Post } from "~services/types/database";
+import { ROUTES } from "@/shared/routes";
 
 type SidebarOrSimilarPost = Pick<
   Post,
   "id" | "title" | "slug" | "featured_image" | "pro_user_only" | "categories" | "created_at" | "views"
 >;
 
+function skillChipStyle(skillName: string): { bg: string; text: string } {
+  const s = skillName.toLowerCase();
+  if (s.includes("listening")) return { bg: "#5281F9", text: "white" };
+  if (s.includes("speaking")) return { bg: "#7C6EF9", text: "white" };
+  if (s.includes("reading")) return { bg: "#7AC94A", text: "#191D24" };
+  return { bg: "#B3E653", text: "#191D24" };
+}
+
+function cardGradient(categories?: string[] | null): string {
+  const cat = (categories?.[0] || "").toLowerCase();
+  if (cat.includes("listening")) return "linear-gradient(155deg, #5281F9 14%, #7CA1FF 86%)";
+  if (cat.includes("speaking")) return "linear-gradient(155deg, #7C6EF9 14%, #A89CFF 86%)";
+  if (cat.includes("reading")) return "linear-gradient(155deg, #7AC94A 14%, #A6E35E 86%)";
+  return "linear-gradient(155deg, #B3E653 14%, #C4F16B 86%)";
+}
+
+function getInitials(name: string): string {
+  const p = name.trim().split(/\s+/).filter(Boolean);
+  return p.length >= 2
+    ? (p[0][0] + p[p.length - 1][0]).toUpperCase()
+    : name.slice(0, 2).toUpperCase();
+}
+
+const AVATAR_COLORS = ["#7C6EF9", "#5281F9", "#F9A352", "#2EC4B6", "#F95281"];
+function avatarBg(name: string): string {
+  return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+}
+
+function KeepReadingCard({
+  href,
+  title,
+  featuredImage,
+  categories,
+  date,
+  fallbackImage,
+}: {
+  href: string;
+  title: string;
+  featuredImage?: string | null;
+  categories?: string[] | null;
+  date?: string | null;
+  fallbackImage: string;
+}) {
+  const gradient = cardGradient(categories);
+  const label = (categories?.[0] || "IELTS").toUpperCase();
+  return (
+    <Link
+      href={href}
+      className="group bg-white rounded-[24px] border border-[rgba(25,29,36,0.08)] shadow-[0px_4px_16px_rgba(0,0,0,0.04)] flex flex-col overflow-hidden no-underline hover:shadow-[0px_8px_28px_rgba(0,0,0,0.09)] transition-shadow"
+    >
+      <div className="h-[160px] relative shrink-0" style={{ background: gradient }}>
+        {featuredImage && (
+          <Image
+            src={resolveContentImage(featuredImage, fallbackImage)}
+            alt={title}
+            fill
+            className="object-cover opacity-25 group-hover:opacity-35 transition-opacity"
+            unoptimized
+          />
+        )}
+        <div className="absolute top-[14px] left-[14px] bg-white/90 backdrop-blur-sm px-[10px] py-[5px] rounded-full">
+          <span className="text-[11px] font-bold text-[#191D24] uppercase tracking-wide">{label}</span>
+        </div>
+      </div>
+      <div className="p-[22px] flex flex-col gap-[10px] flex-1">
+        <h3 className="text-[18px] font-bold font-noto-sans text-[#191D24] tracking-[-0.36px] leading-[1.2] line-clamp-2">
+          {title}
+        </h3>
+        <div className="mt-auto pt-[10px] border-t border-[rgba(25,29,36,0.06)]">
+          <p className="text-[12px] font-medium text-[#6A7282]">
+            {date ? dayjs(date).format("MMM YYYY") : ""}
+          </p>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export const PageSingle = ({
   post,
   similarPosts = [],
   relatedPosts = [],
 }: {
-  post: IPost & { pro_user_only?: boolean; author?: { node?: { name?: string; userData?: { avatar?: { node?: { sourceUrl?: string } } } } } };
+  post: IPost & {
+    pro_user_only?: boolean;
+    author?: { node?: { name?: string; userData?: { avatar?: { node?: { sourceUrl?: string } } } } };
+  };
   similarPosts?: SidebarOrSimilarPost[];
   relatedPosts?: SidebarOrSimilarPost[];
 }) => {
-  // Hỗ trợ cả raw Post (snake_case) và IPost (camelCase postMeta)
   const isProPost = (post as any).pro_user_only || post.postMeta?.proUserOnly || false;
   const fallbackImage = useContentImageFallback();
   const [copied, setCopied] = useState(false);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
 
   const handleCopyLink = () => {
     const url = window.location.href;
@@ -45,25 +121,20 @@ export const PageSingle = ({
       setTimeout(() => setCopied(false), 2000);
     };
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard
-        .writeText(url)
-        .then(onSuccess)
-        .catch(() => {
-          const ta = document.createElement("textarea");
-          ta.value = url;
-          ta.style.position = "fixed";
-          ta.style.opacity = "0";
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand("copy");
-          document.body.removeChild(ta);
-          onSuccess();
-        });
+      navigator.clipboard.writeText(url).then(onSuccess).catch(() => {
+        const ta = document.createElement("textarea");
+        ta.value = url;
+        ta.style.cssText = "position:fixed;opacity:0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        onSuccess();
+      });
     } else {
       const ta = document.createElement("textarea");
       ta.value = url;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
+      ta.style.cssText = "position:fixed;opacity:0";
       document.body.appendChild(ta);
       ta.select();
       document.execCommand("copy");
@@ -72,32 +143,39 @@ export const PageSingle = ({
     }
   };
 
-  // Increment view count via Supabase
+  const handleShare = () =>
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
+      "_blank",
+    );
+
   const incrementViews = useCallback(async () => {
     try {
       const supabase = createClient();
       await supabase.rpc("increment_post_views", { post_id: post.id });
     } catch (err) {
-      // Silently fail — view counting is not critical
       console.warn("Failed to increment views:", err);
     }
   }, [post.id]);
 
-  const breadcrumbItems = (post.seo?.breadcrumbs || []).map((item) => ({
-    label: decode(item.text),
-    href: item.url,
-  }));
-
-  const readingTime = Math.ceil(post.content.length / 200);
+  const plainText = (post.content || "").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").trim();
+  const readingTime = Math.max(1, Math.ceil(plainText.split(/\s+/).filter(Boolean).length / 200));
 
   useEffect(() => {
-    const thirtyPercentOfReadTime = readingTime * 0.3;
-    const timeout = setTimeout(async () => {
-      await incrementViews();
-    }, thirtyPercentOfReadTime * 1000);
-
+    const timeout = setTimeout(incrementViews, readingTime * 0.3 * 1000);
     return () => clearTimeout(timeout);
   }, [post.id, readingTime, incrementViews]);
+
+  const skill = post.categories?.edges?.[0]?.node?.name || "";
+  const chip = skillChipStyle(skill);
+  const authorName = post.author?.node?.name || "VitIELTS";
+  const authorSrc = post.author?.node?.userData?.avatar?.node?.sourceUrl;
+  const initials = getInitials(authorName);
+  const avatarColor = avatarBg(authorName);
+  const excerptText = post.excerpt
+    ? decode(post.excerpt.replace(/<[^>]+>/g, "").trim())
+    : "";
+  const allPosts = similarPosts.length > 0 ? similarPosts : relatedPosts;
 
   return (
     <>
@@ -107,199 +185,205 @@ export const PageSingle = ({
         description={post.excerpt}
         image={post.featuredImage?.node.sourceUrl}
       />
-      <div className="min-h-screen pb-20 bg-white relative px-4 sm:px-6">
-        <div
-          className="absolute inset-x-0 top-0 h-[380px] md:h-[420px] pointer-events-none z-0"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(217,74,86,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(217,74,86,0.07) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-            backgroundPosition: "center top",
-          }}
-        />
-        <div className="absolute top-[380px] md:top-[420px] left-0 w-full h-[10px] bg-[#D94A56] z-0" />
-        <Container className="max-w-[1360px] relative z-10 pt-[160px] md:pt-[220px] mb-8">
-          <div className="flex flex-col lg:flex-row gap-8">
-            <div className="hidden lg:block w-[220px] shrink-0" />
-            <div className="w-full lg:flex-1 min-w-0">
-              <div className="bg-white rounded-[24px] border border-[rgba(0,0,0,0.06)] px-[20px] md:px-[61px] py-[30px] md:py-[50px] shadow-[0_4px_24px_rgba(0,0,0,0.04)] text-left">
-                <div className="mb-[23px]">
-                  <Breadcrumb items={breadcrumbItems} />
-                </div>
-                <div className="flex items-start gap-3 mb-[23px]">
-                  <h1 className="text-3xl md:text-[40px] font-extrabold text-[#2D3142] font-noto-sans leading-tight flex-1">
-                    {post.title}
-                  </h1>
-                  {isProPost && (
-                    <ProBadge
-                      className="mt-2 shrink-0"
-                      title="PRO members only"
-                    />
-                  )}
-                </div>
-                <div className="flex items-center justify-between pt-[23px]">
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-3">
-                      <Avatar
-                        src={
-                          post.author?.node?.userData?.avatar?.node?.sourceUrl
-                        }
-                        fallback={post.author?.node?.name?.charAt(0) || "A"}
-                        size="sm"
-                      />
-                      <span className="text-sm font-medium text-[#2D3142]">
-                        {post.author?.node?.name || "Administrator"}
-                      </span>
-                    </div>
-                    <div className="text-sm font-medium text-[#6A7282]">
-                      {post.date
-                        ? new Date(post.date).toLocaleDateString("vi-VN")
-                        : "14/12/2025"}
-                    </div>
-                  </div>
-                  <button
-                    className="p-1 hover:bg-gray-100 rounded transition-colors text-[#2D3142] cursor-pointer"
-                    title="Share"
-                    onClick={() =>
-                      window.open(
-                        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
-                        "_blank",
-                      )
-                    }
-                  >
-                    <span className="material-symbols-rounded text-[24px] align-middle">
-                      ios_share
-                    </span>
-                  </button>
-                </div>
-              </div>
+
+      {/* Back link */}
+      <div className="mb-8">
+        <Link
+          href={ROUTES.BLOG.ARCHIVE}
+          className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#9AD534] hover:opacity-75 transition-opacity no-underline"
+        >
+          <span className="material-symbols-rounded text-[18px] leading-none">arrow_back</span>
+          Back to all articles
+        </Link>
+      </div>
+
+      {/* Article header */}
+      <div className="space-y-[16px] mb-[28px]">
+        {skill && (
+          <span
+            className="inline-flex items-center text-[13px] font-bold px-[14px] py-[7px] rounded-full"
+            style={{ backgroundColor: chip.bg, color: chip.text }}
+          >
+            {skill.toUpperCase()}
+          </span>
+        )}
+        <div className="flex items-start gap-3">
+          <h1 className="flex-1 text-[32px] md:text-[42px] lg:text-[46px] font-extrabold font-noto-sans text-[#191D24] leading-[1.12] tracking-[-0.9px]">
+            {post.title}
+          </h1>
+          {isProPost && <ProBadge className="mt-2 shrink-0" />}
+        </div>
+        {excerptText && (
+          <p className="text-[16px] md:text-[19px] text-[#6A7282] leading-[1.55]">
+            {excerptText}
+          </p>
+        )}
+      </div>
+
+      {/* Byline */}
+      <div className="flex items-center justify-between mb-[32px]">
+        <div className="flex items-center gap-[12px]">
+          {authorSrc ? (
+            <img src={authorSrc} alt={authorName} className="w-[48px] h-[48px] rounded-full object-cover shrink-0" />
+          ) : (
+            <div
+              className="w-[48px] h-[48px] rounded-full flex items-center justify-center shrink-0 text-white font-bold text-[17px]"
+              style={{ backgroundColor: avatarColor }}
+            >
+              {initials}
             </div>
-            <div className="hidden lg:block w-[280px] shrink-0" />
+          )}
+          <div>
+            <p className="text-[15px] font-bold text-[#191D24]">{authorName}</p>
+            <p className="text-[13px] text-[#6A7282]">
+              IELTS Coach · {readingTime} min read
+              {post.date ? ` · ${dayjs(post.date).format("MMM D, YYYY")}` : ""}
+            </p>
           </div>
-        </Container>
-        <Container className="max-w-[1360px] relative z-10">
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Left Column: Fixed details */}
-            <div className="w-full lg:w-[220px] shrink-0 relative z-10">
-              <div className="sticky top-35 space-y-6">
-                <div>
-                  <h3 className="font-bold text-lg text-[#2D3142] mb-3">
-                    Blog Article
-                  </h3>
-                  <p className="text-sm text-[#6A7282] leading-relaxed">
-                    Stay updated with the latest tips, tricks, and official news
-                    about the IELTS examination. Read our expert articles to
-                    boost your score.
-                  </p>
-                </div>
+        </div>
+        <div className="flex items-center gap-[10px]">
+          <button
+            onClick={handleCopyLink}
+            className="w-[44px] h-[44px] rounded-full bg-white border border-[rgba(25,29,36,0.12)] flex items-center justify-center hover:bg-[#F6F7F4] transition-colors cursor-pointer"
+            title={copied ? "Copied!" : "Copy link"}
+          >
+            <span className="material-symbols-rounded text-[20px] text-[#191D24] leading-none">
+              {copied ? "check" : "link"}
+            </span>
+          </button>
+          <button
+            onClick={handleShare}
+            className="w-[44px] h-[44px] rounded-full bg-white border border-[rgba(25,29,36,0.12)] flex items-center justify-center hover:bg-[#F6F7F4] transition-colors cursor-pointer"
+            title="Share"
+          >
+            <span className="material-symbols-rounded text-[20px] text-[#191D24] leading-none">share</span>
+          </button>
+        </div>
+      </div>
 
-                <div className="space-y-4 pt-2">
-                  <button
-                    className={`flex items-center gap-3 text-sm font-medium transition-colors cursor-pointer ${copied ? "text-[#27AE60]" : "text-[#6A7282] hover:text-[#D94A56]"}`}
-                    onClick={handleCopyLink}
-                  >
-                    <span className="material-symbols-rounded text-lg">
-                      {copied ? "check_circle" : "content_copy"}
-                    </span>
-                    {copied ? "Copied!" : "Copy link"}
-                  </button>
-                  <button
-                    className="flex items-center gap-3 text-sm font-medium text-[#6A7282] hover:text-[#D94A56] transition-colors cursor-pointer"
-                    onClick={() =>
-                      window.open(
-                        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
-                        "_blank",
-                      )
-                    }
-                  >
-                    <span className="material-symbols-rounded text-lg">
-                      share
-                    </span>
-                    Share
-                  </button>
-                </div>
-              </div>
+      {/* Cover image */}
+      {post.featuredImage?.node.sourceUrl && (
+        <div className="relative rounded-[24px] overflow-hidden h-[260px] md:h-[380px] lg:h-[450px] w-full mb-[40px]">
+          <Image
+            src={resolveContentImage(post.featuredImage.node.sourceUrl, fallbackImage)}
+            alt={post.featuredImage.node.altText || post.title}
+            fill
+            className="object-cover"
+            unoptimized
+          />
+        </div>
+      )}
+
+      {/* Article body */}
+      <div
+        className="text-[16px] md:text-[18px] text-[#2E3640] leading-[1.75] mb-[40px]
+          prose prose-lg max-w-none
+          prose-headings:font-noto-sans prose-headings:text-[#191D24] prose-headings:tracking-tight
+          prose-h2:text-[22px] md:prose-h2:text-[26px] prose-h2:font-bold prose-h2:tracking-[-0.52px] prose-h2:leading-[1.15] prose-h2:mt-[40px] prose-h2:mb-[14px]
+          prose-h3:text-[19px] prose-h3:font-bold prose-h3:mt-[28px] prose-h3:mb-[10px]
+          prose-p:text-[16px] prose-p:md:text-[18px] prose-p:leading-[1.75] prose-p:mb-[20px]
+          prose-strong:font-bold prose-strong:text-[#191D24]
+          [&_blockquote]:pl-[20px] [&_blockquote]:border-l-[5px] [&_blockquote]:border-[#B3E653] [&_blockquote]:my-[28px] [&_blockquote]:not-italic
+          [&_blockquote]:text-[18px] [&_blockquote]:font-semibold [&_blockquote]:text-[#191D24] [&_blockquote]:leading-[1.5]
+          [&_blockquote_p]:mb-0
+          [&_img]:max-w-full [&_img]:rounded-xl [&_ol]:pl-6 [&_ul]:pl-6
+          break-words [overflow-wrap:anywhere]"
+        dangerouslySetInnerHTML={{ __html: (post.content || "").replace(/&nbsp;| /g, " ") }}
+      />
+
+      {/* Tags */}
+      {(post.categories?.edges?.length ?? 0) > 0 && (
+        <div className="flex flex-wrap gap-[10px] mb-[40px]">
+          {post.categories!.edges.map(({ node }, i) => (
+            <Link
+              key={i}
+              href={node.link}
+              className="inline-flex items-center px-[14px] py-[8px] rounded-full border border-[rgba(25,29,36,0.15)] bg-white text-[13px] font-semibold text-[#191D24] hover:border-[#B3E653] hover:bg-[#F6F7F4] transition-colors no-underline"
+            >
+              {node.name}
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* Author card */}
+      <div className="bg-white border border-[rgba(25,29,36,0.08)] rounded-[20px] p-[24px] md:p-[28px] mb-[56px]">
+        <div className="flex items-center gap-[14px] mb-[14px]">
+          {authorSrc ? (
+            <img src={authorSrc} alt={authorName} className="w-[56px] h-[56px] rounded-full object-cover shrink-0" />
+          ) : (
+            <div
+              className="w-[56px] h-[56px] rounded-full flex items-center justify-center shrink-0 text-white font-bold text-[20px]"
+              style={{ backgroundColor: avatarColor }}
+            >
+              {initials}
             </div>
-
-            {/* Middle Column: Main Content */}
-            <div className="w-full lg:flex-1 min-w-0 space-y-6 relative z-10">
-              <div className="aspect-[21/10] relative rounded-[24px] overflow-hidden border border-[rgba(0,0,0,0.06)] bg-[#FAF7EB]">
-                <Image
-                  src={resolveContentImage(
-                    post.featuredImage?.node.sourceUrl,
-                    fallbackImage,
-                  )}
-                  alt={post.featuredImage?.node.altText || post.title}
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center">
-                  <StarRating post={post} />
-                  <div className="flex gap-x-2">
-                    <p className="text-xs text-gray-600 flex items-center space-x-1">
-                      <span className="material-symbols-rounded text-lg! leading-none!">
-                        visibility
-                      </span>
-                      <span>{post.postMeta?.views || 0}</span>
-                    </p>
-                    <p className="text-xs text-gray-600 flex items-center space-x-1">
-                      <span className="material-symbols-rounded text-lg! leading-none!">
-                        calendar_month
-                      </span>
-                      <span>{dayjs(post.date).format("DD/MM/YYYY")}</span>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-[24px] border border-[rgba(0,0,0,0.06)] p-6 md:p-8 mt-6 overflow-hidden">
-                  <div
-                    className="text-sm md:text-base text-[#2D3142] leading-relaxed prose prose-sm md:prose-base max-w-none prose-p:!mb-2 prose-strong:font-extrabold prose-strong:text-[#1a1d2b] break-words [overflow-wrap:anywhere] [&_*]:[overflow-wrap:anywhere] [&_strong]:font-extrabold [&_strong]:text-[#1a1d2b] [&_b]:font-extrabold [&_b]:text-[#1a1d2b] [&_img]:max-w-full [&_img]:h-auto [&_table]:max-w-full [&_table]:overflow-x-auto [&_pre]:overflow-x-auto [&_ol]:pl-6 [&_ul]:pl-6"
-                    dangerouslySetInnerHTML={{
-                      __html: (post.content || "").replace(
-                        /&nbsp;|\u00A0/g,
-                        " ",
-                      ),
-                    }}
-                  />
-                </div>
-
-                {post.categories?.edges?.length > 0 && (
-                  <div className="flex items-center text-xs font-nunito flex-wrap gap-x-2 gap-y-1 pt-4">
-                    <span className="material-symbols-rounded filled text-red-800 text-3xl!">
-                      shoppingmode
-                    </span>
-                    {post.categories.edges.map(({ node }, index) => (
-                      <Link
-                        href={node.link}
-                        key={index}
-                        className="block bg-gray-200 rounded-full font-extrabold text-gray-500 hover:text-red-800 duration-150"
-                      >
-                        <span className="px-3 py-1 block">{node.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                <div className="p-4">
-                  <SharePost />
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Related items */}
-            <div className="w-full lg:w-[280px] shrink-0 relative z-10">
-              <div className="sticky top-35 space-y-8">
-                <RelatedPost relatedPosts={relatedPosts} />
-              </div>
-            </div>
+          )}
+          <div>
+            <p className="text-[17px] font-bold text-[#191D24]">{authorName}</p>
+            <p className="text-[14px] text-[#6A7282]">IELTS Coach</p>
           </div>
-        </Container>
+        </div>
+        <p className="text-[14px] text-[#6A7282] leading-[1.6] mb-[18px]">
+          Expert IELTS coaching to help you achieve your target band score. Helping thousands of students every year.
+        </p>
+        <Link
+          href={ROUTES.ACCOUNT.MY_PROFILE}
+          className="inline-flex items-center px-[22px] py-[10px] rounded-full border border-[rgba(25,29,36,0.15)] bg-white text-[14px] font-bold text-[#191D24] hover:border-[#191D24] transition-colors no-underline"
+        >
+          View profile
+        </Link>
+      </div>
 
-        {/* === SECTION: Similar Posts === */}
-        <SimilarPostsSection posts={similarPosts} />
+      {/* Keep reading */}
+      {allPosts.length > 0 && (
+        <div className="mb-[56px]">
+          <h2 className="text-[22px] md:text-[24px] font-bold font-noto-sans text-[#191D24] tracking-[-0.48px] mb-[22px]">
+            Keep reading
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px] md:gap-[22px]">
+            {allPosts.slice(0, 3).map((p) => (
+              <KeepReadingCard
+                key={p.id}
+                href={`/blog/${p.slug}`}
+                title={p.title}
+                featuredImage={p.featured_image}
+                categories={p.categories}
+                date={p.created_at}
+                fallbackImage={fallbackImage}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Newsletter CTA */}
+      <div
+        className="rounded-[24px] py-[28px] px-[24px] md:px-[40px]"
+        style={{ backgroundColor: "#B3E653" }}
+      >
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-[20px]">
+          <div>
+            <p className="text-[19px] md:text-[22px] font-bold font-noto-sans text-[#191D24] tracking-[-0.44px] leading-[1.2] mb-[6px]">
+              Get a new strategy in your inbox each week
+            </p>
+            <p className="text-[13px] md:text-[14px] font-medium text-[#33421A]">
+              Join 28,000+ students. No spam, unsubscribe anytime.
+            </p>
+          </div>
+          <div className="flex items-center gap-[10px] w-full md:w-auto shrink-0">
+            <input
+              type="email"
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
+              placeholder="you@email.com"
+              className="flex-1 md:w-[200px] h-[46px] pl-[18px] pr-[14px] rounded-full bg-white text-[14px] text-[#6A7282] outline-none border-none placeholder:text-[#9BA4B4] min-w-0"
+            />
+            <button className="h-[46px] px-[22px] rounded-full bg-[#191D24] text-white text-[14px] font-bold whitespace-nowrap hover:opacity-90 transition-opacity cursor-pointer shrink-0">
+              Subscribe
+            </button>
+          </div>
+        </div>
       </div>
     </>
   );

@@ -102,7 +102,7 @@ export default function AdminSettingsPage() {
                                         <Col span={12}><Form.Item name="smtp_pass" label="Password"><Input.Password /></Form.Item></Col>
                                     </Row>
                                     <Form.Item name="from_email" label="From Email"><Input placeholder="noreply@example.com" /></Form.Item>
-                                    <Form.Item name="from_name" label="From Name"><Input placeholder="IELTS Prediction" /></Form.Item>
+                                    <Form.Item name="from_name" label="From Name"><Input placeholder="Vit IELTS" /></Form.Item>
                                     <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={() => saveSetting("email", emailForm)}>Lưu</Button>
                                 </Form>
                             </Card>

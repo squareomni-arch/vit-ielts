@@ -26,7 +26,7 @@ function toIPracticeSingle(
     seo: {
       breadcrumbs: [
         { text: "Home", url: "/" },
-        { text: "IELTS Prediction", url: "/ielts-prediction" },
+        { text: "Vit IELTS", url: "/blog" },
         { text: quiz.title, url: `/${quiz.slug}` },
       ],
       fullHead: "",
@@ -46,7 +46,7 @@ function toIPracticeSingle(
     author: {
       node: {
         userData: {},
-        name: "IELTS Prediction",
+        name: "Vit IELTS",
       },
     },
     date: quiz.published_at ?? quiz.created_at,

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import {
   SidebarStudent,
   SidebarTeacher,
@@ -27,7 +28,8 @@ import { createClient } from "~supabase/client";
 // pending dedicated routes (Study Plan / My Progress / Vocabulary / Community /
 // Settings / Help & Support). See ui-rebuild-status memory.
 const STUDENT_MENU: SidebarNavEntry[] = [
-  { id: "home", icon: "House", label: "Home", href: ROUTES.ACCOUNT.DASHBOARD },
+  { id: "home", icon: "House", label: "Home", href: ROUTES.HOME },
+  { id: "dashboard", icon: "SquaresFour", label: "Dashboard", href: ROUTES.ACCOUNT.DASHBOARD },
   { id: "mock-tests", icon: "Exam", label: "Mock Tests", href: ROUTES.EXAM.ARCHIVE },
   { id: "study-plan", icon: "Calendar", label: "Study Plan", href: ROUTES.STUDY_PLAN },
   { id: "progress", icon: "Trophy", label: "My Progress", href: ROUTES.MY_PROGRESS },
@@ -64,7 +66,8 @@ const TEACHER_ACCOUNT: SidebarNavEntry[] = [
 ];
 
 const activeFromPath = (pathname: string): string => {
-  if (pathname.startsWith("/account/dashboard")) return "home";
+  if (pathname === "/") return "home";
+  if (pathname.startsWith("/account/dashboard")) return "dashboard";
   if (pathname.startsWith("/classroom/my-assignments")) return "assignments";
   if (pathname.startsWith(ROUTES.STUDY_PLAN)) return "study-plan";
   if (pathname.startsWith(ROUTES.MY_PROGRESS)) return "progress";
@@ -108,6 +111,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const { currentUser, isSignedIn, isTeacher, signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const savedCollapsed = window.localStorage.getItem(APP_SIDEBAR_COLLAPSED_KEY);
@@ -121,6 +125,28 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
       return next;
     });
   }, []);
+
+  const openMobileMenu = useCallback(() => setMobileMenuOpen(true), []);
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+
+  // Close the mobile nav drawer whenever the route changes.
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [router.asPath]);
+
+  // While the drawer is open: lock body scroll and close on Escape.
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileMenuOpen(false);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [mobileMenuOpen]);
 
   const [targetBand, setTargetBand] = useState<number | null>(null);
 
@@ -166,57 +192,106 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
   const isPro = currentUser?.userData?.isPro ?? false;
   const studentRole = targetBand ? `Target: Band ${targetBand}` : "Student";
 
+  // Renders the role-appropriate sidebar. The desktop variant is the fixed
+  // left rail (≥lg); the mobile variant is rendered inside the slide-in drawer
+  // (always expanded, scrollable, closes the drawer via onCollapse).
+  const renderSidebar = (variant: "desktop" | "mobile") => {
+    const isMobile = variant === "mobile";
+    const shared = {
+      state: (isMobile ? "expanded" : collapsed ? "collapsed" : "expanded") as
+        | "expanded"
+        | "collapsed",
+      onCollapse: isMobile ? closeMobileMenu : toggleSidebar,
+      profileHref: ROUTES.ACCOUNT.MY_PROFILE,
+      onLogout: signOut,
+      isSignedIn,
+      loginHref: ROUTES.LOGIN(),
+      registerHref: ROUTES.REGISTER,
+      className: isMobile
+        ? "flex h-full overflow-y-auto"
+        : "hidden lg:flex sticky top-0 h-dvh self-start",
+    };
+    return isTeacher ? (
+      <SidebarTeacher
+        {...shared}
+        activeItem={teacherActiveFromPath(router.pathname)}
+        user={{ name, role: "Teacher", initials, avatarSrc, isPro }}
+        menu={TEACHER_MENU}
+        account={TEACHER_ACCOUNT}
+      />
+    ) : (
+      <SidebarStudent
+        {...shared}
+        activeItem={activeFromPath(router.pathname)}
+        user={{ name, role: studentRole, initials, avatarSrc, isPro }}
+        menu={STUDENT_MENU}
+        community={STUDENT_COMMUNITY}
+        account={STUDENT_ACCOUNT}
+      />
+    );
+  };
+
   return (
     <div className="flex min-h-dvh bg-[var(--color-surface-app)]">
-      {isTeacher ? (
-        <SidebarTeacher
-          state={collapsed ? "collapsed" : "expanded"}
-          activeItem={teacherActiveFromPath(router.pathname)}
-          user={{ name, role: "Teacher", initials, avatarSrc, isPro }}
-          menu={TEACHER_MENU}
-          account={TEACHER_ACCOUNT}
-          profileHref={ROUTES.ACCOUNT.MY_PROFILE}
-          onCollapse={toggleSidebar}
-          onLogout={signOut}
-          className="hidden lg:flex sticky top-0 h-dvh self-start"
+      {renderSidebar("desktop")}
+
+      {/* Mobile nav drawer (≪lg) — opened from the header hamburger. */}
+      <div
+        className={`lg:hidden fixed inset-0 z-50 ${mobileMenuOpen ? "" : "pointer-events-none"}`}
+        aria-hidden={!mobileMenuOpen}
+      >
+        <div
+          onClick={closeMobileMenu}
+          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${mobileMenuOpen ? "opacity-100" : "opacity-0"}`}
         />
-      ) : (
-        <SidebarStudent
-          state={collapsed ? "collapsed" : "expanded"}
-          activeItem={activeFromPath(router.pathname)}
-          user={{ name, role: studentRole, initials, avatarSrc, isPro }}
-          menu={STUDENT_MENU}
-          community={STUDENT_COMMUNITY}
-          account={STUDENT_ACCOUNT}
-          profileHref={ROUTES.ACCOUNT.MY_PROFILE}
-          onCollapse={toggleSidebar}
-          onLogout={signOut}
-          className="hidden lg:flex sticky top-0 h-dvh self-start"
-        />
-      )}
+        <div
+          className={`absolute left-0 top-0 h-full shadow-[0_0_40px_rgba(0,0,0,0.18)] transition-transform duration-300 ease-out ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+        >
+          {renderSidebar("mobile")}
+        </div>
+      </div>
 
       <div className="flex flex-col flex-1 min-w-0">
-        <header className="flex items-center justify-end gap-4 px-6 lg:px-10 pt-6 pb-2 shrink-0">
-          {isSignedIn ? (
-            <SidebarTopActions
-              userInitials={initials}
-              avatarSrc={avatarSrc}
-              profileHref={ROUTES.ACCOUNT.MY_PROFILE}
-            />
-          ) : (
-            <div className="flex items-center gap-3">
-              <Button variant="outlined" size="sm" href={ROUTES.LOGIN()}>
-                Log in
-              </Button>
-              <Button variant="primary" size="sm" href={ROUTES.REGISTER}>
-                Sign up
-              </Button>
-            </div>
-          )}
+        <header className="sticky top-0 z-40 bg-[var(--color-surface-app)] flex items-center gap-4 px-6 lg:px-10 pt-6 pb-2 shrink-0">
+          {/* Mobile (≪lg): small logo on the left, hamburger on the right. */}
+          <div className="flex lg:hidden items-center justify-between w-full">
+            <Link href={ROUTES.HOME} aria-label="VitIELTS home" className="flex items-center">
+              <img src="/assets/logos/logo-on-bright.svg" alt="VitIELTS" className="h-[28px] w-auto" />
+            </Link>
+            <button
+              type="button"
+              onClick={openMobileMenu}
+              aria-label="Open menu"
+              aria-expanded={mobileMenuOpen}
+              className="flex items-center justify-center w-[44px] h-[44px] rounded-full bg-white border border-[rgba(25,29,36,0.1)] shrink-0 cursor-pointer hover:bg-[var(--color-brand-tint)] transition-colors"
+            >
+              <span className="material-symbols-rounded text-[24px] leading-none text-[var(--color-ink-900)]">menu</span>
+            </button>
+          </div>
+
+          {/* Desktop (≥lg): search / profile / notifications, or auth buttons. */}
+          <div className="hidden lg:flex items-center justify-end gap-4 w-full">
+            {isSignedIn ? (
+              <SidebarTopActions
+                userInitials={initials}
+                avatarSrc={avatarSrc}
+                profileHref={ROUTES.ACCOUNT.MY_PROFILE}
+              />
+            ) : (
+              <div className="flex items-center gap-3">
+                <Button variant="outlined" size="sm" href={ROUTES.LOGIN()}>
+                  Log in
+                </Button>
+                <Button variant="primary" size="sm" href={ROUTES.REGISTER}>
+                  Sign up
+                </Button>
+              </div>
+            )}
+          </div>
         </header>
 
         <main className="flex-1 min-w-0 px-6 lg:px-10 pb-12">
-          <div className="max-w-container-xl mx-auto">{children}</div>
+          <div className="w-full">{children}</div>
         </main>
 
         <Footer columns={FOOTER_COLUMNS} showCopyright />

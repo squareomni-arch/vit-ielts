@@ -187,7 +187,7 @@ export async function getMasterData(context: GetServerSidePropsContext): Promise
                 },
                 allSettings: {
                     generalSettingsTitle:
-                        (settingsMap["site_title"] as string) ?? "IELTS Prediction",
+                        (settingsMap["site_title"] as string) ?? "Vit IELTS",
                 },
                 menuData: menuData as MasterData["menuData"],
                 viewer: viewer ?? null,

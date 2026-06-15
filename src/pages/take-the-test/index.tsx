@@ -38,7 +38,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
     author: {
       node: {
         userData: {},
-        name: "IELTS Prediction",
+        name: "Vit IELTS",
       },
     },
     date: quiz.published_at ?? quiz.created_at,

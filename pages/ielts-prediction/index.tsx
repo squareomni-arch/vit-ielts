@@ -1,4 +1,14 @@
-export {
-  PageIELTSPrediction as default,
-  getServerSideProps,
-} from "@/pages/ielts-prediction";
+import { GetServerSideProps } from "next";
+
+export default function Page() {
+  return null;
+}
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  return {
+    redirect: {
+      destination: "/blog",
+      permanent: true,
+    },
+  };
+};

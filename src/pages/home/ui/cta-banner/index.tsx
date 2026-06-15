@@ -5,9 +5,9 @@ import { ScrollFadeIn } from "@/shared/lib/use-scroll-fade-in";
 export const CtaBanner = () => (
   <ScrollFadeIn
     data-section="cta-banner"
-    className="w-full bg-surface-app px-4 sm:px-6 py-6 pb-10"
+    className="w-full bg-surface-app pb-10"
   >
-    <div className="relative bg-brand rounded-[40px] px-8 py-14 sm:p-[60px] flex flex-col items-center text-center overflow-hidden">
+    <div className="relative bg-brand rounded-[24px] sm:rounded-[32px] lg:rounded-[40px] mt-14 px-6 py-12 sm:p-[60px] flex flex-col items-center text-center overflow-hidden">
       {/* Polka-dot pattern overlay */}
       <div
         className="absolute inset-0 opacity-30 pointer-events-none"

@@ -48,7 +48,7 @@ export default async function handler(
         switch (type) {
             case "adminNotification":
                 success = await sendAdminNotificationEmail(
-                    "IELTS PREDICTION TEST 123",
+                    "Vit IELTS TEST 123",
                     "Học viên Test",
                     "test@example.com",
                     200000,
@@ -81,7 +81,7 @@ export default async function handler(
                 success = await sendOrderConfirmEmail(
                     email,
                     "Học viên test",
-                    "IELTS PREDICTION 99999999999",
+                    "Vit IELTS 99999999999",
                     200000,
                     3,
                 );

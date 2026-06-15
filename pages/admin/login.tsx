@@ -77,7 +77,7 @@ export default function AdminLoginPage() {
   return (
     <>
       <Head>
-        <title>Admin Login — IELTS Prediction</title>
+        <title>Admin Login — Vit IELTS</title>
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
@@ -116,7 +116,7 @@ export default function AdminLoginPage() {
               </h1>
               <p className="admin-login-branding-desc">
                 Truy cập bảng điều khiển để quản lý nội dung, người dùng và toàn
-                bộ hệ thống IELTS Prediction.
+                bộ hệ thống Vit IELTS.
               </p>
               <div className="admin-login-features">
                 <div className="admin-login-feature">

@@ -8,9 +8,9 @@ import type { Splide as SplideType } from "@splidejs/splide";
 
 const DEFAULT_SLIDER_OPTIONS = {
   type: "slide",
-  perPage: 3,
+  perPage: 4,
   perMove: 1,
-  gap: "30px",
+  gap: "24px",
   pagination: false,
   arrows: false,
   breakpoints: {

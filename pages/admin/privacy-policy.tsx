@@ -88,7 +88,7 @@ function PrivacyPolicyPage() {
                 label="Subtitle"
                 rules={[{ required: true, message: "Please enter subtitle" }]}
               >
-                <Input placeholder="IELTS Prediction Privacy Policy Here" />
+                <Input placeholder="Vit IELTS Privacy Policy Here" />
               </Form.Item>
               <Form.Item
                 name={["banner", "backgroundImage"]}
@@ -117,7 +117,7 @@ function PrivacyPolicyPage() {
                 label="Introduction Title"
                 rules={[{ required: true, message: "Please enter introduction title" }]}
               >
-                <Input placeholder="Welcome to IELTS Prediction Privacy Policy" />
+                <Input placeholder="Welcome to Vit IELTS Privacy Policy" />
               </Form.Item>
 
               <Form.Item

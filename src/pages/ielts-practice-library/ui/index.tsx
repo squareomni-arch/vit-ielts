@@ -242,7 +242,7 @@ export const PageIELTSPracticeLibrary = ({
           skillLabel={skill === "reading" ? "Reading" : "Listening"}
         />
 
-        <section className="mt-12 px-4 sm:px-6">
+        <section className="mt-12">
         <Container>
           {/* === SECTION: Suggestions === */}
           <section id="ipl-suggestions" data-section="suggestions">
@@ -268,7 +268,7 @@ export const PageIELTSPracticeLibrary = ({
               </div>
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5">
               {navigating
                 ? Array.from({ length: 4 }).map((_, index) => (
                     <div
@@ -334,7 +334,7 @@ export const PageIELTSPracticeLibrary = ({
 
               <div className="space-y-10">
                 {navigating ? (
-                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                     {Array.from({ length: PAGE_SIZE }).map((_, index) => (
                       <div
                         key={index}
@@ -343,7 +343,7 @@ export const PageIELTSPracticeLibrary = ({
                     ))}
                   </div>
                 ) : items.length ? (
-                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                     {items.map(({ node }, index) => (
                       <PracticeCard key={node.id || index} item={node} />
                     ))}

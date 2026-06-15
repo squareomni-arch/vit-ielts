@@ -42,10 +42,10 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
 
     const defaultBannerConfig: PracticeLibraryBannerConfig = {
       listening: {
-        title: "IELTS Prediction Tests",
+        title: "Vit IELTS Tests",
         description: {
           line1:
-            "Free IELTS Prediction Tests online at VitIELTS — with full",
+            "Free Vit IELTS Practice Tests online at VitIELTS — with full",
           line2:
             "tests, audio, transcripts, answer keys, detailed vocabulary explanations and",
           line3: "a computer-based test experience.",
@@ -57,10 +57,10 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
         },
       },
       reading: {
-        title: "IELTS Prediction Tests",
+        title: "Vit IELTS Tests",
         description: {
           line1:
-            "Free IELTS Prediction Tests online at VitIELTS — with full",
+            "Free Vit IELTS Practice Tests online at VitIELTS — with full",
           line2:
             "tests, transcripts, answer keys, detailed vocabulary explanations and",
           line3: "a computer-based test experience.",

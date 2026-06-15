@@ -14,7 +14,7 @@ import type { HeroBannerConfig } from "./hero-banner/types";
 import type { TestPlatformIntroConfig } from "./ielts-test-platform-intro/types";
 import type { WhyChooseUsConfig } from "./why-choose-us/types";
 import type { TestimonialsConfig } from "./testimonials/types";
-import type { Quiz, SampleEssay, ExamCollectionResponse } from "~services/types/database";
+import type { Quiz, ExamCollectionResponse } from "~services/types/database";
 
 interface PageHomeProps {
   heroBannerConfig?: HeroBannerConfig;
@@ -24,8 +24,6 @@ interface PageHomeProps {
   examQuizzes: Quiz[];
   listeningQuizzes: Quiz[];
   readingQuizzes: Quiz[];
-  writingSamples: SampleEssay[];
-  speakingSamples: SampleEssay[];
   mockCollections: ExamCollectionResponse["data"];
 }
 
@@ -37,8 +35,6 @@ export const PageHome = ({
   examQuizzes,
   listeningQuizzes,
   readingQuizzes,
-  writingSamples,
-  speakingSamples,
   mockCollections,
 }: PageHomeProps) => {
   // const { isSignedIn } = useAuth();
@@ -52,7 +48,7 @@ export const PageHome = ({
 
       {/* === SECTION: Target Score & Practice History (Only for signed in users) === */}
       {/* {isSignedIn && (
-        <div className="w-full bg-[#f6f7f4] px-4 sm:px-6 py-6">
+        <div className="w-full bg-[#f6f7f4] ">
           <div className=" mx-auto bg-white rounded-[40px] px-8 sm:px-12 py-10 space-y-10">
             <TargetScore />
             <section className="space-y-6">
@@ -94,24 +90,6 @@ export const PageHome = ({
             title="IELTS Reading Practice"
             viewMoreLink={ROUTES.PRACTICE.ARCHIVE_READING}
             items={readingQuizzes}
-          />
-          {/* === Writing Sample Carousel === */}
-          <PracticeSection
-            title="IELTS Writing Sample"
-            viewMoreLink={ROUTES.SAMPLE_ESSAY.ARCHIVE_WRITING}
-            items={writingSamples as unknown as Quiz[]}
-            getItemHref={(item) => ROUTES.SAMPLE_ESSAY.SINGLE(item.slug)}
-            actionText="View more"
-            hideAttempts={true}
-          />
-          {/* === Speaking Sample Carousel === */}
-          <PracticeSection
-            title="IELTS Speaking Sample"
-            viewMoreLink={ROUTES.SAMPLE_ESSAY.ARCHIVE_SPEAKING}
-            items={speakingSamples as unknown as Quiz[]}
-            getItemHref={(item) => ROUTES.SAMPLE_ESSAY.SINGLE(item.slug)}
-            actionText="View more"
-            hideAttempts={true}
           />
         </div>
       </div>

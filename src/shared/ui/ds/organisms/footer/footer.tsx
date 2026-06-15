@@ -52,10 +52,10 @@ export const Footer = ({
   <footer className={twMerge('bg-[#191d24] w-full', className)}>
 
     {/* ── Main row ─────────────────────────────────────────────────────── */}
-    <div className="flex items-start justify-between max-w-[1400px] mx-auto px-[90px] py-[48px]">
+    <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-[90px] py-12 lg:py-[48px]">
 
       {/* Brand column */}
-      <div className="flex flex-col gap-[14px] shrink-0 w-[280px]">
+      <div className="flex flex-col gap-[14px] w-full md:w-[280px] md:shrink-0">
         {/* Wordmark */}
         <a href="/" className="no-underline flex items-center">
           {logoSrc ? (
@@ -108,34 +108,38 @@ export const Footer = ({
         )}
       </div>
 
-      {/* Link columns */}
-      {columns.map((col, i) => (
-        <div key={i} className="flex flex-col gap-[10px] shrink-0">
-          {/* Column header — Eyebrow style */}
-          <p className="font-inter font-bold text-[12px] leading-[1.2] text-white uppercase tracking-[0.96px] whitespace-nowrap">
-            {col.title}
-          </p>
+      {/* Link columns — 2-col grid on mobile; `md:contents` dissolves the
+          wrapper on desktop so the columns become direct flex children of the
+          row again (preserving the original justify-between distribution). */}
+      <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:contents">
+        {columns.map((col, i) => (
+          <div key={i} className="flex flex-col gap-[10px] md:shrink-0">
+            {/* Column header — Eyebrow style */}
+            <p className="font-inter font-bold text-[12px] leading-[1.2] text-white uppercase tracking-[0.96px] whitespace-nowrap">
+              {col.title}
+            </p>
 
-          {/* 4px visual spacer (matches Figma gap node) */}
-          <div className="h-[4px]" />
+            {/* 4px visual spacer (matches Figma gap node) */}
+            <div className="h-[4px]" />
 
-          {/* Links */}
-          {col.links.map((link, j) => (
-            <a
-              key={j}
-              href={link.href}
-              className="font-inter font-normal text-[14px] leading-[1.4] text-[#6a7282] no-underline hover:text-white transition-colors duration-150 whitespace-nowrap"
-            >
-              {link.label}
-            </a>
-          ))}
-        </div>
-      ))}
+            {/* Links */}
+            {col.links.map((link, j) => (
+              <a
+                key={j}
+                href={link.href}
+                className="font-inter font-normal text-[14px] leading-[1.4] text-[#6a7282] no-underline hover:text-white transition-colors duration-150 whitespace-nowrap"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
 
     {/* ── Optional copyright bar ────────────────────────────────────────── */}
     {showCopyright && (
-      <div className="border-t border-white/[0.06] px-[90px] py-[20px] max-w-[1400px] mx-auto flex items-center justify-between">
+      <div className="border-t border-white/[0.06] px-6 sm:px-10 lg:px-[90px] py-[20px] max-w-[1400px] mx-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <span className="font-inter text-[13px] text-[#6a7282]">
           © {new Date().getFullYear()} VIT IELTS. All rights reserved.
         </span>

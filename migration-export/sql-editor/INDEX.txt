@@ -1,0 +1,51 @@
+﻿# SQL Editor Migration Guide
+# Vit-IELTS — Local → Remote Supabase self-hosted
+# Generated: 2026-06-15
+
+## Thứ tự chạy trong SQL Editor
+
+Chạy từng file theo đúng thứ tự. Mỗi file: paste vào SQL Editor → Run.
+
+### Bước 1 — Schema (bắt buộc, chạy 1 lần)
+  01_schema.sql                              (102 KB)
+
+### Bước 2 — Auth users (skip nếu remote đã có user thật)
+  02_auth_users.sql                          (65 KB)
+
+### Bước 3 — Content nhỏ (tất cả trong 1 file)
+  03_small_tables.sql                        (117 KB)
+
+### Bước 4 — Quizzes
+  data_quizzes_001.sql                       (294 KB)
+
+### Bước 5 — Activity logs
+  data_activity_logs_001.sql                 (117 KB)
+
+### Bước 6 — Passages (3 files, chạy lần lượt)
+  data_passages_001.sql                      (~2 MB)
+  data_passages_002.sql                      (~2 MB)
+  data_passages_003.sql                      (624 KB)
+
+### Bước 7 — Questions (26 files — nội dung lớn nhất)
+  data_questions_001.sql  ... data_questions_026.sql
+  (Mỗi file ~1-2 MB, một số file ~2.1 MB vì 1 row = 1 câu hỏi dài)
+
+### Bước 8 — Sample Essays (5 files)
+  data_sample_essays_001.sql ... data_sample_essays_005.sql
+
+### Bước 9 — Posts / Blog (3 files)
+  data_posts_001.sql                         (1.5 MB)
+  data_posts_002.sql                         (3.6 MB) ← bài blog dài, ~3.6MB
+  data_posts_003.sql                         (162 KB)
+
+## Lưu ý quan trọng
+- Mỗi file bắt đầu bằng: SET session_replication_role = replica;
+  → Tắt FK trigger trong session, tránh lỗi FK trong lúc import
+  → Tự bật lại ở cuối file: SET session_replication_role = DEFAULT;
+- Nếu gặp lỗi "duplicate key": thêm ON CONFLICT DO NOTHING vào câu INSERT đó
+- data_posts_002.sql (~3.6MB): nếu SQL Editor từ chối size, tách thêm bằng tay
+- KHÔNG cần chạy các file data_ còn lại trong thư mục (là file gốc, đã được gộp/xử lý)
+
+## File gốc (không cần chạy)
+  data-inserts.sql, data-inserts-v2.sql, data-inserts-v3.sql
+  auth-inserts.sql, auth.sql, data.sql, schema.sql, split_sql.py

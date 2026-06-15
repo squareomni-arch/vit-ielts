@@ -346,7 +346,7 @@ export default function AdminDashboard() {
       {/* ═══ Greeting ═══ */}
       <div className="admin-greeting admin-animate-in">
         <h1>{getGreeting()}, Admin! 👋</h1>
-        <p>Tổng quan hoạt động hệ thống IELTS Prediction hôm nay</p>
+        <p>Tổng quan hoạt động hệ thống Vit IELTS hôm nay</p>
       </div>
 
       {/* ═══ Quick Actions ═══ */}

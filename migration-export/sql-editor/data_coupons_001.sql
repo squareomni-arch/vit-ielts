@@ -1,0 +1,92 @@
+-- ============================================================
+-- Supabase SQL Editor — table: coupons  chunk: 1
+-- Run with: session_replication_role=replica (FK triggers off)
+-- ============================================================
+SET session_replication_role = replica;
+
+--
+-- Data for Name: coupons; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.coupons VALUES ('cfa7670a-bb77-4a8a-ae4e-462f9a29958e', 'TEST-S9UTWYX5', 'percent', 10, 5, 1, true, NULL, '2026-04-06 10:20:06.378475+00');
+INSERT INTO public.coupons VALUES ('0534eb8c-539d-419e-a06d-a7f93c4c520b', 'TEST-NZD12RCK', 'percent', 10, 1, 1, true, NULL, '2026-04-06 10:20:07.218068+00');
+INSERT INTO public.coupons VALUES ('ebcefae0-a6e4-4287-9e8f-196ffa131f0f', 'FREEBYE', 'percent', 100, NULL, 2, true, NULL, '2026-04-06 10:24:17.658551+00');
+INSERT INTO public.coupons VALUES ('a9889d56-9d3b-4674-90ec-a21b3aece55e', 'ANHTHO', 'fixed', 20000, 10, 1, true, '2026-05-09 17:00:00+00', '2026-05-09 03:43:42.435223+00');
+INSERT INTO public.coupons VALUES ('c80e7cf1-52bb-4b00-affe-e597db48ec80', 'IELTSIDP', 'fixed', 50000, 50, 1, true, NULL, '2026-05-17 11:15:50.580352+00');
+INSERT INTO public.coupons VALUES ('f794c8b7-1a9b-4398-ab1c-25eab074e821', '50LRT5', 'fixed', 50000, 30, 0, true, '2026-07-30 17:00:00+00', '2026-06-02 03:53:24.923152+00');
+INSERT INTO public.coupons VALUES ('7e0819db-1629-49f8-9950-d2ada39e287f', '100LRT5', 'fixed', 100000, 10, 0, true, '2026-07-30 17:00:00+00', '2026-06-02 03:53:48.844512+00');
+INSERT INTO public.coupons VALUES ('82cd8d8f-f400-46b7-9d2c-d658c4929772', 'TEST-MIR5V0Q2', 'percent', 10, 5, 1, true, NULL, '2026-05-01 08:50:21.497483+00');
+INSERT INTO public.coupons VALUES ('a8043e02-a929-4a3a-bf64-c17c72752e9d', 'TEST-PERQQUEO', 'fixed', 50000, 5, 1, true, NULL, '2026-05-01 08:50:23.355554+00');
+INSERT INTO public.coupons VALUES ('24e98b59-ed33-4f3b-b050-48e4e7cda8ae', 'TEST-EFYWKQ99', 'percent', 10, 1, 1, true, NULL, '2026-05-01 08:50:23.711124+00');
+INSERT INTO public.coupons VALUES ('09fdb014-9aac-4fcb-afab-bf970d9ee50d', 'TEST-L6DRGE3S', 'percent', 10, 5, 1, true, NULL, '2026-05-01 08:50:37.24681+00');
+INSERT INTO public.coupons VALUES ('068074fa-e566-43ba-b27e-406b75b93303', 'TEST-BQW4OYV9', 'fixed', 50000, 5, 1, true, NULL, '2026-05-01 08:50:38.755251+00');
+INSERT INTO public.coupons VALUES ('584ff228-2eaf-47c1-a340-eaf6ca9d9617', 'TEST-CM0WXVWT', 'percent', 10, 1, 1, true, NULL, '2026-05-01 08:50:39.202779+00');
+INSERT INTO public.coupons VALUES ('deb8caa2-875d-41ff-a45b-3f182fed6021', 'TEST-0G9P3WSJ', 'fixed', 50000, 5, 2, true, NULL, '2026-04-06 10:20:06.912515+00');
+INSERT INTO public.coupons VALUES ('a5fdff24-26df-4885-9aee-b277065d38fc', 'NGOCHAI', 'fixed', 20000, 50, 0, true, NULL, '2026-05-20 15:09:32.962101+00');
+INSERT INTO public.coupons VALUES ('84b60cc6-d977-4391-b2cc-abc80d6f3b41', 'TEST-6U2N2THT', 'percent', 10, 5, 1, true, NULL, '2026-06-10 07:13:41.369198+00');
+INSERT INTO public.coupons VALUES ('59435acf-2792-44a7-8e5d-1014e5d7506d', 'TEST-GYWXPLU3', 'fixed', 50000, 5, 1, true, NULL, '2026-06-10 07:13:41.527615+00');
+INSERT INTO public.coupons VALUES ('5de15a7d-1189-4f36-8100-91a89de65dae', 'TEST-LWMF50KT', 'percent', 10, 1, 1, true, NULL, '2026-06-10 07:13:41.546286+00');
+INSERT INTO public.coupons VALUES ('f891347a-f64a-4a54-baea-26e1fa886b7f', 'TEST-K36JGOML', 'percent', 10, 5, 1, true, NULL, '2026-06-10 07:13:53.053767+00');
+INSERT INTO public.coupons VALUES ('a201dd78-69c1-48bb-ad45-876d2fded4bc', 'TEST-GWH52497', 'fixed', 50000, 5, 1, true, NULL, '2026-06-10 07:13:53.087147+00');
+INSERT INTO public.coupons VALUES ('82964e62-e9bb-488b-82e9-1963a21670ab', 'TEST-EB1NM9B7', 'percent', 10, 1, 1, true, NULL, '2026-06-10 07:13:53.106535+00');
+INSERT INTO public.coupons VALUES ('874feddd-84ae-4792-a5da-1e31dd6295e1', 'TEST-FPK4HV0K', 'percent', 10, 5, 1, true, NULL, '2026-06-10 07:42:06.866622+00');
+INSERT INTO public.coupons VALUES ('0007dc66-1bdb-418d-9fee-e03f8042fa3a', 'TEST-XUAMRRZE', 'fixed', 50000, 5, 1, true, NULL, '2026-06-10 07:42:06.904623+00');
+INSERT INTO public.coupons VALUES ('517f337e-f146-4a16-9eeb-dee6d93cb4a9', 'TEST-XXNKSSMZ', 'percent', 10, 1, 1, true, NULL, '2026-06-10 07:42:06.928005+00');
+INSERT INTO public.coupons VALUES ('f1321caa-e99a-4472-8f62-42405d81be0f', 'TEST-2QCU9NHX', 'percent', 10, 5, 1, true, NULL, '2026-06-10 08:41:45.867703+00');
+INSERT INTO public.coupons VALUES ('cbb0229a-cefa-48dc-88f2-95dd2a1c87a4', 'TEST-P91AEYLR', 'fixed', 50000, 5, 1, true, NULL, '2026-06-10 08:41:45.90479+00');
+INSERT INTO public.coupons VALUES ('6babe053-fe50-4d31-a1d8-a2846554d7cb', 'TEST-NNNJOZ6R', 'percent', 10, 1, 1, true, NULL, '2026-06-10 08:41:45.923861+00');
+INSERT INTO public.coupons VALUES ('1d28831c-09b7-4315-90b8-10faae07029a', 'TEST-UIY1MP7U', 'percent', 10, 5, 1, true, NULL, '2026-06-10 08:57:39.356672+00');
+INSERT INTO public.coupons VALUES ('d14e1813-96a4-4f79-9f3c-d1b548e6438b', 'TEST-EMI8L0FF', 'fixed', 50000, 5, 1, true, NULL, '2026-06-10 08:57:39.390874+00');
+INSERT INTO public.coupons VALUES ('52970bc4-6952-43cc-a389-2a065b900431', 'TEST-15VHJY7D', 'percent', 10, 1, 1, true, NULL, '2026-06-10 08:57:39.408836+00');
+INSERT INTO public.coupons VALUES ('a1a76970-e9f8-4028-b1bd-355ff24639ad', 'TEST-QUR7O8XM', 'percent', 10, 5, 1, true, NULL, '2026-06-10 09:22:08.546921+00');
+INSERT INTO public.coupons VALUES ('aab9fa31-4d7c-46e6-9482-3ac70a5ebfb3', 'TEST-C1NWCVX0', 'fixed', 50000, 5, 1, true, NULL, '2026-06-10 09:22:08.582318+00');
+INSERT INTO public.coupons VALUES ('52a42984-6df4-4fdc-99d6-9ebee6f73962', 'TEST-E1C7DI3X', 'percent', 10, 1, 1, true, NULL, '2026-06-10 09:22:08.606089+00');
+INSERT INTO public.coupons VALUES ('294b9799-4823-4d05-b9eb-abcd6d4ecb59', 'TEST-62KI4OQV', 'percent', 10, 5, 1, true, NULL, '2026-06-10 09:35:03.632634+00');
+INSERT INTO public.coupons VALUES ('8ae30bc9-80dc-4839-aa32-edcf333eb304', 'TEST-N4VOJFKX', 'fixed', 50000, 5, 1, true, NULL, '2026-06-10 09:35:03.673575+00');
+INSERT INTO public.coupons VALUES ('f84bc600-b2fa-46dc-934c-54bcb898b69a', 'TEST-44AOA81I', 'percent', 10, 1, 1, true, NULL, '2026-06-10 09:35:03.693463+00');
+INSERT INTO public.coupons VALUES ('588acdf4-d40f-4b96-8978-808b0fe1cccf', 'TEST-IN8EEN7A', 'percent', 10, 5, 1, true, NULL, '2026-06-11 06:51:19.513572+00');
+INSERT INTO public.coupons VALUES ('48c0f63b-33c0-4d26-b8e5-2574d35624dc', 'TEST-NWGGM1IO', 'fixed', 50000, 5, 1, true, NULL, '2026-06-11 06:51:19.548854+00');
+INSERT INTO public.coupons VALUES ('125c56bf-c969-452c-9eae-e02a6aad2dcd', 'TEST-476ATC3B', 'percent', 10, 1, 1, true, NULL, '2026-06-11 06:51:19.566431+00');
+INSERT INTO public.coupons VALUES ('df07bfcc-bc44-4811-acc6-1e09bf04eef4', 'TEST-48TA80NY', 'percent', 10, 5, 1, true, NULL, '2026-06-11 07:12:36.926202+00');
+INSERT INTO public.coupons VALUES ('466e7adc-d9cb-470f-8fec-2cf9f4c9c61e', 'TEST-CTXGO30C', 'fixed', 50000, 5, 1, true, NULL, '2026-06-11 07:12:36.998699+00');
+INSERT INTO public.coupons VALUES ('68f7483d-919b-4780-959d-dacb7cfc24f3', 'TEST-YC1RJ9MO', 'percent', 10, 1, 1, true, NULL, '2026-06-11 07:12:37.020233+00');
+INSERT INTO public.coupons VALUES ('4a83f6d3-0756-42b2-a20b-aad8b79a65be', 'TEST-RZO4C31F', 'percent', 10, 5, 1, true, NULL, '2026-06-11 07:33:44.690204+00');
+INSERT INTO public.coupons VALUES ('6fa8e314-d24a-40af-92c5-9785002895af', 'TEST-PWEBSGOX', 'fixed', 50000, 5, 1, true, NULL, '2026-06-11 07:33:44.722874+00');
+INSERT INTO public.coupons VALUES ('04bbf64b-937e-4c7e-95d3-f2715622e494', 'TEST-BZHLR3F1', 'percent', 10, 1, 1, true, NULL, '2026-06-11 07:33:44.736116+00');
+INSERT INTO public.coupons VALUES ('94bc732a-b077-4042-b5f9-588080765f74', 'TEST-3JPA7ZYF', 'percent', 10, 5, 1, true, NULL, '2026-06-11 07:39:15.570309+00');
+INSERT INTO public.coupons VALUES ('e3f19e75-1ac9-45eb-862c-1cb6e778ea07', 'TEST-D2J3AN9Z', 'fixed', 50000, 5, 1, true, NULL, '2026-06-11 07:39:15.618727+00');
+INSERT INTO public.coupons VALUES ('5e7924f2-fb6e-4b11-aab6-5593c5735d34', 'TEST-JOWVE99X', 'percent', 10, 1, 1, true, NULL, '2026-06-11 07:39:15.637882+00');
+INSERT INTO public.coupons VALUES ('47f4a93e-0a58-4844-9a63-1aab57a85816', 'TEST-ZS7IQP1X', 'percent', 10, 5, 1, true, NULL, '2026-06-11 07:53:02.610027+00');
+INSERT INTO public.coupons VALUES ('7ac7ef5a-fc87-41c4-a7e2-598c5bdc5eb3', 'TEST-95HFKK40', 'fixed', 50000, 5, 1, true, NULL, '2026-06-11 07:53:02.648032+00');
+INSERT INTO public.coupons VALUES ('2d8d299b-799f-4a2f-9b76-4020b03c29f4', 'TEST-LERS37VW', 'percent', 10, 1, 1, true, NULL, '2026-06-11 07:53:02.667781+00');
+INSERT INTO public.coupons VALUES ('2eac8214-7265-4382-81c4-07a6377a1cdb', 'TEST-1OETBVHL', 'percent', 10, 5, 1, true, NULL, '2026-06-11 08:22:55.234574+00');
+INSERT INTO public.coupons VALUES ('ee2c2e9c-b6c8-4e6a-93f1-7b7e7b3fc0ba', 'TEST-J3U9JH1Z', 'fixed', 50000, 5, 1, true, NULL, '2026-06-11 08:22:55.268877+00');
+INSERT INTO public.coupons VALUES ('30f73ce0-ec84-4508-978a-d7ec58eaecb2', 'TEST-KVQMNP3T', 'percent', 10, 1, 1, true, NULL, '2026-06-11 08:22:55.283654+00');
+INSERT INTO public.coupons VALUES ('3afc00c8-ec3a-41c6-ac16-7290c863f6dc', 'TEST-Z0PPLXQ7', 'percent', 10, 5, 1, true, NULL, '2026-06-12 04:54:48.722875+00');
+INSERT INTO public.coupons VALUES ('a0257427-9774-4984-9cab-5d11ea766738', 'TEST-SJ7NHJ11', 'fixed', 50000, 5, 1, true, NULL, '2026-06-12 04:54:48.779053+00');
+INSERT INTO public.coupons VALUES ('881e7cf6-0c55-409a-89ad-cae6f9439fe5', 'TEST-4224KXSC', 'percent', 10, 1, 1, true, NULL, '2026-06-12 04:54:48.797963+00');
+INSERT INTO public.coupons VALUES ('64ed23b7-4eb7-4969-a78a-70ac748c3863', 'TEST-7FTO5JM1', 'percent', 10, 5, 1, true, NULL, '2026-06-12 06:58:10.204256+00');
+INSERT INTO public.coupons VALUES ('bcda2d94-78cd-4caf-b79f-e0c033942774', 'TEST-PCVZLK9V', 'fixed', 50000, 5, 1, true, NULL, '2026-06-12 06:58:10.261899+00');
+INSERT INTO public.coupons VALUES ('963baaa1-0d2d-4288-b6d1-bb88d5b87163', 'TEST-Q1JWAIVH', 'percent', 10, 1, 1, true, NULL, '2026-06-12 06:58:10.286388+00');
+INSERT INTO public.coupons VALUES ('2451b8a6-3749-4a40-821a-4c1340754426', 'TEST-0GT4CVRN', 'percent', 10, 5, 1, true, NULL, '2026-06-12 08:34:32.807467+00');
+INSERT INTO public.coupons VALUES ('052c108c-78a8-4414-9247-3d29b6741a93', 'TEST-2Y04R5D0', 'fixed', 50000, 5, 1, true, NULL, '2026-06-12 08:34:32.869372+00');
+INSERT INTO public.coupons VALUES ('3d233afe-67ca-430a-a35b-affafe11daf3', 'TEST-PV5SBWPW', 'percent', 10, 1, 1, true, NULL, '2026-06-12 08:34:32.886972+00');
+INSERT INTO public.coupons VALUES ('7b2e5a78-cd0d-4055-b194-15573d3060a2', 'TEST-UY8YOB3G', 'percent', 10, 5, 1, true, NULL, '2026-06-12 10:35:43.008725+00');
+INSERT INTO public.coupons VALUES ('831d14c9-218b-4212-a617-f8d0b0f682e8', 'TEST-SHOR32UC', 'fixed', 50000, 5, 1, true, NULL, '2026-06-12 10:35:43.044115+00');
+INSERT INTO public.coupons VALUES ('994832a1-147a-49b0-a7f9-dd6bb421f01a', 'TEST-7F6RZEJ8', 'percent', 10, 1, 1, true, NULL, '2026-06-12 10:35:43.061924+00');
+INSERT INTO public.coupons VALUES ('6a79670b-8ea2-4154-8640-6eceff0ea43e', 'TEST-FEF2RWIF', 'percent', 10, 5, 1, true, NULL, '2026-06-12 10:35:55.206711+00');
+INSERT INTO public.coupons VALUES ('c5f19dd3-e3b6-4d5c-a644-ff5a1a97344c', 'TEST-3EC0FIAW', 'fixed', 50000, 5, 1, true, NULL, '2026-06-12 10:35:55.241102+00');
+INSERT INTO public.coupons VALUES ('9ef5731c-533c-4e2b-9c27-d39593630986', 'TEST-Q9NKUP61', 'percent', 10, 1, 1, true, NULL, '2026-06-12 10:35:55.258204+00');
+INSERT INTO public.coupons VALUES ('ff6ad171-53a7-4c5b-898a-defb544f7969', 'TEST-7045DHPM', 'percent', 10, 5, 1, true, NULL, '2026-06-12 10:38:38.965391+00');
+INSERT INTO public.coupons VALUES ('405847d9-9b6f-4a69-9b81-138fe81ebd29', 'TEST-M8123IFS', 'fixed', 50000, 5, 1, true, NULL, '2026-06-12 10:38:39.044883+00');
+INSERT INTO public.coupons VALUES ('743a2316-58ff-4646-8de3-1d6c8fc253db', 'TEST-HDK9V66D', 'percent', 10, 1, 1, true, NULL, '2026-06-12 10:38:39.063996+00');
+INSERT INTO public.coupons VALUES ('7b552c73-d629-4d73-b5c5-765a6243bb59', 'TEST-MNHYVOV0', 'percent', 10, 5, 1, true, NULL, '2026-06-15 04:44:18.581538+00');
+INSERT INTO public.coupons VALUES ('853f4215-3cb0-4232-81eb-22c216bee50e', 'TEST-2HFT85XX', 'fixed', 50000, 5, 1, true, NULL, '2026-06-15 04:44:18.622529+00');
+INSERT INTO public.coupons VALUES ('36827d38-f2c2-43bd-9568-8cdb7533ad96', 'TEST-AOTDOZKJ', 'percent', 10, 1, 1, true, NULL, '2026-06-15 04:44:18.646483+00');
+INSERT INTO public.coupons VALUES ('e21e2fa9-2e29-435a-b46d-363acb94f9fb', 'TEST-2ZUXDYK2', 'percent', 10, 5, 1, true, NULL, '2026-06-15 06:55:55.612771+00');
+INSERT INTO public.coupons VALUES ('57d0c6e4-2392-40d0-ae68-04b05bb25dee', 'TEST-EHWPWGGM', 'fixed', 50000, 5, 1, true, NULL, '2026-06-15 06:55:55.756173+00');
+INSERT INTO public.coupons VALUES ('4c847537-3993-4170-b2da-adddbd461635', 'TEST-Z270BBAZ', 'percent', 10, 1, 1, true, NULL, '2026-06-15 06:55:55.77715+00');
+INSERT INTO public.coupons VALUES ('1799ba7a-a008-4113-82b8-5997462ac465', 'TEST-4MJYVUIJ', 'percent', 10, 5, 1, true, NULL, '2026-06-15 08:07:41.09763+00');
+INSERT INTO public.coupons VALUES ('ffa73e4c-e59e-49c5-bb5f-227eb0a2ae11', 'TEST-X84HQHAC', 'fixed', 50000, 5, 1, true, NULL, '2026-06-15 08:07:41.147517+00');
+INSERT INTO public.coupons VALUES ('6245188c-2c42-45f4-a332-0319588251e0', 'TEST-87GTAA1M', 'percent', 10, 1, 1, true, NULL, '2026-06-15 08:07:41.171641+00');
+SET session_replication_role = DEFAULT;

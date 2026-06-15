@@ -53,7 +53,7 @@ export const SidebarNavItem = ({
     <span
       aria-hidden={collapsed}
       data-collapsed={collapsed}
-      className="ds-sidebar-reveal text-body-s font-semibold font-inter leading-none whitespace-nowrap overflow-hidden min-w-0"
+      className="ds-sidebar-reveal text-body-s font-semibold font-inter whitespace-nowrap overflow-hidden min-w-0"
       style={{ color: active ? 'var(--color-ink-900)' : 'var(--color-ink-muted)' }}
     >
       {label}

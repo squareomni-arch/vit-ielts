@@ -44,6 +44,8 @@ yarn-error.log*
 
 # env files (never commit — contain secrets)
 .env*
+# ...except the documented template (key names only, no secrets)
+!.env.example
 
 # vercel
 .vercel

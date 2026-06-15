@@ -21,7 +21,7 @@ export default async function handler(
     return res.status(200).json(config);
   } catch {
     const defaultConfig: HeroBannerConfig = {
-      title: { line1: "IELTS Prediction Test", line2: "Thi", highlight: "Thử Như Thật" },
+      title: { line1: "Vit IELTS Test", line2: "Thi", highlight: "Thử Như Thật" },
       subtitle: "Thi thử như thật với giao diện 1:1 và kho đề sát thực tế.",
       checklist: ["Giao diện thi máy", "Cập nhật xu hướng đề", "Chấm chữa chi tiết"],
       cta: { text: "Khám phá ngay", link: "/ielts-practice-library" },

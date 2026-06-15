@@ -92,8 +92,6 @@ export const Footer = () => {
       label: "Practice - Reading",
       href: ROUTES.PRACTICE.ARCHIVE_READING,
     },
-    { label: "Sample Essays", href: "/sample-essay" },
-    { label: "IELTS Prediction", href: ROUTES.PREDICTION.ARCHIVE },
     { label: "Blog", href: ROUTES.BLOG.ARCHIVE },
   ];
 

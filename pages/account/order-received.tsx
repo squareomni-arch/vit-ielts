@@ -1,18 +1,16 @@
 import { withAuth, withMasterData, withMultipleWrapper } from "@/shared/hoc";
 import type { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { getOrderById } from "~services/order";
-import { MyProfileLayout } from "@/widgets/layouts";
+import { AppShell } from "@/widgets/layouts";
 import Link from "next/link";
 import { ROUTES } from "@/shared/routes";
 import { formatPrice } from "@/pages/subscription/ui/subscription-plans/pricing";
 import dayjs from "dayjs";
-import { CheckCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useState, useRef } from "react";
-import { Modal, Button } from "antd";
 import { useRouter } from "next/router";
 
-const CopyButton = dynamic(() => import("./copy-button"), { ssr: false });
+const CopyButton = dynamic(() => import("@/entities/copy-button"), { ssr: false });
 
 interface OrderData {
   orderId: string;
@@ -130,22 +128,25 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
 
   if (error || !order) {
     return (
-      <div className="flex justify-center min-h-[60vh] items-center px-4">
-        <div className="w-full max-w-2xl bg-white shadow-lg rounded-2xl border border-gray-200 p-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-black text-gray-900 mb-4">
-              Không tìm thấy đơn hàng
-            </h1>
-            <p className="text-gray-600 mb-8">
-              {error || "Đơn hàng không tồn tại hoặc đã bị xóa."}
-            </p>
-            <Link
-              href={ROUTES.SUBSCRIPTION}
-              className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white font-semibold transition shadow-md hover:shadow-lg"
-            >
-              Trở về trang chủ
-            </Link>
+      <div className="space-y-8 py-6" data-section="order-received-error">
+        <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-border-hairline bg-surface-card shadow-primary p-8 text-center">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-surface-blush">
+            <span className="material-symbols-rounded text-[32px] text-danger" aria-hidden="true">
+              error
+            </span>
           </div>
+          <h1 className="font-display text-heading-2 text-ink-900 mb-3">
+            Không tìm thấy đơn hàng
+          </h1>
+          <p className="text-body-s text-ink-muted mb-8">
+            {error || "Đơn hàng không tồn tại hoặc đã bị xóa."}
+          </p>
+          <Link
+            href={ROUTES.SUBSCRIPTION}
+            className="inline-flex items-center justify-center rounded-full bg-ink-900 hover:bg-ink-700 text-surface-card font-display font-bold text-body-m px-8 py-3.5 transition-colors"
+          >
+            Trở về trang chủ
+          </Link>
         </div>
       </div>
     );
@@ -155,50 +156,58 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
   if (order.status === "expired" || order.status === "cancelled") {
     const isExpired = order.status === "expired";
     return (
-      <div className="flex flex-col items-center pb-12 w-full max-w-[800px] mx-auto space-y-6">
-        <div className="text-center pt-8 pb-4">
-          <div className="flex justify-center mb-4">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
-              isExpired ? "bg-gray-100" : "bg-red-50"
-            }`}>
-              <span className="text-3xl">{isExpired ? "⏰" : "❌"}</span>
+      <div className="space-y-8 py-6" data-section="order-received-closed">
+        <div className="mx-auto w-full max-w-[560px] space-y-6">
+          {/* Status card */}
+          <div className="rounded-2xl border border-border-hairline bg-surface-card shadow-primary p-8 text-center">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-surface-blush">
+              <span
+                className={`material-symbols-rounded text-[32px] ${isExpired ? "text-ink-muted" : "text-danger"}`}
+                aria-hidden="true"
+              >
+                {isExpired ? "schedule" : "cancel"}
+              </span>
+            </div>
+            <h1 className="font-display text-heading-2 text-ink-900 mb-3">
+              {isExpired ? "Đơn hàng đã hết hạn" : "Đơn hàng đã bị hủy"}
+            </h1>
+            <p className="text-body-s text-ink-muted leading-relaxed">
+              {isExpired
+                ? "Đơn hàng đã quá thời gian thanh toán (60 phút). Nếu bạn đã chuyển khoản, vui lòng liên hệ hotline để được hỗ trợ."
+                : "Đơn hàng đã bị hủy. Vui lòng tạo đơn hàng mới nếu bạn muốn tiếp tục."}
+            </p>
+          </div>
+
+          {/* Order summary */}
+          <div className="rounded-2xl border border-border-hairline bg-surface-card shadow-primary p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <InfoRow label="MÃ ĐƠN HÀNG" value={`#${order.orderId}`} />
+              <InfoRow label="SỐ TIỀN" value={formatPrice(order.amount).replace("đ", "₫")} />
+              <InfoRow
+                label="TRẠNG THÁI"
+                value={isExpired ? "Đã hết hạn" : "Đã hủy"}
+                className="md:col-span-2"
+              />
             </div>
           </div>
-          <h1 className="text-[28px] font-bold text-[#2D3142] mb-3">
-            {isExpired ? "Đơn hàng đã hết hạn" : "Đơn hàng đã bị hủy"}
-          </h1>
-          <p className="text-[13px] text-gray-500 max-w-[600px] mx-auto leading-relaxed">
-            {isExpired
-              ? "Đơn hàng đã quá thời gian thanh toán (60 phút). Nếu bạn đã chuyển khoản, vui lòng liên hệ hotline để được hỗ trợ."
-              : "Đơn hàng đã bị hủy. Vui lòng tạo đơn hàng mới nếu bạn muốn tiếp tục."}
-          </p>
-        </div>
 
-        {/* Order Summary */}
-        <div className="w-full bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden border border-gray-100 p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <InfoRow label="MÃ ĐƠN HÀNG" value={`#${order.orderId}`} />
-            <InfoRow label="SỐ TIỀN" value={formatPrice(order.amount).replace("đ", "₫")} />
-            <InfoRow label="TRẠNG THÁI" value={isExpired ? "⏰ Đã hết hạn" : "❌ Đã hủy"} className="md:col-span-2 font-black" />
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-3 mt-4">
-          <Link
-            href={ROUTES.SUBSCRIPTION}
-            className="px-6 py-2.5 rounded-lg bg-tertiary-500 hover:bg-[#E08A40] text-white font-bold text-sm transition-colors"
-          >
-            Đặt đơn hàng mới
-          </Link>
-          {isExpired && (
-            <a
-              href="tel:0927090848"
-              className="px-6 py-2.5 rounded-lg border border-gray-200 bg-white text-[#2D3142] hover:bg-gray-50 font-bold text-sm transition-colors"
+          {/* Action buttons */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <Link
+              href={ROUTES.SUBSCRIPTION}
+              className="flex items-center justify-center rounded-full bg-ink-900 hover:bg-ink-700 text-surface-card font-display font-bold text-body-m px-6 py-3.5 transition-colors"
             >
-              Liên hệ hỗ trợ: 0927090848
-            </a>
-          )}
+              Đặt đơn hàng mới
+            </Link>
+            {isExpired && (
+              <a
+                href="tel:0927090848"
+                className="flex items-center justify-center rounded-full border border-border-hairline bg-surface-card hover:bg-brand-tint text-ink-900 font-display font-bold text-body-m px-6 py-3.5 transition-colors"
+              >
+                Liên hệ hỗ trợ: 0927090848
+              </a>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -207,7 +216,6 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
   const displayOrderId = `#${order.orderId}`;
   const displayAmount = formatPrice(order.amount);
   const displayDate = dayjs(order.createdAt).format("DD [Tháng] MM, YYYY");
-  const displayMethod = order.paymentMethod;
   const displayNote = order.transferContent;
 
   // ── Completed / Success State (SSR-loaded or post-redirect) ──
@@ -215,17 +223,18 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
   // so this card is primarily seen when the order arrives already completed via SSR.
   if (order.status === "completed") {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-brand px-4 py-8 overflow-auto">
-        {/* Centered white card */}
-        <div className="w-full max-w-[480px] bg-surface-card rounded-2xl shadow-primary p-10 flex flex-col items-center text-center">
+      <div className="space-y-8 py-6" data-section="order-received-success">
+        <div className="mx-auto w-full max-w-[480px] rounded-2xl border border-border-hairline bg-surface-card shadow-primary p-10 flex flex-col items-center text-center">
 
-          {/* Green check circle */}
+          {/* Brand check circle */}
           <div className="w-20 h-20 rounded-full bg-brand flex items-center justify-center mb-6 shrink-0">
-            <CheckCircle className="w-10 h-10 text-surface-card" strokeWidth={2.5} />
+            <span className="material-symbols-rounded text-[44px] text-ink-900" aria-hidden="true">
+              check
+            </span>
           </div>
 
           {/* Eyebrow */}
-          <p className="text-caption-bold uppercase tracking-widest text-brand-hover mb-2">
+          <p className="text-caption-bold uppercase tracking-widest text-accent-teal mb-2">
             PAYMENT SUCCESSFUL
           </p>
 
@@ -241,17 +250,14 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
 
           {/* Summary box */}
           <div className="w-full bg-surface-blush rounded-xl border border-border-hairline overflow-hidden mb-8">
-            {/* Plan row */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border-hairline">
               <span className="text-body-s text-ink-muted">Gói đăng ký</span>
               <span className="text-body-s font-semibold text-ink-900">{displayOrderId}</span>
             </div>
-            {/* Billed to row */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border-hairline">
               <span className="text-body-s text-ink-muted">Ngày thanh toán</span>
               <span className="text-body-s font-semibold text-ink-900">{displayDate}</span>
             </div>
-            {/* Total paid row */}
             <div className="flex items-center justify-between px-5 py-4">
               <span className="text-body-s font-bold text-ink-900">Total paid</span>
               <span className="text-body-s font-bold text-ink-900">{displayAmount}</span>
@@ -279,73 +285,61 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
   }
 
   return (
-    <div className="flex flex-col items-center pb-12 w-full max-w-[800px] mx-auto space-y-6">
-      {/* 1. Header block */}
-      <div className="text-center pt-8 pb-4">
-        <div className="flex justify-center mb-4">
-          <div className="w-16 h-16 bg-brand-surface rounded-full flex items-center justify-center">
-            <CheckCircle className="w-8 h-8 text-ink-700" />
-          </div>
-        </div>
-        <h1 className="text-[28px] font-bold text-ink-900 mb-3">
-          Đơn hàng của bạn đã được đặt thành công!
+    <div className="space-y-8 py-6" data-section="order-received-pending">
+      {/* Page heading */}
+      <div>
+        <h1 className="font-display text-heading-1 text-ink-900 leading-tight">
+          Hoàn tất thanh toán
         </h1>
-        <p className="text-body-s text-ink-muted max-w-[600px] mx-auto leading-relaxed">
-          Vui lòng <span className="font-bold text-ink-900">không tắt trình duyệt</span> cho đến khi nhận được <span className="font-bold text-ink-900">kết quả giao dịch</span> trên website. Hệ thống sẽ kiểm tra và xử lý sau vào vài phút...
+        <p className="text-body-s text-ink-muted mt-1">
+          Đơn hàng đã được tạo — chuyển khoản để kích hoạt Pro.
         </p>
       </div>
 
-      {/* 2. Bank Transfer Card */}
-      <div className="w-full bg-surface-card rounded-2xl shadow-primary overflow-hidden border border-border-hairline flex flex-col">
-        {/* Brand Header */}
-        <div className="bg-primary-500 text-ink-900 font-bold text-sm px-6 py-3.5 text-center uppercase tracking-wide">
-          CHUYỂN KHOẢN ĐỂ THANH TOÁN
-        </div>
+      {/* Two-column layout */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
 
-        <div className="p-6">
-          {/* Info Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+        {/* ── LEFT CARD: Bank transfer instructions ── */}
+        <div className="flex-1 min-w-0 rounded-2xl border border-border-hairline bg-surface-card shadow-primary p-8 space-y-6">
+          <div>
+            <h2 className="font-display text-heading-2 text-ink-900">
+              Chuyển khoản để thanh toán
+            </h2>
+            <p className="text-body-s text-ink-muted mt-1">
+              Quét mã QR hoặc chuyển khoản thủ công theo thông tin bên dưới.
+            </p>
+          </div>
+
+          {/* Info grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <InfoRow label="TÊN TÀI KHOẢN" value="TRAN PHAN TIEN PHAT" />
             <InfoRow label="SỐ TÀI KHOẢN" value="2447967" />
             <InfoRow label="NGÂN HÀNG" value="Thương Mại Cổ Phần Á Châu (ACB)" />
             <InfoRow label="SỐ TIỀN" value={displayAmount.replace("đ", "₫")} />
             <InfoRow label="NỘI DUNG CHUYỂN KHOẢN" value={displayNote} className="md:col-span-2" />
-            <InfoRow
-              label="TRẠNG THÁI"
-              value="Chờ thanh toán"
-              className="md:col-span-2 font-black"
-            />
+            <InfoRow label="TRẠNG THÁI" value="Chờ thanh toán" className="md:col-span-2" />
           </div>
 
-          {/* Warning Banner */}
-          <div className="bg-[#FFF9E6] rounded-lg px-4 py-3 mb-8 text-center border border-[#FDE68A]">
-            <p className="text-[#D97706] font-bold text-xs">
-              ⚠️ VUI LÒNG NHẬP CHÍNH XÁC NỘI DUNG CHUYỂN KHOẢN ĐỂ HỆ THỐNG KIỂM TRA VÀ KÍCH HOẠT TỰ ĐỘNG
+          {/* Warning banner */}
+          <div className="rounded-xl border border-border-hairline bg-surface-blush px-4 py-3 flex items-start gap-3">
+            <span className="material-symbols-rounded text-[20px] text-accent-orange shrink-0 mt-0.5" aria-hidden="true">
+              warning
+            </span>
+            <p className="text-body-s font-semibold text-ink-900">
+              Vui lòng nhập chính xác nội dung chuyển khoản để hệ thống kiểm tra và kích hoạt tự động.
             </p>
           </div>
 
-          {/* QR & Copy Section */}
-          <div className="flex flex-col items-center pb-8 border-b border-border-hairline">
-            <div className="w-[200px] h-[200px] bg-surface-card rounded-xl shadow-sm border border-border-hairline p-2 mb-6">
-              <img
-                src={`https://qr.sepay.vn/img?acc=2447967&bank=ACB&amount=${order.amount}&des=${encodeURIComponent(order.orderId)}`}
-                alt="QR Code"
-                className="w-full h-full object-contain"
-              />
-            </div>
-
-            <CopyButton text={displayNote} />
-            <p className="text-[11px] text-ink-muted mt-3 italic">Nhấn để sao chép nội dung chuyển khoản</p>
-          </div>
-
-          {/* Footer Check Status */}
-          <div className="pt-6 text-center space-y-4">
-            <p className="text-body-s text-ink-muted max-w-[480px] mx-auto leading-relaxed">
-              Sau khi hoàn tất chuyển khoản, vui lòng <span className="font-bold text-ink-900">không tắt trình duyệt</span> cho đến khi nhận được kết quả giao dịch trên website. Xin cảm ơn!
+          {/* Status + support */}
+          <div className="border-t border-border-hairline pt-6 space-y-4">
+            <p className="text-body-s text-ink-muted leading-relaxed">
+              Sau khi hoàn tất chuyển khoản, vui lòng{" "}
+              <span className="font-semibold text-ink-900">không tắt trình duyệt</span>{" "}
+              cho đến khi nhận được kết quả giao dịch trên website. Xin cảm ơn!
             </p>
 
-            <div className="flex items-center justify-center gap-2 text-sm font-bold">
-              <div className="w-2 h-2 bg-accent-green rounded-full animate-pulse"></div>
+            <div className="flex items-center gap-2 text-body-s font-bold">
+              <span className="w-2 h-2 bg-accent-green rounded-full animate-pulse" />
               <span className="text-accent-teal">
                 {isPolling ? "Đang kiểm tra thanh toán..." : "Đang chờ chuyển khoản"}
               </span>
@@ -353,60 +347,88 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
 
             <a
               href="tel:0927090848"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-blush hover:bg-brand-tint text-ink-900 font-semibold transition text-xs border border-border-hairline"
+              className="inline-flex items-center gap-2 rounded-full border border-border-hairline bg-surface-card hover:bg-brand-tint text-ink-900 font-semibold text-body-s px-5 py-2.5 transition-colors"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              <span className="material-symbols-rounded text-[18px]" aria-hidden="true">call</span>
               Báo cáo sự cố: 0927090848
             </a>
           </div>
         </div>
-      </div>
 
-      {/* 3. Order Summary Footer */}
-      <div className="w-full text-center mb-2">
-        <p className="text-body-s text-ink-muted mb-4">Cảm ơn bạn. Đơn hàng của bạn đã được nhận.</p>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <SummaryBox label="MÃ ĐƠN" value={`#IELTS PRED ${order.orderId?.substring(0,6) || ''}`} />
-          <SummaryBox label="THỜI GIAN" value={dayjs(order.createdAt).format("DD Tháng MM, YYYY")} />
-          <SummaryBox label="THANH TOÁN" value={displayAmount} />
-          <SummaryBox label="HÌNH THỨC" value="Ngân hàng ACB (Ngân hàng Á Châu)" />
+        {/* ── RIGHT CARD: QR + summary + actions ── */}
+        <div className="w-full lg:w-[380px] shrink-0 rounded-2xl border border-border-hairline bg-surface-card shadow-primary p-8 space-y-6">
+          <h2 className="font-display text-heading-2 text-ink-900">
+            Quét mã QR
+          </h2>
+
+          {/* QR code */}
+          <div className="flex flex-col items-center">
+            <div className="w-[200px] h-[200px] rounded-xl border border-border-hairline bg-surface-card p-2">
+              <img
+                src={`https://qr.sepay.vn/img?acc=2447967&bank=ACB&amount=${order.amount}&des=${encodeURIComponent(order.orderId)}`}
+                alt="QR Code"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="mt-5 w-full flex flex-col items-center">
+              <CopyButton text={displayNote} />
+              <p className="text-caption-bold text-ink-muted mt-3">
+                Nhấn để sao chép nội dung chuyển khoản
+              </p>
+            </div>
+          </div>
+
+          {/* Order summary */}
+          <div className="border-t border-border-hairline pt-6 space-y-3 text-body-s">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-ink-muted shrink-0">Mã đơn</span>
+              <span className="font-semibold text-ink-900 text-right break-all">{displayOrderId}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-ink-muted shrink-0">Thời gian</span>
+              <span className="font-semibold text-ink-900 text-right">{displayDate}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-ink-muted shrink-0">Hình thức</span>
+              <span className="font-semibold text-ink-900 text-right">Ngân hàng ACB</span>
+            </div>
+          </div>
+
+          {/* Total */}
+          <div className="border-t border-border-hairline pt-5 flex items-baseline justify-between">
+            <span className="font-display text-title-m text-ink-900">Thanh toán</span>
+            <span className="font-display text-heading-2 text-ink-900">{displayAmount}</span>
+          </div>
+
+          {/* Actions */}
+          <div className="space-y-3">
+            <Link
+              href={ROUTES.ACCOUNT.ORDER_HISTORY}
+              className="w-full flex items-center justify-center rounded-full bg-ink-900 hover:bg-ink-700 text-surface-card font-display font-bold text-body-m py-4 transition-colors"
+            >
+              Xem lịch sử đơn hàng
+            </Link>
+            <Link
+              href={ROUTES.SUBSCRIPTION}
+              className="w-full flex items-center justify-center rounded-full border border-border-hairline bg-surface-card hover:bg-brand-tint text-ink-900 font-display font-bold text-body-m py-4 transition-colors"
+            >
+              Trở về trang chủ
+            </Link>
+          </div>
         </div>
-      </div>
-
-      {/* 4. Action Buttons */}
-      <div className="flex items-center gap-3 mt-4">
-        <Link
-          href={ROUTES.SUBSCRIPTION}
-          className="px-6 py-2.5 rounded-lg bg-tertiary-500 hover:bg-[#E08A40] text-white font-bold text-sm transition-colors"
-        >
-          Trở về trang chủ
-        </Link>
-        <Link
-          href={ROUTES.ACCOUNT.ORDER_HISTORY}
-          className="px-6 py-2.5 rounded-lg border border-border-hairline bg-surface-card text-ink-900 hover:bg-brand-tint font-bold text-sm transition-colors"
-        >
-          Xem lịch sử đơn hàng
-        </Link>
       </div>
     </div>
   );
 };
 
 const InfoRow = ({ label, value, className = "" }: { label: string; value: string; className?: string; }) => (
-  <div className={`bg-surface-blush rounded-xl p-3 border border-border-hairline flex flex-col justify-center ${className}`}>
-    <div className="text-[10px] text-ink-muted font-bold mb-1 tracking-wide">{label}</div>
-    <div className="text-sm font-bold text-ink-900 break-all">{value}</div>
+  <div className={`rounded-lg border border-border-hairline bg-surface-card px-4 py-3 flex flex-col justify-center ${className}`}>
+    <div className="text-caption-bold uppercase text-ink-muted mb-1">{label}</div>
+    <div className="text-body-s font-semibold text-ink-900 break-all">{value}</div>
   </div>
 );
 
-const SummaryBox = ({ label, value }: { label: string; value: string }) => (
-  <div className="bg-surface-card rounded-xl border border-border-hairline p-4 text-center">
-    <p className="text-[10px] uppercase text-ink-muted font-bold mb-1 tracking-wide">{label}</p>
-    <p className="text-xs font-bold text-ink-900 break-words">{value}</p>
-  </div>
-);
-
-OrderReceivedPage.Layout = MyProfileLayout;
+OrderReceivedPage.Layout = AppShell;
 
 export default OrderReceivedPage;
 
@@ -434,7 +456,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
               amount: 600000,
               createdAt: new Date().toISOString(),
               paymentMethod: "bank_transfer",
-              transferContent: "IELTS PREDICTION 17742607371538227",
+              transferContent: "Vit IELTS 17742607371538227",
               status: "pending",
             },
           },

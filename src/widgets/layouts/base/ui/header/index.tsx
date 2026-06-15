@@ -29,7 +29,6 @@ const MENU_LABEL_TO_ROUTE: Record<string, string> = {
   "ielts speaking sample": ROUTES.SAMPLE_ESSAY.ARCHIVE_SPEAKING,
   "ielts reading sample": ROUTES.SAMPLE_ESSAY.ARCHIVE_READING,
   "ielts listening sample": ROUTES.SAMPLE_ESSAY.ARCHIVE_LISTENING,
-  "ielts prediction": "/ielts-prediction",
   "subscription": ROUTES.SUBSCRIPTION,
   "contact": "/contact",
 };
@@ -254,6 +253,42 @@ export const Header = () => {
             href: resolveMenuUri(child)
           }))
         };
+      })
+      .filter((item) => {
+        const labelLower = item.label.toLowerCase();
+        const hrefLower = item.href.toLowerCase();
+        return (
+          !labelLower.includes("writing") &&
+          !labelLower.includes("speaking") &&
+          !labelLower.includes("sample") &&
+          !labelLower.includes("prediction") &&
+          !hrefLower.includes("writing") &&
+          !hrefLower.includes("speaking") &&
+          !hrefLower.includes("sample") &&
+          !hrefLower.includes("prediction")
+        );
+      })
+      .map((item) => {
+        if (item.children) {
+          return {
+            ...item,
+            children: item.children.filter((child) => {
+              const childLabelLower = child.label.toLowerCase();
+              const childHrefLower = child.href.toLowerCase();
+              return (
+                !childLabelLower.includes("writing") &&
+                !childLabelLower.includes("speaking") &&
+                !childLabelLower.includes("sample") &&
+                !childLabelLower.includes("prediction") &&
+                !childHrefLower.includes("writing") &&
+                !childHrefLower.includes("speaking") &&
+                !childHrefLower.includes("sample") &&
+                !childHrefLower.includes("prediction")
+              );
+            }),
+          };
+        }
+        return item;
       });
     return [
       ...cmsItems,
@@ -317,7 +352,6 @@ export const Header = () => {
         onLogout={signOut}
         onLogoClick={() => router.push(ROUTES.HOME)}
       />
-      <div className="w-full -mt-[50px]" />
     </>
   );
 };

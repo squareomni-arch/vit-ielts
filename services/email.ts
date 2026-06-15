@@ -128,11 +128,11 @@ export const TEMPLATE_VARIABLES: Record<string, string> = {
 
 const DEFAULT_CONFIG: EmailTemplateConfig = {
     brand: {
-        name: "IELTS Prediction Test",
+        name: "Vit IELTS",
         logoUrl: "",
-        website: "https://ieltspredictiontest.com",
+        website: "https://vitielts.com",
         phone: "0927090848",
-        email: "ieltsprediction9@gmail.com",
+        email: "admin@vitielts.com",
         address: "",
     },
     orderConfirmation: {

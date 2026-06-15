@@ -34,11 +34,11 @@ export type RedirectRule = {
 };
 
 const DEFAULT_SEO_CONFIG: SeoGlobalConfig = {
-    siteTitle: "IELTS Prediction",
-    titleSuffix: " | IELTS Prediction",
+    siteTitle: "Vit IELTS",
+    titleSuffix: " | Vit IELTS",
     defaultDescription: "Practice IELTS Reading & Listening with realistic tests and instant scoring",
     ogImage: "/img/og-default.png",
-    robotsTxt: "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\nSitemap: https://ieltsprediction.com/sitemap.xml",
+    robotsTxt: "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\nSitemap: https://vitielts.com/sitemap.xml",
     googleVerification: "",
     bingVerification: "",
 };

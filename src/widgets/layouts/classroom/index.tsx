@@ -45,9 +45,9 @@ export const ClassroomLayout = ({ children }: { children: React.ReactNode }) => 
 
       <section
         data-section="classroom-content"
-        className="bg-[#f8f9fb] lg:mb-13 overflow-x-hidden px-4 sm:px-6"
+        className="bg-[#f8f9fb] lg:mb-13 overflow-x-hidden"
       >
-        <Container className="max-w-container-xl">
+        <Container>
           <div className="py-8 lg:py-10">
             <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start">
               <aside className="w-full lg:w-[280px] flex-shrink-0 space-y-5">

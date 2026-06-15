@@ -35,7 +35,7 @@ export default async function handler(
         // Sample data for preview
         const sampleVars: Record<string, string> = {
             "{{customerName}}": "Hoàng Long",
-            "{{orderId}}": "IELTS PREDICTION 17369649223580012",
+            "{{orderId}}": "Vit IELTS 17369649223580012",
             "{{amount}}": "200.000 đ",
             "{{duration}}": "3 tháng",
             "{{purchaseDate}}": new Date().toLocaleDateString("vi-VN", {
@@ -44,7 +44,7 @@ export default async function handler(
                 year: "numeric",
             }),
             "{{currentYear}}": String(new Date().getFullYear()),
-            "{{brandName}}": config.brand?.name || "IELTS Prediction Test",
+            "{{brandName}}": config.brand?.name || "Vit IELTS",
             "{{brandPhone}}": config.brand?.phone || "0927090848",
             "{{brandEmail}}": config.brand?.email || "ieltsprediction9@gmail.com",
             "{{brandWebsite}}": config.brand?.website || "https://ieltspredictiontest.com",
@@ -64,7 +64,7 @@ export default async function handler(
 
             const orderTable = buildOrderTable(
                 [
-                    ["Mã đơn hàng", "IELTS PREDICTION 17369649223580012"],
+                    ["Mã đơn hàng", "Vit IELTS 17369649223580012"],
                     ["Khách hàng", "Hoàng Long"],
                     ["Email", "alongia7@gmail.com"],
                     ["Gói Pro", "3 tháng"],
@@ -142,7 +142,7 @@ export default async function handler(
 
         const orderTable = buildOrderTable(
             [
-                ["Đơn hàng", "#IELTS PREDICTION 17369649223580012"],
+                ["Đơn hàng", "#Vit IELTS 17369649223580012"],
                 ["Ngày mua", sampleVars["{{purchaseDate}}"]],
                 ["Gói Pro", "3 tháng"],
             ],

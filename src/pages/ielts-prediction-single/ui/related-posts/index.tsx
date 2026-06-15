@@ -33,7 +33,7 @@ function RelatedPosts({
 
   return (
     <section className="py-10 bg-slate-100">
-      <Container className="max-w-screen-2xl space-y-16 md:space-y-24">
+      <Container className="space-y-16 md:space-y-24">
         <div className="flex flex-wrap justify-center -mx-4 md:-mx-8">
           <div className="w-full md:w-6/12 px-4 md:px-8">
             <div className="space-y-2">

@@ -42,11 +42,11 @@ export const HeroBanner = ({ config }: HeroBannerProps) => {
   return (
     <section data-section="hero-banner" className="w-full mb-[24px]">
       {/* White rounded card — Figma: bg-white rounded-[50px] shadow, px-64px py-56px */}
-      <div className="bg-white rounded-[50px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.1)] overflow-hidden">
+      <div className="bg-white rounded-[24px] sm:rounded-[36px] lg:rounded-[50px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.1)] overflow-hidden">
         <div className="flex flex-col lg:flex-row items-center gap-12 px-8 sm:px-12 lg:px-16 py-12 lg:py-14 relative min-h-[440px]">
 
           {/* ── Left: text content ── */}
-          <div className="flex flex-col items-start flex-1 min-w-0 relative z-10">
+          <div className="flex flex-col items-start w-full lg:w-auto flex-1 min-w-0 relative z-10">
 
             {/* Social-proof pill — Figma: bg-white border shadow rounded-full px-14px py-8px gap-8px */}
             <div className="inline-flex items-center gap-2 bg-white border border-[rgba(25,29,36,0.1)] shadow-[0px_2px_6px_0px_rgba(25,29,36,0.1)] rounded-full px-[14px] py-2 mb-[18px]">
@@ -64,7 +64,7 @@ export const HeroBanner = ({ config }: HeroBannerProps) => {
             </h1>
 
             {/* Subtitle — Figma: Body/L 18px Inter Regular lh-1.5 w-470px #6a7282 */}
-            <p className="font-inter font-normal text-[18px] leading-[1.5] text-[#6a7282] max-w-[470px] mb-7">
+            <p className="font-inter font-normal text-[18px] leading-[1.5] text-[#6a7282] max-w-[700px] mb-7">
               {c.subtitle}
             </p>
 
@@ -86,8 +86,9 @@ export const HeroBanner = ({ config }: HeroBannerProps) => {
               </Link>
             </div>
 
-            {/* Stats row — Figma: gap-34px, each col gap-2px */}
-            <div className="flex items-center gap-[34px] overflow-hidden">
+            {/* Stats row — Figma: gap-34px, each col gap-2px. On mobile wrap +
+                tighter gap so the three stats stay within the card padding. */}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 sm:gap-[34px]">
               <div className="flex flex-col gap-[2px] whitespace-nowrap">
                 <span className="font-display font-bold text-[24px] leading-[1.2] tracking-[-0.24px] text-[#191d24]">+1.5</span>
                 <span className="font-inter font-normal text-[14px] leading-[1.4] text-[#6a7282]">avg. band uplift</span>

@@ -133,7 +133,7 @@ export const SkillCard = ({ skill, href, onClick, className = '' }: SkillCardPro
       className={twMerge(
         'group relative overflow-hidden bg-white rounded-[32px] outline-none',
         'flex flex-col justify-between',
-        'w-full max-w-[300px] aspect-[300/252] p-[26px]',
+        'w-full aspect-[300/252] p-[26px] xl:p-[32px] 2xl:p-[40px]',
         'shadow-[0px_6px_18px_0px_rgba(25,29,36,0.08)]',
         'border [border-color:rgba(25,29,36,0.1)] group-hover:[border-color:var(--accent)] group-focus-visible:[border-color:var(--accent)]',
         'transition-[border-color] duration-[250ms]',
@@ -141,14 +141,17 @@ export const SkillCard = ({ skill, href, onClick, className = '' }: SkillCardPro
         className,
       )}
     >
-      {/* ── Decorative fill — a single circle anchored to the top-right corner.
-           Animates transform: scale() only (compositor-only → 60fps even when
-           several cards animate at once) and grows to cover the whole card. ── */}
+      {/* ── Decorative fill — a single circle whose CENTER sits on the card's
+           top-right corner (top/right-0 + translate ½). Sized relative to the
+           card (280% of width, kept square) so it always covers the whole card
+           on hover at any width — full coverage lands at scale ≈0.93, matching
+           the original near-end fill timing. Animates the `scale` property only
+           (compositor-only → 60fps; `translate` stays static). ── */}
       <div
         className={twMerge(
-          'absolute top-[-400px] right-[-400px] w-[800px] h-[800px] rounded-full pointer-events-none',
+          'absolute top-0 right-0 w-[280%] aspect-square translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none',
           '[background:var(--tint)] group-hover:[background:var(--accent)] group-focus-visible:[background:var(--accent)]',
-          'scale-[0.16] group-hover:scale-100 group-focus-visible:scale-100',
+          'scale-[0.15] group-hover:scale-100 group-focus-visible:scale-100',
           'motion-reduce:transition-none',
         )}
         style={{
@@ -160,29 +163,29 @@ export const SkillCard = ({ skill, href, onClick, className = '' }: SkillCardPro
       />
 
       {/* ── Icon container ── */}
-      <div className="relative z-10 flex items-center justify-center rounded-[16px] w-[54px] h-[54px] shrink-0 [background:var(--tint)] group-hover:[background:var(--accent)] group-focus-visible:[background:var(--accent)] transition-colors duration-[250ms]">
+      <div className="relative z-10 flex items-center justify-center rounded-[16px] 2xl:rounded-[20px] w-[54px] h-[54px] xl:w-[60px] xl:h-[60px] 2xl:w-[72px] 2xl:h-[72px] shrink-0 [background:var(--tint)] group-hover:[background:var(--accent)] group-focus-visible:[background:var(--accent)] transition-colors duration-[250ms]">
         <Icon
-          className="w-[32px] h-[32px] text-[color:var(--accent)] group-hover:text-white group-focus-visible:text-white transition-[color,transform] duration-[250ms] group-hover:scale-110 group-focus-visible:scale-110"
+          className="w-[32px] h-[32px] xl:w-[36px] xl:h-[36px] 2xl:w-[42px] 2xl:h-[42px] text-[color:var(--accent)] group-hover:text-white group-focus-visible:text-white transition-[color,transform] duration-[250ms] group-hover:scale-110 group-focus-visible:scale-110"
           style={{ transitionTimingFunction: EASE }}
         />
       </div>
 
       {/* ── Content ── */}
-      <div className="relative z-10 flex flex-col gap-[6px]">
-        <p className="font-display font-bold text-[19px] leading-[1.3] text-[#191d24] group-hover:text-white group-focus-visible:text-white transition-colors duration-[250ms]">
+      <div className="relative z-10 flex flex-col gap-[6px] 2xl:gap-[10px]">
+        <p className="font-display font-bold text-[19px] xl:text-[22px] 2xl:text-[26px] leading-[1.3] text-[#191d24] group-hover:text-white group-focus-visible:text-white transition-colors duration-[250ms]">
           {s.label}
         </p>
-        <p className="font-inter text-[14px] leading-[1.4] text-[#6a7282] group-hover:text-white/85 group-focus-visible:text-white/85 transition-colors duration-[250ms]">
+        <p className="font-inter text-[14px] xl:text-[15px] 2xl:text-[17px] leading-[1.4] text-[#6a7282] group-hover:text-white/85 group-focus-visible:text-white/85 transition-colors duration-[250ms]">
           {s.description}
         </p>
 
         {/* Lessons + arrow */}
         <div className="flex items-center justify-between mt-1">
-          <p className="font-inter font-bold text-[12px] text-[#6a7282] group-hover:text-white group-focus-visible:text-white transition-colors duration-[250ms]">
+          <p className="font-inter font-bold text-[12px] xl:text-[13px] 2xl:text-[14px] text-[#6a7282] group-hover:text-white group-focus-visible:text-white transition-colors duration-[250ms]">
             {s.lessons}
           </p>
-          <div className="flex items-center justify-center rounded-full w-[34px] h-[34px] shrink-0 bg-[#191d24] group-hover:[background:var(--accent)] group-focus-visible:[background:var(--accent)] transition-colors duration-[250ms]">
-            <span className="text-white font-bold text-[14px] leading-none">→</span>
+          <div className="flex items-center justify-center rounded-full w-[34px] h-[34px] xl:w-[38px] xl:h-[38px] 2xl:w-[44px] 2xl:h-[44px] shrink-0 bg-[#191d24] group-hover:[background:var(--accent)] group-focus-visible:[background:var(--accent)] transition-colors duration-[250ms]">
+            <span className="text-white font-bold text-[14px] 2xl:text-[16px] leading-none">→</span>
           </div>
         </div>
       </div>

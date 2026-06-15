@@ -19,10 +19,10 @@ export const FAQ = ({ config }: FAQProps) => {
   return (
     <section
       data-section="subscription-faq"
-      className="bg-[#f6f7f4] py-[80px] px-4 sm:px-6"
+      className="bg-[#f6f7f4] py-[80px]"
     >
       <Container>
-        <div className="max-w-[720px] mx-auto flex flex-col gap-[48px]">
+        <div className="max-w-[1360px] mx-auto flex flex-col gap-[48px]">
           {/* Header */}
           <div className="flex flex-col gap-[12px] items-center text-center">
             {config.badge?.text && (
@@ -34,7 +34,7 @@ export const FAQ = ({ config }: FAQProps) => {
               {config.title}
             </h2>
             {config.description && (
-              <p className="text-[#6a7282] text-[17px] font-normal font-inter leading-normal text-center max-w-[560px]">
+              <p className="text-[#6a7282] text-[17px] font-normal font-inter leading-normal text-center">
                 {config.description}
               </p>
             )}

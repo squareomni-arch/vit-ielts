@@ -88,7 +88,7 @@ function TermsOfUsePage() {
                 label="Subtitle"
                 rules={[{ required: true, message: "Please enter subtitle" }]}
               >
-                <Input placeholder="IELTS Prediction Terms of Service Here" />
+                <Input placeholder="Vit IELTS Terms of Service Here" />
               </Form.Item>
               <Form.Item
                 name={["banner", "backgroundImage"]}
@@ -117,7 +117,7 @@ function TermsOfUsePage() {
                 label="Introduction Title"
                 rules={[{ required: true, message: "Please enter introduction title" }]}
               >
-                <Input placeholder="Welcome to IELTS Prediction Terms of Service" />
+                <Input placeholder="Welcome to Vit IELTS Terms of Service" />
               </Form.Item>
 
               <Form.Item

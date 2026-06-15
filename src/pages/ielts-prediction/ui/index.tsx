@@ -87,7 +87,7 @@ const SectionHeader = ({
 export const PageIELTSPrediction = ({
   bannerConfig,
   initialPosts,
-  breadcrumbLabel = "IELTS Prediction",
+  breadcrumbLabel = "Vit IELTS",
 }: PageProps) => {
   const posts = useMemo(() => initialPosts.data || [], [initialPosts.data]);
   const bannerData = bannerConfig.reading || bannerConfig.listening;
@@ -280,7 +280,7 @@ export const PageIELTSPrediction = ({
                     {useCarousel ? (
                       <SkillCarousel posts={section.posts} href={href} />
                     ) : (
-                      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                         {section.posts.map((post) => (
                           <ArticleCard key={post.id} post={post} href={href(post)} />
                         ))}
