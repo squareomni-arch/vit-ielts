@@ -103,6 +103,18 @@ export async function rateLimit(
     let allowed = true;
     let retryAfterSec = 0;
 
+    // Mock mode: no real DB. Use in-memory limiter and never touch supabaseAdmin
+    // (which requires a service-role key that mock-only deployments don't set).
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+        const result = checkMemoryRateLimit(key, max, windowMs);
+        if (!result.allowed) {
+            res.setHeader("Retry-After", String(result.retryAfterSec));
+            res.status(429).json({ error: "Too many requests", retryAfter: result.retryAfterSec });
+            return true;
+        }
+        return false;
+    }
+
     try {
         // Try Supabase RPC first (distributed, works across serverless instances)
         const { data, error } = await supabaseAdmin.rpc("check_rate_limit", {

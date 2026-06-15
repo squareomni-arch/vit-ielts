@@ -10,6 +10,64 @@ type ResponseData = {
   error?: string;
 };
 
+// Mirror of getLocalQuizzes in services/* — reads the exported quiz dataset so
+// the summary modal works in mock-only deployments (NEXT_PUBLIC_MOCK_DB=true)
+// without a real database.
+let localQuizzesCache: any[] | null = null;
+function getLocalQuizzes(): any[] {
+  if (localQuizzesCache) return localQuizzesCache;
+  try {
+    const fs = eval("require")("fs");
+    const path = eval("require")("path");
+    const filePath = path.join(process.cwd(), "data", "exported-quizzes.json");
+    if (fs.existsSync(filePath)) {
+      localQuizzesCache = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      return localQuizzesCache || [];
+    }
+  } catch (err) {
+    console.error("Failed to load local quizzes:", err);
+  }
+  return [];
+}
+
+function buildSummary(quiz: any) {
+  const passages = ((quiz.passages as any[]) ?? [])
+    .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map((p: any) => {
+      const mappedQuestions = ((p.questions as any[]) ?? [])
+        .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+        .map(mapQuestionForCounting);
+
+      const questionCount = countQuestion({
+        questions: mappedQuestions,
+        content: p.content,
+      } as any);
+
+      return {
+        id: p.id,
+        sort_order: p.sort_order,
+        questionCount,
+        questions: [], // stripped — only count matters for the modal
+      };
+    });
+
+  return {
+    id: quiz.id,
+    title: quiz.title,
+    slug: quiz.slug,
+    featuredImage: quiz.featured_image ?? null,
+    quizFields: {
+      proUserOnly: quiz.pro_user_only,
+      testsTaken: quiz.tests_taken,
+      skill: [quiz.skill, quiz.skill],
+      type: [quiz.type, quiz.type],
+      scoreType: quiz.score_type ?? null,
+      time: quiz.time_minutes,
+      passages,
+    },
+  };
+}
+
 /**
  * Map a raw DB question row to the shape `countQuestion` expects.
  * This is deliberately identical to the mapping in `toExamSingleData`
@@ -91,13 +149,26 @@ export default async function handler(
     // Add caching header
     res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=600");
 
-    const supabase = createApiSupabase(req, res);
     const quizId =
       (req.query.quizId as string) || (req.body && req.body.quizId);
 
     if (!quizId) {
       return res.status(400).json({ success: false, error: "Missing quizId" });
     }
+
+    // Mock mode: serve from the exported dataset, no DB access.
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+      const localQuizzes = getLocalQuizzes();
+      const quiz = localQuizzes.find(
+        (q: any) => q.id === quizId && q.status === "published"
+      );
+      if (!quiz) {
+        return res.status(404).json({ success: false, error: "Quiz not found" });
+      }
+      return res.status(200).json({ success: true, data: buildSummary(quiz) });
+    }
+
+    const supabase = createApiSupabase(req, res);
 
     // Optimize select to only necessary fields
     const { data: quiz, error } = await supabase
@@ -119,48 +190,8 @@ export default async function handler(
       return res.status(404).json({ success: false, error: "Quiz not found" });
     }
 
-    // Map passages: apply the same camelCase conversion as toExamSingleData,
-    // compute questionCount, then discard heavy question data.
-    const passages = ((quiz.passages as any[]) ?? [])
-      .sort(
-        (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
-      )
-      .map((p: any) => {
-        const mappedQuestions = ((p.questions as any[]) ?? [])
-          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-          .map(mapQuestionForCounting);
-
-        const questionCount = countQuestion({ 
-          questions: mappedQuestions,
-          content: p.content
-        } as any);
-
-        return {
-          id: p.id,
-          sort_order: p.sort_order,
-          questionCount,
-          questions: [], // stripped — only count matters for the modal
-        };
-      });
-
     // Shape compatible with ExamModeModal (quizFields wrapper)
-    const summary = {
-      id: quiz.id,
-      title: quiz.title,
-      slug: quiz.slug,
-      featuredImage: quiz.featured_image ?? null,
-      quizFields: {
-        proUserOnly: quiz.pro_user_only,
-        testsTaken: quiz.tests_taken,
-        skill: [quiz.skill, quiz.skill],
-        type: [quiz.type, quiz.type],
-        scoreType: quiz.score_type ?? null,
-        time: quiz.time_minutes,
-        passages,
-      },
-    };
-
-    return res.status(200).json({ success: true, data: summary });
+    return res.status(200).json({ success: true, data: buildSummary(quiz) });
   } catch (error) {
     console.error("[API /api/test-flow/summary]", error);
     const errorMessage =
