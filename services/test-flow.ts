@@ -28,6 +28,10 @@ import type {
 import type { QuizWithPassages as QuizForScoring } from "./types/quiz";
 import { calculateScore } from "./scoring";
 import { TEST_RESULT_COLUMNS, TEST_RESULT_SUMMARY_COLUMNS } from "./lib/columns";
+import localQuizzes from "../data/exported-quizzes.json";
+
+// In-memory store for mock test results when running database-less
+const mockResultsStore = new Map<string, any>();
 
 // ============================================================================
 // Custom Error Classes
@@ -161,6 +165,43 @@ export async function takeTheTest(
     supabase: SupabaseClient,
     params: TakeTheTestParams,
 ): Promise<TestResult> {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+        const quiz = (localQuizzes as any[]).find(q => q.id === params.quizId);
+        const testTime = params.testTime || quiz?.time_minutes || 40;
+        
+        // Find if there is an existing draft
+        let mockResult = Array.from(mockResultsStore.values()).find(
+            (r) => r.quiz_id === params.quizId && r.status === "draft"
+        );
+
+        if (mockResult && !params.retake) {
+            return mockResult as TestResult;
+        }
+
+        if (mockResult && params.retake) {
+            mockResultsStore.delete(mockResult.id);
+        }
+
+        mockResult = {
+            id: `mock-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            quiz_id: params.quizId,
+            user_id: "mock-user-id",
+            test_part: params.testPart,
+            test_time: testTime,
+            test_mode: params.testMode,
+            status: "draft",
+            time_left: `${testTime}:00`,
+            answers: { answers: [] },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            score: null,
+            total_correct: null,
+            total_questions: null,
+        };
+        mockResultsStore.set(mockResult.id, mockResult);
+        return mockResult as TestResult;
+    }
+
     const userId = await requireAuth(supabase);
 
     // Step 1: Check Pro access
@@ -293,6 +334,27 @@ export async function saveTestResult(
     answers: { answers: unknown[] },
     timeLeft: string,
 ): Promise<void> {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+        const existing = mockResultsStore.get(testId);
+        if (existing) {
+            existing.answers = answers;
+            existing.time_left = timeLeft;
+            existing.updated_at = new Date().toISOString();
+        } else {
+            // Create a fallback draft if not found
+            mockResultsStore.set(testId, {
+                id: testId,
+                user_id: "mock-user-id",
+                status: "draft",
+                answers,
+                time_left: timeLeft,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            });
+        }
+        return;
+    }
+
     const userId = await requireAuth(supabase);
 
     // Update only if draft belongs to current user
@@ -333,12 +395,6 @@ export async function submitTestResult(
     testId: string,
     answers: { answers: unknown[] },
     timeLeft: string,
-    /**
-     * Optional fallback metadata. If the test_results row keyed by `testId`
-     * is gone (cleanup cron, retake from another tab, etc.) we can still
-     * persist the user's answers by inserting a fresh published row. The
-     * client passes these from page props so we don't lose the submission.
-     */
     fallback?: { quizId?: string; testPart?: number[] },
 ): Promise<TestResult> {
     const userId = await requireAuth(supabase);
@@ -469,6 +525,51 @@ export async function getTestResult(
     supabase: SupabaseClient,
     testId: string,
 ): Promise<TestResultWithQuiz | null> {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+        const mockResult = mockResultsStore.get(testId);
+        if (mockResult) {
+            const quiz = (localQuizzes as any[]).find(q => q.id === mockResult.quiz_id);
+            return {
+                ...mockResult,
+                quizzes: quiz ? {
+                    id: quiz.id,
+                    title: quiz.title,
+                    slug: quiz.slug,
+                    skill: quiz.skill,
+                    type: quiz.type,
+                    time_minutes: quiz.time_minutes ?? 40,
+                    featured_image: quiz.featured_image,
+                } : null
+            } as any;
+        }
+        
+        // Return a blank default mock result if testId wasn't found in memory
+        const quiz = localQuizzes[0];
+        if (!quiz) return null;
+        return {
+            id: testId,
+            user_id: "mock-user-id",
+            quiz_id: quiz.id,
+            test_part: [0],
+            test_time: quiz.time_minutes ?? 40,
+            test_mode: "practice",
+            answers: { answers: [], totalCorrect: 0, totalQuestions: 0 },
+            time_left: "00:00",
+            score: 0,
+            status: "published",
+            submitted_at: new Date().toISOString(),
+            quizzes: {
+                id: quiz.id,
+                title: quiz.title,
+                slug: quiz.slug,
+                skill: quiz.skill,
+                type: quiz.type,
+                time_minutes: quiz.time_minutes ?? 40,
+                featured_image: quiz.featured_image,
+            }
+        } as any;
+    }
+
     const { data, error } = await supabase
         .from("test_results")
         .select(
@@ -502,6 +603,47 @@ export async function getUserTestHistory(
     userId: string,
     filters: TestHistoryFilters = {},
 ): Promise<PaginatedResponse<TestResultWithQuiz>> {
+    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
+        const page = filters.page ?? 1;
+        const pageSize = Math.min(filters.pageSize ?? 10, 100);
+
+        let list = Array.from(mockResultsStore.values())
+            .filter((r) => r.user_id === userId && r.status === "published");
+
+        if (filters.quizId) {
+            list = list.filter((r) => r.quiz_id === filters.quizId);
+        }
+
+        const listWithQuiz = list.map((r) => {
+            const quiz = (localQuizzes as any[]).find((q) => q.id === r.quiz_id);
+            return {
+                ...r,
+                quizzes: quiz ? {
+                    id: quiz.id,
+                    title: quiz.title,
+                    slug: quiz.slug,
+                    skill: quiz.skill,
+                    type: quiz.type,
+                    time_minutes: quiz.time_minutes ?? 40,
+                    featured_image: quiz.featured_image,
+                } : null
+            };
+        }) as TestResultWithQuiz[];
+
+        listWithQuiz.sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
+
+        const count = listWithQuiz.length;
+        const paginated = listWithQuiz.slice((page - 1) * pageSize, page * pageSize);
+
+        return {
+            data: paginated,
+            count,
+            page,
+            pageSize,
+            totalPages: Math.ceil(count / pageSize),
+        };
+    }
+
     const page = filters.page ?? 1;
     const pageSize = Math.min(filters.pageSize ?? 10, 100);
 
