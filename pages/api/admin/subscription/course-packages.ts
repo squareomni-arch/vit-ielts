@@ -6,6 +6,7 @@ import type {
   CoursePackagesConfig,
 } from "@/shared/types/admin-config";
 import { requireFullAdmin } from "~lib/admin-auth";
+import { DEFAULT_COURSE_PACKAGES } from "@/shared/constants";
 
 const fixedComboTiers = [
   { months: 1, price: 200000 },
@@ -75,9 +76,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "GET") {
     try {
-      const config = await readConfig<CoursePackagesConfig>(supabaseAdmin, sectionName);
+      let config = await readConfig<CoursePackagesConfig>(supabaseAdmin, sectionName);
       if (!config) {
-        return res.status(404).json({ message: "Config not found" });
+        config = DEFAULT_COURSE_PACKAGES;
       }
       const normalizedComboPlans = normalizeComboPlans(config.combo.plans);
       const normalizeinglePlans = normalizeSinglePlans(config.single.plans);

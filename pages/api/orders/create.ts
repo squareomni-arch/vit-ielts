@@ -7,6 +7,7 @@ import { readConfig } from "~services/cms-config";
 import { validateCoupon } from "~services/coupon";
 import { calculatePrice } from "@/pages/subscription/ui/subscription-plans/pricing";
 import type { CoursePackagesConfig } from "@/shared/types/admin-config";
+import { DEFAULT_COURSE_PACKAGES } from "@/shared/constants";
 
 const AFFILIATE_COOKIE_NAME = "affiliate_ref";
 
@@ -51,10 +52,12 @@ export default async function handler(
 
     // ─── SERVER-SIDE PRICE CALCULATION ─────────────────────────────────
     // Read pricing config from CMS (same source as the frontend)
-    const config = await readConfig<CoursePackagesConfig>(
+    const dbConfig = await readConfig<CoursePackagesConfig>(
       supabaseAdmin,
       "subscription/course-packages",
-    );
+    ).catch(() => null);
+
+    const config = dbConfig || DEFAULT_COURSE_PACKAGES;
 
     // Build price table from CMS config (same logic as checkout.tsx)
     const pkgConfig = packageType === "combo" ? config?.combo : config?.single;

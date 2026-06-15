@@ -12,6 +12,7 @@ import { createClient } from "~supabase/client";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import type { CoursePackagesConfig } from "@/shared/types/admin-config";
+import { DEFAULT_COURSE_PACKAGES } from "@/shared/constants";
 
 /** Coupon shape returned by /api/coupons/validate */
 type AppliedCoupon = {
@@ -27,7 +28,7 @@ const CheckoutPage = () => {
   const { type, months, skill } = router.query;
   const { currentUser } = useAuth();
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
-  const [config, setConfig] = useState<CoursePackagesConfig | null>(null);
+  const [config, setConfig] = useState<CoursePackagesConfig>(DEFAULT_COURSE_PACKAGES);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);

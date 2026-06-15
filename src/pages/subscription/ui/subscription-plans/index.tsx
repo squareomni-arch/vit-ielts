@@ -4,6 +4,7 @@ import { twMerge } from "tailwind-merge";
 import { calculatePrice, formatPrice, SkillType } from "./pricing";
 import { ROUTES } from "@/shared/routes";
 import type { CoursePackagesConfig } from "@/shared/types/admin-config";
+import { DEFAULT_COURSE_PACKAGES } from "@/shared/constants";
 
 // ── Check icon (inline SVG matching Figma vector) ──────────────────────────
 
@@ -35,17 +36,15 @@ export const SubscriptionPlans = ({
   buyProLink: _buyProLink,
 }: { buyProLink: string }) => {
   const [singleSkill, setSingleSkill] = useState<SkillType>("listening");
-  const [config, setConfig] = useState<CoursePackagesConfig | null>(null);
+  const [config, setConfig] = useState<CoursePackagesConfig>(DEFAULT_COURSE_PACKAGES);
 
   const comboPriceTable = useMemo(() => {
-    if (!config) return undefined;
     return Object.fromEntries(
       config.combo.plans.map((plan) => [plan.months, plan.price]),
     );
   }, [config]);
 
   const singlePriceTable = useMemo(() => {
-    if (!config) return undefined;
     return Object.fromEntries(
       config.single.plans.map((plan) => [plan.months, plan.price]),
     );
