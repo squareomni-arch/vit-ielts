@@ -31,11 +31,21 @@ export const HeroBanner = ({ config }: HeroBannerProps) => {
   // canonical hero content — the legacy CMS "home/hero-banner" config held old-site
   // text/images, so heading/subtitle/mascot are no longer driven by it. Admin may
   // still override the primary CTA link.
+  let ctaLink = config?.cta?.link || DEFAULTS.cta.link;
+  if (
+    typeof ctaLink === "string" &&
+    (ctaLink === "https://www.ieltspredictiontest.com/ielts-exam-library" ||
+      ctaLink === "https://ieltspredictiontest.com/ielts-exam-library" ||
+      ctaLink.includes("ieltspredictiontest.com/ielts-exam-library"))
+  ) {
+    ctaLink = ROUTES.EXAM.ARCHIVE;
+  }
+
   const c: HeroBannerConfig = {
     ...DEFAULTS,
     cta: {
       text: DEFAULTS.cta.text,
-      link: config?.cta?.link || DEFAULTS.cta.link,
+      link: ctaLink,
     },
   };
 

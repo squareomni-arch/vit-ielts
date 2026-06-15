@@ -1,8 +1,10 @@
 import { useAppContext } from "@/appx/providers";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 export const FloatingButton = () => {
+  const router = useRouter();
   const {
     masterData: {
       websiteOptions: {
@@ -12,6 +14,10 @@ export const FloatingButton = () => {
       },
     },
   } = useAppContext();
+
+  if (router.pathname === "/subscription") {
+    return null;
+  }
 
   return (
     <div className="fixed z-50 right-3 sm:right-9 bottom-6 sm:bottom-10 flex flex-col items-center gap-3">
