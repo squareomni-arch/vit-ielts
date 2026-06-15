@@ -45,6 +45,11 @@ export function AvatarUpload({
     }
   }, [fileRejections]);
 
+  // Fire setFile (and show a local blob preview) ONLY when a new file is
+  // accepted. previewUrl is intentionally NOT a dependency here: the parent
+  // updates previewUrl after a successful upload, and if that re-ran this
+  // effect while acceptedFiles still held the file, setFile would fire again
+  // and trigger an endless upload loop.
   useEffect(() => {
     if (acceptedFiles.length) {
       setFileRef.current(acceptedFiles[0]);
@@ -54,11 +59,16 @@ export function AvatarUpload({
       return () => {
         URL.revokeObjectURL(blob);
       };
-    } else {
-      setFileRef.current(null);
+    }
+  }, [acceptedFiles]); // setFile intentionally omitted — use setFileRef
+
+  // Sync the displayed preview to the externally-provided previewUrl, but only
+  // while no local file is selected (otherwise we'd clobber the blob preview).
+  useEffect(() => {
+    if (!acceptedFiles.length) {
       setPreview(previewUrl || null);
     }
-  }, [acceptedFiles, previewUrl]); // setFile intentionally omitted — use setFileRef
+  }, [previewUrl, acceptedFiles.length]);
 
   // useEffect(() => {
   //   if (value) {

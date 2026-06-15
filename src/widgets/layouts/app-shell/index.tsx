@@ -11,6 +11,7 @@ import { Button } from "@/shared/ui/ds/atoms/button";
 import { useAuth } from "@/appx/providers";
 import { ROUTES } from "@/shared/routes";
 import { FOOTER_COLUMNS } from "../footer-columns";
+import { createClient } from "~supabase/client";
 
 /**
  * AppShell — logged-in app layout (Figma "Student Dashboard" shell).
@@ -36,7 +37,7 @@ const STUDENT_MENU: SidebarNavEntry[] = [
 ];
 
 const STUDENT_COMMUNITY: SidebarNavEntry[] = [
-  { id: "community", icon: "UsersThree", label: "Community", href: ROUTES.COMMUNITY },
+  // { id: "community", icon: "UsersThree", label: "Community", href: ROUTES.COMMUNITY },
   { id: "blog", icon: "Book", label: "Blog", href: ROUTES.BLOG.ARCHIVE },
 ];
 
@@ -121,9 +122,49 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
     });
   }, []);
 
+  const [targetBand, setTargetBand] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!currentUser?.id) {
+      setTargetBand(null);
+      return;
+    }
+    const fetchTargetBand = async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("users")
+          .select("target_score")
+          .eq("id", currentUser.id)
+          .single();
+
+        if (data?.target_score) {
+          let ts = data.target_score as any;
+          if (typeof ts === "string") {
+            try {
+              ts = JSON.parse(ts);
+            } catch (e) {
+              ts = {};
+            }
+          }
+          ts = ts || {};
+          const tb = ts.reading ?? ts.listening ?? ts.speaking ?? ts.writing;
+          if (tb != null) {
+            setTargetBand(Number(tb));
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching target band for sidebar:", err);
+      }
+    };
+    fetchTargetBand();
+  }, [currentUser?.id]);
+
   const name = currentUser?.name ?? (isTeacher ? "Teacher" : "Student");
   const initials = initialsFromName(currentUser?.name);
   const avatarSrc = currentUser?.userData?.avatar?.node?.mediaDetails?.sizes?.[0]?.sourceUrl ?? undefined;
+  const isPro = currentUser?.userData?.isPro ?? false;
+  const studentRole = targetBand ? `Target: Band ${targetBand}` : "Student";
 
   return (
     <div className="flex min-h-dvh bg-[var(--color-surface-app)]">
@@ -131,7 +172,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
         <SidebarTeacher
           state={collapsed ? "collapsed" : "expanded"}
           activeItem={teacherActiveFromPath(router.pathname)}
-          user={{ name, role: "Teacher", initials, avatarSrc }}
+          user={{ name, role: "Teacher", initials, avatarSrc, isPro }}
           menu={TEACHER_MENU}
           account={TEACHER_ACCOUNT}
           profileHref={ROUTES.ACCOUNT.MY_PROFILE}
@@ -143,7 +184,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
         <SidebarStudent
           state={collapsed ? "collapsed" : "expanded"}
           activeItem={activeFromPath(router.pathname)}
-          user={{ name, role: "Student", initials, avatarSrc }}
+          user={{ name, role: studentRole, initials, avatarSrc, isPro }}
           menu={STUDENT_MENU}
           community={STUDENT_COMMUNITY}
           account={STUDENT_ACCOUNT}

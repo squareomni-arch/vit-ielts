@@ -124,7 +124,6 @@ const FigmaPlanCards = ({ buyProLink, billingCycle }: FigmaPlanCardsProps) => {
             "3 free mock tests",
             "Auto-scored Listening & Reading",
             "Basic progress tracking",
-            "Community access",
           ].map((f) => (
             <div key={f} className="flex gap-[8px] items-center">
               <CheckIcon />

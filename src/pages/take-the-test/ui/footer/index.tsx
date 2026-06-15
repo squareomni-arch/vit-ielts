@@ -639,6 +639,7 @@ function Footer() {
             <Button
               type="primary"
               size="large"
+              data-testid="exam-submit"
               className={twMerge(
                 "w-[80px] h-[53px] mb-[-12px] rounded-[0]! transition-colors",
                 totalQuestions > 0 && answeredMap.size === totalQuestions

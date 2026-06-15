@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { twMerge } from 'tailwind-merge';
 import { SidebarNavItem } from '../../molecules/sidebar-nav-item';
+import { Badge } from '../../atoms/badge';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -10,6 +11,7 @@ export type SidebarUser = {
   initials: string;
   avatarColor?: string;
   avatarSrc?: string;
+  isPro?: boolean;
 };
 
 export type SidebarNavEntry = {
@@ -99,12 +101,19 @@ const ProfileSection = ({
     <div
       aria-hidden={collapsed}
       data-collapsed={collapsed}
-      className="ds-sidebar-reveal flex flex-col gap-[var(--spacing-sidebar-profile-text-gap)] overflow-hidden whitespace-nowrap"
+      className="ds-sidebar-reveal flex flex-col gap-[var(--spacing-sidebar-profile-text-gap)] overflow-hidden whitespace-nowrap min-w-0"
       style={{ '--sidebar-reveal-max-width': 'var(--size-sidebar-profile-text-max)' } as React.CSSProperties}
     >
-      <span className="text-body-s font-bold font-inter text-[var(--color-ink-900)] leading-normal">
-        {user.name}
-      </span>
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span className="text-body-s font-bold font-inter text-[var(--color-ink-900)] leading-normal truncate">
+          {user.name}
+        </span>
+        {user.isPro && (
+          <Badge variant="pro-sidebar" className="shrink-0">
+            PRO
+          </Badge>
+        )}
+      </div>
       <span className="text-caption-bold font-inter font-normal text-[var(--color-ink-muted)] leading-normal">
         {user.role}
       </span>
@@ -245,7 +254,7 @@ const STUDENT_MENU = [
 ] as const;
 
 const STUDENT_COMMUNITY = [
-  { id: 'community', icon: 'UsersThree', label: 'Community' },
+  // { id: 'community', icon: 'UsersThree', label: 'Community' },
   { id: 'blog',      icon: 'Book',       label: 'Blog' },
 ] as const;
 
@@ -262,7 +271,7 @@ const TEACHER_MENU = [
 export const SidebarStudent = ({
   state = 'expanded',
   activeItem = 'home',
-  user = { name: 'Student', role: 'Target: Band 8.0', initials: 'ST' },
+  user = { name: 'Student', role: 'Target: Band 8.0', initials: 'ST', isPro: false },
   onCollapse,
   menu = STUDENT_MENU,
   community = STUDENT_COMMUNITY,
@@ -346,7 +355,7 @@ export const SidebarStudent = ({
 export const SidebarTeacher = ({
   state = 'expanded',
   activeItem = 'overview',
-  user = { name: 'Pham Minh', role: 'Teacher', initials: 'PM' },
+  user = { name: 'Pham Minh', role: 'Teacher', initials: 'PM', isPro: false },
   onCollapse,
   menu = TEACHER_MENU,
   account = ACCOUNT_ITEMS,

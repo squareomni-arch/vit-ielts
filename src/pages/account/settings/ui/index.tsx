@@ -929,17 +929,19 @@ export const PageSettings = ({ initialSettings = {} }: PageSettingsProps) => {
               />
             }
           />
-          <SettingRow
-            label="Community replies"
-            description="Get notified when someone replies to your posts or comments."
-            action={
-              <Toggle
-                checked={communityReplies}
-                onChange={handleCommunityReplies}
-                label="Community replies"
-              />
-            }
-          />
+          {false && (
+            <SettingRow
+              label="Community replies"
+              description="Get notified when someone replies to your posts or comments."
+              action={
+                <Toggle
+                  checked={communityReplies}
+                  onChange={handleCommunityReplies}
+                  label="Community replies"
+                />
+              }
+            />
+          )}
           <SettingRow
             label="Product updates"
             description="Learn about new features and improvements to VIT IELTS."

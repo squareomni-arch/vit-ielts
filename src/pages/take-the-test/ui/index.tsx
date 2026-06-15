@@ -584,8 +584,16 @@ export function PageTakeTheTest() {
   };
 
   useEffect(() => {
-    document.documentElement.className = "";
-    document.documentElement.classList.add(`text-size-${selectedTextSize}`);
+    const html = document.documentElement;
+    // Reset ONLY the text-size-* classes — never wipe the whole className.
+    // `frontend-site` (added by App in appx/index.tsx) is what scopes every
+    // global/Tailwind rule (see postcss-custom-prefix.js); clearing it strips
+    // all styling from this page (serif fonts, oversized logo, native inputs).
+    Array.from(html.classList)
+      .filter((cls) => cls.startsWith("text-size-"))
+      .forEach((cls) => html.classList.remove(cls));
+    html.classList.add("frontend-site");
+    html.classList.add(`text-size-${selectedTextSize}`);
   }, [selectedTextSize]);
 
   useEffect(() => {

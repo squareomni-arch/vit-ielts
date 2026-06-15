@@ -19,6 +19,9 @@
 /blob-report/
 /playwright/.cache/
 
+# playwright e2e — saved auth sessions (contain live tokens)
+/e2e/.auth/
+
 # next.js
 /.next/
 /out/
