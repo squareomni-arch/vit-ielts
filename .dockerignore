@@ -1,0 +1,14 @@
+.git
+.next
+node_modules
+out
+build
+playwright-report
+test-results
+visual-tests
+.env*
+.vercel
+.figma-cache
+.claude
+*.tsbuildinfo
+next-env.d.ts
