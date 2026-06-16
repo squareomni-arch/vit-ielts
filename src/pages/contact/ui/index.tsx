@@ -26,10 +26,10 @@ type PageContactProps = {
 };
 
 const DEFAULT_LINKS = [
-  { platform: "facebook", icon: <FacebookRoundedIcon className="h-8 w-8" />, url: "https://www.facebook.com/groups/ielts.practice", label: "Facebook Group", username: "@ielts.practice" },
-  { platform: "tiktok", icon: <TikTokIcon className="h-8 w-8 rounded-full" />, url: "https://tiktok.com/@ielts.practice", label: "TikTok", username: "@ielts.practice" },
-  { platform: "youtube", icon: <YoutubeIcon className="h-8 w-8 rounded-full" />, url: "https://tiktok.com/@ielts.practice", label: "YouTube", username: "@ielts.practice" },
-  { platform: "zalo", icon: <ZaloIcon className="h-8 w-8 rounded-full" />, url: "https://tiktok.com/@ielts.practice", label: "Zalo", username: "@ielts.practice" },
+  { platform: "facebook", icon: <FacebookRoundedIcon className="h-8 w-8" />, url: "https://www.facebook.com/vitielts/", label: "Facebook", username: "@vitielts" },
+  { platform: "tiktok", icon: <TikTokIcon className="h-8 w-8 rounded-full" />, url: "https://tiktok.com/@vitielts", label: "TikTok", username: "@vitielts" },
+  { platform: "youtube", icon: <YoutubeIcon className="h-8 w-8 rounded-full" />, url: "https://youtube.com/@vitielts", label: "YouTube", username: "@vitielts" },
+  { platform: "zalo", icon: <ZaloIcon className="h-8 w-8 rounded-full" />, url: "https://zalo.me/", label: "Zalo", username: "Vit IELTS" },
 ];
 
 export const PageContact = ({ config }: PageContactProps) => {

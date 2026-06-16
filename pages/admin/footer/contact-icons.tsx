@@ -69,7 +69,7 @@ function ContactIconsAdminPage() {
               rules={[
                 { type: "url", message: "Vui lòng nhập đường dẫn hợp lệ" }
               ]}
-              extra="Ví dụ: https://www.facebook.com/ielts.practice"
+              extra="Ví dụ: https://www.facebook.com/vitielts"
             >
               <Input 
                 prefix={<FacebookOutlined className="text-blue-600" />} 

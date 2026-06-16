@@ -6,14 +6,11 @@ import {
   DashboardOutlined,
   UserOutlined,
   FormOutlined,
-  FileTextOutlined,
   ShoppingCartOutlined,
   TagOutlined,
   TeamOutlined,
   SettingOutlined,
-  HomeOutlined,
   BookOutlined,
-  CreditCardOutlined,
   FileSearchOutlined,
   MenuOutlined,
   GlobalOutlined,
@@ -28,13 +25,6 @@ import {
   MoonOutlined,
   HistoryOutlined,
   PictureOutlined,
-  MailOutlined,
-  ShopOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  UserAddOutlined,
-  BgColorsOutlined,
-  InfoCircleOutlined,
 } from "@ant-design/icons";
 import { message, Tooltip, Badge, ConfigProvider, theme as antdTheme } from "antd";
 import { useAdminPermissions } from "@/shared/hooks";
@@ -100,89 +90,6 @@ const MENU_SECTIONS: MenuSection[] = [
       { key: "/admin/activity-log", icon: <HistoryOutlined />, label: "Activity Log" },
       { key: "/admin/seo", icon: <GlobalOutlined />, label: "SEO Manager" },
       { key: "/admin/settings", icon: <SettingOutlined />, label: "Settings" },
-    ],
-  },
-  {
-    title: "NỘI DUNG (CMS)",
-    items: [
-      {
-        key: "cms-home", icon: <HomeOutlined />, label: "Home",
-        children: [
-          { key: "/admin/home/banner", label: "Hero Banner" },
-          { key: "/admin/home/test-platform-intro", label: "Test Platform Intro", inactive: true },
-          { key: "/admin/home/why-choose-us", label: "Why Choose Us", inactive: true },
-          { key: "/admin/home/testimonials", label: "Testimonials", inactive: true },
-        ],
-      },
-      {
-        key: "cms-exam-library", icon: <FileTextOutlined />, label: "Exam Library",
-        children: [{ key: "/admin/ielts-exam-library/hero-banner", label: "Page Header" }],
-      },
-      {
-        key: "cms-practice-library", icon: <BookOutlined />, label: "Practice Library",
-        children: [{ key: "/admin/ielts-practice-library/banner", label: "Page Header" }],
-      },
-      {
-        key: "cms-subscription", icon: <CreditCardOutlined />, label: "Subscription",
-        children: [
-          { key: "/admin/subscription/banner", label: "Page Header" },
-          { key: "/admin/subscription/course-packages", label: "Course Packages" },
-          { key: "/admin/subscription/coupons", label: "Mã giảm giá (Legacy)" },
-          { key: "/admin/subscription/faq", label: "FAQ" },
-        ],
-      },
-      {
-        key: "cms-sample-essay", icon: <FileSearchOutlined />, label: "Sample Essay",
-        children: [{ key: "/admin/sample-essay/banner", label: "Page Header" }],
-      },
-      {
-        key: "cms-header", icon: <MenuOutlined />, label: "Header",
-        children: [
-          { key: "/admin/header/announcement-bar", label: "Thanh thông báo (chạy)" },
-        ],
-      },
-      {
-        key: "cms-footer", icon: <GlobalOutlined />, label: "Footer",
-        children: [
-          { key: "/admin/footer/cta-banner", label: "CTA Banner" },
-          { key: "/admin/footer/contact-icons", label: "Contact Icons", inactive: true },
-        ],
-      },
-      {
-        key: "cms-account", icon: <UserOutlined />, label: "Account Pages",
-        children: [
-          { key: "/admin/account/login", label: "Login Page", inactive: true },
-          { key: "/admin/account/register", label: "Register Page", inactive: true },
-        ],
-      },
-      {
-        key: "cms-legal", icon: <FileTextOutlined />, label: "Legal Pages",
-        children: [
-          { key: "/admin/terms-of-use", label: "Terms of Service" },
-          { key: "/admin/privacy-policy", label: "Privacy Policy" },
-        ],
-      },
-      {
-        key: "cms-email", icon: <MailOutlined />, label: "Email Template",
-        children: [
-          { key: "/admin/email-template?tab=brand", label: "Thương hiệu", icon: <ShopOutlined /> },
-          { key: "/admin/email-template?tab=orderConfirmation", label: "Xác nhận đơn hàng", icon: <ShoppingCartOutlined /> },
-          { key: "/admin/email-template?tab=adminNotification", label: "Thông báo Admin", icon: <BellOutlined /> },
-          { key: "/admin/email-template?tab=affiliateRegistered", label: "Affiliate đăng ký (Admin)", icon: <UserAddOutlined /> },
-          { key: "/admin/email-template?tab=affiliateApproval", label: "Duyệt Affiliate", icon: <CheckCircleOutlined /> },
-          { key: "/admin/email-template?tab=affiliateRejection", label: "Từ chối Affiliate", icon: <CloseCircleOutlined /> },
-          { key: "/admin/email-template?tab=newCommission", label: "Hoa hồng mới", icon: <DollarOutlined /> },
-          { key: "/admin/email-template?tab=payoutRequest", label: "Yêu cầu rút tiền (Admin)", icon: <BellOutlined /> },
-          { key: "/admin/email-template?tab=payoutRejected", label: "Rút tiền bị từ chối", icon: <CloseCircleOutlined /> },
-          { key: "/admin/email-template?tab=payoutCompleted", label: "Rút tiền thành công", icon: <CheckCircleOutlined /> },
-          { key: "/admin/email-template?tab=style", label: "Giao diện", icon: <BgColorsOutlined /> },
-          { key: "/admin/email-template?tab=variables", label: "Biến hỗ trợ", icon: <InfoCircleOutlined /> },
-        ],
-      },
-      {
-        key: "cms-contact", icon: <GlobalOutlined />, label: "Contact Page",
-        children: [{ key: "/admin/contact", label: "Contact Content" }],
-      },
     ],
   },
 ];
@@ -384,13 +291,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     });
   }, []);
 
-  const handleNavigate = useCallback(
-    (path: string) => {
-      router.push(path);
-      setMobileOpen(false);
-    },
-    [router]
-  );
+
 
   const handleLogout = useCallback(async () => {
     const supabase = createAdminClient();
