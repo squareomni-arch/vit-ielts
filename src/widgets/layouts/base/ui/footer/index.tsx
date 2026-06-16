@@ -246,7 +246,7 @@ export const Footer = () => {
                   Get Contact
                 </h3>
                 <ul className="space-y-4 font-noto-sans font-normal text-[14px] leading-[19px] text-white">
-                  <li>Phone: {phoneNumber || "0927090848"}</li>
+                  <li>Phone: {phoneNumber || "0326752732"}</li>
                   <li>
                     E-mail:{" "}
                     <Link

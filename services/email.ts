@@ -131,7 +131,7 @@ const DEFAULT_CONFIG: EmailTemplateConfig = {
         name: "Vit IELTS",
         logoUrl: "",
         website: "https://vitielts.com",
-        phone: "0927090848",
+        phone: "0326752732",
         email: "admin@vitielts.com",
         address: "",
     },
@@ -543,9 +543,9 @@ export async function sendOrderConfirmEmail(
             orderTableTitle: replaceVariables(orderConfirmation.orderTableTitle, vars),
             ctaButton: orderConfirmation.ctaButton
                 ? {
-                      text: replaceVariables(orderConfirmation.ctaButton.text, vars),
-                      link: replaceVariables(orderConfirmation.ctaButton.link, vars),
-                  }
+                    text: replaceVariables(orderConfirmation.ctaButton.text, vars),
+                    link: replaceVariables(orderConfirmation.ctaButton.link, vars),
+                }
                 : undefined,
             billingInfo: {
                 name: customerName,
@@ -755,7 +755,7 @@ export async function sendAffiliateStatusEmail(
 
     const subject = replaceVariables(template.subject, vars);
     const body = replaceVariables(template.bodyHtml, vars);
-    
+
     const options: any = {};
     if (status === "approved" && (template as any).ctaButton) {
         options.ctaButton = {

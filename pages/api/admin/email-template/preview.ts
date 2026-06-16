@@ -45,7 +45,7 @@ export default async function handler(
             }),
             "{{currentYear}}": String(new Date().getFullYear()),
             "{{brandName}}": config.brand?.name || "Vit IELTS",
-            "{{brandPhone}}": config.brand?.phone || "0927090848",
+            "{{brandPhone}}": config.brand?.phone || "0326752732",
             "{{brandEmail}}": config.brand?.email || "vitielts9@gmail.com",
             "{{brandWebsite}}": config.brand?.website || "https://vitieltstest.com",
             "{{customerEmail}}": "alongia7@gmail.com",
@@ -153,9 +153,9 @@ export default async function handler(
 
         const ctaButton = orderConfirmation?.ctaButton
             ? {
-                  text: replaceVariables(orderConfirmation.ctaButton.text, sampleVars),
-                  link: replaceVariables(orderConfirmation.ctaButton.link, sampleVars),
-              }
+                text: replaceVariables(orderConfirmation.ctaButton.text, sampleVars),
+                link: replaceVariables(orderConfirmation.ctaButton.link, sampleVars),
+            }
             : undefined;
 
         const html = buildEmailHtml(

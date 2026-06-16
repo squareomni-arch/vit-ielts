@@ -275,7 +275,7 @@ function EmailTemplatePage() {
                                 name={["brand", "phone"]}
                                 rules={[{ required: true }]}
                             >
-                                <Input placeholder="0927090848" />
+                                <Input placeholder="0326752732" />
                             </Form.Item>
                             <Form.Item
                                 label="Email liên hệ"
