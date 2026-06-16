@@ -21,28 +21,21 @@ const clientOptions = {
  * the same time, one wins and the other gets `invalid_refresh_token`, which
  * dumps the user back to the login screen).
  */
-import { wrapWithMockAuth } from "./mockAuth";
-
-function mockClientAuth(client: any) {
-  return wrapWithMockAuth(client);
-}
-
 export function createClient(): BrowserClient {
   if (typeof window === "undefined") {
     // SSR / build: do not cache — each request gets its own instance.
-    return mockClientAuth(createBrowserClient(
+    return createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       clientOptions
-    ));
+    );
   }
   if (!cachedClient) {
-    cachedClient = mockClientAuth(createBrowserClient(
+    cachedClient = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       clientOptions
-    ));
+    );
   }
   return cachedClient;
 }
-

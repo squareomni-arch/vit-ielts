@@ -4,12 +4,6 @@ import type { ServerResponse } from "http";
 
 const isProduction = process.env.NODE_ENV === "production";
 
-import { wrapWithMockAuth } from "./mockAuth";
-
-function mockClientAuth(client: any, cookies?: Record<string, string>) {
-    return wrapWithMockAuth(client, cookies);
-}
-
 /**
  * Append Set-Cookie values without clobbering any cookies already set on the
  * response (e.g. by middleware or earlier in the request lifecycle).
@@ -49,7 +43,7 @@ function buildCookieString(name: string, value: string, options?: CookieOptions)
 }
 
 export function createServerSupabase(context: GetServerSidePropsContext) {
-    return mockClientAuth(createServerClient(
+    return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -79,7 +73,7 @@ export function createServerSupabase(context: GetServerSidePropsContext) {
                 },
             },
         }
-    ), context.req.cookies);
+    );
 }
 
 /**
@@ -87,7 +81,7 @@ export function createServerSupabase(context: GetServerSidePropsContext) {
  * keeping admin sessions isolated from regular user sessions.
  */
 export function createAdminServerSupabase(context: GetServerSidePropsContext) {
-    return mockClientAuth(createServerClient(
+    return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -118,7 +112,7 @@ export function createAdminServerSupabase(context: GetServerSidePropsContext) {
                 },
             },
         }
-    ), context.req.cookies);
+    );
 }
 
 /**
@@ -126,7 +120,7 @@ export function createAdminServerSupabase(context: GetServerSidePropsContext) {
  * Similar to createServerSupabase but accepts NextApiRequest/NextApiResponse.
  */
 export function createApiSupabase(req: NextApiRequest, res: NextApiResponse) {
-    return mockClientAuth(createServerClient(
+    return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -156,7 +150,7 @@ export function createApiSupabase(req: NextApiRequest, res: NextApiResponse) {
                 },
             },
         }
-    ), req.cookies);
+    );
 }
 
 /**
@@ -164,7 +158,7 @@ export function createApiSupabase(req: NextApiRequest, res: NextApiResponse) {
  * keeping admin sessions isolated from regular user sessions.
  */
 export function createAdminApiSupabase(req: NextApiRequest, res: NextApiResponse) {
-    return mockClientAuth(createServerClient(
+    return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -195,6 +189,5 @@ export function createAdminApiSupabase(req: NextApiRequest, res: NextApiResponse
                 },
             },
         }
-    ), req.cookies);
+    );
 }
-

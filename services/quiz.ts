@@ -23,26 +23,6 @@ import type {
     Question,
     SkillType,
 } from "./types/database";
-let localQuizzesCache: any[] | null = null;
-
-function getLocalQuizzes(): any[] {
-    if (localQuizzesCache) return localQuizzesCache;
-    if (typeof window === "undefined") {
-        try {
-            const fs = eval("require")("fs");
-            const path = eval("require")("path");
-            const filePath = path.join(process.cwd(), "data", "exported-quizzes.json");
-            if (fs.existsSync(filePath)) {
-                const rawData = fs.readFileSync(filePath, "utf-8");
-                localQuizzesCache = JSON.parse(rawData);
-                return localQuizzesCache || [];
-            }
-        } catch (err) {
-            console.error("Failed to load local quizzes:", err);
-        }
-    }
-    return [];
-}
 
 // ============================================================================
 // Public Read Functions
@@ -60,27 +40,6 @@ export async function getQuizBySlug(
     supabase: SupabaseClient,
     slug: string
 ): Promise<QuizWithPassages | null> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
-        const localQuizzes = getLocalQuizzes();
-        const quiz = (localQuizzes as any[]).find(
-            (q) => q.slug === slug && q.status === "published"
-        );
-        if (!quiz) return null;
-
-        const data = JSON.parse(JSON.stringify(quiz));
-        if (data.passages) {
-            data.passages.sort(
-                (a: any, b: any) => a.sort_order - b.sort_order
-            );
-            data.passages.forEach((p: any) =>
-                p.questions?.sort(
-                    (a: any, b: any) => a.sort_order - b.sort_order
-                )
-            );
-        }
-        return data as QuizWithPassages;
-    }
-
     const { data, error } = await supabase
         .from("quizzes")
         .select(`*, passages(*, questions(*))`)
@@ -110,7 +69,6 @@ export async function getQuizBySlug(
 
 /**
  * Lấy quiz theo id, kèm nested passages + questions (sorted by sort_order).
- * Mock-aware (NEXT_PUBLIC_MOCK_DB) — đọc từ exported-quizzes.json khi không có DB.
  *
  * @param supabase - Supabase client instance
  * @param id - Quiz id
@@ -120,21 +78,6 @@ export async function getQuizById(
     supabase: SupabaseClient,
     id: string
 ): Promise<QuizWithPassages | null> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
-        const localQuizzes = getLocalQuizzes();
-        const quiz = (localQuizzes as any[]).find((q) => q.id === id);
-        if (!quiz) return null;
-
-        const data = JSON.parse(JSON.stringify(quiz));
-        if (data.passages) {
-            data.passages.sort((a: any, b: any) => a.sort_order - b.sort_order);
-            data.passages.forEach((p: any) =>
-                p.questions?.sort((a: any, b: any) => a.sort_order - b.sort_order)
-            );
-        }
-        return data as QuizWithPassages;
-    }
-
     const { data, error } = await supabase
         .from("quizzes")
         .select(`*, passages(*, questions(*))`)
@@ -173,27 +116,6 @@ export async function getQuizBySlugPreview(
     supabase: SupabaseClient,
     slug: string
 ): Promise<QuizWithPassages | null> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
-        const localQuizzes = getLocalQuizzes();
-        const quiz = (localQuizzes as any[]).find(
-            (q) => q.slug === slug
-        );
-        if (!quiz) return null;
-
-        const data = JSON.parse(JSON.stringify(quiz));
-        if (data.passages) {
-            data.passages.sort(
-                (a: any, b: any) => a.sort_order - b.sort_order
-            );
-            data.passages.forEach((p: any) =>
-                p.questions?.sort(
-                    (a: any, b: any) => a.sort_order - b.sort_order
-                )
-            );
-        }
-        return data as QuizWithPassages;
-    }
-
     const { data, error } = await supabase
         .from("quizzes")
         .select(`*, passages(*, questions(*))`)
@@ -235,80 +157,6 @@ export async function getQuizzes(
     supabase: SupabaseClient,
     filters: QuizFilters = {}
 ): Promise<PaginatedResponse<Quiz>> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
-        const localQuizzes = getLocalQuizzes();
-        const page = filters.page || 1;
-        const pageSize = Math.min(filters.pageSize || 12, 100);
-
-        let list = (localQuizzes as any[]).filter((q) => q.status === "published");
-
-        if (filters.skill) {
-            list = list.filter((q) => q.skill === filters.skill);
-        }
-        if (filters.type) {
-            if (filters.type === "exam" as any) {
-                list = list.filter((q) => ["academic", "general"].includes(q.type));
-            } else {
-                list = list.filter((q) => q.type === filters.type);
-            }
-        }
-        if (filters.year) {
-            list = list.filter((q) => q.year === filters.year);
-        }
-        if (filters.source) {
-            list = list.filter((q) => q.source === filters.source);
-        }
-        if (filters.quarter) {
-            list = list.filter((q) => q.quarter === filters.quarter);
-        }
-        if (filters.part) {
-            const num = parseInt(filters.part, 10);
-            if (!isNaN(num) && num >= 1) {
-                const variants = [
-                    String(num),
-                    `passage${num}`, `passage ${num}`, `passage-${num}`,
-                    `task${num}`, `task ${num}`, `task-${num}`,
-                    `part${num}`, `part ${num}`, `part-${num}`,
-                ];
-                list = list.filter((q) => {
-                    if (num === 1 && (q.part === null || q.part === "0")) return true;
-                    return variants.some((v) => q.part?.toLowerCase() === v.toLowerCase());
-                });
-            } else {
-                list = list.filter((q) => q.part?.toLowerCase() === filters.part.toLowerCase());
-            }
-        }
-        if (filters.questionForm) {
-            const searchForm = filters.questionForm.toLowerCase();
-            list = list.filter((q) => q.question_form?.toLowerCase().includes(searchForm));
-        }
-        if (filters.search) {
-            const searchTitle = filters.search.toLowerCase();
-            list = list.filter((q) => q.title?.toLowerCase().includes(searchTitle));
-        }
-
-        list.sort((a, b) => {
-            const aPub = a.published_at ? new Date(a.published_at).getTime() : 0;
-            const bPub = b.published_at ? new Date(b.published_at).getTime() : 0;
-            if (bPub !== aPub) return bPub - aPub;
-            return b.id.localeCompare(a.id);
-        });
-
-        const count = list.length;
-        const paginatedList = list.slice((page - 1) * pageSize, page * pageSize).map((q) => {
-            const { passages, ...rest } = q;
-            return rest as Quiz;
-        });
-
-        return {
-            data: paginatedList,
-            count,
-            page,
-            pageSize,
-            totalPages: Math.ceil(count / pageSize),
-        };
-    }
-
     const page = filters.page || 1;
     const pageSize = Math.min(filters.pageSize || 12, 100);
 
@@ -399,30 +247,6 @@ export async function getQuizFilterOptions(supabase: SupabaseClient): Promise<{
     parts: string[];
     quarters: string[];
 }> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
-        const localQuizzes = getLocalQuizzes();
-        const yearsSet = new Set<string>();
-        const sourcesSet = new Set<string>();
-        const partsSet = new Set<string>();
-        const quartersSet = new Set<string>();
-
-        (localQuizzes as any[]).forEach((q) => {
-            if (q.status === "published") {
-                if (q.year) yearsSet.add(q.year);
-                if (q.source) sourcesSet.add(q.source);
-                if (q.part) partsSet.add(q.part);
-                if (q.quarter) quartersSet.add(q.quarter);
-            }
-        });
-
-        return {
-            years: Array.from(yearsSet).sort(),
-            sources: Array.from(sourcesSet).sort(),
-            parts: Array.from(partsSet).sort(),
-            quarters: Array.from(quartersSet).sort(),
-        };
-    }
-
     // Try RPC first (efficient DISTINCT at database level)
     try {
         const { data: rpcData, error: rpcError } = await supabase.rpc("get_quiz_filter_options");
@@ -451,32 +275,6 @@ export async function getRelatedQuizzes(
     quizId: string,
     meta?: { skill: SkillType; source?: string | null; year?: string | null }
 ): Promise<Quiz[]> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
-        const localQuizzes = getLocalQuizzes();
-        let currentMeta = meta;
-        if (!currentMeta) {
-            const current = (localQuizzes as any[]).find(q => q.id === quizId);
-            if (!current) return [];
-            currentMeta = { skill: current.skill, source: current.source, year: current.year };
-        }
-
-        let list = (localQuizzes as any[]).filter(
-            (q) => q.status === "published" && q.id !== quizId && q.skill === currentMeta?.skill
-        );
-
-        if (currentMeta?.source) {
-            list = list.filter((q) => q.source === currentMeta.source);
-        }
-        if (currentMeta?.year) {
-            list = list.filter((q) => q.year === currentMeta.year);
-        }
-
-        return list.slice(0, 8).map((q) => {
-            const { passages, ...rest } = q;
-            return rest as Quiz;
-        });
-    }
-
     let currentMeta = meta;
 
     if (!currentMeta) {

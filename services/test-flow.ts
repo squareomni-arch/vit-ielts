@@ -28,80 +28,6 @@ import type {
 import type { QuizWithPassages as QuizForScoring } from "./types/quiz";
 import { calculateScore } from "./scoring";
 import { TEST_RESULT_COLUMNS, TEST_RESULT_SUMMARY_COLUMNS } from "./lib/columns";
-let localQuizzesCache: any[] | null = null;
-
-function getLocalQuizzes(): any[] {
-    if (localQuizzesCache) return localQuizzesCache;
-    if (typeof window === "undefined") {
-        try {
-            const fs = eval("require")("fs");
-            const path = eval("require")("path");
-            const filePath = path.join(process.cwd(), "data", "exported-quizzes.json");
-            if (fs.existsSync(filePath)) {
-                const rawData = fs.readFileSync(filePath, "utf-8");
-                localQuizzesCache = JSON.parse(rawData);
-                return localQuizzesCache || [];
-            }
-        } catch (err) {
-            console.error("Failed to load local quizzes:", err);
-        }
-    }
-    return [];
-}
-
-// Store for mock test results when running database-less.
-//
-// Backed by a JSON file (data/mock-test-results.json) so a submitted result
-// survives container restarts / redeploys and is served from any process — and,
-// crucially, always resolves to the EXACT quiz the user took (never falls back
-// to an unrelated quiz). The in-memory Map is just a hot cache over the file.
-const mockResultsStore = new Map<string, any>();
-
-function mockResultsFilePath(): string {
-    const path = eval("require")("path");
-    return path.join(process.cwd(), "data", "mock-test-results.json");
-}
-
-// Always re-read the file and merge into the in-memory Map (file wins).
-//
-// Critical: in a Next.js production build, API routes and page getServerSideProps
-// live in SEPARATE server bundles and do NOT share this module's Map. The on-disk
-// file is the only channel between them, so a result written by
-// /api/test-flow/submit is only visible to /test-result/[id] if reads re-read the
-// file every time — a one-shot cache would make the result page 404. The file is
-// small; re-reading per request is cheap. We merge (not clear) so an entry that
-// failed to persist (e.g. read-only fs) still survives within its own process.
-function loadMockResults(): void {
-    if (typeof window !== "undefined") return;
-    try {
-        const fs = eval("require")("fs");
-        const filePath = mockResultsFilePath();
-        if (fs.existsSync(filePath)) {
-            const rows = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-            if (Array.isArray(rows)) {
-                for (const row of rows) {
-                    if (row?.id) mockResultsStore.set(row.id, row);
-                }
-            }
-        }
-    } catch (err) {
-        console.error("Failed to load mock test results:", err);
-    }
-}
-
-function persistMockResults(): void {
-    if (typeof window !== "undefined") return;
-    try {
-        const fs = eval("require")("fs");
-        fs.writeFileSync(
-            mockResultsFilePath(),
-            JSON.stringify(Array.from(mockResultsStore.values())),
-            "utf-8",
-        );
-    } catch (err) {
-        console.error("Failed to persist mock test results:", err);
-    }
-}
 
 // ============================================================================
 // Custom Error Classes
@@ -235,46 +161,6 @@ export async function takeTheTest(
     supabase: SupabaseClient,
     params: TakeTheTestParams,
 ): Promise<TestResult> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
-        loadMockResults();
-        const localQuizzes = getLocalQuizzes();
-        const quiz = (localQuizzes as any[]).find(q => q.id === params.quizId);
-        const testTime = params.testTime || quiz?.time_minutes || 40;
-
-        // Find if there is an existing draft
-        let mockResult = Array.from(mockResultsStore.values()).find(
-            (r) => r.quiz_id === params.quizId && r.status === "draft"
-        );
-
-        if (mockResult && !params.retake) {
-            return mockResult as TestResult;
-        }
-
-        if (mockResult && params.retake) {
-            mockResultsStore.delete(mockResult.id);
-        }
-
-        mockResult = {
-            id: `mock-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            quiz_id: params.quizId,
-            user_id: "mock-user-id",
-            test_part: params.testPart,
-            test_time: testTime,
-            test_mode: params.testMode,
-            status: "draft",
-            time_left: `${testTime}:00`,
-            answers: { answers: [] },
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            score: null,
-            total_correct: null,
-            total_questions: null,
-        };
-        mockResultsStore.set(mockResult.id, mockResult);
-        persistMockResults();
-        return mockResult as TestResult;
-    }
-
     const userId = await requireAuth(supabase);
 
     // Step 1: Check Pro access
@@ -407,29 +293,6 @@ export async function saveTestResult(
     answers: { answers: unknown[] },
     timeLeft: string,
 ): Promise<void> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true") {
-        loadMockResults();
-        const existing = mockResultsStore.get(testId);
-        if (existing) {
-            existing.answers = answers;
-            existing.time_left = timeLeft;
-            existing.updated_at = new Date().toISOString();
-        } else {
-            // Create a fallback draft if not found
-            mockResultsStore.set(testId, {
-                id: testId,
-                user_id: "mock-user-id",
-                status: "draft",
-                answers,
-                time_left: timeLeft,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-            });
-        }
-        persistMockResults();
-        return;
-    }
-
     const userId = await requireAuth(supabase);
 
     // Update only if draft belongs to current user
@@ -472,61 +335,6 @@ export async function submitTestResult(
     timeLeft: string,
     fallback?: { quizId?: string; testPart?: number[] },
 ): Promise<TestResult> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
-        loadMockResults();
-        const localQuizzes = getLocalQuizzes();
-        // Always resolve the quiz from the submission's quizId (or the draft we
-        // started) so scoring & review use the EXACT set the user took.
-        const existingDraft = mockResultsStore.get(testId);
-        const quizId = fallback?.quizId || existingDraft?.quiz_id || "mock-quiz-id";
-        const quizData = (localQuizzes as any[]).find(q => q.id === quizId);
-        if (!quizData) {
-            throw new Error("Quiz not found for scoring.");
-        }
-
-        let testPart = fallback?.testPart || [];
-        if (testPart.length === 0) {
-            const passageCount = (quizData.passages ?? []).length;
-            testPart = Array.from({ length: passageCount }, (_, i) => i);
-        }
-
-        const quizForScoring = toQuizForScoring(quizData);
-        const scoreResult = calculateScore(
-            answers.answers as Parameters<typeof calculateScore>[0],
-            quizForScoring,
-            testPart,
-        );
-        const score = scoreResult.score;
-
-        const answersWithBreakdown = {
-            ...answers,
-            totalCorrect: scoreResult.totalCorrect,
-            totalQuestions: scoreResult.totalQuestions,
-        };
-
-        const existing = mockResultsStore.get(testId) || {};
-        const updatedResult = {
-            ...existing,
-            id: testId || `mock-result-${Date.now()}`,
-            user_id: "mock-user-id",
-            quiz_id: quizId,
-            test_part: testPart,
-            test_time: quizData.time_minutes ?? 0,
-            test_mode: "practice",
-            answers: answersWithBreakdown,
-            time_left: timeLeft,
-            score,
-            status: "published",
-            submitted_at: new Date().toISOString(),
-            created_at: existing.created_at || new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-        };
-
-        mockResultsStore.set(updatedResult.id, updatedResult);
-        persistMockResults();
-        return updatedResult as TestResult;
-    }
-
     const userId = await requireAuth(supabase);
 
     // Get test result to retrieve quiz_id and test_part
@@ -655,30 +463,6 @@ export async function getTestResult(
     supabase: SupabaseClient,
     testId: string,
 ): Promise<TestResultWithQuiz | null> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
-        loadMockResults();
-        const localQuizzes = getLocalQuizzes();
-        const mockResult = mockResultsStore.get(testId);
-        // No blank fallback: if the result is unknown we MUST NOT invent one off
-        // an unrelated quiz (that would show the wrong test's answers). Returning
-        // null lets the page render notFound, which is the correct behavior.
-        if (!mockResult) return null;
-
-        const quiz = (localQuizzes as any[]).find(q => q.id === mockResult.quiz_id);
-        return {
-            ...mockResult,
-            quizzes: quiz ? {
-                id: quiz.id,
-                title: quiz.title,
-                slug: quiz.slug,
-                skill: quiz.skill,
-                type: quiz.type,
-                time_minutes: quiz.time_minutes ?? 40,
-                featured_image: quiz.featured_image,
-            } : null
-        } as any;
-    }
-
     const { data, error } = await supabase
         .from("test_results")
         .select(
@@ -712,49 +496,6 @@ export async function getUserTestHistory(
     userId: string,
     filters: TestHistoryFilters = {},
 ): Promise<PaginatedResponse<TestResultWithQuiz>> {
-    if (process.env.NEXT_PUBLIC_MOCK_DB === "true" && typeof window === "undefined") {
-        loadMockResults();
-        const localQuizzes = getLocalQuizzes();
-        const page = filters.page ?? 1;
-        const pageSize = Math.min(filters.pageSize ?? 10, 100);
-
-        let list = Array.from(mockResultsStore.values())
-            .filter((r) => r.user_id === userId && r.status === "published");
-
-        if (filters.quizId) {
-            list = list.filter((r) => r.quiz_id === filters.quizId);
-        }
-
-        const listWithQuiz = list.map((r) => {
-            const quiz = (localQuizzes as any[]).find((q) => q.id === r.quiz_id);
-            return {
-                ...r,
-                quizzes: quiz ? {
-                    id: quiz.id,
-                    title: quiz.title,
-                    slug: quiz.slug,
-                    skill: quiz.skill,
-                    type: quiz.type,
-                    time_minutes: quiz.time_minutes ?? 40,
-                    featured_image: quiz.featured_image,
-                } : null
-            };
-        }) as TestResultWithQuiz[];
-
-        listWithQuiz.sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
-
-        const count = listWithQuiz.length;
-        const paginated = listWithQuiz.slice((page - 1) * pageSize, page * pageSize);
-
-        return {
-            data: paginated,
-            count,
-            page,
-            pageSize,
-            totalPages: Math.ceil(count / pageSize),
-        };
-    }
-
     const page = filters.page ?? 1;
     const pageSize = Math.min(filters.pageSize ?? 10, 100);
 
