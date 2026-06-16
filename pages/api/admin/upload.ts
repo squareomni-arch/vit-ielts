@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import formidable from "formidable";
 import fs from "fs";
 import { requireAdmin } from "~lib/admin-auth";
-import { uploadToLocal } from "~lib/local-upload";
+import { uploadToSupabase } from "~lib/supabase-upload";
 import { dbg } from "~lib/debug";
 
 const log = dbg.upload;
@@ -43,8 +43,8 @@ function buildSafeFilename(originalName: string, mimeType: string): string {
 /**
  * POST /api/admin/upload
  *
- * Accepts image / audio / PDF, forwards to VPS CMS via PHP endpoint,
- * and returns the public URL. Supabase stores the URL only.
+ * Accepts image / audio / PDF, uploads to Supabase Storage,
+ * and returns the public URL.
  *
  * Response: { success: true, data: { url, filename, size, mimeType, category } }
  */
@@ -78,17 +78,15 @@ export default async function handler(
       });
     }
 
-    // Derive a safe filename — extension comes from MIME, not from the client,
-    // so an uploaded `foo.exe` with mime `image/jpeg` becomes `foo.jpg`.
     const safeName = buildSafeFilename(file.originalFilename ?? "file", mimeType);
-    log("Uploading to VPS:", { filename: safeName, mimetype: mimeType, size: file.size });
+    log("Uploading to Supabase Storage:", { filename: safeName, mimetype: mimeType, size: file.size });
 
     const fileBuffer = fs.readFileSync(file.filepath);
     try { fs.unlinkSync(file.filepath); } catch { /* ignore */ }
 
-    const result = await uploadToLocal(fileBuffer, safeName, mimeType);
+    const result = await uploadToSupabase(fileBuffer, safeName, mimeType);
 
-    log("Local upload success:", result.url);
+    log("Supabase Storage upload success:", result.url);
 
     return res.status(200).json({
       success: true,

@@ -51,18 +51,9 @@ export default function FileUploadField({
         const formData = new FormData();
         formData.append("file", file);
 
-        const uploadUrl = process.env.NEXT_PUBLIC_MEDIA_UPLOAD_URL || "/api/admin/upload";
-        const uploadSecret = process.env.NEXT_PUBLIC_MEDIA_UPLOAD_SECRET;
-
-        const headers: Record<string, string> = {};
-        if (uploadSecret && (uploadUrl.includes("ieltspredictiontest.com") || uploadUrl.includes("vitielts.com"))) {
-          headers["X-Upload-Key"] = uploadSecret;
-        }
-
-        const res = await fetch(uploadUrl, { 
-          method: "POST", 
+        const res = await fetch("/api/admin/upload", {
+          method: "POST",
           body: formData,
-          headers
         });
         
         const json = await res.json();

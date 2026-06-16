@@ -150,10 +150,10 @@ export default async function handler(
                 .eq("id", id)
                 .single();
 
-            // 1. Physically delete from VPS
+            // 1. Physically delete from Supabase Storage
             if (mediaItem?.url) {
-                const { deleteFromVPS } = await import("~lib/vps-upload");
-                await deleteFromVPS(mediaItem.url);
+                const { deleteFromSupabase } = await import("~lib/supabase-upload");
+                await deleteFromSupabase(mediaItem.url);
             }
 
             // 2. Delete from database

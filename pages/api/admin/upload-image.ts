@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import formidable from "formidable";
 import fs from "fs";
 import { requireAdmin } from "~lib/admin-auth";
-import { uploadToLocal } from "~lib/local-upload";
+import { uploadToSupabase } from "~lib/supabase-upload";
 import { dbg } from "~lib/debug";
 
 const log = dbg.upload;
@@ -26,8 +26,8 @@ const ALLOWED_IMAGE_MIMES: Record<string, true> = {
  * POST /api/admin/upload-image
  *
  * Image-only upload endpoint (used by Media Library and ImageUpload component).
- * Forwards to VPS and returns { path: <public_url> } for backward compatibility
- * with existing callers that read `data.path`.
+ * Uploads to Supabase Storage and returns { path: <public_url> } for backward
+ * compatibility with existing callers that read `data.path`.
  */
 export default async function handler(
   req: NextApiRequest,
@@ -60,14 +60,14 @@ export default async function handler(
     }
 
     const originalName = file.originalFilename ?? "image";
-    log("Uploading image to VPS:", { filename: originalName, mimetype: mimeType, size: file.size });
+    log("Uploading image to Supabase Storage:", { filename: originalName, mimetype: mimeType, size: file.size });
 
     const fileBuffer = fs.readFileSync(file.filepath);
     try { fs.unlinkSync(file.filepath); } catch { /* ignore */ }
 
-    const result = await uploadToLocal(fileBuffer, originalName, mimeType);
+    const result = await uploadToSupabase(fileBuffer, originalName, mimeType);
 
-    log("Local image upload success:", result.url);
+    log("Supabase Storage image upload success:", result.url);
 
     // Return { path } for backward compatibility with ImageUpload component
     return res.status(200).json({ path: result.url });

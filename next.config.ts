@@ -42,6 +42,15 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '**.ibb.co',
       },
+      // Supabase Storage (self-hosted VPS)
+      {
+        hostname: 'api.squarevps.com',
+      },
+      // Supabase cloud (supabase.co projects)
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
     ],
   },
   webpack: (config, { isServer, webpack }) => {

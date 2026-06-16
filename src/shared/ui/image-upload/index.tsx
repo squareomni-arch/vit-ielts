@@ -49,18 +49,9 @@ export function ImageUpload({
         formData.append("oldPath", value);
       }
 
-      const uploadUrl = process.env.NEXT_PUBLIC_MEDIA_UPLOAD_URL || "/api/admin/upload-image";
-      const uploadSecret = process.env.NEXT_PUBLIC_MEDIA_UPLOAD_SECRET;
-
-      const headers: Record<string, string> = {};
-      if (uploadSecret && (uploadUrl.includes("ieltspredictiontest.com") || uploadUrl.includes("vitielts.com"))) {
-        headers["X-Upload-Key"] = uploadSecret;
-      }
-
-      const res = await fetch(uploadUrl, {
+      const res = await fetch("/api/admin/upload-image", {
         method: "POST",
         body: formData,
-        headers
       });
 
       if (!res.ok) {

@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import formidable from "formidable";
 import fs from "fs";
 import { createApiSupabase } from "~supabase/server";
-import { uploadToLocal } from "~lib/local-upload";
+import { uploadToSupabase } from "~lib/supabase-upload";
 
 export const config = {
   api: { bodyParser: false },
@@ -21,6 +21,7 @@ const ALLOWED_MIMES: Record<string, true> = {
  * POST /api/account/upload-avatar
  *
  * Authenticated (any signed-in user) avatar upload.
+ * Uploads to Supabase Storage under the "avatars" folder.
  * Returns { path: <public_url> } compatible with the ImageUpload component.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -53,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const fileBuffer = fs.readFileSync(file.filepath);
     try { fs.unlinkSync(file.filepath); } catch { /* ignore */ }
 
-    const result = await uploadToLocal(fileBuffer, originalName, mimeType);
+    const result = await uploadToSupabase(fileBuffer, originalName, mimeType, "avatars");
 
     return res.status(200).json({ path: result.url });
   } catch (error) {

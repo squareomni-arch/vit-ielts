@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import formidable from "formidable";
 import fs from "fs";
 import { createApiSupabase } from "~supabase/server";
-import { uploadToVPS } from "~lib/vps-upload";
+import { uploadToSupabase } from "~lib/supabase-upload";
 
 export const config = { api: { bodyParser: false } };
 
@@ -16,7 +16,7 @@ const ALLOWED: Record<string, true> = {
 
 /**
  * POST /api/classroom/upload-image — any signed-in user (teacher) uploads a
- * class image. Forwards to the VPS and returns { path: <public_url> }.
+ * class image to Supabase Storage. Returns { path: <public_url> }.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -41,13 +41,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const buffer = fs.readFileSync(file.filepath);
-    try {
-      fs.unlinkSync(file.filepath);
-    } catch {
-      /* ignore */
-    }
+    try { fs.unlinkSync(file.filepath); } catch { /* ignore */ }
 
-    const result = await uploadToVPS(buffer, file.originalFilename ?? "class-image", mimeType);
+    const result = await uploadToSupabase(buffer, file.originalFilename ?? "class-image", mimeType, "classroom");
     return res.status(200).json({ path: result.url });
   } catch (error) {
     return res.status(500).json({
