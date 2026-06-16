@@ -4,14 +4,10 @@ import type { ServerResponse } from "http";
 
 const isProduction = process.env.NODE_ENV === "production";
 
-function mockClientAuth(client: any) {
-    // Mock mode (NEXT_PUBLIC_MOCK_DB) mocks DATA at the service layer only (see
-    // services/*). Auth intentionally flows through the real (local) Supabase so
-    // login / sign-up / sign-out actually work and persist. This previously faked
-    // an always-signed-in user, which (a) disagreed with getMasterData's
-    // cookie-gated viewer and (b) made the guest-only /account/login & /register
-    // pages unreachable. Kept as a pass-through hook for future use.
-    return client;
+import { wrapWithMockAuth } from "./mockAuth";
+
+function mockClientAuth(client: any, cookies?: Record<string, string>) {
+    return wrapWithMockAuth(client, cookies);
 }
 
 /**
@@ -83,7 +79,7 @@ export function createServerSupabase(context: GetServerSidePropsContext) {
                 },
             },
         }
-    ));
+    ), context.req.cookies);
 }
 
 /**
@@ -122,7 +118,7 @@ export function createAdminServerSupabase(context: GetServerSidePropsContext) {
                 },
             },
         }
-    ));
+    ), context.req.cookies);
 }
 
 /**
@@ -160,7 +156,7 @@ export function createApiSupabase(req: NextApiRequest, res: NextApiResponse) {
                 },
             },
         }
-    ));
+    ), req.cookies);
 }
 
 /**
@@ -199,6 +195,6 @@ export function createAdminApiSupabase(req: NextApiRequest, res: NextApiResponse
                 },
             },
         }
-    ));
+    ), req.cookies);
 }
 

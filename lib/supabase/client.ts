@@ -21,14 +21,10 @@ const clientOptions = {
  * the same time, one wins and the other gets `invalid_refresh_token`, which
  * dumps the user back to the login screen).
  */
+import { wrapWithMockAuth } from "./mockAuth";
+
 function mockClientAuth(client: any) {
-  // Mock mode (NEXT_PUBLIC_MOCK_DB) mocks DATA at the service layer only (see
-  // services/*). Auth intentionally flows through the real (local) Supabase so
-  // login / sign-up / sign-out actually work and persist. This previously faked
-  // an always-signed-in user, which (a) disagreed with getMasterData's
-  // cookie-gated viewer and (b) made the guest-only /account/login & /register
-  // pages unreachable. Kept as a pass-through hook for future use.
-  return client;
+  return wrapWithMockAuth(client);
 }
 
 export function createClient(): BrowserClient {
