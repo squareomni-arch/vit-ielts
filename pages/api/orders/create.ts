@@ -218,9 +218,12 @@ export default async function handler(
       });
     }
 
+    // Mọi lỗi 500 còn lại đều là sự cố hệ thống (vd: thiếu config/env, DB lỗi).
+    // KHÔNG trả message nội bộ ra client — đã log đầy đủ ở console.error phía trên.
     return res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : "Internal server error",
+      error:
+        "Hệ thống đang gặp sự cố, chưa thể tạo đơn hàng. Vui lòng thử lại sau ít phút hoặc liên hệ hỗ trợ.",
     });
   }
 }
