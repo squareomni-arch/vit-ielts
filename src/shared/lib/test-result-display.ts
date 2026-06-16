@@ -415,7 +415,7 @@ export const toLegacyQuizForScore = (
             })),
         })),
     },
-  } as Parameters<typeof calculateScore>[1];
+  } as unknown as Parameters<typeof calculateScore>[1];
 };
 
 export const calculateStoredScoreResult = ({
@@ -437,5 +437,5 @@ export const calculateStoredScoreResult = ({
     quiz.quizFields.passages.length,
   );
 
-  return calculateScore(normalizedAnswers.answers, quiz, normalizedTestPart);
+  return calculateScore(normalizedAnswers.answers as any, quiz, normalizedTestPart);
 };

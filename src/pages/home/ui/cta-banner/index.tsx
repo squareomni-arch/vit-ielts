@@ -7,7 +7,7 @@ export const CtaBanner = () => (
     data-section="cta-banner"
     className="w-full bg-surface-app pb-10"
   >
-    <div className="relative bg-brand rounded-[24px] sm:rounded-[32px] lg:rounded-[40px] mt-14 px-6 py-12 sm:p-[60px] flex flex-col items-center text-center overflow-hidden">
+    <div className="relative bg-brand rounded-[24px] sm:rounded-[32px] lg:rounded-[40px] px-6 py-12 sm:p-[60px] flex flex-col items-center text-center overflow-hidden">
       {/* Polka-dot pattern overlay */}
       <div
         className="absolute inset-0 opacity-30 pointer-events-none"

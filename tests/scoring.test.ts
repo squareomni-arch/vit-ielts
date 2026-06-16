@@ -349,7 +349,7 @@ describe("Scoring Engine — Edge Cases", () => {
   });
 
   it("handles quiz with no passages", () => {
-    const emptyQuiz = { id: "empty", title: "Empty", passages: [] };
+    const emptyQuiz = { id: "empty", title: "Empty", skill: "reading" as any, type: "practice" as any, passages: [] };
     const { score } = calculateScore([], emptyQuiz, [0]);
     expect(score).toBe(0);
   });

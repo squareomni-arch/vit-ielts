@@ -3,6 +3,7 @@ import { Form, Input, Button, Card, message, Space } from "antd";
 import { FacebookOutlined } from "@ant-design/icons";
 import AdminLayout from "../_layout";
 import { withAdmin } from "@/shared/hoc/withAdmin";
+import { InactiveSectionNotice } from "@/shared/ui/admin/inactive-section-notice";
 
 function ContactIconsAdminPage() {
   const [form] = Form.useForm();
@@ -50,6 +51,7 @@ function ContactIconsAdminPage() {
 
   return (
     <AdminLayout>
+      <InactiveSectionNotice note="Icon liên hệ nổi trên website đang lấy từ Settings (Facebook & Zalo trong general settings), không đọc cấu hình ở đây. Chỉnh sửa mục này sẽ không có tác dụng." />
       <Card title={<h1 className="text-2xl font-bold m-0">Fixed Contact Icons</h1>}>
         {loading ? (
           <div className="py-10 text-center text-gray-500">Đang tải cấu hình...</div>

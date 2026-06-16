@@ -312,9 +312,9 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
 
           {/* Info grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <InfoRow label="TÊN TÀI KHOẢN" value="TRAN PHAN TIEN PHAT" />
-            <InfoRow label="SỐ TÀI KHOẢN" value="2447967" />
-            <InfoRow label="NGÂN HÀNG" value="Thương Mại Cổ Phần Á Châu (ACB)" />
+            <InfoRow label="TÊN TÀI KHOẢN" value="NGUYEN TRUNG KIEN" />
+            <InfoRow label="SỐ TÀI KHOẢN" value="0363500192" />
+            <InfoRow label="NGÂN HÀNG" value="Ngân hàng TMCP Quân Đội (MB Bank)" />
             <InfoRow label="SỐ TIỀN" value={displayAmount.replace("đ", "₫")} />
             <InfoRow label="NỘI DUNG CHUYỂN KHOẢN" value={displayNote} className="md:col-span-2" />
             <InfoRow label="TRẠNG THÁI" value="Chờ thanh toán" className="md:col-span-2" />
@@ -365,7 +365,7 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
           <div className="flex flex-col items-center">
             <div className="w-[200px] h-[200px] rounded-xl border border-border-hairline bg-surface-card p-2">
               <img
-                src={`https://qr.sepay.vn/img?acc=2447967&bank=ACB&amount=${order.amount}&des=${encodeURIComponent(order.orderId)}`}
+                src={`https://qr.sepay.vn/img?acc=0363500192&bank=MB&amount=${order.amount}&des=${encodeURIComponent(order.orderId)}`}
                 alt="QR Code"
                 className="w-full h-full object-contain"
               />
@@ -390,7 +390,7 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="text-ink-muted shrink-0">Hình thức</span>
-              <span className="font-semibold text-ink-900 text-right">Ngân hàng ACB</span>
+              <span className="font-semibold text-ink-900 text-right">Ngân hàng MB Bank</span>
             </div>
           </div>
 

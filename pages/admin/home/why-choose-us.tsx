@@ -4,6 +4,7 @@ import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import AdminLayout from "../_layout";
 import { withAdmin } from "@/shared/hoc/withAdmin";
 import { ImageUpload } from "@/shared/ui/image-upload";
+import { InactiveSectionNotice } from "@/shared/ui/admin/inactive-section-notice";
 import type { WhyChooseUsConfig } from "@/pages/home/ui/why-choose-us/types";
 
 function WhyChooseUsPage() {
@@ -49,6 +50,7 @@ function WhyChooseUsPage() {
 
   return (
     <AdminLayout>
+      <InactiveSectionNotice />
       <div style={{ maxWidth: 800, margin: "0 auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <h2 style={{ margin: 0 }}>🏆 Why Choose Us</h2>

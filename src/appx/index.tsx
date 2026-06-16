@@ -204,8 +204,31 @@ export default function App({
           <Layout>
             <Head>
               <title>
-                {pageProps.masterData?.allSettings.generalSettingsTitle || ""}
+                {pageProps.masterData?.allSettings.generalSettingsTitle === "Vit IELTS" || pageProps.masterData?.allSettings.generalSettingsTitle === "Vịt IELTS" || !pageProps.masterData?.allSettings.generalSettingsTitle
+                  ? "Vịt IELTS - Thực chiến mọi đề - Bứt tốc band 8.0"
+                  : pageProps.masterData.allSettings.generalSettingsTitle}
               </title>
+              <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width" />
+              <meta name="keywords" content="ielts, vit ielts, thuc chien ielts, ielt smock test, chuan bi thi ielts, band 8.0, khoa hoc ielts, ielts online, hoc ielts, luyen thi ielts, ielts listening, ielts reading" />
+              <meta name="author" content="Vịt IELTS" />
+              <meta name="description" content="Thực chiến mọi đề - Bứt tốc band 8.0" />
+              <meta name="generator" content="Vịt IELTS" />
+
+              {/* meta facebook */}
+              <meta property="article:author" content="https://www.facebook.com/vitielts/" />
+              <meta property="og:site_name" content="Vịt IELTS" />
+              <meta property="og:type" content="article" />
+              <meta property="og:title" content="Thực chiến mọi đề - Bứt tốc band 8.0" />
+              <meta property="og:url" content="" />
+              <meta property="og:description" content="Thực chiến mọi đề - Bứt tốc band 8.0" />
+              <meta property="og:image" content="" />
+              <meta property="fb:app_id" content="ID APP" />
+
+              {/* meta google */}
+              <meta itemProp="name" content="Thực chiến mọi đề - Bứt tốc band 8.0" />
+              <meta itemProp="description" content="Thực chiến mọi đề - Bứt tốc band 8.0" />
+              <meta itemProp="image" content="..." />
+
               <link rel="icon" href="/favicon.ico" />
               <link
                 rel="apple-touch-icon"

@@ -29,7 +29,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
     date: quiz.published_at ?? quiz.created_at,
     featuredImage: quiz.featured_image
       ? { node: { sourceUrl: quiz.featured_image, altText: quiz.title } }
-      : null,
+      : undefined,
     quizFields: {
       testsTaken: quiz.tests_taken ?? 0,
       proUserOnly: quiz.pro_user_only,
@@ -39,12 +39,12 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
       scoreType: [quiz.score_type ?? "band", quiz.score_type ?? "band"],
       audio: quiz.audio_url
         ? { node: { id: quiz.id, mediaItemUrl: quiz.audio_url } }
-        : null,
+        : undefined,
       passages: (quiz.passages ?? []).map((p) => ({
         title: p.title ?? "",
         passage_content: p.content ?? "",
-        audio_start: p.audio_start?.toString() ?? null,
-        audio_end: p.audio_end?.toString() ?? null,
+        audio_start: p.audio_start?.toString() ?? undefined,
+        audio_end: p.audio_end?.toString() ?? undefined,
         start_question_number:
           (p as any).start_question_number !== null && (p as any).start_question_number !== undefined
             ? Number((p as any).start_question_number)
@@ -59,8 +59,8 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
             question_form: [q.question_form ?? "uncategorized", q.question_form ?? "uncategorized"] as [string, string],
             title: q.title ?? "",
             type: [q.type, q.type] as [string, string],
-            question: q.question_text ?? null,
-            instructions: q.instructions ?? null,
+            question: q.question_text ?? undefined,
+            instructions: q.instructions ?? undefined,
             list_of_questions: Array.isArray(listOfQuestions)
               ? listOfQuestions.map((lq) => ({
                   question: lq.question,
@@ -69,18 +69,18 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
                     content: o.option_text ?? o.content ?? "",
                   })),
                 }))
-              : null,
+              : undefined,
             list_of_options: Array.isArray(listOfOptions)
               ? listOfOptions.map((lo) => ({
                   option: lo.option_text ?? lo.option ?? "",
-                  correct: lo.correct ?? null,
+                  correct: lo.correct ?? undefined,
                 }))
-              : null,
+              : undefined,
             explanations: explanations.map((e: any) => ({ content: e.content ?? "" })),
             matchingQuestion: matchingQ
               ? {
                   layoutType: (() => {
-                    const lt = matchingQ.layout_type ?? matchingQ.layoutType ?? null;
+                    const lt = matchingQ.layout_type ?? matchingQ.layoutType ?? undefined;
                     return Array.isArray(lt) ? lt[0] : lt;
                   })(),
                   summaryText: matchingQ.summary_text ?? matchingQ.summaryText ?? "",
@@ -96,7 +96,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
                     optionText: ao.option_text ?? ao.optionText ?? "",
                   })),
                 }
-              : null,
+              : undefined,
             matrixQuestion: matrixQ
               ? {
                   matrixCategories: (Array.isArray(matrixQ.matrix_categories)
@@ -117,7 +117,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
                   })(),
                   legendTitle: matrixQ.legend_title ?? matrixQ.legendTitle ?? "",
                 }
-              : null,
+              : undefined,
           };
         }),
       })),

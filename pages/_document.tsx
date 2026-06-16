@@ -6,6 +6,26 @@ import type { DocumentContext } from "next/document";
 const MyDocument = () => (
   <Html lang="en">
     <Head>
+      {/* Google Tag Manager */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-K667XHRR');`,
+        }}
+      />
+      {/* End Google Tag Manager */}
+      <meta charSet="UTF-8" />
+      <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="facebook-domain-verification" content="djlabdky9dlglh7wa6lusy5ggkmyvt" />
+      <meta name="google-site-verification" content="" />
+      <meta name="revisit-after" content="1 days" />
+      <meta name="RATING" content="GENERAL" />
+      <meta name="robots" content="index,follow" />
+      <meta name="Googlebot" content="index,follow,archive" />
       <style dangerouslySetInnerHTML={{ __html: "@layer theme, base, antd, components, utilities;" }} />
       {/* Google Fonts — loaded via <link> for reliability (CSS @import can be dropped by PostCSS) */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -123,6 +143,16 @@ const MyDocument = () => (
       />
     </Head>
     <body>
+      {/* Google Tag Manager (noscript) */}
+      <noscript>
+        <iframe
+          src="https://www.googletagmanager.com/ns.html?id=GTM-K667XHRR"
+          height="0"
+          width="0"
+          style={{ display: "none", visibility: "hidden" }}
+        />
+      </noscript>
+      {/* End Google Tag Manager (noscript) */}
       <div id="global-skeleton-loader">
         <div className="sk-header">
           <div className="sk-logo sk-pulse"></div>

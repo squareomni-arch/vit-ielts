@@ -33,7 +33,13 @@ import {
 // ============================================================================
 
 function buildQuiz(passages: QuizPassage[]): QuizWithPassages {
-  return { id: "integration-quiz", title: "Integration Test Quiz", passages };
+  return {
+    id: "integration-quiz",
+    title: "Integration Test Quiz",
+    skill: "reading",
+    type: "practice",
+    passages,
+  };
 }
 
 function buildPassage(

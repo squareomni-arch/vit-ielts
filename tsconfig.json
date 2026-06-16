@@ -48,6 +48,9 @@
   ],
   "exclude": [
     "node_modules",
-    "scripts"
+    "scripts",
+    "tests",
+    "visual-tests",
+    "e2e"
   ]
 }

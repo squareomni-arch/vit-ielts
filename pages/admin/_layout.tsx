@@ -43,7 +43,7 @@ type MenuItemDef = {
   key: string;
   icon: React.ReactNode;
   label: string;
-  children?: { key: string; label: string; icon?: React.ReactNode }[];
+  children?: { key: string; label: string; icon?: React.ReactNode; inactive?: boolean }[];
 };
 
 type MenuSection = {
@@ -109,9 +109,9 @@ const MENU_SECTIONS: MenuSection[] = [
         key: "cms-home", icon: <HomeOutlined />, label: "Home",
         children: [
           { key: "/admin/home/banner", label: "Hero Banner" },
-          { key: "/admin/home/test-platform-intro", label: "Test Platform Intro" },
-          { key: "/admin/home/why-choose-us", label: "Why Choose Us" },
-          { key: "/admin/home/testimonials", label: "Testimonials" },
+          { key: "/admin/home/test-platform-intro", label: "Test Platform Intro", inactive: true },
+          { key: "/admin/home/why-choose-us", label: "Why Choose Us", inactive: true },
+          { key: "/admin/home/testimonials", label: "Testimonials", inactive: true },
         ],
       },
       {
@@ -145,14 +145,14 @@ const MENU_SECTIONS: MenuSection[] = [
         key: "cms-footer", icon: <GlobalOutlined />, label: "Footer",
         children: [
           { key: "/admin/footer/cta-banner", label: "CTA Banner" },
-          { key: "/admin/footer/contact-icons", label: "Contact Icons" },
+          { key: "/admin/footer/contact-icons", label: "Contact Icons", inactive: true },
         ],
       },
       {
         key: "cms-account", icon: <UserOutlined />, label: "Account Pages",
         children: [
-          { key: "/admin/account/login", label: "Login Page" },
-          { key: "/admin/account/register", label: "Register Page" },
+          { key: "/admin/account/login", label: "Login Page", inactive: true },
+          { key: "/admin/account/register", label: "Register Page", inactive: true },
         ],
       },
       {
@@ -497,9 +497,27 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                   isItemActive(child.key, router.asPath) ? "active" : ""
                                 }`}
                                 onClick={() => setMobileOpen(false)}
+                                style={child.inactive ? { opacity: 0.55 } : undefined}
+                                title={child.inactive ? "Không hiển thị trên giao diện mới" : undefined}
                               >
                                 {child.icon && <span className="admin-menu-item-icon" style={{ fontSize: 14 }}>{child.icon}</span>}
                                 <span className="admin-menu-item-label">{child.label}</span>
+                                {child.inactive && (
+                                  <span
+                                    style={{
+                                      marginLeft: "auto",
+                                      fontSize: 10,
+                                      opacity: 0.8,
+                                      border: "1px solid currentColor",
+                                      borderRadius: 4,
+                                      padding: "0 4px",
+                                      lineHeight: "14px",
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
+                                    ẩn
+                                  </span>
+                                )}
                               </Link>
                             ))}
                           </div>

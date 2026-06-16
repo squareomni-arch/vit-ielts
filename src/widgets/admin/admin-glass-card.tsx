@@ -1,6 +1,6 @@
 type AdminGlassCardProps = {
   children: React.ReactNode;
-  title?: string;
+  title?: React.ReactNode;
   extra?: React.ReactNode;
   interactive?: boolean;
   className?: string;

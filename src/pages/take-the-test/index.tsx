@@ -53,7 +53,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
       scoreType: [(quiz.score_type ?? "band") as "band" | "percentage", quiz.score_type ?? "band"],
       audio: quiz.audio_url
         ? { node: { id: quiz.id, mediaItemUrl: quiz.audio_url, databaseId: 0 } }
-        : null,
+        : undefined,
       passages: (quiz.passages ?? []).map((p) => ({
         title: p.title ?? "",
         passage_content: p.content ?? "",
@@ -131,7 +131,7 @@ function toIPracticeSingle(quiz: QuizWithPassages): IPracticeSingle {
       })) as any,
       pdf: quiz.pdf_url
         ? { node: { id: quiz.id, mediaItemUrl: quiz.pdf_url, databaseId: 0 } }
-        : null,
+        : undefined,
     },
   };
 }

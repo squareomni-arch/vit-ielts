@@ -69,7 +69,7 @@ export const QuizListing = ({
               edges: [],
               pageInfo: { total: 0 },
             },
-          } as GetPracticeHistory);
+          } as any);
           return;
         }
 
@@ -102,7 +102,7 @@ export const QuizListing = ({
           .map((result: any) => {
             const quiz = quizMap.get(result.quiz_id);
             const legacyQuiz = toLegacyQuizForScore(quiz as any);
-            const passageCount = legacyQuiz.quizFields.passages.length;
+            const passageCount = legacyQuiz!.quizFields.passages.length;
 
             return {
               node: {
@@ -127,7 +127,7 @@ export const QuizListing = ({
                       title: (quiz as any)?.title || "",
                       slug: (quiz as any)?.slug || "",
                       quizFields: {
-                        ...legacyQuiz.quizFields,
+                        ...legacyQuiz!.quizFields,
                         skill: [
                           (quiz as any)?.skill || params.quizSkill,
                           (quiz as any)?.skill || params.quizSkill,
@@ -149,7 +149,7 @@ export const QuizListing = ({
             edges,
             pageInfo: { total: edges.length },
           },
-        } as GetPracticeHistory);
+        } as any);
       } catch (error) {
         console.error("Error fetching practice history:", error);
       } finally {

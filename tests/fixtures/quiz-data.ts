@@ -14,6 +14,8 @@ function buildQuiz(passages: QuizPassage[]): QuizWithPassages {
   return {
     id: "quiz-test-001",
     title: "Test Quiz",
+    skill: "reading",
+    type: "practice",
     passages,
   };
 }

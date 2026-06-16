@@ -287,7 +287,7 @@ export default function QuizEditorForm({
                         mode="multiple"
                         variant="filled"
                         size="large"
-                        options={currentSkill === 'listening' ? LISTENING_QUESTION_FORMS : READING_QUESTION_FORMS}
+                        options={(currentSkill === 'listening' ? LISTENING_QUESTION_FORMS : READING_QUESTION_FORMS) as any}
                         disabled={saving}
                         allowClear
                         showSearch

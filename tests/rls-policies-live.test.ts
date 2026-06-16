@@ -47,7 +47,7 @@ describe("Task 1.5: RLS Policies Security Audit — Live Integration", () => {
         // 2. User A creates a result
         const { data: resultA } = await supabaseAdmin.from("test_results").insert({
             user_id: userA.id,
-            quiz_id: quiz.id,
+            quiz_id: quiz!.id,
             status: "draft"
         }).select().single();
 

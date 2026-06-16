@@ -428,20 +428,27 @@ export function PageRegister({ registerConfig: _registerConfig, totalTests = 920
               </Button>
             </form>
 
+            {/* === Divider "or" === */}
+            <div className="flex items-center gap-3 w-full">
+              <div className="flex-1 h-px bg-[rgba(25,29,36,0.1)]" />
+              <span className="font-inter font-medium text-[12px] text-[#6a7282]">
+                or
+              </span>
+              <div className="flex-1 h-px bg-[rgba(25,29,36,0.1)]" />
+            </div>
+
             {/* === Google button === */}
-            {false && (
-              <Button
-                type="button"
-                variant="outlined"
-                size="md"
-                fullWidth
-                disabled={isLoading || isSubmitting}
-                onClick={handleGoogleLogin}
-                leftIcon={<GoogleIcon />}
-              >
-                Continue with Google
-              </Button>
-            )}
+            <Button
+              type="button"
+              variant="outlined"
+              size="md"
+              fullWidth
+              disabled={isLoading || isSubmitting}
+              onClick={handleGoogleLogin}
+              leftIcon={<GoogleIcon />}
+            >
+              Continue with Google
+            </Button>
 
             {/* === Login link === */}
             <div className="flex gap-[5px] items-center text-[14px]">

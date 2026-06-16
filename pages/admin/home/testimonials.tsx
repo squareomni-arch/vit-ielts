@@ -4,6 +4,7 @@ import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import AdminLayout from "../_layout";
 import { withAdmin } from "@/shared/hoc/withAdmin";
 import { ImageUpload } from "@/shared/ui/image-upload";
+import { InactiveSectionNotice } from "@/shared/ui/admin/inactive-section-notice";
 import type { TestimonialsConfig } from "@/pages/home/ui/testimonials/types";
 
 function TestimonialsPage() {
@@ -49,6 +50,7 @@ function TestimonialsPage() {
 
   return (
     <AdminLayout>
+      <InactiveSectionNotice note="Khối Testimonials đã bị ẩn khỏi trang chủ và trang Subscription ở giao diện mới. Chỉnh sửa ở đây sẽ không hiển thị trên website." />
       <div style={{ maxWidth: 900, margin: "0 auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <h2 style={{ margin: 0 }}>💬 Testimonials / Phản hồi học viên</h2>

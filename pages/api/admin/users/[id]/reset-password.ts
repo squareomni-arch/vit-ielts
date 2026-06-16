@@ -50,7 +50,7 @@ export default async function handler(
         await logActivity(supabaseAdmin, {
             userId: adminUser.id,
             userEmail: adminUser.email ?? undefined,
-            action: "reset_password",
+            action: "update",
             entityType: "user",
             entityId: id,
             entityTitle: targetUser.name || targetUser.email,

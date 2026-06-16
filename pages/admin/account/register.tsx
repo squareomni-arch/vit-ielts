@@ -3,6 +3,7 @@ import { Button, Input, Form, Card, Space, Collapse, message } from "antd";
 import type { RegisterPageConfig } from "@/shared/types/admin-config";
 import AdminLayout from "../_layout";
 import { withAdmin } from "@/shared/hoc/withAdmin";
+import { InactiveSectionNotice } from "@/shared/ui/admin/inactive-section-notice";
 
 const { Panel } = Collapse;
 
@@ -62,6 +63,7 @@ function RegisterPageAdmin() {
 
   return (
     <AdminLayout>
+      <InactiveSectionNotice note="Trang đăng ký mới dùng nền cố định và không đọc cấu hình ở đây. Chỉnh sửa mục này sẽ không thay đổi giao diện trang đăng ký." />
       <Card
         title={
           <h1 className="text-2xl font-bold m-0">Manage Register Page Background</h1>
