@@ -47,7 +47,7 @@ function avatarBg(name: string): string {
   return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
 }
 
-export function PageIELTSPredictionSingle({ post }: { post: IPracticeSingle }) {
+export function PageVitIELTSSingle({ post }: { post: IPracticeSingle }) {
   const { currentUser } = useAuth();
   const openProContentModal = useProContentModal((state) => state.open);
   const [copied, setCopied] = useState(false);
@@ -275,4 +275,4 @@ export function PageIELTSPredictionSingle({ post }: { post: IPracticeSingle }) {
   );
 }
 
-PageIELTSPredictionSingle.Layout = AppShell;
+PageVitIELTSSingle.Layout = AppShell;

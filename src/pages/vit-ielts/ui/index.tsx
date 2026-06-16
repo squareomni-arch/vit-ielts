@@ -84,7 +84,7 @@ const SectionHeader = ({
   </div>
 );
 
-export const PageIELTSPrediction = ({
+export const PageVitIELTS = ({
   bannerConfig,
   initialPosts,
   breadcrumbLabel = "Vit IELTS",

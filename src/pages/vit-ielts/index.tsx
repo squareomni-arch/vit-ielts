@@ -6,7 +6,7 @@ import { readConfig } from "~services/cms-config";
 import { getPosts } from "~services/post";
 import type { Post } from "~services/types/database";
 
-export { PageIELTSPrediction } from "./ui";
+export { PageVitIELTS } from "./ui";
 
 // The blog redesign groups all posts by skill on a single page (featured hero
 // + per-skill sections) with client-side filtering, so we fetch a large batch

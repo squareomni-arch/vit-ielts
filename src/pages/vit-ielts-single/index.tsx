@@ -9,7 +9,7 @@ import type { QuizWithPassages, Quiz } from "~services/types/database";
 import type { IPracticeSingle } from "./api";
 import { isAdminRole } from "~lib/parseRoles";
 
-export { PageIELTSPredictionSingle } from "./ui";
+export { PageVitIELTSSingle } from "./ui";
 
 /**
  * Map Supabase QuizWithPassages → legacy IPracticeSingle shape

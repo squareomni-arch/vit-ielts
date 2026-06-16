@@ -5,7 +5,7 @@ import { readConfig } from "~services/cms-config";
 import { getPosts } from "~services/post";
 import type { Post } from "~services/types/database";
 import type { PracticeLibraryBannerConfig } from "@/pages/vit-ielts/ui/types";
-import { PageIELTSPrediction } from "@/pages/vit-ielts/ui";
+import { PageVitIELTS } from "@/pages/vit-ielts/ui";
 import { AppShell } from "@/widgets/layouts";
 
 /**
@@ -78,7 +78,7 @@ export function PageBlog(props: {
   bannerConfig: PracticeLibraryBannerConfig;
   initialPosts: { data: Post[]; count: number; pageSize: number };
 }) {
-  return <PageIELTSPrediction {...props} breadcrumbLabel="Blog" />;
+  return <PageVitIELTS {...props} breadcrumbLabel="Blog" />;
 }
 
 PageBlog.Layout = AppShell;
