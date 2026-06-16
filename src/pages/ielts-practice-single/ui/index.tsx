@@ -16,6 +16,7 @@ import {
   resolveContentImage,
   useContentImageFallback,
 } from "@/shared/lib/content-image";
+import { getMediaImage } from "@/shared/lib/media-image";
 
 export function PageIELTSPracticeSingle({ post, isPreview: isPreviewProp }: { post: IPracticeSingle; isPreview?: boolean }) {
   const { currentUser } = useAuth();
@@ -111,7 +112,7 @@ export function PageIELTSPracticeSingle({ post, isPreview: isPreviewProp }: { po
   const relatedLabel = isReading ? "Other reading tests" : "Other listening tests";
 
   return (
-    <>
+    <div className="w-full max-w-[1360px] mx-auto">
       <SEOHeader
         fullHead={post.seo?.fullHead}
         title={post.seo?.title}
@@ -184,7 +185,7 @@ export function PageIELTSPracticeSingle({ post, isPreview: isPreviewProp }: { po
            style={{ background: isReading ? 'linear-gradient(135deg, #5281F9 0%, #B3E653 100%)' : 'linear-gradient(135deg, #5281F9 0%, #7CA1FF 100%)' }}>
         {post.featuredImage?.node.sourceUrl ? (
           <Image
-            src={resolveContentImage(post.featuredImage.node.sourceUrl, fallbackImage)}
+            src={getMediaImage(resolveContentImage(post.featuredImage.node.sourceUrl, fallbackImage), { width: 1200 })}
             alt={post.featuredImage.node.altText || post.title}
             fill
             className="object-cover"
@@ -296,7 +297,7 @@ export function PageIELTSPracticeSingle({ post, isPreview: isPreviewProp }: { po
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

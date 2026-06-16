@@ -10,6 +10,7 @@ import {
   resolveContentImage,
   useContentImageFallback,
 } from "@/shared/lib/content-image";
+import { getMediaImage } from "@/shared/lib/media-image";
 import { ProBadge } from "@/shared/ui/pro-badge";
 import type { Post } from "~services/types/database";
 import { ROUTES } from "@/shared/routes";
@@ -69,13 +70,13 @@ function KeepReadingCard({
       href={href}
       className="group bg-white rounded-[24px] border border-[rgba(25,29,36,0.08)] shadow-[0px_4px_16px_rgba(0,0,0,0.04)] flex flex-col overflow-hidden no-underline hover:shadow-[0px_8px_28px_rgba(0,0,0,0.09)] transition-shadow"
     >
-      <div className="h-[160px] relative shrink-0" style={{ background: gradient }}>
+      <div className="h-[160px] relative shrink-0" style={featuredImage ? undefined : { background: gradient }}>
         {featuredImage && (
           <Image
             src={resolveContentImage(featuredImage, fallbackImage)}
             alt={title}
             fill
-            className="object-cover opacity-25 group-hover:opacity-35 transition-opacity"
+            className="object-cover"
             unoptimized
           />
         )}
@@ -178,7 +179,7 @@ export const PageSingle = ({
   const allPosts = similarPosts.length > 0 ? similarPosts : relatedPosts;
 
   return (
-    <>
+    <div className="w-full max-w-[1360px] mx-auto">
       <SEOHeader
         fullHead={post.seo?.fullHead}
         title={post.seo?.title}
@@ -265,7 +266,7 @@ export const PageSingle = ({
       {post.featuredImage?.node.sourceUrl && (
         <div className="relative rounded-[24px] overflow-hidden h-[260px] md:h-[380px] lg:h-[450px] w-full mb-[40px]">
           <Image
-            src={resolveContentImage(post.featuredImage.node.sourceUrl, fallbackImage)}
+            src={getMediaImage(resolveContentImage(post.featuredImage.node.sourceUrl, fallbackImage), { width: 1200 })}
             alt={post.featuredImage.node.altText || post.title}
             fill
             className="object-cover"
@@ -341,17 +342,27 @@ export const PageSingle = ({
           <h2 className="text-[22px] md:text-[24px] font-bold font-noto-sans text-[#191D24] tracking-[-0.48px] mb-[22px]">
             Keep reading
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px] md:gap-[22px]">
-            {allPosts.slice(0, 3).map((p) => (
-              <KeepReadingCard
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[18px] md:gap-[22px]">
+            {allPosts.slice(0, 4).map((p, idx) => (
+              <div
                 key={p.id}
-                href={`/blog/${p.slug}`}
-                title={p.title}
-                featuredImage={p.featured_image}
-                categories={p.categories}
-                date={p.created_at}
-                fallbackImage={fallbackImage}
-              />
+                className={
+                  idx === 2
+                    ? "hidden lg:block"
+                    : idx === 3
+                    ? "hidden xl:block"
+                    : "block"
+                }
+              >
+                <KeepReadingCard
+                  href={`/blog/${p.slug}`}
+                  title={p.title}
+                  featuredImage={p.featured_image}
+                  categories={p.categories}
+                  date={p.created_at}
+                  fallbackImage={fallbackImage}
+                />
+              </div>
             ))}
           </div>
         </div>
@@ -385,6 +396,6 @@ export const PageSingle = ({
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };

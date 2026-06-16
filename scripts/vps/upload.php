@@ -1,6 +1,6 @@
 <?php
 /**
- * IELTS Prediction — VPS Media Upload Endpoint
+ * Vit IELTS — VPS Media Upload Endpoint
  *
  * Receives multipart file uploads from the Next.js API layer,
  * saves them to /var/www/media/{category}/, and returns the public URL.
@@ -17,7 +17,7 @@ declare(strict_types=1);
 // ── Constants (from Nginx fastcgi_param) ──────────────────────────────────────
 define('UPLOAD_SECRET', $_SERVER['UPLOAD_SECRET'] ?? '');
 define('MEDIA_DIR',     rtrim($_SERVER['MEDIA_DIR'] ?? '/var/www/media', '/') . '/');
-define('MEDIA_URL',     rtrim($_SERVER['MEDIA_URL'] ?? 'https://cms.ieltspredictiontest.com/media', '/') . '/');
+define('MEDIA_URL',     rtrim($_SERVER['MEDIA_URL'] ?? 'https://cms.vitieltstest.com/media', '/') . '/');
 define('MAX_BYTES',     100 * 1024 * 1024); // 100 MB
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

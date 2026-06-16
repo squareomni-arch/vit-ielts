@@ -2,7 +2,7 @@ import { Container } from "@/shared/ui";
 import dayjs from "dayjs";
 import Link from "next/link";
 import { resolveContentImage, useContentImageFallback } from "@/shared/lib/content-image";
-import { PostCard } from "@/pages/ielts-prediction/ui/post-card";
+import { PostCard } from "@/pages/vit-ielts/ui/post-card";
 import type { Post } from "~services/types/database";
 
 type Props = {
@@ -34,7 +34,7 @@ export function SimilarPostsSection({ posts }: Props) {
           </Link>
         </div>
 
-        {/* Grid — 4 columns, PostCard style from ielts-prediction page */}
+        {/* Grid — 4 columns, PostCard style from vit-ielts page */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {posts.map((post) => (
             <PostCard

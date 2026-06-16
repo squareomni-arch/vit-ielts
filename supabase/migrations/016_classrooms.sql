@@ -1,5 +1,5 @@
 -- ============================================================================
--- IELTS Prediction — Classroom (Lớp học) feature
+-- Vit IELTS — Classroom (Lớp học) feature
 -- Migration: 016_classrooms.sql
 -- Description:
 --   Teachers create classes, invite students/co-teachers by code/link, assign

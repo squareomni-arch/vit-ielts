@@ -1,7 +1,7 @@
 # Design System — Component Registry
 
 > **Last updated:** 2026-04-02
-> **Source:** Figma — IELTS Prediction Test
+> **Source:** Figma — Vit IELTS
 > **Styling approach:** Tailwind v4 + Design Tokens (CSS custom properties)
 >
 > ⚠️ **FOR AI AGENTS:** This file is the single source of truth for using DS components.

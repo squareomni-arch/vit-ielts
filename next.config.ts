@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
         hostname: 'localhost',
       },
       {
-        hostname: 'cms.ieltspredictiontest.com',
+        hostname: 'cms.vitieltstest.com',
       },
       {
         hostname: 'cms.vitielts.com',
@@ -45,6 +45,11 @@ const nextConfig: NextConfig = {
       // Supabase Storage (self-hosted VPS)
       {
         hostname: 'api.squarevps.com',
+      },
+      // Media CDN fronting the storage origin (NEXT_PUBLIC_MEDIA_CDN_URL)
+      {
+        protocol: 'https',
+        hostname: 'cdn.vitielts.com',
       },
       // Supabase cloud (supabase.co projects)
       {

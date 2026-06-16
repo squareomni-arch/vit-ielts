@@ -254,7 +254,7 @@ function EmailTemplatePage() {
                                 name={["brand", "name"]}
                                 rules={[{ required: true }]}
                             >
-                                <Input placeholder="IELTS Prediction Test" />
+                                <Input placeholder="Vit IELTS" />
                             </Form.Item>
                             <Form.Item
                                 label="Logo URL"
@@ -282,7 +282,7 @@ function EmailTemplatePage() {
                                 name={["brand", "email"]}
                                 rules={[{ required: true, type: "email" }]}
                             >
-                                <Input placeholder="ieltsprediction9@gmail.com" />
+                                <Input placeholder="vitielts9@gmail.com" />
                             </Form.Item>
                             <Form.Item
                                 label="Địa chỉ (tuỳ chọn)"

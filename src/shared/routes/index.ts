@@ -61,7 +61,7 @@ export const ROUTES = {
   },
 
   PREDICTION: {
-    ARCHIVE: "/ielts-prediction",
+    ARCHIVE: "/vit-ielts",
     SINGLE: (slug: string) => `/${slug}`,
   },
 

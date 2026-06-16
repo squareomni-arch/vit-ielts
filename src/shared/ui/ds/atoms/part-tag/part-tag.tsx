@@ -1,7 +1,7 @@
 /**
  * Design System Part Tag
  *
- * @figma IELTS Prediction Test — "Part Tag" node 460:738
+ * @figma Vit IELTS — "Part Tag" node 460:738
  *
  * Part tags are used to denote exam parts (Part 1 to Part 5).
  * Each part has a specific branding color and distinctive drop shadows.

@@ -23,7 +23,7 @@ export const PUBLIC_ROUTES: string[] = [
   "/ielts-exam-library?skill=listening",
   "/ielts-exam-library?skill=reading",
   "/ielts-practice-library",
-  "/ielts-prediction",
+  "/vit-ielts",
   "/privacy-policy",
   "/terms-of-use",
   // Sample-essay archives (served via the [...slug] catch-all).

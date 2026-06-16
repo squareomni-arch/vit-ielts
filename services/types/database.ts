@@ -1,5 +1,5 @@
 /**
- * Shared Database Types — IELTS Prediction
+ * Shared Database Types — Vit IELTS
  *
  * TypeScript types matching Supabase PostgreSQL tables.
  * All properties use snake_case to match Supabase response format.

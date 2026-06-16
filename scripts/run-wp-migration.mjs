@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 import { writeFileSync } from 'fs';
 config({ path: '.env.local' });
 
-const WP_URL = process.env.WP_URL || 'https://cms.ieltspredictiontest.com';
+const WP_URL = process.env.WP_URL || 'https://cms.vitieltstest.com';
 const WP_AUTH = Buffer.from(`${process.env.WP_ADMIN_USER}:${process.env.WP_ADMIN_PASSWORD}`).toString('base64');
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);

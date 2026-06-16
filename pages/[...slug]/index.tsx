@@ -99,7 +99,7 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
     }
 
     // Handle known post category routes -> redirect to blog
-    if (slug === "ielts-prediction") {
+    if (slug === "vit-ielts") {
       return {
         redirect: {
           destination: "/blog",

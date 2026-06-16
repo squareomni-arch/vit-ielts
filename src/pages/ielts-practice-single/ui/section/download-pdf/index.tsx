@@ -1,9 +1,10 @@
 import { IPracticeSingle } from "@/pages/ielts-practice-single/api";
 import { PDFIcon } from "@/shared/ui/icons";
+import { toCdnUrl } from "@/shared/lib/media-url";
 import { Button } from "antd";
 
 function DownloadPDF({ quiz }: { quiz: IPracticeSingle }) {
-  const pdfUrl = quiz.quizFields.pdf?.node.mediaItemUrl || undefined;
+  const pdfUrl = toCdnUrl(quiz.quizFields.pdf?.node.mediaItemUrl || undefined);
   return (
     <section className="space-y-6">
       <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold">

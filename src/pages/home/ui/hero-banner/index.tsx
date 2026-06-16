@@ -35,9 +35,9 @@ export const HeroBanner = ({ config, totalTests }: HeroBannerProps) => {
   let ctaLink = config?.cta?.link || DEFAULTS.cta.link;
   if (
     typeof ctaLink === "string" &&
-    (ctaLink === "https://www.ieltspredictiontest.com/ielts-exam-library" ||
-      ctaLink === "https://ieltspredictiontest.com/ielts-exam-library" ||
-      ctaLink.includes("ieltspredictiontest.com/ielts-exam-library"))
+    (ctaLink === "https://www.vitieltstest.com/ielts-exam-library" ||
+      ctaLink === "https://vitieltstest.com/ielts-exam-library" ||
+      ctaLink.includes("vitieltstest.com/ielts-exam-library"))
   ) {
     ctaLink = ROUTES.EXAM.ARCHIVE;
   }

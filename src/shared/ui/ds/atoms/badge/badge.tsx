@@ -2,7 +2,7 @@
 /**
  * Design System Badge
  *
- * @figma IELTS Prediction Test — "BlogTag" + skill indicators
+ * @figma Vit IELTS — "BlogTag" + skill indicators
  */
 
 export type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info' | 'reading' | 'listening' | 'speaking' | 'writing' | 'pro' | 'new' | 'pro-sidebar';

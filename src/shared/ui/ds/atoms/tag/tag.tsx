@@ -2,7 +2,7 @@
 /**
  * Design System Tag — Filter/category tags
  *
- * @figma IELTS Prediction Test — Tests Page filter chips
+ * @figma Vit IELTS — Tests Page filter chips
  */
 
 export type TagVariant = 'filled' | 'outlined';

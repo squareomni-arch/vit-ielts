@@ -2,7 +2,7 @@
 /**
  * Button — Design System Button (Tailwind-only)
  *
- * @figma IELTS Prediction Test — "Buttons & controls" node 3034-224
+ * @figma Vit IELTS — "Buttons & controls" node 3034-224
  *
  * Variants (Figma-canonical):
  *   primary      — #B3E653 lime green, Ink/900 text, drop-shadow; hover #9AD534

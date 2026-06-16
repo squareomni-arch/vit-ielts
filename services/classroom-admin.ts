@@ -1,5 +1,5 @@
 /**
- * Classroom Admin Service — IELTS Prediction
+ * Classroom Admin Service — Vit IELTS
  *
  * Cross-cutting queries for the CMS admin (manage all classes, teachers,
  * students). Pass `supabaseAdmin` so RLS is bypassed. Separate from

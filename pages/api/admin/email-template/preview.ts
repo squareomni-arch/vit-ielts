@@ -46,15 +46,15 @@ export default async function handler(
             "{{currentYear}}": String(new Date().getFullYear()),
             "{{brandName}}": config.brand?.name || "Vit IELTS",
             "{{brandPhone}}": config.brand?.phone || "0927090848",
-            "{{brandEmail}}": config.brand?.email || "ieltsprediction9@gmail.com",
-            "{{brandWebsite}}": config.brand?.website || "https://ieltspredictiontest.com",
+            "{{brandEmail}}": config.brand?.email || "vitielts9@gmail.com",
+            "{{brandWebsite}}": config.brand?.website || "https://vitieltstest.com",
             "{{customerEmail}}": "alongia7@gmail.com",
             "{{affiliateName}}": "Nguyễn Văn A",
             "{{affiliateEmail}}": "affiliate@example.com",
             "{{commissionAmount}}": "40.000 đ",
             "{{orderTotal}}": "200.000 đ",
             "{{payoutAmount}}": "500.000 đ",
-            "{{customLink}}": "https://ieltspredictiontest.com?ref=A123",
+            "{{customLink}}": "https://vitieltstest.com?ref=A123",
             "{{rejectReason}}": "Thông tin thanh toán không chính xác hoặc không đủ số dư tối thiểu.",
         };
 

@@ -21,6 +21,8 @@
     "migrate:configs": "ts-node scripts/migrate-configs.ts",
     "migrate:wp": "ts-node scripts/migrate-wp-data.ts",
     "migrate:all": "ts-node scripts/migrate-all.ts",
+    "backup:media": "tsx scripts/backup-storage.ts",
+    "sweep:media": "tsx scripts/sweep-orphan-media.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -72,6 +74,7 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1069.0",
     "@eslint/eslintrc": "^3.3.1",
     "@playwright/test": "^1.49.1",
     "@tailwindcss/postcss": "^4.1.2",
@@ -86,6 +89,7 @@
     "supabase": "^2.105.0",
     "tailwindcss": "^4.1.2",
     "ts-node": "^10.9.2",
+    "tsx": "^4.22.4",
     "typescript": "^5.8.2",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.0.18"

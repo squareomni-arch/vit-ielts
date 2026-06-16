@@ -1,4 +1,5 @@
 import { useAppContext } from "@/appx/providers";
+import { toCdnUrl } from "@/shared/lib/media-url";
 
 export const DEFAULT_CONTENT_IMAGE = "/assets/figma/icons/logo.png";
 
@@ -20,10 +21,10 @@ export function resolveContentImage(
   fallbackImage?: string | null | false,
 ): string {
   const primaryImage = typeof image === "string" ? image.trim() : "";
-  if (primaryImage) return primaryImage;
+  if (primaryImage) return toCdnUrl(primaryImage);
 
   const configuredFallback = typeof fallbackImage === "string" ? fallbackImage.trim() : "";
-  if (configuredFallback) return configuredFallback;
+  if (configuredFallback) return toCdnUrl(configuredFallback);
 
   return DEFAULT_CONTENT_IMAGE;
 }

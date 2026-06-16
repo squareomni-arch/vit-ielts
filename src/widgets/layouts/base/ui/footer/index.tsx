@@ -250,10 +250,10 @@ export const Footer = () => {
                   <li>
                     E-mail:{" "}
                     <Link
-                      href={`mailto:${email || "ieltsprediction9@gmail.com"}`}
+                      href={`mailto:${email || "vitielts9@gmail.com"}`}
                       className="hover:text-gray-300 transition-colors"
                     >
-                      {email || "ieltsprediction9@gmail.com"}
+                      {email || "vitielts9@gmail.com"}
                     </Link>
                   </li>
                 </ul>

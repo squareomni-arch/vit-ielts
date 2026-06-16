@@ -125,7 +125,7 @@ const Row = ({ children }: { children: React.ReactNode }) => (
 const NAV_ITEMS = [
   { label: 'IELTS Online Test', href: '#', active: true, children: [{ label: 'Practice - Listening', href: '#' }, { label: 'Practice - Reading', href: '#' }] },
   { label: 'IELTS Sample', href: '#' },
-  { label: 'IELTS Prediction', href: '#' },
+  { label: 'Vit IELTS', href: '#' },
   { label: 'Subscription', href: '#' },
 ];
 // Figma node 3366:74 — columns match exactly

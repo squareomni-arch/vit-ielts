@@ -1,4 +1,4 @@
-# Tài liệu chi tiết Codebase cũ — IELTS Prediction
+# Tài liệu chi tiết Codebase cũ — Vit IELTS
 
 > **Mục đích**: Tài liệu tham khảo cho các agent/developer sau khi migration sang Supabase. Ghi lại toàn bộ logic, luồng dữ liệu, và cách hoạt động của hệ thống WordPress + Next.js hiện tại.
 
@@ -608,7 +608,7 @@ Body: {
 
 Logic:
 1. Lấy userId từ WordPress cookie (decode JWT → viewer ID)
-2. Generate orderId: "IELTS PREDICTION " + timestamp + random4digits
+2. Generate orderId: "VIT IELTS " + timestamp + random4digits
 3. Generate transferContent = orderId (nội dung chuyển khoản)
 4. Tạo order object + status: "pending"
 5. Lưu vào orders.json / Vercel KV
@@ -620,7 +620,7 @@ Logic:
 ```json
 {
     "id": "order_1766593255814_eoymcdwxw",
-    "orderId": "IELTS PREDICTION 17665932558141657",
+    "orderId": "VIT IELTS 17665932558141657",
     "userId": "dXNlcjo4NDQ=",           // Base64 GraphQL ID: "user:844"
     "packageType": "combo",
     "duration": 2,                       // tháng
@@ -631,7 +631,7 @@ Logic:
     "couponCode": null,
     "status": "pending",                 // pending → completed
     "paymentMethod": "Ngân hàng VCB (Vietcombank)",
-    "transferContent": "IELTS PREDICTION 17665932558141657",
+    "transferContent": "VIT IELTS 17665932558141657",
     "affiliateRef": "affiliat",
     "createdAt": "2025-12-24T16:20:55.814Z"
 }
@@ -647,7 +647,7 @@ Body từ Sepay: {
     gateway: "ACB",
     transactionDate: "2026-01-23 16:58:05",
     accountNumber: "2447967",
-    content: "IELTS PREDICTION 17691622312585779 FT26023...",
+    content: "VIT IELTS 17691622312585779 FT26023...",
     transferType: "in",
     transferAmount: 400000,
     referenceCode: "...",
@@ -704,7 +704,7 @@ NEXT_PUBLIC_WORDPRESS_CMS_URL=https://...
 WP_ADMIN_USER=admin_username
 WP_ADMIN_PASSWORD=application_password
 SEPAY_WEBHOOK_SECRET=optional_secret
-ADMIN_EMAIL=admin@ieltspredictiontest.com
+ADMIN_EMAIL=admin@vitieltstest.com
 SMTP_HOST=...
 SMTP_PORT=...
 SMTP_USER=...
@@ -761,7 +761,7 @@ data/affiliate-commissions.json:
 [{
     id: "comm_xxx",
     affiliateId: "aff_xxx",
-    orderId: "IELTS PREDICTION ...",
+    orderId: "VIT IELTS ...",
     amount: 400000,
     commissionRate: 0.1,
     commissionAmount: 40000,

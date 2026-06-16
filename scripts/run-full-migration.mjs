@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
-const WP_URL = process.env.WP_URL || 'https://cms.ieltspredictiontest.com';
+const WP_URL = process.env.WP_URL || 'https://cms.vitieltstest.com';
 const WP_USER = process.env.WP_ADMIN_USER || 'admin';
 const WP_PASS = process.env.WP_ADMIN_PASSWORD || '3986483aA@';
 const WP_AUTH = Buffer.from(`${WP_USER}:${WP_PASS}`).toString('base64');

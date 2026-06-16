@@ -18,7 +18,7 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const WP_URL = process.env.WP_URL || 'https://cms.ieltspredictiontest.com';
+const WP_URL = process.env.WP_URL || 'https://cms.vitieltstest.com';
 const QUIZ_MAPPING_FILE = join(process.cwd(), 'data', 'quiz-id-mapping.json');
 
 async function graphqlQuery(query, variables = {}) {
@@ -160,7 +160,7 @@ async function migrateSiteSettings() {
         // Insert site_title
         const { error: e1 } = await supabase.from('site_settings').upsert({
             key: 'site_title',
-            value: JSON.stringify(generalSettings.title || 'IELTS Prediction'),
+            value: JSON.stringify(generalSettings.title || 'Vit IELTS'),
         }, { onConflict: 'key' });
         if (!e1) inserted++;
 
@@ -205,9 +205,9 @@ async function migrateSiteSettings() {
 
         // Seed defaults if WP query fails
         const defaults = [
-            { key: 'site_title', value: 'IELTS Prediction' },
+            { key: 'site_title', value: 'Vit IELTS' },
             { key: 'site_description', value: 'Luyện thi IELTS Online' },
-            { key: 'site_url', value: 'https://ieltspredictiontest.com' },
+            { key: 'site_url', value: 'https://vitieltstest.com' },
             {
                 key: 'general_settings', value: {
                     favicon: '', logo: '', facebook: '', email: '',

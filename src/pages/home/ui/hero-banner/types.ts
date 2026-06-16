@@ -1,6 +1,6 @@
 export interface HeroBannerConfig {
   title: {
-    line1: string;       // "IELTS Prediction Test"
+    line1: string;       // "Vit IELTS"
     line2: string;       // "Thi"
     highlight: string;   // "Thử Như Thật"
   };

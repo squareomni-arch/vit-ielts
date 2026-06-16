@@ -1,5 +1,5 @@
 -- ============================================================================
--- IELTS Prediction — Study Streak Analytics
+-- Vit IELTS — Study Streak Analytics
 -- Migration: 009_study_streak.sql
 -- Description: RPC functions for streak calculation & monthly activity data.
 --              Operates directly on test_results + quizzes (no new tables).

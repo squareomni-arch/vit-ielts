@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { resolveContentImage, useContentImageFallback } from "@/shared/lib/content-image";
 import dayjs from "dayjs";
-import { PostCard } from "@/pages/ielts-prediction/ui/post-card";
+import { PostCard } from "@/pages/vit-ielts/ui/post-card";
 import type { Post } from "~services/types/database";
 
 type SidebarPost = Pick<

@@ -10,7 +10,7 @@ VALUES (
   'home/hero-banner',
   '{
     "title": {
-      "line1": "IELTS Prediction Test",
+      "line1": "Vit IELTS",
       "line2": "Thi",
       "highlight": "Thử Như Thật"
     },
@@ -44,7 +44,7 @@ VALUES (
       { "title": "Reading Practice", "icon": "/assets/figma/icons/reading-book 1.svg", "bg": "/assets/figma/icons/Background-3.png", "color": "from-orange-600 to-orange-400", "href": "/ielts-practice-library?skill=reading" },
       { "title": "Sample Writing", "icon": "/assets/figma/icons/copywriting (1) 1.svg", "bg": "/assets/figma/icons/Background-4.png", "color": "from-indigo-400 to-indigo-300", "href": "/sample-writing" },
       { "title": "Sample Speaking", "icon": "/assets/figma/icons/speaking 1.svg", "bg": "/assets/figma/icons/Background-5.png", "color": "from-amber-500 to-yellow-400", "href": "/sample-speaking" },
-      { "title": "IELTS Prediction", "icon": "/assets/figma/icons/search 1.svg", "bg": "/assets/figma/icons/Background-6.png", "color": "from-blue-600 to-blue-500", "href": "/ielts-prediction" }
+      { "title": "Vit IELTS", "icon": "/assets/figma/icons/search 1.svg", "bg": "/assets/figma/icons/Background-6.png", "color": "from-blue-600 to-blue-500", "href": "/ielts-prediction" }
     ]
   }'::jsonb,
   now()
@@ -266,8 +266,8 @@ VALUES (
     "banner": { "title": "Điều khoản sử dụng", "subtitle": "Vui lòng đọc kỹ trước khi sử dụng dịch vụ", "backgroundImage": "" },
     "heroImage": "",
     "content": {
-      "introTitle": "Điều khoản sử dụng IELTS Prediction",
-      "introParagraphs": ["Chào mừng bạn đến với IELTS Prediction. Bằng việc sử dụng dịch vụ, bạn đồng ý với các điều khoản sau."],
+      "introTitle": "Điều khoản sử dụng Vit IELTS",
+      "introParagraphs": ["Chào mừng bạn đến với Vit IELTS. Bằng việc sử dụng dịch vụ, bạn đồng ý với các điều khoản sau."],
       "sections": [
         { "title": "1. Chấp nhận điều khoản", "content": "Bằng việc truy cập và sử dụng website, bạn đồng ý tuân thủ và bị ràng buộc bởi các điều khoản và điều kiện này." },
         { "title": "2. Tài khoản người dùng", "content": "Bạn chịu trách nhiệm bảo mật tài khoản và mật khẩu của mình. Mọi hoạt động trên tài khoản là trách nhiệm của bạn." }
@@ -285,7 +285,7 @@ VALUES (
     "banner": { "title": "Chính sách bảo mật", "subtitle": "Chúng tôi cam kết bảo vệ dữ liệu cá nhân của bạn", "backgroundImage": "" },
     "heroImage": "",
     "content": {
-      "introTitle": "Chính sách bảo mật IELTS Prediction",
+      "introTitle": "Chính sách bảo mật Vit IELTS",
       "introParagraphs": ["Chúng tôi tôn trọng quyền riêng tư của bạn và cam kết bảo vệ dữ liệu cá nhân."],
       "sections": [
         { "title": "1. Thông tin chúng tôi thu thập", "content": "Chúng tôi thu thập thông tin bạn cung cấp khi đăng ký tài khoản, bao gồm tên, email, và thông tin thanh toán." },
@@ -302,7 +302,7 @@ INSERT INTO public.cms_configs (section_name, data, updated_at)
 VALUES (
   'seo/global',
   '{
-    "siteTitle": "IELTS Prediction — Luyện thi IELTS Online",
+    "siteTitle": "Vit IELTS — Luyện thi IELTS Online",
     "siteDescription": "Nền tảng luyện thi IELTS Online hàng đầu Việt Nam.",
     "siteKeywords": "ielts, luyện thi ielts, thi thử ielts, ielts online",
     "ogImage": "",

@@ -1,5 +1,5 @@
 /**
- * Quiz Service — IELTS Prediction
+ * Quiz Service — Vit IELTS
  *
  * Replaces WPGraphQL quiz queries + bp_quiz_creator filters.
  * All functions receive SupabaseClient as first param for flexibility

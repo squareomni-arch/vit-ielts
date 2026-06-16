@@ -1,5 +1,5 @@
 /**
- * Post Service — IELTS Prediction
+ * Post Service — Vit IELTS
  *
  * Replaces WPGraphQL post queries + view count + rating mutations.
  *

@@ -65,7 +65,7 @@ function HeroBannerPage() {
           {/* ── Title ── */}
           <Card title="📝 Tiêu đề" size="small" style={{ marginBottom: 16 }}>
             <Form.Item label="Dòng 1 (in đậm)" name={["title", "line1"]} rules={[{ required: true }]}>
-              <Input placeholder="IELTS Prediction Test" />
+              <Input placeholder="Vit IELTS" />
             </Form.Item>
             <Form.Item label="Dòng 2 (prefix)" name={["title", "line2"]} rules={[{ required: true }]}>
               <Input placeholder="Thi" />
@@ -76,7 +76,7 @@ function HeroBannerPage() {
             <div style={{ background: "var(--admin-surface-hover)", padding: 12, borderRadius: 8, marginTop: 8 }}>
               <strong>Preview:</strong>{" "}
               <span style={{ fontSize: 18, fontWeight: 700 }}>
-                {Form.useWatch(["title", "line1"], form) || "IELTS Prediction Test"}
+                {Form.useWatch(["title", "line1"], form) || "Vit IELTS"}
               </span>
               <br />
               <span style={{ fontSize: 18, fontWeight: 700 }}>

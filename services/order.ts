@@ -181,7 +181,7 @@ export async function getOrderByTransferContent(
  * Lấy order theo order_id (text ID, không phải UUID)
  *
  * @param supabaseAdmin - Admin client
- * @param orderId - Order ID text (e.g. "IELTS PREDICTION 17691622312585779")
+ * @param orderId - Order ID text (e.g. "VIT IELTS 17691622312585779")
  * @returns Order hoặc null
  */
 export async function getOrderById(

@@ -20,7 +20,7 @@ import {
 
 const sampleOrder = {
     id: "order-uuid-001",
-    order_id: "IELTS PREDICTION 17001234560001",
+    order_id: "VIT IELTS 17001234560001",
     user_id: "user-001",
     package_type: "combo",
     duration: 3,
@@ -32,7 +32,7 @@ const sampleOrder = {
     coupon_code: null,
     status: "pending",
     payment_method: "bank_transfer",
-    transfer_content: "IELTS PREDICTION 17001234560001",
+    transfer_content: "VIT IELTS 17001234560001",
     affiliate_ref: null,
     created_at: "2024-01-01T00:00:00Z",
 };
@@ -85,7 +85,7 @@ describe("Order Service — createOrder()", () => {
 
         const inserts = supabase._tracking.insertedRows["orders"];
         expect(inserts).toBeDefined();
-        expect((inserts[0] as Record<string, unknown>).order_id).toMatch(/^IELTS PREDICTION \d+/);
+        expect((inserts[0] as Record<string, unknown>).order_id).toMatch(/^VIT IELTS \d+/);
     });
 
     it("includes coupon fields when provided", async () => {
@@ -152,7 +152,7 @@ describe("Order Service — getOrderById()", () => {
 
         const result = await getOrderById(
             supabase as any,
-            "IELTS PREDICTION 17001234560001"
+            "VIT IELTS 17001234560001"
         );
 
         // getOrderById matches on order_id via .eq("order_id", ...)

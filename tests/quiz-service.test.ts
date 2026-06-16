@@ -97,7 +97,7 @@ const sampleQuiz2 = {
   excerpt: null,
   featured_image: null,
   tests_taken: 10,
-  source: "IELTS Prediction",
+  source: "Vit IELTS",
   year: "2024",
   quarter: null,
   part: null,

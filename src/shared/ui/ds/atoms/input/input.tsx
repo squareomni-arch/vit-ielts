@@ -2,7 +2,7 @@
 /**
  * Design System Input
  *
- * @figma IELTS Prediction Test — Login/Sign Up forms
+ * @figma Vit IELTS — Login/Sign Up forms
  * @variants text | password | search | textarea
  * @sizes sm | md | lg
  */

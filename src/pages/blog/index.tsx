@@ -4,13 +4,13 @@ import { createServerSupabase } from "~supabase/server";
 import { readConfig } from "~services/cms-config";
 import { getPosts } from "~services/post";
 import type { Post } from "~services/types/database";
-import type { PracticeLibraryBannerConfig } from "@/pages/ielts-prediction/ui/types";
-import { PageIELTSPrediction } from "@/pages/ielts-prediction/ui";
+import type { PracticeLibraryBannerConfig } from "@/pages/vit-ielts/ui/types";
+import { PageIELTSPrediction } from "@/pages/vit-ielts/ui";
 import { AppShell } from "@/widgets/layouts";
 
 /**
  * General knowledge-sharing blog. Same layout / sidebar / skill filter as
- * /ielts-prediction — it just lists posts whose categories contain "Blog"
+ * /vit-ielts — it just lists posts whose categories contain "Blog"
  * (set in the post editor's "Phân loại" field). Skill, tags, featured and the
  * filtering behaviour are identical.
  */

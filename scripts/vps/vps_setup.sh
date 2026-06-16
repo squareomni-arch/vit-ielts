@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# IELTS Prediction — cPanel Media Upload Setup
+# Vit IELTS — cPanel Media Upload Setup
 # Web root: /home/ieltspre/public_html/
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 set -euo pipefail
@@ -9,7 +9,7 @@ UPLOAD_SECRET="3dbfd0665d45051089cd0e16d8fea76fcf1857e739cf33d22758928e9e909d41"
 WEB_ROOT="/home/ieltspre/public_html"
 UPLOAD_DIR="$WEB_ROOT/upload-api"
 MEDIA_DIR="$WEB_ROOT/media"
-MEDIA_URL="https://cms.ieltspredictiontest.com/media"
+MEDIA_URL="https://cms.vitieltstest.com/media"
 
 echo ">>> Tao thu muc..."
 mkdir -p "$UPLOAD_DIR"
@@ -27,7 +27,7 @@ echo ">>> Ghi upload.php..."
 cat > "$UPLOAD_DIR/upload.php" << 'ENDOFPHP'
 <?php
 /**
- * IELTS Prediction — Media Upload API
+ * Vit IELTS — Media Upload API
  * Handle CORS and file uploads for Vercel frontend.
  */
 
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // 2. Configuration
 define('UPLOAD_SECRET', '3dbfd0665d45051089cd0e16d8fea76fcf1857e739cf33d22758928e9e909d41');
 define('MEDIA_DIR',     '/home/ieltspre/public_html/media/');
-define('MEDIA_URL',     'https://cms.ieltspredictiontest.com/media');
+define('MEDIA_URL',     'https://cms.vitieltstest.com/media');
 define('MAX_BYTES',     100 * 1024 * 1024);
 
 /**
@@ -166,7 +166,7 @@ echo ">>> Ghi delete.php..."
 cat > "$UPLOAD_DIR/delete.php" << 'ENDOFPHP'
 <?php
 /**
- * IELTS Prediction — Media Delete API
+ * Vit IELTS — Media Delete API
  */
 
 // 1. CORS
@@ -183,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 define('UPLOAD_SECRET', '3dbfd0665d45051089cd0e16d8fea76fcf1857e739cf33d22758928e9e909d41');
 define('MEDIA_DIR',     '/home/ieltspre/public_html/media/');
-define('MEDIA_URL_BASE', 'https://cms.ieltspredictiontest.com/media/');
+define('MEDIA_URL_BASE', 'https://cms.vitieltstest.com/media/');
 
 function json_out($status, $payload) {
     http_response_code($status);
@@ -234,7 +234,7 @@ echo "=================================================="
 echo "DONE!"
 echo ""
 echo "Test upload:"
-echo "curl -X POST https://cms.ieltspredictiontest.com/upload-api/upload.php \\"
+echo "curl -X POST https://cms.vitieltstest.com/upload-api/upload.php \\"
 echo "  -H 'X-Upload-Key: ${UPLOAD_SECRET}' \\"
 echo "  -F 'file=@/home/ieltspre/public_html/wp-login.php'"
 echo "=================================================="

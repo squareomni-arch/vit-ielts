@@ -2,7 +2,7 @@
 /**
  * ScoreRing — circular band-score badge
  *
- * @figma IELTS Prediction Test — node 3035:244 (Default) / 3035:246 (Muted)
+ * @figma Vit IELTS — node 3035:244 (Default) / 3035:246 (Muted)
  * @variants default | muted
  */
 

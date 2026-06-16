@@ -1,4 +1,4 @@
-# Figma Design Reference — IELTS Prediction
+# Figma Design Reference — Vit IELTS
 
 > **⚠️ MANDATORY**: Mọi agent thực hiện UI task PHẢI đọc file này trước khi implement.
 > Đây là **source of truth** được extract trực tiếp từ Figma API.
@@ -9,7 +9,7 @@
 
 | Key | Value |
 |---|---|
-| File Name | IELTS Prediction Test (Copy) |
+| File Name | Vit IELTS (Copy) |
 | File Key | `JbK4p9yyXBjhu7B7VOIBhd` |
 | Token | `process.env.FIGMA_TOKEN` |
 | Last Synced | 2026-03-31 |

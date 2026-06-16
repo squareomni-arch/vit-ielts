@@ -1,5 +1,5 @@
 /**
- * Community Service — IELTS Prediction
+ * Community Service — Vit IELTS
  *
  * Clubs browse + join/leave. Posts (list + create).
  * Comments/threads are out of scope.

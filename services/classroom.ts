@@ -1,5 +1,5 @@
 /**
- * Classroom (Lớp học) Service — IELTS Prediction
+ * Classroom (Lớp học) Service — Vit IELTS
  *
  * Teachers create classes, invite members by code/link, assign quizzes (đề)
  * with deadlines. Submission status & scores are DERIVED from `test_results`

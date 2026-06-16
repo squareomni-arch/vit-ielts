@@ -1,5 +1,5 @@
 /**
- * Exam Collection Service — IELTS Prediction
+ * Exam Collection Service — Vit IELTS
  *
  * Replaces exam_collections_resolve() — nested 3-level query
  * (Collection → MockTest → PracticeTest/Quiz) via Supabase.

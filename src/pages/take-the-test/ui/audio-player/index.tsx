@@ -1,5 +1,6 @@
 import { memo, useEffect, useLayoutEffect, useRef } from "react";
 import "plyr-react/plyr.css";
+import { toCdnUrl } from "@/shared/lib/media-url";
 
 interface AudioPlayerProps {
   audioUrl: string;
@@ -79,7 +80,7 @@ const AudioPlayer = ({ audioUrl, isReady, onTimeUpdate, audioStart, audioEnd }: 
         // Create audio element
         const audioElement = document.createElement("audio");
         audioElement.controls = true;
-        audioElement.src = audioUrl;
+        audioElement.src = toCdnUrl(audioUrl);
         audioElementRef.current = audioElement;
         
         // Verify container is still valid before appending

@@ -1,4 +1,4 @@
-# 🎯 IELTS Prediction — Tài liệu Walkthrough toàn diện
+# 🎯 Vit IELTS — Tài liệu Walkthrough toàn diện
 
 > **Dự án**: Nền tảng luyện thi IELTS trực tuyến (Reading + Listening)
 > **Stack**: Next.js (Pages Router) + Supabase + TypeScript
@@ -781,13 +781,13 @@ sequenceDiagram
     Checkout->>API: POST { packageType, duration, amount, couponId, userId }
     API->>OrderSvc: createOrder(supabaseAdmin, params)
     
-    Note over OrderSvc: Generate orderId<br/>"IELTS PREDICTION {timestamp}{random4}"
+    Note over OrderSvc: Generate orderId<br/>"VIT IELTS {timestamp}{random4}"
     OrderSvc->>OrderSvc: Validate + increment coupon usage
     OrderSvc-->>API: Order record
     API-->>Checkout: { orderId }
     Checkout->>Checkout: Redirect → /order-received?orderId=...
     
-    Note over User: User chuyển khoản ngân hàng<br/>Nội dung: "IELTS PREDICTION ..."
+    Note over User: User chuyển khoản ngân hàng<br/>Nội dung: "VIT IELTS ..."
     
     Note over Sepay: Sepay phát hiện giao dịch
     Sepay->>WebhookAPI: POST { content, transferAmount, ... }

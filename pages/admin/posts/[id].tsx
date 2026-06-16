@@ -249,7 +249,7 @@ export default function AdminPostEditorPage() {
                                 <span className="admin-stat-card-label" style={{ display: 'block', marginBottom: 8 }}>Google Search Preview</span>
                                 <div className="admin-seo-preview-card">
                                     <div className="seo-preview-url">
-                                        <GlobalOutlined /> https://ielts-prediction.com › blog › {displaySlug}
+                                        <GlobalOutlined /> https://vit-ielts.com › blog › {displaySlug}
                                     </div>
                                     <div className="seo-preview-title">{displayTitle}</div>
                                     <div className="seo-preview-desc">{displayDesc}</div>

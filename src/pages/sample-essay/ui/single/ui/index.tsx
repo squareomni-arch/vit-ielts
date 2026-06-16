@@ -9,6 +9,7 @@ import {
   resolveContentImage,
   useContentImageFallback,
 } from "@/shared/lib/content-image";
+import { getMediaImage } from "@/shared/lib/media-image";
 import { ROUTES } from "@/shared/routes";
 import type { SampleEssay } from "~services/types/database";
 import { useAuth } from "@/appx/providers";
@@ -64,13 +65,13 @@ function EssayCard({
       href={ROUTES.SAMPLE_ESSAY.SINGLE(essay.slug)}
       className="group bg-white rounded-[24px] border border-[rgba(25,29,36,0.08)] shadow-[0px_4px_16px_rgba(0,0,0,0.04)] flex flex-col overflow-hidden no-underline hover:shadow-[0px_8px_28px_rgba(0,0,0,0.09)] transition-shadow relative"
     >
-      <div className="h-[140px] relative shrink-0" style={{ background: gradient }}>
+      <div className="h-[140px] relative shrink-0" style={essay.featured_image ? undefined : { background: gradient }}>
         {essay.featured_image && (
           <Image
             src={resolveContentImage(essay.featured_image, fallbackImage)}
             alt={essay.title}
             fill
-            className="object-cover opacity-25 group-hover:opacity-35 transition-opacity"
+            className="object-cover"
             unoptimized
           />
         )}
@@ -185,7 +186,7 @@ export const PageSingle = ({
           : `${ROUTES.EXAM.ARCHIVE}?skill=writing`;
 
   return (
-    <>
+    <div className="w-full max-w-[1360px] mx-auto">
       <SEOHeader
         fullHead={post.seo?.fullHead}
         title={post.seo?.title}
@@ -269,7 +270,7 @@ export const PageSingle = ({
       {post.featuredImage?.node.sourceUrl && (
         <div className="relative rounded-[24px] overflow-hidden h-[240px] md:h-[360px] lg:h-[420px] w-full mb-[36px]">
           <Image
-            src={resolveContentImage(post.featuredImage.node.sourceUrl, fallbackImage)}
+            src={getMediaImage(resolveContentImage(post.featuredImage.node.sourceUrl, fallbackImage), { width: 1200 })}
             alt={post.featuredImage.node.altText || post.title}
             fill
             className="object-cover"
@@ -330,17 +331,29 @@ export const PageSingle = ({
           <h2 className="text-[22px] md:text-[24px] font-bold font-noto-sans text-[#191D24] tracking-[-0.48px] mb-[22px]">
             More sample essays
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
-            {allRelated.slice(0, 6).map((essay) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[18px]">
+            {allRelated.slice(0, 8).map((essay, idx) => {
               const essayIsPro = Boolean(essay.pro_user_only);
               return (
-                <EssayCard
+                <div
                   key={essay.id}
-                  essay={essay}
-                  isPro={essayIsPro}
-                  isLocked={essayIsPro && !viewerIsPro}
-                  fallbackImage={fallbackImage}
-                />
+                  className={
+                    idx === 2 || idx === 3
+                      ? "hidden sm:block"
+                      : idx === 4 || idx === 5
+                      ? "hidden lg:block"
+                      : idx === 6 || idx === 7
+                      ? "hidden xl:block"
+                      : "block"
+                  }
+                >
+                  <EssayCard
+                    essay={essay}
+                    isPro={essayIsPro}
+                    isLocked={essayIsPro && !viewerIsPro}
+                    fallbackImage={fallbackImage}
+                  />
+                </div>
               );
             })}
           </div>
@@ -375,6 +388,6 @@ export const PageSingle = ({
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };

@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone";
 import { Button, message, Input } from "antd";
 import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import Image from "next/image";
+import { toCdnUrl } from "@/shared/lib/media-url";
 
 interface ImageUploadProps {
   value?: string;
@@ -128,7 +129,7 @@ export function ImageUpload({
           <div style={{ position: "relative", width: "100%", height: 192 }}>
             {preview.startsWith('http://') || preview.startsWith('https://') ? (
               <img
-                src={preview}
+                src={toCdnUrl(preview)}
                 alt="Preview"
                 style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: 4 }}
                 onError={(e) => {

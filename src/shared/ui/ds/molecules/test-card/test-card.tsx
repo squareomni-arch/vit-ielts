@@ -1,6 +1,7 @@
 import { PartTag } from '../../atoms/part-tag';
 import { ProBadge } from '../../../pro-badge';
 import { resolveContentImage, useContentImageFallback } from '@/shared/lib/content-image';
+import { getMediaImage } from '@/shared/lib/media-image';
 
 export type TestCardProps = {
   image?: string;
@@ -67,7 +68,7 @@ export const TestCard = ({
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_var(--color-secondary-200),_white_55%,_var(--color-primary-50))]" />
         )}
         <img
-          src={imageSrc}
+          src={isLogoFallback ? imageSrc : getMediaImage(imageSrc, { width: 356, height: 220, resize: 'cover' })}
           alt={title}
           className={`absolute inset-0 w-full h-full ${isLogoFallback ? 'object-contain p-12 opacity-30 mix-blend-multiply' : 'object-cover'}`}
           loading="lazy"

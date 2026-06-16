@@ -1,5 +1,5 @@
 /**
- * Vocabulary Service — IELTS Prediction
+ * Vocabulary Service — Vit IELTS
  *
  * Manages the shared vocab_words corpus and per-user learning progress
  * stored in user_vocab.

@@ -1,5 +1,5 @@
 -- ============================================================================
--- IELTS Prediction — Vocabulary feature
+-- Vit IELTS — Vocabulary feature
 -- Migration: 028_vocabulary.sql
 -- Description:
 --   Shared word corpus (vocab_words) readable by everyone, plus per-user

@@ -1,5 +1,5 @@
 /**
- * Sample Essay Service — IELTS Prediction
+ * Sample Essay Service — Vit IELTS
  *
  * Replaces WPGraphQL sample essay queries + filter logic.
  * Supports 12 filter parameters matching the WordPress taxonomy/meta_query system.

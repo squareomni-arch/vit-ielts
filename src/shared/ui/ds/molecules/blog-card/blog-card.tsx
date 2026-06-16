@@ -1,11 +1,12 @@
 
 import { resolveContentImage, useContentImageFallback } from "@/shared/lib/content-image";
+import { getMediaImage } from "@/shared/lib/media-image";
 import { ProBadge } from "@/shared/ui/pro-badge";
 
 /**
  * Design System Blog Card
  *
- * @figma IELTS Prediction Test — "BlogCell" + Blog page cards
+ * @figma Vit IELTS — "BlogCell" + Blog page cards
  */
 
 export type BlogCardProps = {
@@ -44,7 +45,7 @@ export const BlogCard = ({
   return (
     <Tag {...linkProps} className={`blog-card ${className}`} onClick={onClick}>
       <div className="blog-card__image-wrapper">
-        <img src={imageSrc} alt={title} className="blog-card__image" loading="lazy" />
+        <img src={getMediaImage(imageSrc, { width: 600 })} alt={title} className="blog-card__image" loading="lazy" />
         {isPro && (
           <ProBadge className="absolute top-2 right-2 z-10" />
         )}

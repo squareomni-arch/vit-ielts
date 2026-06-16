@@ -1,5 +1,5 @@
 -- ============================================================================
--- IELTS Prediction — Vocabulary SRS (Spaced-Repetition Scheduling)
+-- Vit IELTS — Vocabulary SRS (Spaced-Repetition Scheduling)
 -- Migration: 030_vocab_srs.sql
 -- Description:
 --   Extends user_vocab with SM-2-lite scheduling columns so the app can

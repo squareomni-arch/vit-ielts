@@ -13,6 +13,7 @@ import AdminLayout from "../_layout";
 import dayjs from "dayjs";
 import { withAdmin } from "@/shared/hoc/withAdmin";
 import { AdminPageHeader, AdminGlassCard } from "@/widgets/admin";
+import { ImageUpload } from "@/shared/ui/image-upload";
 
 const { TextArea } = Input;
 
@@ -24,6 +25,11 @@ type SeoConfig = {
     robotsTxt: string;
     googleVerification: string;
     bingVerification: string;
+    facebookVerification?: string;
+    gtmId?: string;
+    fbAppId?: string;
+    keywords?: string;
+    author?: string;
 };
 
 type RedirectRule = {
@@ -261,12 +267,32 @@ export default function SeoManagerPage() {
                                         <TextArea rows={3} placeholder="Site description for search engines..." />
                                     </Form.Item>
 
-                                    <Form.Item name="ogImage" label="Default OG Image URL">
-                                        <Input placeholder="/img/og-default.png" />
+                                    <Form.Item name="keywords" label="Keywords">
+                                        <TextArea rows={2} placeholder="ielts, vit ielts, ..." />
+                                    </Form.Item>
+
+                                    <Form.Item name="author" label="Author">
+                                        <Input placeholder="Vịt IELTS" />
+                                    </Form.Item>
+
+                                    <Form.Item name="ogImage" label="Default OG Image URL" valuePropName="value">
+                                        <ImageUpload />
                                     </Form.Item>
 
                                     <Form.Item name="googleVerification" label="Google Verification Code">
                                         <Input placeholder="google-site-verification=..." />
+                                    </Form.Item>
+
+                                    <Form.Item name="facebookVerification" label="Facebook Verification Code">
+                                        <Input placeholder="facebook-domain-verification=..." />
+                                    </Form.Item>
+
+                                    <Form.Item name="gtmId" label="Google Tag Manager ID">
+                                        <Input placeholder="GTM-K667XHRR" />
+                                    </Form.Item>
+
+                                    <Form.Item name="fbAppId" label="Facebook App ID">
+                                        <Input placeholder="ID APP" />
                                     </Form.Item>
 
                                     <Form.Item name="bingVerification" label="Bing Verification Code">

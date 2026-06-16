@@ -1,5 +1,5 @@
 /**
- * Study Plan Service — IELTS Prediction
+ * Study Plan Service — Vit IELTS
  *
  * Reads and mutates user study tasks for the Study Plan page.
  *

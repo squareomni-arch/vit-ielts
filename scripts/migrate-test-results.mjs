@@ -20,7 +20,7 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const WP_URL = process.env.WP_URL || 'https://cms.ieltspredictiontest.com';
+const WP_URL = process.env.WP_URL || 'https://cms.vitieltstest.com';
 const WP_GRAPHQL_URL = `${WP_URL}/graphql`;
 const DATA_DIR = join(process.cwd(), 'data');
 const USER_MAPPING_FILE = join(DATA_DIR, 'user-id-mapping.json');

@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { getMediaImage } from '@/shared/lib/media-image';
 
 /**
  * Design System Avatar
  *
- * @figma IELTS Prediction Test — Dashboard, Result page
+ * @figma Vit IELTS — Dashboard, Result page
  */
 
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -55,7 +56,7 @@ export const Avatar = ({
   const displayName = name || fallback || '';
   const inner = (src && !hasError) ? (
     <img
-      src={src}
+      src={getMediaImage(src, { width: 192, height: 192, resize: 'cover' })}
       alt={alt || displayName}
       className="avatar__img"
       onError={() => setHasError(true)}

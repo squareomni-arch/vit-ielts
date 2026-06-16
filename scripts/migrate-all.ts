@@ -19,7 +19,7 @@ async function main() {
     const startTime = Date.now();
 
     console.log("╔══════════════════════════════════════════════════╗");
-    console.log("║        IELTS Prediction — Data Migration        ║");
+    console.log("║        Vit IELTS — Data Migration        ║");
     console.log("║        WordPress/JSON → Supabase PostgreSQL     ║");
     console.log("╚══════════════════════════════════════════════════╝");
 

@@ -15,7 +15,7 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const WP_URL = process.env.WP_URL || 'https://cms.ieltspredictiontest.com';
+const WP_URL = process.env.WP_URL || 'https://cms.vitieltstest.com';
 const QUIZ_MAPPING_FILE = join(process.cwd(), 'data', 'quiz-id-mapping.json');
 
 async function graphqlQuery(query, variables = {}) {

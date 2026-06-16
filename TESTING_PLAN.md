@@ -1,4 +1,4 @@
-# 🧪 Kế hoạch Kiểm thử Toàn diện — IELTS Prediction
+# 🧪 Kế hoạch Kiểm thử Toàn diện — Vit IELTS
 
 > ⚠️ **TÀI LIỆU LỖI THỜI — CẦN LẬP KẾ HOẠCH LẠI.** Plan này gắn với quy trình migration cũ (`implementation_plan.md`, `CODE_CONVENTIONS.md`, `UI_MIGRATION_RULES.md` — đã xóa). Việc kiểm thử cho đợt UI rebuild sẽ được lập lại theo `AGENT_UI_REBUILD_GUIDE.md` + `DESIGN_SYSTEM_REBUILD.md` (3 gate: `pnpm test`, `pnpm typecheck`, `pnpm test:visual`). Giữ file để tham khảo lịch sử.
 

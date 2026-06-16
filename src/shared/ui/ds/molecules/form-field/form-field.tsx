@@ -3,7 +3,7 @@ import { Input, type InputProps } from '../../atoms/input';
 /**
  * Design System Form Field — Label + Input + Helper/Error text
  *
- * @figma IELTS Prediction Test — Login/Sign Up forms
+ * @figma Vit IELTS — Login/Sign Up forms
  */
 
 export type FormFieldProps = InputProps & {

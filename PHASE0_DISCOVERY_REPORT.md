@@ -104,7 +104,7 @@ src/features/**               # admin-post, admin-quiz (admin — generally out 
 
 **Verdict: cleanly separated already. The seam the guide wants to establish in Phase 1 largely exists.**
 
-Evidence (e.g. `src/pages/ielts-prediction/index.tsx`):
+Evidence (e.g. `src/pages/vit-ielts/index.tsx`):
 
 - All data fetching lives in `getServerSideProps`, composed through HOCs (`withMasterData`, `withMultipleWrapper`, `withAuth`) and the `/services` layer.
 - The page's `index.tsx` only wires SSR + re-exports the component; the rendering component lives in `./ui` and receives data via **props**.

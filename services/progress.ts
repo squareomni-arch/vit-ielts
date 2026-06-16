@@ -1,5 +1,5 @@
 /**
- * Progress Service — IELTS Prediction
+ * Progress Service — Vit IELTS
  *
  * Aggregates a user's test_results (joined to quizzes) for the My Progress page.
  * All functions are read-only; no DB mutations occur here.

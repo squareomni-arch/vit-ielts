@@ -16,7 +16,7 @@ const supabase = createClient(
 
 const DATA_DIR = join(process.cwd(), 'data');
 const CONFIG_DIR = join(process.cwd(), 'config');
-const WP_URL = process.env.WP_URL || 'https://cms.ieltspredictiontest.com';
+const WP_URL = process.env.WP_URL || 'https://cms.vitieltstest.com';
 const WP_USER = process.env.WP_ADMIN_USER || 'admin';
 const WP_PASS = process.env.WP_ADMIN_PASSWORD || '';
 const WP_AUTH = Buffer.from(`${WP_USER}:${WP_PASS}`).toString('base64');
@@ -516,7 +516,7 @@ async function migrateSampleEssays() {
 // MAIN
 // ============================================================
 console.log('╔══════════════════════════════════════════════════╗');
-console.log('║     IELTS Prediction — Full Data Migration      ║');
+console.log('║     Vit IELTS — Full Data Migration      ║');
 console.log('╚══════════════════════════════════════════════════╝');
 
 const startTime = Date.now();

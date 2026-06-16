@@ -14,7 +14,7 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const WP_URL = process.env.WP_URL || 'https://cms.ieltspredictiontest.com';
+const WP_URL = process.env.WP_URL || 'https://cms.vitieltstest.com';
 
 async function graphqlQuery(query, variables = {}) {
     const res = await fetch(`${WP_URL}/graphql`, {

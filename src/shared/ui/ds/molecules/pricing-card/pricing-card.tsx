@@ -1,7 +1,7 @@
 import { Button } from '../../atoms/button';
 
 /**
- * @figma IELTS Prediction Test — Subscription page pricing cards
+ * @figma Vit IELTS — Subscription page pricing cards
  */
 
 export type PricingCardProps = {

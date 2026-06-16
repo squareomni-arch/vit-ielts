@@ -148,7 +148,7 @@ export default async function handler(
 
     // ═══════════════════════════════════════════════════════════
     // BRANCH 2: ORDER PAYMENT (existing logic)
-    // Content format: "Vit IELTS {timestamp}{random}" / "IELTS PREDICTION {timestamp}{random}"
+    // Content format: "Vit IELTS {timestamp}{random}" / "VIT IELTS {timestamp}{random}"
     // ═══════════════════════════════════════════════════════════
 
     // ── Parse orderId from content ──
@@ -187,7 +187,7 @@ export default async function handler(
     // Retry with numeric part only if not found
     if (!order) {
       const orderIdNumbers = orderId
-        .replace("IELTS PREDICTION", "")
+        .replace("VIT IELTS", "")
         .replace("Vit IELTS", "")
         .trim();
       if (orderIdNumbers) {
@@ -431,7 +431,7 @@ export default async function handler(
     // ── Send admin notification email ──
     try {
       const adminEmail =
-        process.env.ADMIN_EMAIL || "admin@ieltspredictiontest.com";
+        process.env.ADMIN_EMAIL || "admin@vitieltstest.com";
       log(`[Sepay Webhook] Sending admin email to: ${adminEmail}`);
       await sendAdminNotificationEmail(
         order.order_id,

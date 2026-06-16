@@ -149,7 +149,7 @@ describe("API /api/webhooks/sepay — Signature Verification", () => {
 
     it("accepts valid HMAC-SHA256 signature", () => {
         const secret = "test-secret-key";
-        const body = JSON.stringify({ transferAmount: 299000, content: "IELTS PREDICTION 123" });
+        const body = JSON.stringify({ transferAmount: 299000, content: "VIT IELTS 123" });
         const signature = crypto.createHmac("sha256", secret).update(body, "utf8").digest("hex");
 
         expect(verifyWebhookSignature(body, signature, secret)).toBe(true);
@@ -157,29 +157,29 @@ describe("API /api/webhooks/sepay — Signature Verification", () => {
 
     it("rejects invalid signature", () => {
         const secret = "test-secret-key";
-        const body = JSON.stringify({ transferAmount: 299000, content: "IELTS PREDICTION 123" });
+        const body = JSON.stringify({ transferAmount: 299000, content: "VIT IELTS 123" });
 
         expect(verifyWebhookSignature(body, "deadbeef0000", secret)).toBe(false);
     });
 
     it("rejects empty signature", () => {
         const secret = "test-secret-key";
-        const body = JSON.stringify({ transferAmount: 299000, content: "IELTS PREDICTION 123" });
+        const body = JSON.stringify({ transferAmount: 299000, content: "VIT IELTS 123" });
 
         expect(verifyWebhookSignature(body, "", secret)).toBe(false);
     });
 
     it("rejects tampered body", () => {
         const secret = "test-secret-key";
-        const originalBody = JSON.stringify({ transferAmount: 299000, content: "IELTS PREDICTION 123" });
+        const originalBody = JSON.stringify({ transferAmount: 299000, content: "VIT IELTS 123" });
         const signature = crypto.createHmac("sha256", secret).update(originalBody, "utf8").digest("hex");
 
-        const tamperedBody = JSON.stringify({ transferAmount: 0, content: "IELTS PREDICTION 123" });
+        const tamperedBody = JSON.stringify({ transferAmount: 0, content: "VIT IELTS 123" });
         expect(verifyWebhookSignature(tamperedBody, signature, secret)).toBe(false);
     });
 
     it("rejects wrong secret", () => {
-        const body = JSON.stringify({ transferAmount: 299000, content: "IELTS PREDICTION 123" });
+        const body = JSON.stringify({ transferAmount: 299000, content: "VIT IELTS 123" });
         const signature = crypto.createHmac("sha256", "correct-secret").update(body, "utf8").digest("hex");
 
         expect(verifyWebhookSignature(body, signature, "wrong-secret")).toBe(false);

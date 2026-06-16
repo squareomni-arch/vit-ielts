@@ -2,7 +2,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://ieltsprediction.com";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://vitielts.com";
 
 /** Strip HTML tags to get plain text for meta descriptions */
 function stripHtml(html: string): string {

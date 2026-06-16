@@ -11,10 +11,10 @@ Qua quá trình rà soát toàn bộ UI components, Pages và Dummy Data, tôi p
    - Việc "dịch" dữ liệu CMS (như `slug: "0"`, `"passage1"`) ra chữ `"Part 1"` hoặc `"Passage 1"` đang bị code lặp lại (hard-coded dictionary) ở quá nhiều component:
      - `src/pages/home/ui/practice-section/index.tsx` (Dictionary riêng: `PART_LABELS`)
      - `src/pages/ielts-practice-library/ui/practice-card.tsx` (Dictionary riêng: `PART_META`)
-     - `src/pages/ielts-prediction/ui/practice-card.tsx` (Dictionary riêng: `PART_META`)
+     - `src/pages/vit-ielts/ui/practice-card.tsx` (Dictionary riêng: `PART_META`)
      - `src/pages/sample-essay/ui/archive/single-item.tsx` (Dictionary riêng: `FILTER_CONFIGS`)
 3. **Mockup Data/Code thừa:**
-   - Trong các trang chi tiết bài học (`ielts-prediction-single`, `ielts-practice-single`), section "Bài viết tương tự" bị hardcode chết chữ `Part 1` mặc kể kỹ năng (skill) bài thi là Reading/Speaking. 
+   - Trong các trang chi tiết bài học (`vit-ielts-single`, `ielts-practice-single`), section "Bài viết tương tự" bị hardcode chết chữ `Part 1` mặc kể kỹ năng (skill) bài thi là Reading/Speaking. 
 
 ---
 

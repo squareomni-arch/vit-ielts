@@ -15,6 +15,7 @@ import {
   resolveContentImage,
   useContentImageFallback,
 } from "@/shared/lib/content-image";
+import { getMediaImage } from "@/shared/lib/media-image";
 
 function skillChipStyle(skill: string): { bg: string; text: string } {
   const s = skill.toLowerCase();
@@ -195,7 +196,7 @@ export function PageIELTSPredictionSingle({ post }: { post: IPracticeSingle }) {
       {post.featuredImage?.node.sourceUrl && (
         <div className="relative rounded-[24px] overflow-hidden h-[240px] md:h-[360px] lg:h-[420px] w-full mb-[32px]">
           <Image
-            src={resolveContentImage(post.featuredImage.node.sourceUrl, fallbackImage)}
+            src={getMediaImage(resolveContentImage(post.featuredImage.node.sourceUrl, fallbackImage), { width: 1200 })}
             alt={post.featuredImage.node.altText || post.title}
             fill
             className="object-cover"

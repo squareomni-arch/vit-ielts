@@ -1,5 +1,5 @@
 -- ============================================================================
--- IELTS Prediction — Initial Database Schema
+-- Vit IELTS — Initial Database Schema
 -- Migration: 001_initial_schema.sql
 -- Description: Creates 18 tables, indexes, RPC functions, and RLS policies
 -- ============================================================================

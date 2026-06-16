@@ -98,7 +98,7 @@ export function PageIELTSExamSingle({ post, isPreview: isPreviewProp }: { post: 
   const relatedQuizzes = post.relatedPracticeQuizzes ?? [];
 
   return (
-    <>
+    <div className="w-full max-w-[1360px] mx-auto">
       <SEOHeader
         fullHead={post.seo?.fullHead}
         title={post.seo?.title}
@@ -299,7 +299,7 @@ export function PageIELTSExamSingle({ post, isPreview: isPreviewProp }: { post: 
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
-    </>
+    </div>
   );
 }
 

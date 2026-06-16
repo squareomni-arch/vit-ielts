@@ -1,5 +1,5 @@
 -- ============================================================================
--- IELTS Prediction — Study Plan feature
+-- Vit IELTS — Study Plan feature
 -- Migration: 027_study_plan.sql
 -- Description:
 --   Per-user daily study tasks that power the Study Plan page.

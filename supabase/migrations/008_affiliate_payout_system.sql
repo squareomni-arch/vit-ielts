@@ -1,5 +1,5 @@
 -- ============================================================================
--- IELTS Prediction — Affiliate Payout System
+-- Vit IELTS — Affiliate Payout System
 -- Migration: 008_affiliate_payout_system.sql
 -- Description: Adds payout tables, bank info, balance tracking, anti-fraud,
 --              and system configuration for affiliate payouts with SePay.

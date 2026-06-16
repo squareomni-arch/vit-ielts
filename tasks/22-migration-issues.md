@@ -51,7 +51,7 @@
 
 ## Ghi chú kỹ thuật
 
-- **WP GraphQL endpoint**: `https://cms.ieltspredictiontest.com/graphql`
+- **WP GraphQL endpoint**: `https://cms.vitieltstest.com/graphql`
 - **WP GraphQL ACF naming**: Không nhất quán — top-level dùng snake_case (`passage_content`), nested dùng camelCase (`matchingItems`, `correctAnswer`). Cần introspection per-type.
 - **ESM issue**: Dùng `.mjs` thay vì `.ts` do `@supabase/supabase-js` v2 ESM-only.
 - **dotenv v17**: Tự inject từ `.env.local`, nhưng cần `config({ path: '.env.local' })` để load đúng file.
