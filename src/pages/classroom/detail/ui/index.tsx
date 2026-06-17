@@ -940,6 +940,16 @@ export const PageClassroomDetail = ({
         studentIds: audience === "subset" ? subset : null,
         createdBy: user.id,
       });
+      // Notify assigned students (fire-and-forget; non-blocking).
+      void fetch("/api/classroom/notify-assignment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          classroomId: classroom.id,
+          studentIds: audience === "subset" ? subset : null,
+          count: selectedQuizzes.length,
+        }),
+      }).catch(() => {});
       message.success(`Assigned ${selectedQuizzes.length} test${selectedQuizzes.length !== 1 ? "s" : ""} to students`);
       resetGiao();
       refresh();

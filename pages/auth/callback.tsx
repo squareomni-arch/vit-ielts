@@ -2,6 +2,7 @@ import { createClient } from "~supabase/client";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { isAdminRole } from "~lib/parseRoles";
+import { trackSignUpSuccess } from "@/shared/lib/analytics/track-signup";
 
 /**
  * Auth callback page for Google OAuth redirect.
@@ -64,6 +65,10 @@ export default function AuthCallback() {
                                 (user.email ? user.email.split("@")[0] : ""),
                             avatar_url: meta.avatar_url || meta.picture || null,
                         });
+
+                        // First time this Google account is seen → a real sign-up.
+                        // Returning users (profile already exists) are NOT counted.
+                        trackSignUpSuccess({ method: "google", userId: user.id });
                     }
 
                     // Check admin role

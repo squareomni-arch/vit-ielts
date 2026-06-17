@@ -56,7 +56,7 @@ export const DEFAULT_COURSE_PACKAGES: CoursePackagesConfig = {
       },
       {
         name: "Standard Plan",
-        price: 400000,
+        price: 360000,
         months: 2,
         popular: true
       },
@@ -78,11 +78,11 @@ export const DEFAULT_COURSE_PACKAGES: CoursePackagesConfig = {
       },
       {
         name: "Premium Plan",
-        price: 1000000,
+        price: 960000,
         months: 6,
-        dealNote: "Giảm 200.000đ",
+        dealNote: "Giảm 120.000đ",
         featuredDeal: true,
-        originalPrice: 1200000
+        originalPrice: 1080000
       },
       {
         name: "Standard Plan",
@@ -111,11 +111,11 @@ export const DEFAULT_COURSE_PACKAGES: CoursePackagesConfig = {
       },
       {
         name: "Premium Plan",
-        price: 1800000,
+        price: 1680000,
         months: 12,
-        dealNote: "Giảm 600.000đ",
+        dealNote: "Giảm 480.000đ",
         featuredDeal: true,
-        originalPrice: 2400000
+        originalPrice: 2160000
       }
     ],
     title: "Combo Plan",
@@ -127,7 +127,7 @@ export const DEFAULT_COURSE_PACKAGES: CoursePackagesConfig = {
     plans: [
       {
         name: "Single Pack",
-        price: 200000,
+        price: 180000,
         months: 2,
         popular: false,
         dealNote: "Best starter choice",
@@ -153,12 +153,12 @@ export const DEFAULT_COURSE_PACKAGES: CoursePackagesConfig = {
       },
       {
         name: "Single Pack",
-        price: 500000,
+        price: 480000,
         months: 6,
         popular: true,
-        dealNote: "Giảm 100.000đ",
+        dealNote: "Giảm 60.000đ",
         featuredDeal: true,
-        originalPrice: 600000
+        originalPrice: 540000
       },
       {
         name: "Single Pack",
@@ -187,12 +187,12 @@ export const DEFAULT_COURSE_PACKAGES: CoursePackagesConfig = {
       },
       {
         name: "Single Pack",
-        price: 900000,
+        price: 840000,
         months: 12,
         popular: false,
-        dealNote: "Giảm 300.000đ",
+        dealNote: "Giảm 240.000đ",
         featuredDeal: true,
-        originalPrice: 1200000
+        originalPrice: 1080000
       }
     ],
     title: "Single Package",

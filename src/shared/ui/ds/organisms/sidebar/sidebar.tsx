@@ -64,6 +64,8 @@ export type SidebarTopActionsProps = {
   avatarSrc?: string;
   onSearch?: (q: string) => void;
   onNotifications?: () => void;
+  /** Unread notification count; shows a badge on the bell when > 0. */
+  unreadCount?: number;
   /** When set, the avatar links to this route. */
   profileHref?: string;
   className?: string;
@@ -494,6 +496,7 @@ export const SidebarTopActions = ({
   avatarSrc,
   onSearch,
   onNotifications,
+  unreadCount = 0,
   profileHref,
   className = '',
 }: SidebarTopActionsProps) => {
@@ -503,12 +506,17 @@ export const SidebarTopActions = ({
     <button
       type="button"
       onClick={onNotifications}
-      className="flex items-center justify-center w-[46px] h-[46px] rounded-full bg-white border border-[rgba(25,29,36,0.1)] shrink-0 cursor-pointer hover:bg-[var(--color-brand-tint)] transition-colors"
-      aria-label="Notifications"
+      className="relative flex items-center justify-center w-[46px] h-[46px] rounded-full bg-white border border-[rgba(25,29,36,0.1)] shrink-0 cursor-pointer hover:bg-[var(--color-brand-tint)] transition-colors"
+      aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
     >
       <span className="material-symbols-rounded text-[20px] leading-none" style={{ color: 'var(--color-ink-900)' }}>
         notifications
       </span>
+      {unreadCount > 0 && (
+        <span className="absolute -top-[2px] -right-[2px] min-w-[18px] h-[18px] px-[5px] rounded-full bg-[var(--color-danger)] text-white text-[11px] leading-[18px] font-semibold text-center">
+          {unreadCount > 9 ? '9+' : unreadCount}
+        </span>
+      )}
     </button>
   </div>
   );

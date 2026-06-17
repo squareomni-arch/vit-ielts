@@ -12,6 +12,7 @@ type SignUpParams = {
   password: string;
   date_of_birth?: string; // ISO format or "DD/MM/YYYY"
   gender?: "male" | "female" | string;
+  target_band?: number; // single band goal, stored across all four skills
 };
 
 export const useAuth = () => {
@@ -85,6 +86,7 @@ export const useAuth = () => {
     password,
     date_of_birth,
     gender,
+    target_band,
   }: SignUpParams) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -103,6 +105,18 @@ export const useAuth = () => {
         name,
         gender: gender || null,
         date_of_birth: date_of_birth || null,
+        // The signup form exposes a single "target band"; mirror the profile
+        // page and store it across all four skills in the target_score JSONB.
+        ...(target_band != null
+          ? {
+              target_score: {
+                reading: target_band,
+                listening: target_band,
+                speaking: target_band,
+                writing: target_band,
+              },
+            }
+          : {}),
       });
     }
 

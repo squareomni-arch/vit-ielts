@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createApiSupabase, createAdminApiSupabase } from "~supabase/server";
+import { supabaseAdmin } from "~supabase/admin";
 import { submitTestResult } from "~services/test-flow";
+import { createNotification } from "~services/notification";
 import { SubmitTestSchema } from "~services/lib/validation";
 
 type ResponseData = {
@@ -20,6 +22,7 @@ export default async function handler(
   try {
     let supabase = createApiSupabase(req, res);
     const { data: { user } } = await supabase.auth.getUser();
+    let effectiveUserId = user?.id ?? null;
 
     // Fallback to admin session for preview mode
     if (!user) {
@@ -27,6 +30,7 @@ export default async function handler(
       const { data: { user: adminUser } } = await adminSupabase.auth.getUser();
       if (adminUser) {
         supabase = adminSupabase;
+        effectiveUserId = adminUser.id;
       }
     }
 
@@ -50,6 +54,23 @@ export default async function handler(
       timeLeft || "00:00",
       { quizId, testPart },
     );
+
+    // In-app notification (transactional — always sent). Non-fatal.
+    if (effectiveUserId) {
+      try {
+        await createNotification(supabaseAdmin, {
+          userId: effectiveUserId,
+          title: "Kết quả bài thi đã sẵn sàng",
+          message: `Bài thi của bạn đã được chấm. Điểm: ${result.score ?? 0}. Nhấn để xem chi tiết.`,
+          type: "success",
+          category: "test",
+          entityId: result.id,
+          link: `/test-result/${result.id}`,
+        });
+      } catch (notifErr) {
+        console.error("[API /api/test-flow/submit] notification failed", notifErr);
+      }
+    }
 
     return res.status(200).json({
       success: true,

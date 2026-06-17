@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { GoogleIcon } from "@/shared/ui/icons";
 import { Button } from "@/shared/ui/ds/atoms/button";
 import { Input } from "@/shared/ui/ds/atoms/input";
+import { trackSignUpSuccess } from "@/shared/lib/analytics/track-signup";
 import type { RegisterPageConfig } from "@/shared/types/admin-config";
 
 const imgLogoText = "/assets/logos/logo-on-dark.svg";
@@ -97,19 +98,48 @@ export function PageRegister({ registerConfig: _registerConfig, totalTests = 920
     submittingRef.current = true;
     setIsLoading(true);
     try {
-      await signUp({
+      // "Band 7.5" → 7.5 ; persisted to the user's profile (users.target_score)
+      const targetBand =
+        parseFloat(selectedBand.replace(/[^0-9.]/g, "")) || undefined;
+
+      const result = await signUp({
         name: data.name,
         email: data.email,
         password: data.password,
+        target_band: targetBand,
       });
 
+      // Conversion tracking — fire only after a genuinely successful sign-up.
+      trackSignUpSuccess({ method: "email", userId: result?.user?.id });
+
       toast.success("Account created successfully!");
-      // signUp already creates the auth session, just sign in to set cookie & redirect
-      await signIn({ email: data.email, password: data.password });
+
+      // Sign in immediately on success. signUp already returns a session when
+      // email confirmation is disabled; if not, establish it explicitly.
+      if (!result?.session) {
+        await signIn({ email: data.email, password: data.password });
+      }
+
+      // Email not yet verified → don't block login; drop a reminder into the
+      // notification bell instead. Await so the hard redirect doesn't cancel it.
+      if (!result?.user?.email_confirmed_at) {
+        try {
+          await fetch("/api/notifications/verify-reminder", { method: "POST" });
+        } catch {
+          // Best-effort — the reminder is a nicety, not a gate.
+        }
+      }
+
+      // Redirect explicitly — the register page is on the SIGNED_IN auto-reload
+      // blocklist, so navigation must be driven from here.
+      const redirect =
+        new URLSearchParams(window.location.search).get("redirect") || "/";
+      window.location.href = redirect;
     } catch (err: any) {
       setIsLoading(false);
       submittingRef.current = false;
       const message = err?.message || "Registration failed. Please try again.";
+      toast.error(message);
       setError("email", {
         type: "manual",
         message,

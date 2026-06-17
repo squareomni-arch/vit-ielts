@@ -10,31 +10,31 @@ import { DEFAULT_COURSE_PACKAGES } from "@/shared/constants";
 
 const fixedComboTiers = [
   { months: 1, price: 200000 },
-  { months: 2, price: 400000 },
+  { months: 2, price: 360000 },
   { months: 3, price: 600000 },
   { months: 4, price: 800000 },
   { months: 5, price: 1000000 },
-  { months: 6, price: 1000000, originalPrice: 1200000, featuredDeal: true, dealNote: "Giảm 200.000đ" },
+  { months: 6, price: 960000, originalPrice: 1080000, featuredDeal: true, dealNote: "Giảm 120.000đ" },
   { months: 7, price: 1400000 },
   { months: 8, price: 1600000 },
   { months: 9, price: 1800000 },
   { months: 10, price: 2000000 },
   { months: 11, price: 2200000 },
-  { months: 12, price: 1800000, originalPrice: 2400000, featuredDeal: true, dealNote: "Giảm 600.000đ" },
+  { months: 12, price: 1680000, originalPrice: 2160000, featuredDeal: true, dealNote: "Giảm 480.000đ" },
 ];
 
 const fixeingleTiers = [
-  { months: 2, price: 200000 },
+  { months: 2, price: 180000 },
   { months: 3, price: 300000 },
   { months: 4, price: 400000 },
   { months: 5, price: 500000 },
-  { months: 6, price: 500000, originalPrice: 600000, featuredDeal: true, dealNote: "Giảm 100.000đ" },
+  { months: 6, price: 480000, originalPrice: 540000, featuredDeal: true, dealNote: "Giảm 60.000đ" },
   { months: 7, price: 700000 },
   { months: 8, price: 800000 },
   { months: 9, price: 900000 },
   { months: 10, price: 1000000 },
   { months: 11, price: 1100000 },
-  { months: 12, price: 900000, originalPrice: 1200000, featuredDeal: true, dealNote: "Giảm 300.000đ" },
+  { months: 12, price: 840000, originalPrice: 1080000, featuredDeal: true, dealNote: "Giảm 240.000đ" },
 ];
 
 function normalizeComboPlans(plans: CoursePackageItem[]): CoursePackageItem[] {

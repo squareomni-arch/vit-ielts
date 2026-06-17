@@ -85,9 +85,7 @@ export const SubscriptionPlans = ({
   }) => {
     const [currentMonths, setCurrentMonths] = useState(initialMonths);
 
-    const canAdjustMonths =
-      (type === "combo" && (initialMonths === 1 || initialMonths === 2)) ||
-      (type === "single" && initialMonths === 2);
+    const canAdjustMonths = false;
 
     const initialPlan =
       type === "combo"
@@ -382,7 +380,7 @@ export const SubscriptionPlans = ({
               ref={comboTrackRef}
               className="flex gap-[23px] overflow-x-auto snap-x snap-mandatory scroll-smooth pt-1 pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              {[1, 2, 6, 12].map((months) => (
+              {[2, 6, 12].map((months) => (
                 <CourseCard key={`combo-${months}`} initialMonths={months} type="combo" />
               ))}
             </div>

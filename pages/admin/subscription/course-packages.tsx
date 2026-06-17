@@ -264,7 +264,7 @@ export default function CoursePackagesPage() {
               <Divider orientation="left">Cấu hình các gói hiển thị trên giao diện</Divider>
               <Form.List name={["combo", "plans"]}>
                 {(fields) => {
-                  const activeMonths = [1, 2, 6, 12];
+                  const activeMonths = [2, 6, 12];
                   return (
                     <Space direction="vertical" className="w-full">
                       {fields.map((field) => {

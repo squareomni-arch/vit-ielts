@@ -15,6 +15,7 @@ import {
 } from "~services/email";
 import { resolveAffiliateRef, createCommissionWithWaiting } from "~services/affiliate";
 import { completePayoutFromWebhook } from "~services/payout";
+import { createNotification } from "~services/notification";
 import { dbg } from "~lib/debug";
 
 const log = dbg.webhook;
@@ -343,6 +344,21 @@ export default async function handler(
           log(
             `[Sepay Webhook] ✔ ProAccount updated successfully for user: ${order.user_id}`,
           );
+
+          // In-app notification (transactional — always sent). Non-fatal.
+          try {
+            await createNotification(supabaseAdmin, {
+              userId: order.user_id,
+              title: "Kích hoạt Pro thành công",
+              message: `Đơn hàng ${order.order_id} đã thanh toán. Tài khoản Pro của bạn đã được kích hoạt.`,
+              type: "success",
+              category: "order",
+              entityId: order.order_id,
+              link: "/account/order-history",
+            });
+          } catch (notifErr) {
+            log.error(`[Sepay Webhook] ✗ Failed to create order notification:`, notifErr);
+          }
         } catch (updateError) {
           log.error(`[Sepay Webhook] ✗ Error updating ProAccount:`, updateError);
           // Surface as 500 so SePay retries — order stays completed but

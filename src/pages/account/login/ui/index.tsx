@@ -9,14 +9,13 @@ import { Button } from "@/shared/ui/ds/atoms/button";
 import { Input } from "@/shared/ui/ds/atoms/input";
 import type { LoginPageConfig } from "@/shared/types/admin-config";
 
-/* ── Figma asset: Decoration blobs (temporary remote URLs, expires ~7 days) ── */
-const imgDecorationTop =
-  "https://www.figma.com/api/mcp/asset/9ac236a3-c745-4ad6-98dd-b1faa9a5568c";
-const imgDecorationBottom =
-  "https://www.figma.com/api/mcp/asset/0dd2a09a-0301-4ed1-9274-438deab9261b";
 const imgLogoFull = "/assets/logos/logo-on-green.svg";
-const imgTrophy =
-  "https://www.figma.com/api/mcp/asset/2175c9aa-8033-4dc5-8005-ab4f3c1df65c";
+
+const TrophyIcon = () => (
+  <svg width="34" height="34" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 28H20M16 23V28M7.25 16H6C4.93913 16 3.92172 15.5786 3.17157 14.8284C2.42143 14.0783 2 13.0609 2 12V10C2 9.73478 2.10536 9.48043 2.29289 9.29289C2.48043 9.10536 2.73478 9 3 9H7M24.75 16H26C27.0609 16 28.0783 15.5786 28.8284 14.8284C29.5786 14.0783 30 13.0609 30 12V10C30 9.73478 29.8946 9.48043 29.7071 9.29289C29.5196 9.10536 29.2652 9 29 9H25M7 6H25V13.8875C25 18.85 21.0313 22.9625 16.0688 23C14.8811 23.0091 13.7034 22.783 12.6035 22.3348C11.5036 21.8865 10.5033 21.225 9.6603 20.3884C8.81728 19.5518 8.14819 18.5565 7.6916 17.4601C7.23502 16.3637 6.99997 15.1877 7 14V6Z" stroke="#191d24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
 
 /* ── Icon helpers (Material Symbols Rounded via className) ── */
 const EyeIcon = () => (
@@ -89,45 +88,36 @@ export function PageLogin({ loginConfig: _loginConfig }: PageLoginProps) {
     >
       {/* === SECTION: Body (Brand Panel + Form Area) === */}
       <div
-        className="relative flex flex-1 min-h-screen justify-center"
+        className="relative flex flex-1 min-h-screen"
         data-section="auth-login-body"
       >
         {/* Green bleed — extends brand colour to left screen edge on wide viewports */}
-        <div className="absolute inset-y-0 left-0 right-1/2 bg-[#b3e653]" aria-hidden="true" />
+        <div className="hidden md:block absolute inset-y-0 left-0 right-1/2 bg-[#b3e653]" aria-hidden="true" />
 
-        {/* Content capped at design-system container-2xl, centered */}
-        <div className="relative z-10 flex w-full">
+        {/* Decoration blobs — clipped within exact left-half boundary (md+ only) */}
+        <div className="hidden md:block absolute inset-y-0 left-0 w-1/2 overflow-hidden pointer-events-none z-[1]" aria-hidden="true">
+          <div className="absolute right-[-40px] top-[-104px] w-[360px] h-[360px] rounded-full bg-white/20" />
+          <div className="absolute left-[-100px] bottom-[-20px] w-[251px] h-[251px] rounded-full bg-white/20" />
+        </div>
 
         {/* === SECTION: Brand Panel === */}
         <div
-          className="hidden md:flex flex-1 flex-col justify-between px-[8%] py-[100px] bg-[#b3e653] relative overflow-hidden"
+          className="hidden md:flex flex-1 flex-col bg-[#b3e653] relative"
           data-section="brand-panel"
         >
-          {/* Decoration blobs */}
-          <img
-            src={imgDecorationTop}
-            alt=""
-            aria-hidden="true"
-            className="absolute right-[-40px] top-[-104px] w-[360px] h-[360px] pointer-events-none"
-          />
-          <img
-            src={imgDecorationBottom}
-            alt=""
-            aria-hidden="true"
-            className="absolute left-[-100px] bottom-[-20px] w-[251px] h-[251px] pointer-events-none"
-          />
-
+          {/* Content constrained, right-aligned toward form */}
+          <div className="relative z-10 flex flex-col justify-between h-full py-[10vh] px-[60px] w-full max-w-[var(--max-width-container-md)] ml-auto">
           {/* Logo */}
-          <div className="relative z-10">
+          <div>
             <img
               src={imgLogoFull}
               alt="VitIELTS Logo"
-              className="h-auto w-full max-w-[320px]"
+              className="h-auto w-full max-w-[480px]"
             />
           </div>
 
           {/* Headline + tagline */}
-          <div className="relative z-10 flex flex-col gap-5 max-w-[520px]">
+          <div className="flex flex-col gap-5 max-w-[520px]">
             <h1 className="font-display font-bold text-[46px] leading-[1.08] tracking-[-0.92px] text-[#191d24]">
               Welcome back.<br />
               Keep your streak going.
@@ -140,15 +130,10 @@ export function PageLogin({ loginConfig: _loginConfig }: PageLoginProps) {
 
           {/* Card · Band 7.5 */}
           <div
-            className="relative z-10 flex items-center gap-4 bg-white rounded-[20px] shadow-[0px_8px_24px_0px_rgba(0,0,0,0.1)] px-5 h-[92px] w-[330px]"
+            className="flex items-center gap-4 bg-white rounded-[20px] shadow-[0px_8px_24px_0px_rgba(0,0,0,0.1)] px-5 h-[92px] w-[330px]"
             data-section="band-card"
           >
-            <img
-              src={imgTrophy}
-              alt=""
-              aria-hidden="true"
-              className="w-[34px] h-[34px] shrink-0"
-            />
+            <TrophyIcon />
             <div className="flex flex-col gap-[2px]">
               <p className="font-inter font-bold text-[15px] text-[#191d24] whitespace-nowrap">
                 Band 7.5 — last mock
@@ -158,6 +143,7 @@ export function PageLogin({ loginConfig: _loginConfig }: PageLoginProps) {
               </p>
             </div>
           </div>
+          </div>{/* end inner content */}
         </div>
 
         {/* === SECTION: Form Area === */}
@@ -318,7 +304,6 @@ export function PageLogin({ loginConfig: _loginConfig }: PageLoginProps) {
             </div>
           </div>
         </div>
-        </div>{/* end max-width wrapper */}
       </div>
 
       {/* === SECTION: Footer === */}

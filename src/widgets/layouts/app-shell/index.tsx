@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import {
@@ -8,11 +8,14 @@ import {
   type SidebarNavEntry,
 } from "@/shared/ui/ds/organisms/sidebar";
 import { Footer } from "@/shared/ui/ds/organisms/footer";
+import { NotificationPanel } from "@/shared/ui/ds/organisms/notification-panel";
 import { Button } from "@/shared/ui/ds/atoms/button";
 import { useAuth } from "@/appx/providers";
+import { useNotifications } from "@/shared/lib/use-notifications";
 import { ROUTES } from "@/shared/routes";
 import { FOOTER_COLUMNS } from "../footer-columns";
 import { createClient } from "~supabase/client";
+import type { Notification } from "~services/types/database";
 
 /**
  * AppShell — logged-in app layout (Figma "Student Dashboard" shell).
@@ -114,6 +117,40 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, isSignedIn, isTeacher, signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Notifications (header bell).
+  const { notifications, unreadCount, loading: notifLoading, markRead, markAllRead } =
+    useNotifications(isSignedIn);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  // Close the notification panel on outside click / Escape.
+  useEffect(() => {
+    if (!notifOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNotifOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [notifOpen]);
+
+  const handleNotifClick = useCallback(
+    (n: Notification) => {
+      if (!n.is_read) markRead(n.id);
+      setNotifOpen(false);
+      if (n.link) router.push(n.link);
+    },
+    [markRead, router],
+  );
 
   useEffect(() => {
     const savedCollapsed = window.localStorage.getItem(APP_SIDEBAR_COLLAPSED_KEY);
@@ -274,11 +311,25 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
           {/* Desktop (≥lg): search / profile / notifications, or auth buttons. */}
           <div className="hidden lg:flex items-center justify-end gap-4 w-full">
             {isSignedIn && (
-              <SidebarTopActions
-                userInitials={initials}
-                avatarSrc={avatarSrc}
-                profileHref={ROUTES.ACCOUNT.MY_PROFILE}
-              />
+              <div ref={notifRef} className="relative">
+                <SidebarTopActions
+                  userInitials={initials}
+                  avatarSrc={avatarSrc}
+                  profileHref={ROUTES.ACCOUNT.MY_PROFILE}
+                  unreadCount={unreadCount}
+                  onNotifications={() => setNotifOpen((o) => !o)}
+                />
+                {notifOpen && (
+                  <div className="absolute right-0 top-[calc(100%+8px)] z-50">
+                    <NotificationPanel
+                      notifications={notifications}
+                      loading={notifLoading}
+                      onItemClick={handleNotifClick}
+                      onMarkAllRead={markAllRead}
+                    />
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </header>

@@ -171,6 +171,26 @@ export type TargetScore = {
 };
 
 // ============================================================================
+// Notifications (per-user, in-app)
+// ============================================================================
+
+export type NotificationType = "info" | "success" | "warning" | "error";
+export type NotificationCategory = "order" | "test" | "classroom" | "community";
+
+export type Notification = {
+    id: string;
+    user_id: string;
+    title: string;
+    message: string | null;
+    type: NotificationType;
+    category: NotificationCategory | null;
+    entity_id: string | null;
+    link: string | null;
+    is_read: boolean;
+    created_at: string;
+};
+
+// ============================================================================
 // Test Results
 // ============================================================================
 
