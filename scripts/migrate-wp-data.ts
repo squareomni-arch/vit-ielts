@@ -14,7 +14,7 @@
  *
  * Requires env vars:
  *   NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
- *   WP_URL (default: https://cms.vitieltstest.com)
+ *   WP_URL (default: https://cms.vitielts.com)
  *   WP_ADMIN_USER, WP_ADMIN_PASSWORD
  */
 
@@ -24,7 +24,7 @@ import { createClient } from "@supabase/supabase-js";
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
-const WP_URL = process.env.WP_URL || "https://cms.vitieltstest.com";
+const WP_URL = process.env.WP_URL || "https://cms.vitielts.com";
 const WP_GRAPHQL_URL = `${WP_URL}/graphql`;
 const WP_USER = process.env.WP_ADMIN_USER || "admin";
 const WP_PASS = process.env.WP_ADMIN_PASSWORD || "3986483aA@";

@@ -146,7 +146,7 @@ const DEFAULT_CONFIG: EmailTemplateConfig = {
             'Tài khoản <strong>Pro</strong> của bạn đã được kích hoạt thành công. Bạn có thể đăng nhập và bắt đầu làm bài dự đoán ngay.',
         ctaButton: {
             text: "Bắt đầu học ngay",
-            link: "https://vitieltstest.com",
+            link: "https://vitielts.com",
         },
         footerText:
             "Nếu bạn cần hỗ trợ, vui lòng liên hệ với chúng tôi qua email hoặc số điện thoại bên dưới.",
@@ -167,7 +167,7 @@ const DEFAULT_CONFIG: EmailTemplateConfig = {
         bodyHtml: "Xin chào <strong>{{affiliateName}}</strong>,\n\nChúng tôi rất vui mừng thông báo rằng đơn đăng ký tham gia chương trình Affiliate của bạn đã được phê duyệt thành công.\n\nBây giờ bạn đã có thể đăng nhập vào bảng điều khiển dành riêng cho Affiliate để lấy mã giới thiệu, theo dõi hoa hồng và bắt đầu hành trình cùng {{brandName}}.\n\nChúng tôi hy vọng sẽ cùng bạn tạo nên những kết quả tuyệt vời!",
         ctaButton: {
             text: "Truy cập Bảng điều khiển",
-            link: "https://vitieltstest.com/account/affiliate",
+            link: "https://vitielts.com/account/affiliate",
         },
     },
     affiliateRejected: {
@@ -181,7 +181,7 @@ const DEFAULT_CONFIG: EmailTemplateConfig = {
         bodyHtml: "Xin chào <strong>{{affiliateName}}</strong>,\n\nChúc mừng bạn vừa có một lượt giới thiệu thành công!\n\n<strong>Chi tiết giao dịch:</strong>\n- 📦 Đơn hàng: {{orderId}}\n- 💰 Giá trị đơn: {{orderTotal}}\n- 💎 Hoa hồng của bạn: <strong>{{commissionAmount}}</strong>\n\nHoa hồng này đã được ghi nhận vào tài khoản của bạn dưới trạng thái <em>Chờ duyệt</em>. Cảm ơn bạn vì sự đồng hành tuyệt vời!",
         ctaButton: {
             text: "Kiểm tra số dư ngay",
-            link: "https://vitieltstest.com/account/affiliate",
+            link: "https://vitielts.com/account/affiliate",
         },
     },
     payoutRequest: {
@@ -461,7 +461,7 @@ export async function sendContactEmail(
 ): Promise<boolean> {
     const config = await getEmailConfig();
     const adminEmail =
-        process.env.ADMIN_EMAIL || config.brand.email || "admin@vitieltstest.com";
+        process.env.ADMIN_EMAIL || config.brand.email || "admin@vitielts.com";
 
     const vars: Record<string, string> = {
         "{{brandName}}": config.brand.name,
@@ -578,7 +578,7 @@ export async function sendAdminNotificationEmail(
     const { adminNotification } = config;
 
     const adminEmailAddr =
-        process.env.ADMIN_EMAIL || config.brand.email || "admin@vitieltstest.com";
+        process.env.ADMIN_EMAIL || config.brand.email || "admin@vitielts.com";
 
     const formattedAmount = `${amount.toLocaleString("vi-VN")} đ`;
     const purchaseDate = new Date().toLocaleDateString("vi-VN", {
@@ -649,7 +649,7 @@ export async function sendExpiredOrderPaymentAlert(
 ): Promise<boolean> {
     const config = await getEmailConfig();
     const adminEmailAddr =
-        process.env.ADMIN_EMAIL || config.brand.email || "admin@vitieltstest.com";
+        process.env.ADMIN_EMAIL || config.brand.email || "admin@vitielts.com";
 
     const formattedTransferAmount = `${amount.toLocaleString("vi-VN")} đ`;
     const formattedOrderAmount = `${orderAmount.toLocaleString("vi-VN")} đ`;
@@ -714,7 +714,7 @@ export async function sendAffiliateRegisteredEmail(
 ): Promise<boolean> {
     const config = await getEmailConfig();
     const { affiliateRegistered } = config;
-    const adminEmail = process.env.ADMIN_EMAIL || config.brand.email || "admin@vitieltstest.com";
+    const adminEmail = process.env.ADMIN_EMAIL || config.brand.email || "admin@vitielts.com";
 
     const vars: Record<string, string> = {
         "{{affiliateName}}": encode(affiliateName),
@@ -818,7 +818,7 @@ export async function sendPayoutRequestEmail(
 ): Promise<boolean> {
     const config = await getEmailConfig();
     const { payoutRequest } = config;
-    const adminEmail = process.env.ADMIN_EMAIL || config.brand.email || "admin@vitieltstest.com";
+    const adminEmail = process.env.ADMIN_EMAIL || config.brand.email || "admin@vitielts.com";
 
     const vars: Record<string, string> = {
         "{{affiliateName}}": encode(affiliateName),

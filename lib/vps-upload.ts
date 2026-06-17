@@ -2,7 +2,7 @@
  * VPS Media Upload Utility
  *
  * Sends files to the custom PHP upload endpoint on the VPS
- * (cms.vitieltstest.com/upload-api/upload.php).
+ * (cms.vitielts.com/upload-api/upload.php).
  *
  * The database (Supabase) stores only the returned public URL.
  * No files are stored in Supabase Storage.

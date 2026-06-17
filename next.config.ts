@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
         hostname: 'localhost',
       },
       {
-        hostname: 'cms.vitieltstest.com',
+        hostname: 'cms.vitielts.com',
       },
       {
         hostname: 'cms.vitielts.com',

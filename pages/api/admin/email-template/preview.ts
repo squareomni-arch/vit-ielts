@@ -47,14 +47,14 @@ export default async function handler(
             "{{brandName}}": config.brand?.name || "Vit IELTS",
             "{{brandPhone}}": config.brand?.phone || "0326752732",
             "{{brandEmail}}": config.brand?.email || "vitielts9@gmail.com",
-            "{{brandWebsite}}": config.brand?.website || "https://vitieltstest.com",
+            "{{brandWebsite}}": config.brand?.website || "https://vitielts.com",
             "{{customerEmail}}": "alongia7@gmail.com",
             "{{affiliateName}}": "Nguyễn Văn A",
             "{{affiliateEmail}}": "affiliate@example.com",
             "{{commissionAmount}}": "40.000 đ",
             "{{orderTotal}}": "200.000 đ",
             "{{payoutAmount}}": "500.000 đ",
-            "{{customLink}}": "https://vitieltstest.com?ref=A123",
+            "{{customLink}}": "https://vitielts.com?ref=A123",
             "{{rejectReason}}": "Thông tin thanh toán không chính xác hoặc không đủ số dư tối thiểu.",
         };
 

@@ -12,10 +12,10 @@ const log = dbg.email;
  * Tạo SMTP transporter
  */
 function createTransporter() {
-  const smtpHost = process.env.SMTP_HOST || 'mail.cms.vitieltstest.com';
+  const smtpHost = process.env.SMTP_HOST || 'mail.vitielts.com';
   const smtpPort = parseInt(process.env.SMTP_PORT || '465');
-  const smtpUser = process.env.SMTP_USER || 'admin@cms.vitieltstest.com';
-  const smtpPassword = process.env.SMTP_PASSWORD || 'vitieltstest';
+  const smtpUser = process.env.SMTP_USER || 'admin@vitielts.com';
+  const smtpPassword = process.env.SMTP_PASSWORD || '';
   const smtpFrom = process.env.SMTP_FROM || smtpUser;
   const smtpFromName = process.env.SMTP_FROM_NAME || 'Vit IELTS';
 
@@ -46,7 +46,7 @@ export async function sendEmail(
   text?: string
 ): Promise<boolean> {
   try {
-    const smtpFrom = process.env.SMTP_FROM || process.env.SMTP_USER || 'admin@cms.vitieltstest.com';
+    const smtpFrom = process.env.SMTP_FROM || process.env.SMTP_USER || 'admin@vitielts.com';
     const smtpFromName = process.env.SMTP_FROM_NAME || 'Vit IELTS';
 
     const transporter = createTransporter();

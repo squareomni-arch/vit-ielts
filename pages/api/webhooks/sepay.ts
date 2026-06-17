@@ -483,7 +483,7 @@ export default async function handler(
     // ── Send admin notification email ──
     try {
       const adminEmail =
-        process.env.ADMIN_EMAIL || "admin@vitieltstest.com";
+        process.env.ADMIN_EMAIL || "admin@vitielts.com";
       log(`[Sepay Webhook] Sending admin email to: ${adminEmail}`);
       await sendAdminNotificationEmail(
         order.order_id,

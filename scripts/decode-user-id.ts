@@ -33,8 +33,8 @@ try {
     console.log("=".repeat(50));
     console.log("\nBạn có thể sử dụng WordPress User ID này để:");
     console.log(`1. Query user trong GraphQL: user(id: "${userId}")`);
-    console.log(`2. Update user qua REST API: ${process.env.NEXT_PUBLIC_WORDPRESS_CMS_URL || "https://cms.vitieltstest.com"}/wp-json/wp/v2/users/${wpUserId}`);
-    console.log(`3. Xem user trong WordPress Admin: ${process.env.NEXT_PUBLIC_WORDPRESS_CMS_URL || "https://cms.vitieltstest.com"}/wp-admin/user-edit.php?user_id=${wpUserId}`);
+    console.log(`2. Update user qua REST API: ${process.env.NEXT_PUBLIC_WORDPRESS_CMS_URL || "https://cms.vitielts.com"}/wp-json/wp/v2/users/${wpUserId}`);
+    console.log(`3. Xem user trong WordPress Admin: ${process.env.NEXT_PUBLIC_WORDPRESS_CMS_URL || "https://cms.vitielts.com"}/wp-admin/user-edit.php?user_id=${wpUserId}`);
   } else {
     console.error("Invalid format. Expected format: base64('user:ID')");
     console.log(`Decoded value: ${decoded}`);

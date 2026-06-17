@@ -123,7 +123,7 @@ export async function createOrder(
             coupon_id: params.couponId ?? null,
             coupon_code: params.couponCode ?? null,
             status: "pending" as OrderStatus,
-            payment_method: "Ngân hàng ACB (Ngân hàng Á Châu)",
+            payment_method: "Ngân hàng MB (Ngân hàng Quân Đội)",
             transfer_content: transferContent,
             affiliate_ref: params.affiliateRef ?? null,
         })
