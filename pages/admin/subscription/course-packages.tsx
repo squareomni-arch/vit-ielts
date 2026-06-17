@@ -17,6 +17,14 @@ import { withFullAdmin } from "@/shared/hoc/withAdmin";
 
 const { Panel } = Collapse;
 
+const formatPrice = (price: number | null): string => {
+  if (price === null || price === undefined) return "N/A";
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(price);
+};
+
 export default function CoursePackagesPage() {
   const [config, setConfig] = useState<CoursePackagesConfig | null>(null);
   const [saving, setSaving] = useState(false);
@@ -85,12 +93,9 @@ export default function CoursePackagesPage() {
               <Form.Item
                 name="currencySuffix"
                 label="Currency Suffix"
-                tooltip="Shown after the numeric price (e.g., đ)"
-                rules={[
-                  { required: true, message: "Please enter a currency suffix" },
-                ]}
+                tooltip="Hệ thống tự động hiển thị theo định dạng tiền tệ VND (đ), thay đổi ở đây không có tác dụng"
               >
-                <Input placeholder="đ" />
+                <Input placeholder="đ" disabled />
               </Form.Item>
             </Panel>
 
@@ -195,36 +200,7 @@ export default function CoursePackagesPage() {
                 )}
               </Form.List>
 
-              <Form.List name={["features", "excluded"]}>
-                {(fields, { add, remove }) => (
-                  <Space direction="vertical" className="w-full mt-3">
-                    <div className="font-semibold text-gray-700">
-                      Excluded Features
-                    </div>
-                    {fields.map((field) => (
-                      <Space key={field.key} align="center" className="w-full">
-                        <Form.Item
-                          {...field}
-                          name={field.name}
 
-                          rules={[
-                            { required: true, message: "Enter feature text" },
-                          ]}
-                          className="flex-1 mb-0"
-                        >
-                          <Input placeholder="24/7 Dedicated Support" />
-                        </Form.Item>
-                        <Button danger onClick={() => remove(field.name)}>
-                          Remove
-                        </Button>
-                      </Space>
-                    ))}
-                    <Button type="dashed" onClick={() => add()} block>
-                      Add Excluded Feature
-                    </Button>
-                  </Space>
-                )}
-              </Form.List>
 
               <Divider orientation="left">Skill Labels</Divider>
               <Space align="start" className="w-full" wrap>
@@ -271,113 +247,79 @@ export default function CoursePackagesPage() {
               <Space align="start" className="w-full" wrap>
                 <Form.Item
                   name={["combo", "basePrice"]}
-                  label="Base Price (Tháng đầu tiên)"
-                  tooltip="Giá cơ bản cho tháng đầu tiên. Giá sẽ tính: basePrice + (months - 1) * monthlyIncrementPrice"
+                  label="Base Price (Tháng đầu tiên) - Giá tiền đã được hardcode"
+                  tooltip="Giá cơ bản cho tháng đầu tiên. Hiện tại giá tiền đã được khóa cố định theo yêu cầu của hệ thống."
                 >
-                  <InputNumber min={0} step={50000} style={{ width: "100%" }} />
+                  <InputNumber min={0} step={50000} style={{ width: "100%" }} disabled />
                 </Form.Item>
                 <Form.Item
                   name={["combo", "monthlyIncrementPrice"]}
-                  label="Monthly Increment Price"
-                  tooltip="Giá tăng thêm mỗi tháng (mặc định: 100,000đ)"
+                  label="Monthly Increment Price - Giá tiền đã được hardcode"
+                  tooltip="Giá tăng thêm mỗi tháng. Hiện tại giá tiền đã được khóa cố định theo yêu cầu của hệ thống."
                 >
-                  <InputNumber min={0} step={10000} style={{ width: "100%" }} />
+                  <InputNumber min={0} step={10000} style={{ width: "100%" }} disabled />
                 </Form.Item>
               </Space>
 
-              <Divider orientation="left">Plans</Divider>
+              <Divider orientation="left">Cấu hình các gói hiển thị trên giao diện</Divider>
               <Form.List name={["combo", "plans"]}>
-                {(fields, { add, remove }) => (
-                  <Space direction="vertical" className="w-full">
-                    {fields.map((field) => (
-                      <Card
-                        key={field.key}
-                        size="small"
-                        className="border border-gray-100 shadow-sm"
-                        title={`Plan #${field.name + 1}`}
-                        extra={
-                          <Button danger onClick={() => remove(field.name)}>
-                            Remove
-                          </Button>
+                {(fields) => {
+                  const activeMonths = [1, 2, 6, 12];
+                  return (
+                    <Space direction="vertical" className="w-full">
+                      {fields.map((field) => {
+                        const planValue = form.getFieldValue(["combo", "plans", field.name]);
+                        if (!planValue || !activeMonths.includes(planValue.months)) {
+                          return null;
                         }
-                      >
-                        <Space align="start" className="w-full" wrap>
-                          <Form.Item
-                            {...field}
-                            name={[field.name, "name"]}
-
-                            label="Name"
-                            rules={[
-                              { required: true, message: "Enter plan name" },
-                            ]}
+                        return (
+                          <Card
+                            key={field.key}
+                            size="small"
+                            className="border border-gray-100 shadow-sm"
+                            title={`Gói Combo ${planValue.months} Tháng - Giá cố định: ${formatPrice(planValue.price)}`}
                           >
-                            <Input placeholder="Standard Plan" />
-                          </Form.Item>
-                          <Form.Item
-                            {...field}
-                            name={[field.name, "months"]}
-
-                            label="Months"
-                            rules={[
-                              {
-                                required: true,
-                                message: "Enter duration (months)",
-                              },
-                            ]}
-                          >
-                            <InputNumber min={1} />
-                          </Form.Item>
-                          <Form.Item
-                            {...field}
-                            name={[field.name, "price"]}
-
-                            label="Price"
-                            rules={[{ required: true, message: "Enter price" }]}
-                          >
-                            <InputNumber min={0} step={50000} />
-                          </Form.Item>
-                          <Form.Item
-                            {...field}
-                            name={[field.name, "popular"]}
-
-                            label="Popular Badge"
-                            valuePropName="checked"
-                          >
-                            <Switch />
-                          </Form.Item>
-                          <Form.Item
-                            {...field}
-                            name={[field.name, "featuredDeal"]}
-
-                            label="Featured Deal"
-                            valuePropName="checked"
-                          >
-                            <Switch />
-                          </Form.Item>
-                        </Space>
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "dealNote"]}
-
-                          label="Deal Note"
-                        >
-                          <Input placeholder="Same price as the shorter plan" />
-                        </Form.Item>
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "samePriceAsMonths"]}
-
-                          label="Same Price As (months)"
-                        >
-                          <InputNumber min={1} />
-                        </Form.Item>
-                      </Card>
-                    ))}
-                    <Button type="dashed" onClick={() => add()} block>
-                      Add plan
-                    </Button>
-                  </Space>
-                )}
+                            <Space align="start" className="w-full" wrap>
+                              <Form.Item
+                                {...field}
+                                name={[field.name, "name"]}
+                                label="Tên gói hiển thị"
+                                rules={[
+                                  { required: true, message: "Nhập tên gói" },
+                                ]}
+                              >
+                                <Input placeholder="Standard Plan" />
+                              </Form.Item>
+                              <Form.Item
+                                {...field}
+                                name={[field.name, "popular"]}
+                                label="Nổi bật (Popular)"
+                                valuePropName="checked"
+                              >
+                                <Switch />
+                              </Form.Item>
+                              <Form.Item
+                                {...field}
+                                name={[field.name, "featuredDeal"]}
+                                label="Khuyến mãi đặc biệt (Deal)"
+                                valuePropName="checked"
+                              >
+                                <Switch />
+                              </Form.Item>
+                            </Space>
+                            <Form.Item
+                              {...field}
+                              name={[field.name, "dealNote"]}
+                              label="Ghi chú khuyến mãi"
+                            >
+                              <Input placeholder="Giảm 200.000đ" />
+                            </Form.Item>
+                          </Card>
+                        );
+                      })}
+                    </Space>
+                  );
+                }}
               </Form.List>
             </Panel>
 
@@ -403,142 +345,79 @@ export default function CoursePackagesPage() {
               <Space align="start" className="w-full" wrap>
                 <Form.Item
                   name={["single", "basePrice"]}
-                  label="Base Price (Tháng đầu tiên)"
-                  tooltip="Giá cơ bản cho tháng đầu tiên. Giá sẽ tính: basePrice + (months - 1) * monthlyIncrementPrice"
+                  label="Base Price (Tháng đầu tiên) - Giá tiền đã được hardcode"
+                  tooltip="Giá cơ bản cho tháng đầu tiên. Hiện tại giá tiền đã được khóa cố định theo yêu cầu của hệ thống."
                 >
-                  <InputNumber min={0} step={50000} style={{ width: "100%" }} />
+                  <InputNumber min={0} step={50000} style={{ width: "100%" }} disabled />
                 </Form.Item>
                 <Form.Item
                   name={["single", "monthlyIncrementPrice"]}
-                  label="Monthly Increment Price"
-                  tooltip="Giá tăng thêm mỗi tháng (mặc định: 100,000đ)"
+                  label="Monthly Increment Price - Giá tiền đã được hardcode"
+                  tooltip="Giá tăng thêm mỗi tháng. Hiện tại giá tiền đã được khóa cố định theo yêu cầu của hệ thống."
                 >
-                  <InputNumber min={0} step={10000} style={{ width: "100%" }} />
+                  <InputNumber min={0} step={10000} style={{ width: "100%" }} disabled />
                 </Form.Item>
               </Space>
 
-              <Form.List name={["single", "skills"]}>
-                {(fields, { add, remove }) => (
-                  <Space direction="vertical" className="w-full">
-                    <Divider orientation="left">Skills</Divider>
-                    {fields.map((field) => (
-                      <Space key={field.key} align="center">
-                        <Form.Item
-                          {...field}
-                          name={field.name}
-
-                          label={`Skill #${field.name + 1}`}
-                          rules={[
-                            { required: true, message: "Enter skill name" },
-                          ]}
-                        >
-                          <Input placeholder="listening" />
-                        </Form.Item>
-                        <Button danger onClick={() => remove(field.name)}>
-                          Remove
-                        </Button>
-                      </Space>
-                    ))}
-                    <Button type="dashed" onClick={() => add()} block>
-                      Add skill
-                    </Button>
-                  </Space>
-                )}
-              </Form.List>
-
-              <Divider orientation="left">Plans</Divider>
+              <Divider orientation="left">Cấu hình các gói hiển thị trên giao diện</Divider>
               <Form.List name={["single", "plans"]}>
-                {(fields, { add, remove }) => (
-                  <Space direction="vertical" className="w-full">
-                    {fields.map((field) => (
-                      <Card
-                        key={field.key}
-                        size="small"
-                        className="border border-gray-100 shadow-sm"
-                        title={`Plan #${field.name + 1}`}
-                        extra={
-                          <Button danger onClick={() => remove(field.name)}>
-                            Remove
-                          </Button>
+                {(fields) => {
+                  const activeMonths = [2, 6, 12];
+                  return (
+                    <Space direction="vertical" className="w-full">
+                      {fields.map((field) => {
+                        const planValue = form.getFieldValue(["single", "plans", field.name]);
+                        if (!planValue || !activeMonths.includes(planValue.months)) {
+                          return null;
                         }
-                      >
-                        <Space align="start" className="w-full" wrap>
-                          <Form.Item
-                            {...field}
-                            name={[field.name, "name"]}
-
-                            label="Name"
-                            rules={[
-                              { required: true, message: "Enter plan name" },
-                            ]}
+                        return (
+                          <Card
+                            key={field.key}
+                            size="small"
+                            className="border border-gray-100 shadow-sm"
+                            title={`Gói Single Pack ${planValue.months} Tháng - Giá cố định: ${formatPrice(planValue.price)}`}
                           >
-                            <Input placeholder="Single Pack" />
-                          </Form.Item>
-                          <Form.Item
-                            {...field}
-                            name={[field.name, "months"]}
-
-                            label="Months"
-                            rules={[
-                              {
-                                required: true,
-                                message: "Enter duration (months)",
-                              },
-                            ]}
-                          >
-                            <InputNumber min={1} />
-                          </Form.Item>
-                          <Form.Item
-                            {...field}
-                            name={[field.name, "price"]}
-
-                            label="Price"
-                            rules={[{ required: true, message: "Enter price" }]}
-                          >
-                            <InputNumber min={0} step={50000} />
-                          </Form.Item>
-                          <Form.Item
-                            {...field}
-                            name={[field.name, "popular"]}
-
-                            label="Popular Badge"
-                            valuePropName="checked"
-                          >
-                            <Switch />
-                          </Form.Item>
-                          <Form.Item
-                            {...field}
-                            name={[field.name, "featuredDeal"]}
-
-                            label="Featured Deal"
-                            valuePropName="checked"
-                          >
-                            <Switch />
-                          </Form.Item>
-                        </Space>
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "dealNote"]}
-
-                          label="Deal Note"
-                        >
-                          <Input placeholder="Best value" />
-                        </Form.Item>
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "samePriceAsMonths"]}
-
-                          label="Same Price As (months)"
-                        >
-                          <InputNumber min={1} />
-                        </Form.Item>
-                      </Card>
-                    ))}
-                    <Button type="dashed" onClick={() => add()} block>
-                      Add plan
-                    </Button>
-                  </Space>
-                )}
+                            <Space align="start" className="w-full" wrap>
+                              <Form.Item
+                                {...field}
+                                name={[field.name, "name"]}
+                                label="Tên gói hiển thị"
+                                rules={[
+                                  { required: true, message: "Nhập tên gói" },
+                                ]}
+                              >
+                                <Input placeholder="Single Pack" />
+                              </Form.Item>
+                              <Form.Item
+                                {...field}
+                                name={[field.name, "popular"]}
+                                label="Nổi bật (Popular)"
+                                valuePropName="checked"
+                              >
+                                <Switch />
+                              </Form.Item>
+                              <Form.Item
+                                {...field}
+                                name={[field.name, "featuredDeal"]}
+                                label="Khuyến mãi đặc biệt (Deal)"
+                                valuePropName="checked"
+                              >
+                                <Switch />
+                              </Form.Item>
+                            </Space>
+                            <Form.Item
+                              {...field}
+                              name={[field.name, "dealNote"]}
+                              label="Ghi chú khuyến mãi"
+                            >
+                              <Input placeholder="Best value" />
+                            </Form.Item>
+                          </Card>
+                        );
+                      })}
+                    </Space>
+                  );
+                }}
               </Form.List>
             </Panel>
           </Collapse>

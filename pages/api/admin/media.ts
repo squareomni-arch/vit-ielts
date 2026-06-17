@@ -21,6 +21,9 @@ export default async function handler(
     if (!user) return;
 
     // ── GET: List media ───────────────────────────────────────────────────
+    // Source of truth is the Supabase Storage `media` bucket itself, so the
+    // library always reflects what is actually stored. The media_library table
+    // is used only to enrich items with metadata (e.g. uploaded_by) when present.
     if (req.method === "GET") {
         try {
             const {
@@ -32,53 +35,56 @@ export default async function handler(
 
             const pageNum = parseInt(page as string, 10) || 1;
             const size = parseInt(pageSize as string, 10) || 24;
-            const from = (pageNum - 1) * size;
-            const to = from + size - 1;
 
-            let query = supabaseAdmin
+            const { listSupabaseMedia } = await import("~lib/supabase-upload");
+            const bucketItems = await listSupabaseMedia();
+
+            // Enrich with DB metadata (uploaded_by) keyed by URL, when available.
+            const { data: dbRows } = await supabaseAdmin
                 .from("media_library")
-                .select("*", { count: "exact" })
-                .order("created_at", { ascending: false });
-
-            if (search && typeof search === "string") {
-                query = query.ilike("filename", `%${search}%`);
-            }
-
-            if (type === "image") query = query.ilike("mimetype", "image/%");
-            else if (type === "audio") query = query.ilike("mimetype", "audio/%");
-            else if (type === "pdf") query = query.eq("mimetype", "application/pdf");
-
-            query = query.range(from, to);
-
-            const { data, error, count } = await query;
-            if (error) throw error;
-
-            // Stats: total count, size, and per-category counts
-            const { data: statsData } = await supabaseAdmin
-                .from("media_library")
-                .select("size, mimetype")
+                .select("url, uploaded_by")
                 .limit(10000);
-
-            const allItems = statsData ?? [];
-            const totalSize = allItems.reduce(
-                (sum: number, item: { size: number }) => sum + (item.size || 0),
-                0,
+            const dbByUrl = new Map<string, string | null>(
+                (dbRows ?? []).map((r: { url: string; uploaded_by: string | null }) => [r.url, r.uploaded_by]),
             );
+
+            let items = bucketItems.map((it) => ({
+                id: it.path,
+                url: it.url,
+                filename: it.filename,
+                mimetype: it.mimetype,
+                size: it.size,
+                uploaded_by: dbByUrl.get(it.url) ?? null,
+                created_at: it.created_at,
+            }));
+
+            // Stats computed across the full bucket (before filtering).
+            const totalSize = items.reduce((sum, i) => sum + (i.size || 0), 0);
             const countByType = {
-                image: allItems.filter((i: { mimetype: string }) => i.mimetype?.startsWith("image/")).length,
-                audio: allItems.filter((i: { mimetype: string }) => i.mimetype?.startsWith("audio/")).length,
-                pdf:   allItems.filter((i: { mimetype: string }) => i.mimetype === "application/pdf").length,
+                image: items.filter((i) => i.mimetype?.startsWith("image/")).length,
+                audio: items.filter((i) => i.mimetype?.startsWith("audio/")).length,
+                pdf:   items.filter((i) => i.mimetype === "application/pdf").length,
             };
+            const stats = { total: items.length, totalSize, countByType };
+
+            // Apply filters in memory.
+            if (search && typeof search === "string") {
+                const q = search.toLowerCase();
+                items = items.filter((i) => i.filename.toLowerCase().includes(q));
+            }
+            if (type === "image") items = items.filter((i) => i.mimetype.startsWith("image/"));
+            else if (type === "audio") items = items.filter((i) => i.mimetype.startsWith("audio/"));
+            else if (type === "pdf") items = items.filter((i) => i.mimetype === "application/pdf");
+
+            const count = items.length;
+            const from = (pageNum - 1) * size;
+            const pageItems = items.slice(from, from + size);
 
             return res.status(200).json({
                 success: true,
-                data: data ?? [],
-                count: count ?? 0,
-                stats: {
-                    total: allItems.length,
-                    totalSize,
-                    countByType,
-                },
+                data: pageItems,
+                count,
+                stats,
             });
         } catch (error) {
             return res.status(500).json({
@@ -144,25 +150,19 @@ export default async function handler(
                     .json({ success: false, error: "Missing id" });
             }
 
-            const { data: mediaItem } = await supabaseAdmin
-                .from("media_library")
-                .select("filename, url")
-                .eq("id", id)
-                .single();
+            // `id` is the storage path within the bucket, e.g. "images/foo-123.jpg".
+            const path = id;
+            const filename = path.split("/").pop() ?? path;
 
             // 1. Physically delete from Supabase Storage
-            if (mediaItem?.url) {
-                const { deleteFromSupabase } = await import("~lib/supabase-upload");
-                await deleteFromSupabase(mediaItem.url);
-            }
+            const { deleteFromSupabasePath } = await import("~lib/supabase-upload");
+            await deleteFromSupabasePath(path);
 
-            // 2. Delete from database
-            const { error } = await supabaseAdmin
+            // 2. Remove any matching catalog row (best-effort; bucket is the truth).
+            await supabaseAdmin
                 .from("media_library")
                 .delete()
-                .eq("id", id);
-
-            if (error) throw error;
+                .ilike("url", `%/${path}`);
 
             await logActivity(supabaseAdmin, {
                 userId: user.id,
@@ -170,7 +170,7 @@ export default async function handler(
                 action: "delete",
                 entityType: "media",
                 entityId: id,
-                entityTitle: mediaItem?.filename,
+                entityTitle: filename,
                 ipAddress: getClientIP(req),
             });
 

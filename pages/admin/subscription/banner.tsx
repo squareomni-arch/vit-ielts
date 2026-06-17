@@ -3,6 +3,7 @@ import { Button, Input, Form, Card, Space, message } from "antd";
 import type { SubscriptionBannerConfig } from "@/shared/types/admin-config";
 import AdminLayout from "../_layout";
 import { withFullAdmin } from "@/shared/hoc/withAdmin";
+import { InactiveSectionNotice } from "@/shared/ui/admin/inactive-section-notice";
 
 function SubscriptionPageHeaderPage() {
   const [saving, setSaving] = useState(false);
@@ -66,6 +67,7 @@ function SubscriptionPageHeaderPage() {
 
   return (
     <AdminLayout>
+      <InactiveSectionNotice note="Khối Banner Header đã được thay thế bằng Khung giá tiêu đề trực tiếp (Inline Header) trên trang Subscription mới. Chỉnh sửa ở đây sẽ không thay đổi giao diện." />
       <Card
         title={
           <div className="flex items-center justify-between">

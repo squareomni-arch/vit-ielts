@@ -95,6 +95,91 @@ export async function uploadToSupabase(
   };
 }
 
+/** Folders in the `media` bucket that hold CMS media (mirrors the old VPS categories). */
+const MEDIA_FOLDERS = ["images", "audio", "pdf"] as const;
+
+const EXT_TO_MIME: Record<string, string> = {
+  jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
+  webp: "image/webp", gif: "image/gif",
+  mp3: "audio/mpeg", m4a: "audio/mp4", ogg: "audio/ogg",
+  wav: "audio/wav", webm: "audio/webm", aac: "audio/aac",
+  pdf: "application/pdf",
+};
+
+function mimeFromName(name: string): string {
+  const ext = name.split(".").pop()?.toLowerCase() ?? "";
+  return EXT_TO_MIME[ext] ?? "application/octet-stream";
+}
+
+export type BucketMediaItem = {
+  /** Storage path within the bucket, e.g. "images/foo-123.jpg". Used as the item id. */
+  path: string;
+  url: string;
+  filename: string;
+  mimetype: string;
+  size: number;
+  created_at: string;
+};
+
+/**
+ * List every CMS media file actually present in the Supabase `media` bucket.
+ * This is the source of truth for the admin Media Library — it reflects the
+ * bucket directly rather than a metadata table that can drift out of sync.
+ */
+export async function listSupabaseMedia(): Promise<BucketMediaItem[]> {
+  const items: BucketMediaItem[] = [];
+
+  for (const folder of MEDIA_FOLDERS) {
+    let offset = 0;
+    const limit = 100;
+    // Paginate through the folder until exhausted.
+    for (;;) {
+      const { data, error } = await supabaseAdmin.storage
+        .from(BUCKET)
+        .list(folder, {
+          limit,
+          offset,
+          sortBy: { column: "created_at", order: "desc" },
+        });
+
+      if (error) {
+        throw new Error(`Liệt kê bucket "${folder}" thất bại: ${error.message}`);
+      }
+      if (!data || data.length === 0) break;
+
+      for (const obj of data) {
+        // Skip nested sub-folders (Supabase returns them with a null id).
+        if (!obj.id) continue;
+        const path = `${folder}/${obj.name}`;
+        const { data: { publicUrl } } = supabaseAdmin.storage
+          .from(BUCKET)
+          .getPublicUrl(path);
+        const meta = (obj.metadata ?? {}) as { size?: number; mimetype?: string };
+        items.push({
+          path,
+          url: publicUrl,
+          filename: obj.name,
+          mimetype: meta.mimetype || mimeFromName(obj.name),
+          size: meta.size ?? 0,
+          created_at: obj.created_at ?? obj.updated_at ?? new Date(0).toISOString(),
+        });
+      }
+
+      if (data.length < limit) break;
+      offset += limit;
+    }
+  }
+
+  items.sort((a, b) => b.created_at.localeCompare(a.created_at));
+  return items;
+}
+
+/** Delete a file from Supabase Storage by its bucket path, e.g. "images/foo.jpg". */
+export async function deleteFromSupabasePath(path: string): Promise<void> {
+  const { error } = await supabaseAdmin.storage.from(BUCKET).remove([path]);
+  if (error) throw new Error(`Xóa file khỏi bucket thất bại: ${error.message}`);
+}
+
 /**
  * Delete a file from Supabase Storage by its public URL.
  * Silently ignores URLs that don't belong to this bucket.

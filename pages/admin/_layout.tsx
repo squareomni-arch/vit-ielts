@@ -25,6 +25,7 @@ import {
   MoonOutlined,
   HistoryOutlined,
   PictureOutlined,
+  CreditCardOutlined,
 } from "@ant-design/icons";
 import { message, Tooltip, Badge, ConfigProvider, theme as antdTheme } from "antd";
 import { useAdminPermissions } from "@/shared/hooks";
@@ -75,6 +76,17 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       { key: "/admin/orders", icon: <ShoppingCartOutlined />, label: "Orders" },
       { key: "/admin/coupons", icon: <TagOutlined />, label: "Coupons" },
+      {
+        key: "cms-subscription",
+        icon: <CreditCardOutlined />,
+        label: "Subscription",
+        children: [
+          { key: "/admin/subscription/course-packages", label: "Cấu hình gói học" },
+          { key: "/admin/subscription/banner", label: "Cấu hình Banner" },
+          { key: "/admin/subscription/faq", label: "Cấu hình FAQ" },
+          { key: "/admin/subscription/coupons", label: "Mã giảm giá (Legacy)" },
+        ],
+      },
       { key: "/admin/posts", icon: <EditOutlined />, label: "Blog Posts" },
       { key: "/admin/sample-essays", icon: <FileSearchOutlined />, label: "Sample Essays" },
       {
@@ -123,6 +135,10 @@ const BREADCRUMB_MAP: Record<string, string> = {
   "/admin/email-template": "Email Template",
   "/admin/contact": "Contact Config",
   "/admin/footer/contact-icons": "Contact Icons",
+  "/admin/subscription/course-packages": "Cấu hình gói học",
+  "/admin/subscription/banner": "Cấu hình Banner",
+  "/admin/subscription/faq": "Cấu hình FAQ",
+  "/admin/subscription/coupons": "Mã giảm giá (Legacy)",
 };
 
 // ═══ Helper: resolve breadcrumbs ═══
