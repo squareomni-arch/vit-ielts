@@ -102,20 +102,45 @@ export default function App({
 
   useEffect(() => {
     const loader = document.getElementById("global-skeleton-loader");
-    if (loader) {
-      const delayTimer = setTimeout(() => {
+    if (!loader) return;
+
+    let removeTimer: ReturnType<typeof setTimeout> | null = null;
+    let safetyTimer: ReturnType<typeof setTimeout> | null = null;
+
+    // Gỡ skeleton bám theo trạng thái THẬT (CSS/layout/fonts đã sẵn sàng), không
+    // dùng timer cứng. Timer cứng 600ms trước đây gỡ skeleton ngay cả khi
+    // hydrate/CSS chưa apply kịp → lâu lâu lộ ra layout "trần" (mất AppShell).
+    const dismiss = () => {
+      if (!loader.isConnected || loader.classList.contains("fade-out")) return;
+      // Đợi 1 frame để chắc chắn style đã được áp dụng trước khi fade.
+      requestAnimationFrame(() => {
         loader.classList.add("fade-out");
-      }, 200);
+        removeTimer = setTimeout(() => loader.remove(), 400);
+      });
+    };
 
-      const removeTimer = setTimeout(() => {
-        loader.remove();
-      }, 600);
+    const onReady = () => {
+      // Đợi cả fonts (nếu trình duyệt hỗ trợ) để tránh nhảy layout do FOIT/FOUT.
+      const fontsReady =
+        (document as Document & { fonts?: FontFaceSet }).fonts?.ready ??
+        Promise.resolve();
+      fontsReady.then(dismiss).catch(dismiss);
+    };
 
-      return () => {
-        clearTimeout(delayTimer);
-        clearTimeout(removeTimer);
-      };
+    if (document.readyState === "complete") {
+      onReady();
+    } else {
+      window.addEventListener("load", onReady, { once: true });
     }
+
+    // Lưới an toàn: dù có sự cố gì cũng không để skeleton kẹt vĩnh viễn.
+    safetyTimer = setTimeout(dismiss, 4000);
+
+    return () => {
+      window.removeEventListener("load", onReady);
+      if (removeTimer) clearTimeout(removeTimer);
+      if (safetyTimer) clearTimeout(safetyTimer);
+    };
   }, []);
 
   useEffect(() => {
