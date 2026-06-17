@@ -124,7 +124,7 @@ const LoadingRows = () => (
 // ─── Empty state ─────────────────────────────────────────────
 const EmptyState = () => (
   <div className="flex flex-col items-center text-center px-6 py-16">
-    <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-surface-blush">
+    <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-brand-tint">
       <span className="material-symbols-rounded text-[32px] text-ink-muted" aria-hidden="true">
         receipt_long
       </span>
@@ -247,7 +247,7 @@ export const PagePaymentHistory = () => {
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full min-w-[640px] text-left">
                 <thead>
-                  <tr className="bg-surface-blush">
+                  <tr className="bg-brand-tint">
                     {["Mã đơn", "Khóa học", "Ngày", "Số tiền", "Trạng thái"].map((h) => (
                       <th
                         key={h}

@@ -1,7 +1,7 @@
 import { withAuth, withMasterData, withMultipleWrapper } from "@/shared/hoc";
 import type { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { getOrderById } from "~services/order";
-import { MyProfileLayout } from "@/widgets/layouts";
+import { AppShell } from "@/widgets/layouts";
 import Link from "next/link";
 import { ROUTES } from "@/shared/routes";
 import { formatPrice } from "@/pages/subscription/ui/subscription-plans/pricing";
@@ -205,6 +205,10 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
   }
 
   const displayOrderId = `#${order.orderId}`;
+  // order_id bao gồm tiền tố "Vit IELTS " (vd "Vit IELTS 17816079952730183"),
+  // nên lấy phần số rồi hiển thị 6 chữ số cuối cho gọn: "#VitIELTS 730183".
+  const orderNumber = order.orderId?.replace(/Vit\s*IELTS\s*/i, "").trim() || "";
+  const shortOrderCode = `#VitIELTS ${orderNumber.slice(-6)}`;
   const displayAmount = formatPrice(order.amount);
   const displayDate = dayjs(order.createdAt).format("DD [Tháng] MM, YYYY");
   const displayMethod = order.paymentMethod;
@@ -240,7 +244,7 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
           </p>
 
           {/* Summary box */}
-          <div className="w-full bg-surface-blush rounded-xl border border-border-hairline overflow-hidden mb-8">
+          <div className="w-full bg-brand-tint rounded-xl border border-border-hairline overflow-hidden mb-8">
             {/* Plan row */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border-hairline">
               <span className="text-body-s text-ink-muted">Gói đăng ký</span>
@@ -305,9 +309,9 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
         <div className="p-6">
           {/* Info Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-            <InfoRow label="TÊN TÀI KHOẢN" value="TRAN PHAN TIEN PHAT" />
-            <InfoRow label="SỐ TÀI KHOẢN" value="2447967" />
-            <InfoRow label="NGÂN HÀNG" value="Thương Mại Cổ Phần Á Châu (ACB)" />
+            <InfoRow label="TÊN TÀI KHOẢN" value="NGUYEN TRUNG KIEN" />
+            <InfoRow label="SỐ TÀI KHOẢN" value="0363500192" />
+            <InfoRow label="NGÂN HÀNG" value="Quân Đội (MB Bank)" />
             <InfoRow label="SỐ TIỀN" value={displayAmount.replace("đ", "₫")} />
             <InfoRow label="NỘI DUNG CHUYỂN KHOẢN" value={displayNote} className="md:col-span-2" />
             <InfoRow
@@ -328,7 +332,7 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
           <div className="flex flex-col items-center pb-8 border-b border-border-hairline">
             <div className="w-[200px] h-[200px] bg-surface-card rounded-xl shadow-sm border border-border-hairline p-2 mb-6">
               <img
-                src={`https://qr.sepay.vn/img?acc=2447967&bank=ACB&amount=${order.amount}&des=${encodeURIComponent(order.orderId)}`}
+                src={`https://qr.sepay.vn/img?acc=0363500192&bank=MBBank&amount=${order.amount}&des=${encodeURIComponent(order.orderId)}`}
                 alt="QR Code"
                 className="w-full h-full object-contain"
               />
@@ -353,7 +357,7 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
 
             <a
               href="tel:0326752732"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-blush hover:bg-brand-tint text-ink-900 font-semibold transition text-xs border border-border-hairline"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-tint hover:bg-brand-surface text-ink-900 font-semibold transition text-xs border border-border-hairline"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
               Báo cáo sự cố: 0326752732
@@ -366,10 +370,10 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
       <div className="w-full text-center mb-2">
         <p className="text-body-s text-ink-muted mb-4">Cảm ơn bạn. Đơn hàng của bạn đã được nhận.</p>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <SummaryBox label="MÃ ĐƠN" value={`#IELTS PRED ${order.orderId?.substring(0,6) || ''}`} />
+          <SummaryBox label="MÃ ĐƠN" value={shortOrderCode} />
           <SummaryBox label="THỜI GIAN" value={dayjs(order.createdAt).format("DD Tháng MM, YYYY")} />
           <SummaryBox label="THANH TOÁN" value={displayAmount} />
-          <SummaryBox label="HÌNH THỨC" value="Ngân hàng ACB (Ngân hàng Á Châu)" />
+          <SummaryBox label="HÌNH THỨC" value="Ngân hàng MB (Quân Đội)" />
         </div>
       </div>
 
@@ -393,7 +397,7 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
 };
 
 const InfoRow = ({ label, value, className = "" }: { label: string; value: string; className?: string; }) => (
-  <div className={`bg-surface-blush rounded-xl p-3 border border-border-hairline flex flex-col justify-center ${className}`}>
+  <div className={`bg-brand-tint rounded-xl p-3 border border-border-hairline flex flex-col justify-center ${className}`}>
     <div className="text-[10px] text-ink-muted font-bold mb-1 tracking-wide">{label}</div>
     <div className="text-sm font-bold text-ink-900 break-all">{value}</div>
   </div>
@@ -406,7 +410,7 @@ const SummaryBox = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-OrderReceivedPage.Layout = MyProfileLayout;
+OrderReceivedPage.Layout = AppShell;
 
 export default OrderReceivedPage;
 
