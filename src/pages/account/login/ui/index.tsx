@@ -72,11 +72,18 @@ export function PageLogin({ loginConfig: _loginConfig }: PageLoginProps) {
     await signIn({
       email: data.email,
       password: data.password,
-    }).catch(() => {
-      setError("email", {
-        type: "manual",
-        message: "Email hoặc mật khẩu không đúng.",
-      });
+    }).catch((err: any) => {
+      const raw: string = err?.message || "";
+      let message = "Email hoặc mật khẩu không đúng.";
+      if (raw.toLowerCase().includes("email not confirmed")) {
+        message =
+          "Email chưa được xác nhận. Vui lòng kiểm tra hộp thư và click vào link xác nhận.";
+      } else if (raw.toLowerCase().includes("invalid login credentials")) {
+        message = "Email hoặc mật khẩu không đúng.";
+      } else if (raw) {
+        message = raw;
+      }
+      setError("email", { type: "manual", message });
     });
   };
 

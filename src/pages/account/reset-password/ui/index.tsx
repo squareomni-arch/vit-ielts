@@ -2,10 +2,29 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { AuthLayout } from "@/widgets/layouts";
-import { HeroBanner } from "@/shared/ui/ds/organisms/hero-banner";
+import { BlankLayout } from "@/widgets/layouts";
 import { ROUTES } from "@/shared/routes";
 import { createClient } from "~supabase/client";
+import { Button } from "@/shared/ui/ds/atoms/button";
+import { Input } from "@/shared/ui/ds/atoms/input";
+
+const imgLogoText = "/assets/logos/logo-on-dark.svg";
+
+const LockIcon = () => (
+  <span className="material-symbols-rounded text-[#6a7282] text-[18px] leading-none select-none">
+    lock
+  </span>
+);
+const EyeIcon = () => (
+  <span className="material-symbols-rounded text-[#6a7282] text-[18px] leading-none select-none">
+    visibility
+  </span>
+);
+const EyeOffIcon = () => (
+  <span className="material-symbols-rounded text-[#6a7282] text-[18px] leading-none select-none">
+    visibility_off
+  </span>
+);
 
 type FormData = {
   password: string;
@@ -19,6 +38,7 @@ export function PageResetPassword() {
   const [stage, setStage] = useState<Stage>("verifying");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const {
     control,
@@ -28,11 +48,6 @@ export function PageResetPassword() {
     setError,
   } = useForm<FormData>();
 
-  // 1) Establish the recovery session from the URL the user landed on.
-  //    Supabase PKCE flow puts a `?code=...` on the redirect URL; we exchange
-  //    it for a session so `supabase.auth.updateUser({ password })` is allowed.
-  //    Older flows put the tokens in the hash — `detectSessionInUrl: true`
-  //    on the client picks those up automatically.
   useEffect(() => {
     if (!router.isReady) return;
     const supabase = createClient();
@@ -42,7 +57,7 @@ export function PageResetPassword() {
       const params = new URLSearchParams(window.location.search);
       const code = params.get("code");
       const tokenHash = params.get("token_hash") || params.get("token");
-      const otpType = params.get("type"); // expected "recovery"
+      const otpType = params.get("type");
       const errParam = params.get("error_description") || params.get("error");
 
       if (errParam) {
@@ -53,8 +68,6 @@ export function PageResetPassword() {
         return;
       }
 
-      // OTP / token-hash flow — works cross-device because verification is
-      // server-side and doesn't rely on a code_verifier in localStorage.
       if (tokenHash && otpType === "recovery") {
         const { error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
@@ -70,13 +83,10 @@ export function PageResetPassword() {
         return;
       }
 
-      // PKCE flow — only works on the same browser that initiated the request.
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (cancelled) return;
         if (error) {
-          // The Supabase client may have already exchanged the code in the
-          // background; check for an active session before declaring failure.
           const { data } = await supabase.auth.getUser();
           if (!data?.user) {
             setErrorMsg(error.message);
@@ -88,7 +98,6 @@ export function PageResetPassword() {
         return;
       }
 
-      // No code on URL — maybe the hash-based flow already created a session.
       const { data } = await supabase.auth.getUser();
       if (cancelled) return;
       if (data?.user) {
@@ -112,162 +121,289 @@ export function PageResetPassword() {
       setError("password", { type: "manual", message: error.message });
       return;
     }
-    // Sign the user out of the recovery session so they re-authenticate
-    // with the new password.
     await supabase.auth.signOut();
     setStage("success");
   };
 
   return (
-    <div className="flex flex-col min-h-screen items-center bg-white">
-      <HeroBanner
-        title="Reset Password"
-        breadcrumbs={[
-          { label: "Home", href: ROUTES.HOME },
-          { label: "Sign In & Register", href: ROUTES.LOGIN() },
-          { label: "Reset Password" },
-        ]}
-      />
+    <div className="flex flex-col min-h-screen bg-[#f6f7f4]" data-section="auth-reset-root">
+      <div className="relative flex flex-1 min-h-screen" data-section="auth-reset-body">
+        {/* Dark bleed left half */}
+        <div className="hidden md:block absolute inset-y-0 left-0 right-1/2 bg-[#191d24]" aria-hidden="true" />
 
-      <div className="w-full flex justify-center py-[130px] relative z-30 px-4 max-w-7xl">
-        <div className="w-[562px] bg-white rounded-[32px] shadow-[0px_2px_10px_rgba(0,0,0,0.5)] flex flex-col items-center py-8 px-6 sm:px-[64px]">
-          <h2 className="font-noto-sans font-bold text-[32px] leading-[39px] text-center text-[#D94A56] mb-[24px]">
-            Reset Password
-          </h2>
+        {/* Decoration blobs */}
+        <div className="hidden md:block absolute inset-y-0 left-0 w-1/2 overflow-hidden pointer-events-none z-[1]" aria-hidden="true">
+          <div className="absolute right-[-40px] top-[-104px] w-[320px] h-[320px] rounded-full bg-white/10" />
+          <div className="absolute left-[-157px] bottom-[-60px] w-[401px] h-[401px] rounded-full bg-white/10" />
+        </div>
 
-          {stage === "verifying" && (
-            <p className="font-noto-sans text-[14px] text-[#374151]">
-              Verifying link...
-            </p>
-          )}
+        {/* Brand Panel */}
+        <div className="hidden md:flex flex-1 flex-col bg-[#191d24] relative" data-section="brand-panel">
+          <div className="relative z-10 flex flex-col justify-between h-full py-[10vh] px-[60px] w-full max-w-[var(--max-width-container-md)] ml-auto">
+            <img src={imgLogoText} alt="VitIELTS" className="h-auto w-full max-w-[480px]" />
 
-          {stage === "invalid" && (
-            <div className="w-full flex flex-col gap-4 text-center">
-              <p className="font-noto-sans text-[14px] text-red-500">
-                {errorMsg || "Invalid link."}
+            <div className="flex flex-col gap-[26px]">
+              <h1 className="font-display font-bold text-[46px] leading-[1.08] tracking-[-0.92px] text-white">
+                Create a new<br />
+                password.
+              </h1>
+              <p className="font-inter font-normal text-[16px] text-[#dbe0e8] max-w-[340px] leading-[1.6]">
+                Choose a strong password to keep your account secure.
               </p>
-              <Link
-                href={ROUTES.FORGOT_PASSWORD}
-                className="font-noto-sans font-medium text-[14px] text-[#D94A56] hover:underline"
-              >
-                Resend password reset link
-              </Link>
-            </div>
-          )}
 
-          {stage === "success" && (
-            <div className="w-full flex flex-col gap-4 text-center">
-              <p className="font-noto-sans text-[16px] text-[#374151]">
-                Password reset successfully. Please sign in with your new password.
-              </p>
-              <Link
-                href={ROUTES.LOGIN()}
-                className="w-full h-[55px] flex justify-center items-center bg-[#D94A56] rounded-[10px] hover:bg-[#E3636E] transition-colors"
-              >
-                <span className="font-noto-sans font-bold text-[18px] text-white">
-                  Sign In
+              <div className="flex items-center gap-3">
+                <span className="flex items-center justify-center shrink-0 w-[26px] h-[26px] rounded-[13px] bg-[#b3e653]">
+                  <span className="material-symbols-rounded text-[#191d24] text-[14px] leading-none font-bold select-none">
+                    check
+                  </span>
                 </span>
-              </Link>
+                <p className="font-inter font-medium text-[16px] text-[#dbe0e8]">
+                  At least 6 characters
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="flex items-center justify-center shrink-0 w-[26px] h-[26px] rounded-[13px] bg-[#b3e653]">
+                  <span className="material-symbols-rounded text-[#191d24] text-[14px] leading-none font-bold select-none">
+                    check
+                  </span>
+                </span>
+                <p className="font-inter font-medium text-[16px] text-[#dbe0e8]">
+                  Keep it unique and hard to guess
+                </p>
+              </div>
             </div>
-          )}
 
-          {stage === "ready" && (
-            <form
-              className="w-full flex flex-col gap-[24px]"
-              onSubmit={handleSubmit(onSubmit)}
-            >
-              <div className="w-full flex flex-col items-start gap-[10px]">
-                <label
-                  htmlFor="password"
-                  className="font-noto-sans font-bold text-[16px] text-[#191D24]"
-                >
-                  New Password
-                </label>
-                <div className="w-full relative">
-                  <Controller
-                    control={control}
-                    name="password"
-                    rules={{
-                      required: "Please enter a new password",
-                      minLength: {
-                        value: 6,
-                        message: "Password must be at least 6 characters",
-                      },
-                    }}
-                    render={({ field }) => (
-                      <input
-                        {...field}
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        autoComplete="new-password"
-                        placeholder="Enter new password"
-                        className="w-full box-border border border-[#BDBDBD] rounded-[12px] h-[40px] pl-[18px] pr-[40px] font-noto-sans text-[14px] text-[#374151] outline-none focus:border-[#D94A56] transition-colors"
-                      />
-                    )}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((s) => !s)}
-                    className="absolute right-[12px] top-1/2 -translate-y-1/2 text-[#71717A] text-xs"
-                  >
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
+            <div />
+          </div>
+        </div>
+
+        {/* Form Area */}
+        <div className="flex flex-1 items-center justify-center px-4 py-12 bg-[#f6f7f4]" data-section="form-area">
+          <div
+            className="bg-white rounded-[28px] shadow-[0px_16px_40px_0px_rgba(0,0,0,0.08)] p-[40px] w-full max-w-[460px] flex flex-col gap-4"
+            data-section="auth-card"
+          >
+            {stage === "verifying" && (
+              <div className="flex flex-col gap-4 items-center py-6">
+                <span className="material-symbols-rounded text-[#6a7282] text-[40px] animate-spin" style={{ animationDuration: "1s" }}>
+                  progress_activity
+                </span>
+                <p className="font-inter text-[15px] text-[#6a7282]">Verifying your link…</p>
+              </div>
+            )}
+
+            {stage === "invalid" && (
+              <div className="flex flex-col gap-5">
+                <div className="flex items-center justify-center w-[56px] h-[56px] rounded-full bg-[#e54552]/10">
+                  <span className="material-symbols-rounded text-[#e54552] text-[28px] leading-none">
+                    error
+                  </span>
                 </div>
-                {errors.password && (
-                  <span className="text-red-500 text-sm">
-                    {errors.password.message}
-                  </span>
-                )}
-              </div>
-
-              <div className="w-full flex flex-col items-start gap-[10px]">
-                <label
-                  htmlFor="confirmPassword"
-                  className="font-noto-sans font-bold text-[16px] text-[#191D24]"
+                <div className="flex flex-col gap-[6px]">
+                  <h2 className="font-display font-bold text-[28px] leading-[1.08] tracking-[-0.56px] text-[#191d24]">
+                    Link expired
+                  </h2>
+                  <p className="font-inter font-normal text-[15px] text-[#6a7282]">
+                    {errorMsg || "This reset link is invalid or has expired."}
+                  </p>
+                </div>
+                <Link
+                  href={ROUTES.FORGOT_PASSWORD}
+                  className="inline-flex"
                 >
-                  Confirm Password
-                </label>
-                <Controller
-                  control={control}
-                  name="confirmPassword"
-                  rules={{
-                    required: "Please confirm your password",
-                    validate: (v) =>
-                      v === watch("password") || "Passwords do not match",
-                  }}
-                  render={({ field }) => (
-                    <input
-                      {...field}
-                      id="confirmPassword"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="new-password"
-                      placeholder="Repeat new password"
-                      className="w-full box-border border border-[#BDBDBD] rounded-[12px] h-[40px] px-[18px] font-noto-sans text-[14px] text-[#374151] outline-none focus:border-[#D94A56] transition-colors"
-                    />
-                  )}
-                />
-                {errors.confirmPassword && (
-                  <span className="text-red-500 text-sm">
-                    {errors.confirmPassword.message}
-                  </span>
-                )}
+                  <Button variant="primary" size="md" fullWidth>
+                    Request a new link
+                  </Button>
+                </Link>
+                <Link
+                  href={ROUTES.LOGIN()}
+                  className="font-inter font-bold text-[14px] text-[#9ad534] hover:underline"
+                >
+                  ← Back to Sign In
+                </Link>
               </div>
+            )}
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full h-[55px] flex justify-center items-center py-3 px-3 bg-[#D94A56] rounded-[10px] shadow-[0px_4px_20px_-8px_rgba(0,0,0,0.11),0px_0px_10px_rgba(0,0,0,0.1)] hover:bg-[#E3636E] transition-colors disabled:opacity-70 disabled:cursor-not-allowed border-none cursor-pointer"
-              >
-                <span className="font-noto-sans font-bold text-[20px] text-white">
-                  {isSubmitting ? "Saving..." : "Reset Password"}
-                </span>
-              </button>
-            </form>
-          )}
+            {stage === "success" && (
+              <div className="flex flex-col gap-5">
+                <div className="flex items-center justify-center w-[56px] h-[56px] rounded-full bg-[#b3e653]/20">
+                  <span className="material-symbols-rounded text-[#4f8600] text-[28px] leading-none">
+                    check_circle
+                  </span>
+                </div>
+                <div className="flex flex-col gap-[6px]">
+                  <h2 className="font-display font-bold text-[30px] leading-[1.08] tracking-[-0.6px] text-[#9ad534]">
+                    Password updated!
+                  </h2>
+                  <p className="font-inter font-normal text-[15px] text-[#6a7282]">
+                    Your password has been reset. Sign in with your new password.
+                  </p>
+                </div>
+                <Link href={ROUTES.LOGIN()} className="inline-flex">
+                  <Button variant="primary" size="md" fullWidth>
+                    Sign in
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {stage === "ready" && (
+              <>
+                <div className="flex flex-col gap-[6px]">
+                  <h2 className="font-display font-bold text-[30px] leading-[1.08] tracking-[-0.6px] text-[#9ad534]">
+                    New password
+                  </h2>
+                  <p className="font-inter font-normal text-[15px] text-[#6a7282]">
+                    Choose a strong password for your account.
+                  </p>
+                </div>
+
+                <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
+                  <div className="flex flex-col gap-[6px]">
+                    <label
+                      htmlFor="rp-password"
+                      className="font-inter font-semibold text-[13px] text-[#191d24]"
+                    >
+                      New password
+                    </label>
+                    <Controller
+                      control={control}
+                      name="password"
+                      rules={{
+                        required: "Please enter a new password",
+                        minLength: { value: 6, message: "Password must be at least 6 characters" },
+                      }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="rp-password"
+                          type={showPassword ? "text" : "password"}
+                          size="lg"
+                          placeholder="Enter new password"
+                          leftIcon={<LockIcon />}
+                          rightIcon={
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword((v) => !v)}
+                              aria-label={showPassword ? "Hide password" : "Show password"}
+                              className="flex items-center justify-center p-0 bg-transparent border-none cursor-pointer leading-none"
+                            >
+                              {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                            </button>
+                          }
+                          error={!!errors.password}
+                          fullWidth
+                        />
+                      )}
+                    />
+                    {errors.password && (
+                      <span className="font-inter text-[12px] text-[#e54552]">
+                        {errors.password.message}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-[6px]">
+                    <label
+                      htmlFor="rp-confirm"
+                      className="font-inter font-semibold text-[13px] text-[#191d24]"
+                    >
+                      Confirm password
+                    </label>
+                    <Controller
+                      control={control}
+                      name="confirmPassword"
+                      rules={{
+                        required: "Please confirm your password",
+                        validate: (v) => v === watch("password") || "Passwords do not match",
+                      }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="rp-confirm"
+                          type={showConfirm ? "text" : "password"}
+                          size="lg"
+                          placeholder="Repeat new password"
+                          leftIcon={<LockIcon />}
+                          rightIcon={
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirm((v) => !v)}
+                              aria-label={showConfirm ? "Hide password" : "Show password"}
+                              className="flex items-center justify-center p-0 bg-transparent border-none cursor-pointer leading-none"
+                            >
+                              {showConfirm ? <EyeOffIcon /> : <EyeIcon />}
+                            </button>
+                          }
+                          error={!!errors.confirmPassword}
+                          fullWidth
+                        />
+                      )}
+                    />
+                    {errors.confirmPassword && (
+                      <span className="font-inter text-[12px] text-[#e54552]">
+                        {errors.confirmPassword.message}
+                      </span>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="md"
+                    fullWidth
+                    loading={isSubmitting}
+                    disabled={isSubmitting}
+                  >
+                    Reset Password
+                  </Button>
+                </form>
+              </>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer
+        className="bg-[#191d24] flex flex-col gap-10 md:flex-row md:items-start md:justify-between px-6 sm:px-10 lg:px-[90px] py-12 lg:py-[48px] shrink-0 w-full"
+        data-section="auth-footer"
+      >
+        <div className="flex flex-col gap-[14px]">
+          <div className="flex items-center font-display font-bold text-[19px] leading-[1.3]">
+            <span className="text-white">VIT</span>
+            <span className="text-[#9ad534]">IELTS</span>
+          </div>
+          <p className="font-inter font-normal text-[14px] leading-[1.4] text-[#6a7282] max-w-[280px]">
+            Smarter IELTS preparation for ambitious learners. Practice, track, improve — all in one place.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-10 md:contents">
+          <div className="flex flex-col gap-[10px]">
+            <p className="font-inter font-bold text-[12px] tracking-[0.96px] text-white">LEARN</p>
+            <div className="h-1" />
+            {["Listening", "Reading", "Writing", "Speaking"].map((item) => (
+              <p key={item} className="font-inter font-normal text-[14px] leading-[1.4] text-[#6a7282]">{item}</p>
+            ))}
+          </div>
+          <div className="flex flex-col gap-[10px]">
+            <p className="font-inter font-bold text-[12px] tracking-[0.96px] text-white">RESOURCES</p>
+            <div className="h-1" />
+            {["Mock tests", "Vocabulary", "Blog", "Band guide"].map((item) => (
+              <p key={item} className="font-inter font-normal text-[14px] leading-[1.4] text-[#6a7282]">{item}</p>
+            ))}
+          </div>
+          <div className="flex flex-col gap-[10px]">
+            <p className="font-inter font-bold text-[12px] tracking-[0.96px] text-white">COMPANY</p>
+            <div className="h-1" />
+            {["About", "Teachers", "Pricing", "Contact"].map((item) => (
+              <p key={item} className="font-inter font-normal text-[14px] leading-[1.4] text-[#6a7282]">{item}</p>
+            ))}
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
 
-PageResetPassword.Layout = AuthLayout;
+PageResetPassword.Layout = BlankLayout;

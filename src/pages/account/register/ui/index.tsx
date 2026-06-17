@@ -69,7 +69,7 @@ interface PageRegisterProps {
 
 export function PageRegister({ registerConfig: _registerConfig, totalTests = 920 }: PageRegisterProps) {
   const { masterData: _masterData } = useAppContext();
-  const { signUp, signIn, signInWithGoogle } = useAuth();
+  const { signUp, signInWithGoogle } = useAuth();
   const {
     control,
     handleSubmit,
@@ -112,29 +112,21 @@ export function PageRegister({ registerConfig: _registerConfig, totalTests = 920
       // Conversion tracking — fire only after a genuinely successful sign-up.
       trackSignUpSuccess({ method: "email", userId: result?.user?.id });
 
-      toast.success("Account created successfully!");
-
-      // Sign in immediately on success. signUp already returns a session when
-      // email confirmation is disabled; if not, establish it explicitly.
-      if (!result?.session) {
-        await signIn({ email: data.email, password: data.password });
-      }
-
-      // Email not yet verified → don't block login; drop a reminder into the
-      // notification bell instead. Await so the hard redirect doesn't cancel it.
-      if (!result?.user?.email_confirmed_at) {
-        try {
-          await fetch("/api/notifications/verify-reminder", { method: "POST" });
-        } catch {
-          // Best-effort — the reminder is a nicety, not a gate.
-        }
-      }
-
-      // Redirect explicitly — the register page is on the SIGNED_IN auto-reload
-      // blocklist, so navigation must be driven from here.
       const redirect =
         new URLSearchParams(window.location.search).get("redirect") || "/";
-      window.location.href = redirect;
+
+      if (result?.session) {
+        // Email confirmation is disabled — already signed in, redirect directly.
+        toast.success("Account created successfully!");
+        window.location.href = redirect;
+      } else {
+        // Email confirmation is enabled — signIn would fail with "Email not confirmed".
+        // Notify user and redirect to login page.
+        toast.success(
+          "Account created! Please check your email to confirm your account, then log in."
+        );
+        window.location.href = ROUTES.LOGIN();
+      }
     } catch (err: any) {
       setIsLoading(false);
       submittingRef.current = false;
