@@ -300,6 +300,34 @@ export async function completeOrder(
 }
 
 /**
+ * Đánh dấu order đã kích hoạt PRO thành công (idempotency guard).
+ *
+ * Tách biệt với `status`: webhook chỉ flip cờ này SAU khi `activateProAccount`
+ * chạy xong, nên nếu cấp PRO lỗi giữa chừng thì cờ vẫn `false` và lần retry
+ * (SePay gửi lại webhook) sẽ cấp lại. Atomic `WHERE pro_activated = false` để
+ * không bao giờ cộng dồn quyền lợi hai lần.
+ *
+ * @param supabaseAdmin - Admin client (bypass RLS)
+ * @param orderId - Order ID text
+ * @returns true nếu lần gọi này là lần đánh dấu đầu tiên
+ */
+export async function markProActivated(
+    supabaseAdmin: SupabaseClient,
+    orderId: string,
+): Promise<boolean> {
+    const { data, error } = await supabaseAdmin
+        .from("orders")
+        .update({ pro_activated: true })
+        .eq("order_id", orderId)
+        .eq("pro_activated", false)
+        .select("order_id")
+        .maybeSingle();
+
+    if (error) throw error;
+    return data !== null;
+}
+
+/**
  * Admin: lấy danh sách orders có filter
  *
  * @param supabaseAdmin - Admin client (bypass RLS)

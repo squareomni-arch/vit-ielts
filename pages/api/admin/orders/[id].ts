@@ -58,6 +58,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         : null;
 
                 await activateProAccount(supabaseAdmin, order.user_id, Number(durationMonths), proSkills);
+
+                // Mark fulfilled so a late SePay webhook for this same order
+                // won't re-grant PRO on top of the manual activation.
+                await supabaseAdmin
+                    .from("orders")
+                    .update({ pro_activated: true })
+                    .eq("id", id);
             }
 
             return res.status(200).json({ success: true, data: order, message: "Order updated" });

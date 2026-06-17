@@ -11,7 +11,7 @@ export const QUIZ_LIST_COLUMNS =
 
 /** columns returned for order queries */
 export const ORDER_COLUMNS =
-    "id, order_id, user_id, package_type, duration, skill_type, amount, original_amount, discount_amount, coupon_id, coupon_code, status, payment_method, transfer_content, affiliate_ref, created_at" as const;
+    "id, order_id, user_id, package_type, duration, skill_type, amount, original_amount, discount_amount, coupon_id, coupon_code, status, payment_method, transfer_content, affiliate_ref, pro_activated, created_at" as const;
 
 /** columns returned for test result queries */
 export const TEST_RESULT_COLUMNS =

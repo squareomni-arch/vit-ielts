@@ -201,6 +201,7 @@ export const Header = ({
                       onClick={onLogout}
                       className="flex items-center gap-2 w-full px-3 py-2 text-[14px] font-inter text-[#e5484d] hover:bg-[#fff2f2] rounded-lg transition-colors duration-150 bg-transparent border-none cursor-pointer font-inherit text-left"
                     >
+                      <i className="material-symbols-rounded text-[18px]">logout</i>
                       Sign out
                     </button>
                   </>
@@ -282,6 +283,7 @@ export const Header = ({
                 })}
                 {onLogout && (
                   <button onClick={onLogout} className="flex items-center gap-2 py-2.5 px-1 text-[14px] font-inter text-[#e5484d] hover:bg-[#fff2f2] rounded-lg transition-colors bg-transparent border-none cursor-pointer font-inherit w-full text-left">
+                    <i className="material-symbols-rounded text-[18px]">logout</i>
                     Sign out
                   </button>
                 )}

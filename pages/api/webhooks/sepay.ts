@@ -4,6 +4,7 @@ import { supabaseAdmin } from "~supabase/admin";
 import {
   getOrderByTransferContent,
   completeOrder,
+  markProActivated,
 } from "~services/order";
 import { activateProAccount, getUserProfile } from "~services/user";
 import {
@@ -261,19 +262,35 @@ export default async function handler(
         });
       }
 
-      log(
-        `[Sepay Webhook] Order already processed (status: ${currentStatus}): ${order.order_id}`,
-      );
-      return res.status(200).json({
-        success: true,
-        message: "Order already processed",
-        orderId: order.order_id,
-      });
-    }
+      // Already-completed RETRY path: a prior webhook completed the order but
+      // PRO activation failed afterwards (pro_activated still false). Fall
+      // through to re-run fulfillment instead of bailing out — this is what
+      // makes a failed grant self-heal on SePay's retry.
+      const needsFulfillment =
+        currentStatus === "completed" &&
+        !order.pro_activated &&
+        !!order.user_id &&
+        !order.user_id.startsWith("temp_");
 
-    log(
-      `[Sepay Webhook] ✔ Order status updated: ${order.order_id} → completed`,
-    );
+      if (!needsFulfillment) {
+        log(
+          `[Sepay Webhook] Order already processed (status: ${currentStatus}): ${order.order_id}`,
+        );
+        return res.status(200).json({
+          success: true,
+          message: "Order already processed",
+          orderId: order.order_id,
+        });
+      }
+
+      log(
+        `[Sepay Webhook] ⟳ Order ${order.order_id} already completed but PRO not activated — re-attempting fulfillment`,
+      );
+    } else {
+      log(
+        `[Sepay Webhook] ✔ Order status updated: ${order.order_id} → completed`,
+      );
+    }
 
     // ── Fetch user info ──
     let userEmail: string | null = null;
@@ -298,24 +315,43 @@ export default async function handler(
     }
 
     // ── Activate Pro account ──
+    // Guarded by the orders.pro_activated flag so a SePay retry never grants
+    // twice. On failure we return 500 (instead of swallowing) so SePay retries
+    // and the next attempt re-runs this block — the order is already
+    // `completed` but `pro_activated` stays false until the grant lands.
     if (order.user_id && !order.user_id.startsWith("temp_")) {
-      try {
+      if (order.pro_activated) {
         log(
-          `[Sepay Webhook] Starting ProAccount update for user: ${order.user_id}`,
+          `[Sepay Webhook] PRO already activated for order ${order.order_id} — skipping`,
         );
-        await activateProAccount(
-          supabaseAdmin,
-          order.user_id,
-          order.duration,
-          order.package_type === "single" && order.skill_type
-            ? [order.skill_type]
-            : null,
-        );
-        log(
-          `[Sepay Webhook] ✔ ProAccount updated successfully for user: ${order.user_id}`,
-        );
-      } catch (updateError) {
-        log.error(`[Sepay Webhook] ✗ Error updating ProAccount:`, updateError);
+      } else {
+        try {
+          log(
+            `[Sepay Webhook] Starting ProAccount update for user: ${order.user_id}`,
+          );
+          await activateProAccount(
+            supabaseAdmin,
+            order.user_id,
+            order.duration,
+            order.package_type === "single" && order.skill_type
+              ? [order.skill_type]
+              : null,
+          );
+          // Flip the idempotency flag only AFTER the grant succeeds.
+          await markProActivated(supabaseAdmin, order.order_id);
+          order.pro_activated = true;
+          log(
+            `[Sepay Webhook] ✔ ProAccount updated successfully for user: ${order.user_id}`,
+          );
+        } catch (updateError) {
+          log.error(`[Sepay Webhook] ✗ Error updating ProAccount:`, updateError);
+          // Surface as 500 so SePay retries — order stays completed but
+          // unfulfilled (pro_activated=false), so the retry self-heals.
+          return res.status(500).json({
+            error: "PRO activation failed — payment recorded, will retry",
+            orderId: order.order_id,
+          });
+        }
       }
     } else {
       log(

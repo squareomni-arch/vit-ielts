@@ -334,13 +334,6 @@ export const Header = () => {
                 },
               ]
             : []),
-          { divider: true },
-          {
-            label: "Logout",
-            onClick: signOut,
-            icon: <i className="material-symbols-rounded">logout</i>,
-            danger: true,
-          },
         ]}
         isAuthenticated={mounted && isSignedIn}
         authLoading={!mounted}
