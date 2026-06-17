@@ -120,69 +120,55 @@ describe("API /api/orders/create — Input Validation", () => {
 });
 
 // ============================================================================
-// 2. Sepay Webhook — Signature Verification
+// 2. Sepay Webhook — Authorization (Apikey scheme)
 // ============================================================================
 
-describe("API /api/webhooks/sepay — Signature Verification", () => {
-    // Import the function (it's not exported, so we test the algorithm directly)
+describe("API /api/webhooks/sepay — Authorization", () => {
+    // SePay does NOT sign the body. It sends the shared secret directly in the
+    // Authorization header as `Apikey <SECRET>`. The handler compares the header
+    // against `Apikey <SEPAY_WEBHOOK_SECRET>` with a timing-safe equality check.
+    //
+    // This mirrors `verifyApiKey()` in pages/api/webhooks/sepay.ts. The function
+    // is not exported (importing the route would pull in supabaseAdmin + services),
+    // so we replicate the exact algorithm here.
     const crypto = require("crypto");
 
-    function verifyWebhookSignature(
-        rawBody: string,
-        signature: string,
-        secret: string,
-    ): boolean {
-        const expected = crypto
-            .createHmac("sha256", secret)
-            .update(rawBody, "utf8")
-            .digest("hex");
-
-        try {
-            return crypto.timingSafeEqual(
-                Buffer.from(signature, "hex"),
-                Buffer.from(expected, "hex"),
-            );
-        } catch {
-            return false;
-        }
+    function verifyApiKey(authHeader: string, secret: string): boolean {
+        const expected = `Apikey ${secret}`;
+        const a = Buffer.from(authHeader, "utf8");
+        const b = Buffer.from(expected, "utf8");
+        if (a.length !== b.length) return false;
+        return crypto.timingSafeEqual(a, b);
     }
 
-    it("accepts valid HMAC-SHA256 signature", () => {
-        const secret = "test-secret-key";
-        const body = JSON.stringify({ transferAmount: 299000, content: "VIT IELTS 123" });
-        const signature = crypto.createHmac("sha256", secret).update(body, "utf8").digest("hex");
+    const SECRET = "test-secret-key";
 
-        expect(verifyWebhookSignature(body, signature, secret)).toBe(true);
+    it("accepts the correct `Apikey <secret>` header", () => {
+        expect(verifyApiKey(`Apikey ${SECRET}`, SECRET)).toBe(true);
     });
 
-    it("rejects invalid signature", () => {
-        const secret = "test-secret-key";
-        const body = JSON.stringify({ transferAmount: 299000, content: "VIT IELTS 123" });
-
-        expect(verifyWebhookSignature(body, "deadbeef0000", secret)).toBe(false);
+    it("rejects a wrong secret", () => {
+        expect(verifyApiKey("Apikey wrong-secret", SECRET)).toBe(false);
     });
 
-    it("rejects empty signature", () => {
-        const secret = "test-secret-key";
-        const body = JSON.stringify({ transferAmount: 299000, content: "VIT IELTS 123" });
-
-        expect(verifyWebhookSignature(body, "", secret)).toBe(false);
+    it("rejects a missing/empty header", () => {
+        expect(verifyApiKey("", SECRET)).toBe(false);
     });
 
-    it("rejects tampered body", () => {
-        const secret = "test-secret-key";
-        const originalBody = JSON.stringify({ transferAmount: 299000, content: "VIT IELTS 123" });
-        const signature = crypto.createHmac("sha256", secret).update(originalBody, "utf8").digest("hex");
-
-        const tamperedBody = JSON.stringify({ transferAmount: 0, content: "VIT IELTS 123" });
-        expect(verifyWebhookSignature(tamperedBody, signature, secret)).toBe(false);
+    it("rejects the secret without the `Apikey ` prefix", () => {
+        expect(verifyApiKey(SECRET, SECRET)).toBe(false);
     });
 
-    it("rejects wrong secret", () => {
-        const body = JSON.stringify({ transferAmount: 299000, content: "VIT IELTS 123" });
-        const signature = crypto.createHmac("sha256", "correct-secret").update(body, "utf8").digest("hex");
+    it("rejects a wrong scheme keyword (e.g. Bearer)", () => {
+        expect(verifyApiKey(`Bearer ${SECRET}`, SECRET)).toBe(false);
+    });
 
-        expect(verifyWebhookSignature(body, signature, "wrong-secret")).toBe(false);
+    it("rejects a header that only differs by length (short-circuits before compare)", () => {
+        expect(verifyApiKey(`Apikey ${SECRET}extra`, SECRET)).toBe(false);
+    });
+
+    it("is case-sensitive on the secret", () => {
+        expect(verifyApiKey(`Apikey ${SECRET.toUpperCase()}`, SECRET)).toBe(false);
     });
 });
 

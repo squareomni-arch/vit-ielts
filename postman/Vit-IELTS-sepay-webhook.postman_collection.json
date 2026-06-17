@@ -1,0 +1,346 @@
+{
+  "info": {
+    "name": "Vit IELTS — SePay Webhook",
+    "_postman_id": "a1b2c3d4-0002-4000-8000-vitsepaywebhk",
+    "description": "Bộ test riêng cho `POST /api/webhooks/sepay` (file: pages/api/webhooks/sepay.ts).\n\nWebhook xử lý 2 nhánh dựa trên `content` + `transferType`:\n- **ORDER** (tiền vào, `transferType=in`): content chứa `Vit IELTS <số>` hoặc `IELTS PREDICTION <số>` → tìm đơn, đánh dấu `completed`, kích hoạt Pro, tạo commission, gửi email.\n- **PAYOUT** (tiền ra, `transferType=out`): content khớp `PAYOUT <uuid-36-ký-tự>` → auto hoàn tất lệnh chi trả affiliate.\n\n## Xác thực\nSePay KHÔNG ký body. Nó gửi secret trực tiếp ở header `Authorization: Apikey <SEPAY_WEBHOOK_SECRET>`. Handler so sánh timing-safe với `Apikey <secret>`.\n- Thiếu/sai header → 401.\n- Server thiếu env `SEPAY_WEBHOOK_SECRET` → 500 'Webhook misconfigured'.\n\n## Biến (Variables tab)\n- `baseUrl` — http://localhost:3000 khi test local, https://vitielts.com cho prod.\n- `sepaySecret` — đúng giá trị env `SEPAY_WEBHOOK_SECRET` của server đang chạy.\n- `orderContent` — nội dung CK khớp `orders.transfer_content` của một đơn **đang pending** (vd 'Vit IELTS 17816010949252200').\n- `orderAmount` — khớp `orders.amount` của đơn đó (sai số cho phép ≤ 1000đ).\n- `payoutId` — UUID của một payout đang ở trạng thái **approved** (cho nhánh payout).\n- `payoutAmount` — khớp `payouts.amount` của payout đó.\n\n## ⚠️ Cảnh báo\nCác request '2xx success' THỰC SỰ thay đổi dữ liệu (đánh dấu completed, kích hoạt Pro, gửi email, chi trả). CHỈ chạy trên môi trường local/staging với dữ liệu test. Mỗi lần chạy lại cần một đơn/payout pending mới (hoặc dùng case idempotency để kiểm tra replay).\n\nThứ tự gợi ý: chạy các case AUTH (4–6) và VALIDATION (7–9) trước vì chúng không cần dữ liệu thật; sau đó tạo 1 đơn pending rồi chạy case 1 → 3.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. ORDER — payment success → activate Pro",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('success = true', () => pm.expect(res.success).to.eql(true));",
+              "pm.test('status = completed', () => pm.expect(res.status).to.eql('completed'));",
+              "console.log('Webhook result:', JSON.stringify(res));",
+              "// Sau request này: order = completed, Pro được kích hoạt, email đã gửi.",
+              "// Chạy lại chính request này (case 3) để kiểm tra idempotency."
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Apikey {{sepaySecret}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"gateway\": \"ACB\",\n  \"transactionDate\": \"2026-06-16 10:00:00\",\n  \"accountNumber\": \"2447967\",\n  \"subAccount\": null,\n  \"code\": null,\n  \"content\": \"{{orderContent}}\",\n  \"transferType\": \"in\",\n  \"description\": \"Chuyen khoan {{orderContent}}\",\n  \"transferAmount\": {{orderAmount}},\n  \"referenceCode\": \"TEST-ORDER-001\",\n  \"accumulated\": 0,\n  \"id\": 990001\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/webhooks/sepay",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "webhooks", "sepay"]
+        },
+        "description": "Mô phỏng SePay báo tiền vào cho một đơn ĐANG PENDING.\n- `content` khớp `orders.transfer_content`.\n- `transferAmount` khớp `orders.amount` (sai số ≤ 1000đ)."
+      }
+    },
+    {
+      "name": "2. ORDER — amount mismatch (expect 400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "const res = pm.response.json();",
+              "pm.test(\"error = 'Amount mismatch'\", () => pm.expect(res.error).to.eql('Amount mismatch'));",
+              "console.log('expected', res.expected, 'received', res.received);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Apikey {{sepaySecret}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"gateway\": \"ACB\",\n  \"transactionDate\": \"2026-06-16 10:05:00\",\n  \"accountNumber\": \"2447967\",\n  \"content\": \"{{orderContent}}\",\n  \"transferType\": \"in\",\n  \"transferAmount\": 1,\n  \"referenceCode\": \"TEST-ORDER-MISMATCH\",\n  \"id\": 990002\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/webhooks/sepay",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "webhooks", "sepay"]
+        },
+        "description": "Đơn tồn tại (pending) nhưng số tiền lệch > 1000đ → 400 'Amount mismatch'. Đơn KHÔNG bị đánh dấu completed.\nLưu ý: chạy case này TRƯỚC case 1 (vì sau case 1 đơn đã completed, sẽ rơi vào nhánh 'already processed' trả 200)."
+      }
+    },
+    {
+      "name": "3. ORDER — replay / idempotency (expect already processed)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "const res = pm.response.json();",
+              "pm.test('success = true', () => pm.expect(res.success).to.eql(true));",
+              "pm.test('message says already processed', () =>",
+              "  pm.expect((res.message || '').toLowerCase()).to.include('already'));",
+              "console.log('Replay result:', JSON.stringify(res));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Apikey {{sepaySecret}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"gateway\": \"ACB\",\n  \"transactionDate\": \"2026-06-16 10:10:00\",\n  \"accountNumber\": \"2447967\",\n  \"content\": \"{{orderContent}}\",\n  \"transferType\": \"in\",\n  \"transferAmount\": {{orderAmount}},\n  \"referenceCode\": \"TEST-ORDER-REPLAY\",\n  \"id\": 990003\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/webhooks/sepay",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "webhooks", "sepay"]
+        },
+        "description": "Gửi lại webhook cho đơn ĐÃ completed (chạy SAU case 1). `completeOrder()` chỉ UPDATE khi status='pending' nên transition không xảy ra → trả 200 'Order already processed'. Pro KHÔNG bị kích hoạt lại, email KHÔNG gửi lại."
+      }
+    },
+    {
+      "name": "4. AUTH — missing Authorization (expect 401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+              "const res = pm.response.json();",
+              "pm.test(\"error = 'Invalid webhook signature'\", () => pm.expect(res.error).to.eql('Invalid webhook signature'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"content\": \"{{orderContent}}\",\n  \"transferType\": \"in\",\n  \"transferAmount\": {{orderAmount}},\n  \"id\": 990004\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/webhooks/sepay",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "webhooks", "sepay"]
+        },
+        "description": "Không gửi header Authorization → 401. Đây là blocker đầu tiên, chạy trước cả khi parse body."
+      }
+    },
+    {
+      "name": "5. AUTH — wrong secret (expect 401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Apikey definitely-wrong-secret" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"content\": \"{{orderContent}}\",\n  \"transferType\": \"in\",\n  \"transferAmount\": {{orderAmount}},\n  \"id\": 990005\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/webhooks/sepay",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "webhooks", "sepay"]
+        },
+        "description": "Header có nhưng secret sai → 401. So sánh timing-safe; chênh độ dài cũng bị từ chối."
+      }
+    },
+    {
+      "name": "6. AUTH — wrong scheme keyword (expect 401)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{sepaySecret}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"content\": \"{{orderContent}}\",\n  \"transferType\": \"in\",\n  \"transferAmount\": {{orderAmount}},\n  \"id\": 990006\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/webhooks/sepay",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "webhooks", "sepay"]
+        },
+        "description": "Đúng secret nhưng sai scheme ('Bearer' thay vì 'Apikey') → 401. Handler yêu cầu khớp chính xác chuỗi 'Apikey <secret>'."
+      }
+    },
+    {
+      "name": "7. VALIDATION — missing content/amount (expect 400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "const res = pm.response.json();",
+              "pm.test('error mentions required fields', () =>",
+              "  pm.expect(res.error).to.include('Missing required fields'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Apikey {{sepaySecret}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"gateway\": \"ACB\",\n  \"transferType\": \"in\",\n  \"id\": 990007\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/webhooks/sepay",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "webhooks", "sepay"]
+        },
+        "description": "Auth hợp lệ nhưng thiếu `transferAmount` và `content` → 400 'Missing required fields'."
+      }
+    },
+    {
+      "name": "8. ORDER — not found (expect 404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+              "const res = pm.response.json();",
+              "pm.test(\"error = 'Order not found'\", () => pm.expect(res.error).to.eql('Order not found'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Apikey {{sepaySecret}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"gateway\": \"ACB\",\n  \"transactionDate\": \"2026-06-16 11:00:00\",\n  \"accountNumber\": \"2447967\",\n  \"content\": \"Vit IELTS 00000000000000000\",\n  \"transferType\": \"in\",\n  \"transferAmount\": {{orderAmount}},\n  \"referenceCode\": \"TEST-NOTFOUND\",\n  \"id\": 990008\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/webhooks/sepay",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "webhooks", "sepay"]
+        },
+        "description": "Content hợp lệ nhưng không tồn tại đơn nào khớp → 404. (Lưu ý: response non-2xx này khiến SePay retry — xem ghi chú review.)"
+      }
+    },
+    {
+      "name": "9. METHOD — GET not allowed (expect 405)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 405', () => pm.response.to.have.status(405));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/webhooks/sepay",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "webhooks", "sepay"]
+        },
+        "description": "Webhook chỉ chấp nhận POST. GET → 405 Method not allowed (kiểm tra trước cả auth)."
+      }
+    },
+    {
+      "name": "10. PAYOUT — auto-complete (transferType=out)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "const res = pm.response.json();",
+              "pm.test('type = payout', () => pm.expect(res.type).to.eql('payout'));",
+              "pm.test('updated = true (lần đầu)', () => pm.expect(res.updated).to.eql(true));",
+              "console.log('Payout result:', JSON.stringify(res));",
+              "// Chạy lại request này → updated=false (idempotent: sepay_id đã ghi nhận)."
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Apikey {{sepaySecret}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"gateway\": \"ACB\",\n  \"transactionDate\": \"2026-06-16 12:00:00\",\n  \"accountNumber\": \"2447967\",\n  \"content\": \"PAYOUT {{payoutId}}\",\n  \"transferType\": \"out\",\n  \"description\": \"Chi tra affiliate PAYOUT {{payoutId}}\",\n  \"transferAmount\": {{payoutAmount}},\n  \"referenceCode\": \"TEST-PAYOUT-001\",\n  \"id\": 991001\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/webhooks/sepay",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "webhooks", "sepay"]
+        },
+        "description": "Mô phỏng SePay báo tiền RA cho một payout đang ở trạng thái 'approved'.\n- `content` phải đúng định dạng 'PAYOUT <uuid 36 ký tự>'.\n- `transferType` = 'out'.\n- `transferAmount` phải KHỚP CHÍNH XÁC `payouts.amount` (không có sai số như order); lệch → payout bị 'flagged', updated=false.\n- Idempotency theo `id` (sepay_id) qua bảng `sepay_payout_transactions`."
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "sepaySecret", "value": "" },
+    { "key": "orderContent", "value": "Vit IELTS 17816010949252200" },
+    { "key": "orderAmount", "value": "600000" },
+    { "key": "payoutId", "value": "00000000-0000-0000-0000-000000000000" },
+    { "key": "payoutAmount", "value": "200000" }
+  ]
+}
