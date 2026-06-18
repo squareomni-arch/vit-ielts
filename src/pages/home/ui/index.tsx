@@ -7,7 +7,7 @@ import { MockCollectionSection } from "./mock-collection-section";
 import { CtaBanner } from "./cta-banner";
 import { useAuth } from "@/appx/providers";
 import { AppShell } from "@/widgets/layouts";
-import { PracticeHistory, TargetScore } from "@/widgets";
+import { PracticeHistory, TargetScore, SEOHeader } from "@/widgets";
 import { ROUTES } from "@/shared/routes";
 import Link from "next/link";
 import type { HeroBannerConfig } from "./hero-banner/types";
@@ -50,6 +50,10 @@ export const PageHome = ({
   // const { isSignedIn } = useAuth();
   return (
     <div className="w-full bg-[#f6f7f4] flex flex-col gap-6 lg:gap-10 xl:gap-12">
+      <SEOHeader 
+        title="Trực Chiến IELTS Online - Đạt Band 8.0 Dễ Dàng" 
+        description="Luyện thi IELTS Online hiệu quả với thư viện đề thi phong phú, bài viết mẫu IELTS chuẩn mực và chấm điểm tức thì trên Vit IELTS."
+      />
       {/* === SECTION: Hero Banner === */}
       <HeroBanner config={heroBannerConfig} totalTests={totalExamsCount + listeningCount + readingCount} />
 
