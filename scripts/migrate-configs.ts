@@ -103,5 +103,7 @@ export async function migrateConfigs() {
 
 // Run directly
 if (require.main === module) {
-    migrateConfigs().catch(() => process.exit(1));
+    migrateConfigs()
+        .then(() => process.exit(0))
+        .catch(() => process.exit(1));
 }
