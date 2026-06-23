@@ -25,7 +25,7 @@ type AppliedCoupon = {
 
 const CheckoutPage = () => {
   const router = useRouter();
-  const { type, months, skill } = router.query;
+  const { type, months, skill, coupon } = router.query;
   const { currentUser } = useAuth();
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [config, setConfig] = useState<CoursePackagesConfig>(DEFAULT_COURSE_PACKAGES);
@@ -124,9 +124,11 @@ const CheckoutPage = () => {
     return appliedCoupon.value;
   }, [appliedCoupon, selection.price]);
 
-  const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) {
-      toast.error("Vui lòng nhập mã giảm giá");
+  // `silent` suppresses toasts — used when auto-applying a coupon from the URL.
+  const applyCoupon = async (code: string, silent = false) => {
+    const trimmed = code.trim();
+    if (!trimmed) {
+      if (!silent) toast.error("Vui lòng nhập mã giảm giá");
       return;
     }
 
@@ -135,24 +137,38 @@ const CheckoutPage = () => {
       const res = await fetch("/api/coupons/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: couponCode }),
+        body: JSON.stringify({ code: trimmed }),
       });
 
       const data = await res.json();
 
       if (data.valid && data.coupon) {
         setAppliedCoupon(data.coupon);
-        toast.success(data.message || "Áp dụng mã giảm giá thành công");
+        setCouponCode(data.coupon.code);
+        if (!silent) toast.success(data.message || "Áp dụng mã giảm giá thành công");
       } else {
         setAppliedCoupon(null);
-        toast.error(data.message || "Mã giảm giá không hợp lệ");
+        if (!silent) toast.error(data.message || "Mã giảm giá không hợp lệ");
       }
     } catch (error) {
-      toast.error("Có lỗi xảy ra khi kiểm tra mã giảm giá");
+      if (!silent) toast.error("Có lỗi xảy ra khi kiểm tra mã giảm giá");
     } finally {
       setIsValidatingCoupon(false);
     }
   };
+
+  const handleApplyCoupon = () => applyCoupon(couponCode);
+
+  // Pre-fill + auto-apply a coupon passed via the URL (e.g. landing → ?coupon=VIT50).
+  useEffect(() => {
+    if (!router.isReady) return;
+    const code = (Array.isArray(coupon) ? coupon[0] : coupon)?.toUpperCase();
+    if (code && !appliedCoupon) {
+      setCouponCode(code);
+      void applyCoupon(code, true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, coupon]);
 
   const productName =
     selection.pkgType === "combo"
