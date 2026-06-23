@@ -31,6 +31,10 @@ export type FooterProps = {
   socialLinks?: { icon: React.ReactNode; href: string; label: string }[];
   /** Show the bottom copyright + legal row. Default false. */
   showCopyright?: boolean;
+  /** Origin to prefix internal links with (logo, columns, Terms/Privacy) — set
+   *  to the main-app URL when the footer renders on a split-out subdomain.
+   *  Empty (default) keeps links relative. */
+  linkBase?: string;
   /** @deprecated kept for backward compat — no longer used in layout */
   showNewsletter?: boolean;
   /** @deprecated kept for backward compat — no longer used in layout */
@@ -86,9 +90,10 @@ export const Footer = ({
   logoSrc = '/assets/logos/logo-on-dark.svg',
   description = 'Smarter IELTS preparation for ambitious learners. Practice, track, improve — all in one place.',
   columns,
-  contactInfo = { email: 'hello@vitielts.com', phone: '1900 8888' },
+  contactInfo = { email: 'vitielts8.0@gmail.com', phone: '055 956 2767' },
   socialLinks,
   showCopyright = false,
+  linkBase = '',
   className = '',
 }: FooterProps) => (
   <footer className={twMerge('bg-[#191d24] w-full', className)}>
@@ -99,7 +104,7 @@ export const Footer = ({
 
         {/* Brand */}
         <div className="flex flex-col gap-5 lg:w-[330px] lg:shrink-0">
-          <a href="/" aria-label="Vịt IELTS" className="flex items-center">
+          <a href={`${linkBase}/`} aria-label="Vịt IELTS" className="flex items-center">
             <img src={logoSrc} alt="Vịt IELTS" className="h-9 w-auto object-contain" />
           </a>
           {description && (
@@ -127,7 +132,7 @@ export const Footer = ({
             <div key={i} className="flex flex-col gap-3 lg:shrink-0">
               <p className="font-inter text-[12px] font-bold uppercase leading-4 tracking-[1.2px] text-[#64748b]">{col.title}</p>
               {col.links.map((link, j) => (
-                <a key={j} href={link.href} className="font-inter text-[14px] text-[#cbd5e1] no-underline transition-colors hover:text-white">
+                <a key={j} href={`${linkBase}${link.href}`} className="font-inter text-[14px] text-[#cbd5e1] no-underline transition-colors hover:text-white">
                   {link.label}
                 </a>
               ))}
@@ -175,8 +180,8 @@ export const Footer = ({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="font-inter text-[13px] text-[#64748b]">© {new Date().getFullYear()} Vịt IELTS. All rights reserved.</span>
             <div className="flex items-center gap-5">
-              <a href="/terms-of-use" className="font-inter text-[13px] text-[#64748b] no-underline transition-colors hover:text-white">Terms</a>
-              <a href="/privacy-policy" className="font-inter text-[13px] text-[#64748b] no-underline transition-colors hover:text-white">Privacy</a>
+              <a href={`${linkBase}/terms-of-use`} className="font-inter text-[13px] text-[#64748b] no-underline transition-colors hover:text-white">Terms</a>
+              <a href={`${linkBase}/privacy-policy`} className="font-inter text-[13px] text-[#64748b] no-underline transition-colors hover:text-white">Privacy</a>
             </div>
           </div>
         </>

@@ -105,12 +105,18 @@ export default function CouponsPage() {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      // API uses snake_case keys; this form uses camelCase — map before sending.
+      const payload = {
+        code: values.code,
+        value: values.discountAmount,
+        max_uses: values.maxUses,
+      };
 
       if (editingCoupon) {
         const res = await fetch("/api/admin/coupons", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...values, id: editingCoupon.id }),
+          body: JSON.stringify({ ...payload, id: editingCoupon.id, is_active: values.isActive }),
         });
 
         if (!res.ok) throw new Error("Update failed");
@@ -119,7 +125,7 @@ export default function CouponsPage() {
         const res = await fetch("/api/admin/coupons", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
+          body: JSON.stringify(payload),
         });
 
         if (!res.ok) throw new Error("Create failed");

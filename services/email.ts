@@ -477,6 +477,33 @@ export async function sendContactEmail(
     return sendEmail(adminEmail, `[Contact] ${subject}`, html);
 }
 
+/**
+ * Gửi email thông báo lead mới từ Landing page tới admin.
+ */
+export async function sendLeadEmail(lead: {
+    name: string;
+    phone: string;
+    target?: string;
+    source?: string;
+}): Promise<boolean> {
+    const config = await getEmailConfig();
+    const adminEmail =
+        process.env.ADMIN_EMAIL || config.brand.email || "admin@vitielts.com";
+
+    const vars: Record<string, string> = {
+        "{{brandName}}": config.brand.name,
+        "{{brandPhone}}": config.brand.phone,
+        "{{brandEmail}}": config.brand.email,
+        "{{brandWebsite}}": config.brand.website,
+        "{{currentYear}}": String(new Date().getFullYear()),
+    };
+
+    const bodyHtml = `Có khách hàng mới đăng ký nhận tư vấn từ Landing page:\n\n<strong>Họ tên:</strong> ${encode(lead.name)}\n<strong>Số điện thoại:</strong> ${encode(lead.phone)}\n<strong>Mục tiêu band:</strong> ${encode(lead.target || "—")}\n<strong>Nguồn:</strong> ${encode(lead.source || "landing")}`;
+
+    const html = buildEmailHtml(config, "Lead mới từ Landing", bodyHtml, vars);
+    return sendEmail(adminEmail, `[Lead] ${lead.name} - ${lead.phone}`, html);
+}
+
 // ============================================================
 // Order Confirmation Email (for customer)
 // ============================================================

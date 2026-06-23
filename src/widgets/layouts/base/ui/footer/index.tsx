@@ -246,14 +246,14 @@ export const Footer = () => {
                   Get Contact
                 </h3>
                 <ul className="space-y-4 font-noto-sans font-normal text-[14px] leading-[19px] text-white">
-                  <li>Phone: {phoneNumber || "0326752732"}</li>
+                  <li>Phone: {phoneNumber || "055 956 2767"}</li>
                   <li>
                     E-mail:{" "}
                     <Link
-                      href={`mailto:${email || "vitielts9@gmail.com"}`}
+                      href={`mailto:${email || "vitielts8.0@gmail.com"}`}
                       className="hover:text-gray-300 transition-colors"
                     >
-                      {email || "vitielts9@gmail.com"}
+                      {email || "vitielts8.0@gmail.com"}
                     </Link>
                   </li>
                 </ul>

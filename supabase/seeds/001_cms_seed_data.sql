@@ -260,7 +260,7 @@ VALUES (
       },
       {
         "question": "Tôi đã chuyển khoản thành công nhưng bị tắt trình duyệt giữa chừng hoặc gặp sự cố thì phải làm sao?",
-        "answer": "Nếu quá trình xử lý giao dịch gặp trục trặc hoặc bạn cần báo cáo sự cố thanh toán, vui lòng liên hệ ngay qua Hotline hỗ trợ nhanh: 0326752732 để được đội ngũ kỹ thuật hỗ trợ đối soát kịp thời."
+        "answer": "Nếu quá trình xử lý giao dịch gặp trục trặc hoặc bạn cần báo cáo sự cố thanh toán, vui lòng liên hệ ngay qua Hotline hỗ trợ nhanh: 055 956 2767 để được đội ngũ kỹ thuật hỗ trợ đối soát kịp thời."
       },
       {
         "question": "Làm sao để áp dụng mã giảm giá (Promo Code) khi thanh toán?",

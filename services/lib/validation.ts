@@ -26,6 +26,16 @@ export const ValidateCouponSchema = z.object({
 });
 
 // ──────────────────────────────────────────────
+// /api/leads/create  (landing-page lead form)
+// Phone format is normalized + re-checked in the handler.
+// ──────────────────────────────────────────────
+export const CreateLeadSchema = z.object({
+    name: z.string().min(2, "Vui lòng nhập họ tên hợp lệ").max(120).trim(),
+    phone: z.string().min(8, "Số điện thoại không hợp lệ").max(20).trim(),
+    target: z.string().max(120).trim().optional(),
+});
+
+// ──────────────────────────────────────────────
 // /api/contact/send-email
 // ──────────────────────────────────────────────
 export const SendEmailSchema = z.object({

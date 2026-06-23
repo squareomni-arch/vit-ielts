@@ -81,6 +81,14 @@ export default function AdminSettingsPage() {
                                     </Form.Item>
                                     <Form.Item name="seo_title" label="SEO Title mặc định"><Input /></Form.Item>
                                     <Form.Item name="seo_description" label="SEO Description mặc định"><TextArea rows={2} /></Form.Item>
+                                    <Row gutter={16}>
+                                        <Col span={12}><Form.Item name="phoneNumber" label="Hotline / Số điện thoại"><Input placeholder="055 956 2767" /></Form.Item></Col>
+                                        <Col span={12}><Form.Item name="email" label="Email liên hệ"><Input placeholder="vitielts8.0@gmail.com" /></Form.Item></Col>
+                                    </Row>
+                                    <Row gutter={16}>
+                                        <Col span={12}><Form.Item name="facebook" label="Facebook URL"><Input placeholder="https://facebook.com/..." /></Form.Item></Col>
+                                        <Col span={12}><Form.Item name="zalo" label="Zalo URL"><Input placeholder="https://zalo.me/..." /></Form.Item></Col>
+                                    </Row>
                                     <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={() => saveSetting("general_settings", generalForm)}>Lưu</Button>
                                 </Form>
                             </Card>

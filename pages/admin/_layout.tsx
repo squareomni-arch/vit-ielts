@@ -26,6 +26,7 @@ import {
   HistoryOutlined,
   PictureOutlined,
   CreditCardOutlined,
+  ContactsOutlined,
 } from "@ant-design/icons";
 import { message, Tooltip, Badge, ConfigProvider, theme as antdTheme } from "antd";
 import { useAdminPermissions } from "@/shared/hooks";
@@ -75,6 +76,7 @@ const MENU_SECTIONS: MenuSection[] = [
         ],
       },
       { key: "/admin/orders", icon: <ShoppingCartOutlined />, label: "Orders" },
+      { key: "/admin/leads", icon: <ContactsOutlined />, label: "Leads (Landing)" },
       { key: "/admin/coupons", icon: <TagOutlined />, label: "Coupons" },
       {
         key: "cms-subscription",
@@ -121,6 +123,7 @@ const BREADCRUMB_MAP: Record<string, string> = {
   "/admin/teachers": "Giáo viên",
   "/admin/students": "Học viên",
   "/admin/orders": "Orders",
+  "/admin/leads": "Leads (Landing)",
   "/admin/coupons": "Coupons",
   "/admin/posts": "Blog Posts",
   "/admin/sample-essays": "Sample Essays",
