@@ -1,0 +1,49 @@
+/* Landing-page-scoped styles — deliberately kept OUT of globals.css.
+   Only the bits Tailwind utilities can't express cleanly live here:
+   the two decorative background patterns and the page font face.
+   Brand/ink/accent colors still come from the global @theme tokens. */
+
+/* Be Vietnam Pro (display font) is referenced by the @theme but not loaded
+   app-wide yet — the page also injects the <link>; this is the fallback face. */
+.page {
+  font-family: var(--font-inter);
+}
+
+/* CTA green panel — exact polka-dot tile from Figma (4017:3446), 44px tile.
+   The brand overlay (#B3E653 @70%) layered on top dims the tile to the
+   design's 30% opacity, so panel content paints above the pattern normally. */
+.polkaDots {
+  background-image:
+    linear-gradient(rgba(179, 230, 83, 0.7), rgba(179, 230, 83, 0.7)),
+    url("/assets/landing/polka-tile.png");
+  background-size: cover, 44px 44px;
+  background-position: center, top left;
+}
+
+/* Dark testimonials card — exact plus-sign tile from Figma (4052:472), a 42px
+   tile of white plus signs. The dark overlay (ink-900 @95%) sits ON TOP of the
+   white tile to dim it to the design's 5% opacity, so panel content paints
+   above the background normally (no pseudo-element stacking needed). */
+.plusSigns {
+  background-image:
+    linear-gradient(rgba(25, 29, 36, 0.95), rgba(25, 29, 36, 0.95)),
+    url("/assets/landing/plus-tile.png");
+  background-size: cover, 42px 42px;
+  background-position: center, top left;
+}
+
+/* Submit button — paper plane flies off when sending the lead form */
+.planeFly {
+  animation: planeFly 0.6s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+}
+@keyframes planeFly {
+  0%   { transform: translate(0, 0) rotate(0); opacity: 1; }
+  30%  { transform: translate(-3px, 3px) rotate(-6deg); opacity: 1; }
+  100% { transform: translate(34px, -34px) rotate(12deg); opacity: 0; }
+}
+
+/* Hero decorative blobs (recreated in CSS instead of shipping PNGs) */
+.blob {
+  border-radius: 9999px;
+  background: var(--color-brand);
+}
