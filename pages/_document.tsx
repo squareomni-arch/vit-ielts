@@ -46,7 +46,7 @@ fbq('track', 'PageView');`,
       <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="facebook-domain-verification" content="djlabdky9dlglh7wa6lusy5ggkmyvt" />
-      <meta name="google-site-verification" content="" />
+      <meta name="google-site-verification" content="AT_VIyUo5hc8szLi-63f8sxPoj4PF9MVgr_46qYNXcs" />
       <meta name="revisit-after" content="1 days" />
       <meta name="RATING" content="GENERAL" />
       <meta name="robots" content="index,follow" />
