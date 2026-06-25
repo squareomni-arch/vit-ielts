@@ -7,6 +7,7 @@ import {
   SkillType,
 } from "@/pages/subscription/ui/subscription-plans/pricing";
 import { ROUTES } from "@/shared/routes";
+import { withMasterData } from "@/shared/hoc";
 import { useAuth } from "@/appx/providers/auth-provider";
 import { createClient } from "~supabase/client";
 import { toast } from "react-toastify";
@@ -460,12 +461,9 @@ const CheckoutPage = () => {
 
 CheckoutPage.Layout = AppShell;
 
-// Disable static generation để tránh lỗi prerender
-// Trang này cần client-side data (router query, auth, config)
-export const getServerSideProps = async () => {
-  return {
-    props: {},
-  };
-};
+// Public checkout (no auth). withMasterData (anonymous-safe) supplies
+// pageProps.masterData so the AppShell layout renders for guests too — without
+// it, _app falls back to BlankLayout and the shell disappears.
+export const getServerSideProps = withMasterData;
 
 export default CheckoutPage;
