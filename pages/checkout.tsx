@@ -177,8 +177,10 @@ const CheckoutPage = () => {
 
   // 3. Hàm xử lý Checkout
   const handleCheckout = async () => {
+    // Not logged in → send to login, then back here to finish paying.
+    // ponytail: returns to checkout where they click Pay again; auto-resubmit if asked.
     if (!currentUser?.id) {
-      toast.error("Vui lòng đăng nhập để tiếp tục");
+      router.push(ROUTES.LOGIN(router.asPath));
       return;
     }
 
