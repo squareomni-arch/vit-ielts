@@ -82,7 +82,7 @@ export default function AdminSettingsPage() {
                                     <Form.Item name="seo_title" label="SEO Title mặc định"><Input /></Form.Item>
                                     <Form.Item name="seo_description" label="SEO Description mặc định"><TextArea rows={2} /></Form.Item>
                                     <Row gutter={16}>
-                                        <Col span={12}><Form.Item name="phoneNumber" label="Hotline / Số điện thoại"><Input placeholder="055 956 2767" /></Form.Item></Col>
+                                        <Col span={12}><Form.Item name="phoneNumber" label="Hotline / Số điện thoại"><Input placeholder="0703 817 013" /></Form.Item></Col>
                                         <Col span={12}><Form.Item name="email" label="Email liên hệ"><Input placeholder="vitielts8.0@gmail.com" /></Form.Item></Col>
                                     </Row>
                                     <Row gutter={16}>

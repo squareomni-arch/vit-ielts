@@ -40,7 +40,7 @@ const OrderReceivedPage = ({ order: initialOrder, error }: OrderReceivedPageProp
       },
     },
   } = useAppContext();
-  const hotline = phoneNumber || "055 956 2767";
+  const hotline = phoneNumber || "0703 817 013";
   const hotlineTel = hotline.replace(/\s/g, "");
   const [order, setOrder] = useState<OrderData | null>(initialOrder);
   const [isPaymentSuccessModalOpen, setIsPaymentSuccessModalOpen] = useState(false);

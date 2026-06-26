@@ -90,7 +90,7 @@ export const Footer = ({
   logoSrc = '/assets/logos/logo-on-dark.svg',
   description = 'Smarter IELTS preparation for ambitious learners. Practice, track, improve — all in one place.',
   columns,
-  contactInfo = { email: 'vitielts8.0@gmail.com', phone: '055 956 2767' },
+  contactInfo = { email: 'vitielts8.0@gmail.com', phone: '0703 817 013' },
   socialLinks,
   showCopyright = false,
   linkBase = '',
