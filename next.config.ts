@@ -4,6 +4,15 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
   devIndicators: false,
+  async rewrites() {
+    // Serve the admin CMS (pages/admin/**) only under a secret prefix.
+    // Direct /admin hits are 404'd for anonymous visitors in middleware.ts.
+    const adminPath = process.env.NEXT_PUBLIC_ADMIN_CMS_PATH || "/vit-admin";
+    return [
+      { source: adminPath, destination: "/admin" },
+      { source: `${adminPath}/:path*`, destination: "/admin/:path*" },
+    ];
+  },
   async headers() {
     return [
       {

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { createAdminClient } from "~supabase/admin-client";
+import { ROUTES } from "@/shared/routes";
 import {
   DashboardOutlined,
   UserOutlined,
@@ -230,6 +231,14 @@ function filterMenuForRole(sections: MenuSection[], canSeeAll: boolean): MenuSec
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
+  // The CMS is served under a secret prefix (ROUTES.ADMIN.BASE) via a
+  // next.config rewrite, so router.asPath shows that prefix while all menu
+  // keys / breadcrumbs are authored as "/admin/*". Normalize back to /admin
+  // for matching. (Internal <Link>s keep using /admin and work because the
+  // admin is authenticated.)
+  const adminAsPath = router.asPath.startsWith(ROUTES.ADMIN.BASE)
+    ? "/admin" + router.asPath.slice(ROUTES.ADMIN.BASE.length)
+    : router.asPath;
   const { isFullAdmin: canSeeAll } = useAdminPermissions();
   const visibleSections = useMemo(
     () => filterMenuForRole(MENU_SECTIONS, canSeeAll),
@@ -270,7 +279,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   // Auto-open submenu based on current path
   useEffect(() => {
-    const path = router.asPath;
+    const path = adminAsPath;
     for (const section of MENU_SECTIONS) {
       for (const item of section.items) {
         if (item.children) {
@@ -282,7 +291,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         }
       }
     }
-  }, [router.asPath]);
+  }, [adminAsPath]);
 
   const toggleCollapse = useCallback(() => {
     setCollapsed((prev) => {
@@ -316,10 +325,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const supabase = createAdminClient();
     await supabase.auth.signOut();
     message.success("Đã đăng xuất");
-    window.location.href = "/admin/login";
+    window.location.href = ROUTES.ADMIN.LOGIN;
   }, []);
 
-  const breadcrumbs = useMemo(() => getBreadcrumbs(router.asPath), [router.asPath]);
+  const breadcrumbs = useMemo(() => getBreadcrumbs(adminAsPath), [adminAsPath]);
 
   return (
     <ConfigProvider
@@ -383,7 +392,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 if (item.children) {
                   const isOpen = openSubmenus.has(item.key);
                   const hasActive = item.children.some((c) =>
-                    isItemActive(c.key, router.asPath)
+                    isItemActive(c.key, adminAsPath)
                   );
 
                   return (
@@ -414,7 +423,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                 key={child.key}
                                 href={child.key}
                                 className={`admin-menu-item ${
-                                  isItemActive(child.key, router.asPath) ? "active" : ""
+                                  isItemActive(child.key, adminAsPath) ? "active" : ""
                                 }`}
                                 onClick={() => setMobileOpen(false)}
                                 style={child.inactive ? { opacity: 0.55 } : undefined}
@@ -447,7 +456,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   );
                 }
 
-                const isActive = isItemActive(item.key, router.asPath);
+                const isActive = isItemActive(item.key, adminAsPath);
 
                 if (collapsed) {
                   return (

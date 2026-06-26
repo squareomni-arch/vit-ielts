@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { isAdminRole } from "~lib/parseRoles";
 import { trackSignUpSuccess } from "@/shared/lib/analytics/track-signup";
+import { ROUTES } from "@/shared/routes";
 
 /**
  * Auth callback page for Google OAuth redirect.
@@ -82,9 +83,10 @@ export default function AuthCallback() {
 
                     if (isAdmin) {
                         window.location.href =
-                            explicitRedirect.startsWith("/admin")
+                            explicitRedirect.startsWith("/admin") ||
+                            explicitRedirect.startsWith(ROUTES.ADMIN.BASE)
                                 ? explicitRedirect
-                                : "/admin";
+                                : ROUTES.ADMIN.DASHBOARD;
                     } else {
                         window.location.href = explicitRedirect;
                     }

@@ -1,3 +1,9 @@
+// Public entry path for the admin CMS. The pages physically live under
+// /admin, but are only reachable through this secret prefix (next.config
+// rewrite). Rotate it by setting NEXT_PUBLIC_ADMIN_CMS_PATH — no code change.
+export const ADMIN_CMS_PATH =
+  process.env.NEXT_PUBLIC_ADMIN_CMS_PATH || "/vit-admin";
+
 export const ROUTES = {
   HOME: "/",
 
@@ -8,8 +14,9 @@ export const ROUTES = {
   RESET_PASSWORD: "/account/reset-password",
 
   ADMIN: {
-    LOGIN: "/admin/login",
-    DASHBOARD: "/admin",
+    BASE: ADMIN_CMS_PATH,
+    LOGIN: `${ADMIN_CMS_PATH}/login`,
+    DASHBOARD: ADMIN_CMS_PATH,
   },
 
   ACCOUNT: {

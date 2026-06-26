@@ -1,6 +1,7 @@
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { createAdminServerSupabase } from "~supabase/server";
 import { isAdminRole, isFullAdmin } from "~lib/parseRoles";
+import { ROUTES } from "@/shared/routes";
 
 /**
  * SSR guard — redirects non-admin users.
@@ -29,7 +30,7 @@ export const withAdmin: GetServerSideProps = async (
   if (!user) {
     return {
       redirect: {
-        destination: `/admin/login?redirect=${encodeURIComponent(context.resolvedUrl)}`,
+        destination: `${ROUTES.ADMIN.LOGIN}?redirect=${encodeURIComponent(context.resolvedUrl)}`,
         statusCode: 302,
       },
     };
@@ -102,7 +103,7 @@ export const withFullAdmin: GetServerSideProps = async (
   if (!user) {
     return {
       redirect: {
-        destination: `/admin/login?redirect=${encodeURIComponent(context.resolvedUrl)}`,
+        destination: `${ROUTES.ADMIN.LOGIN}?redirect=${encodeURIComponent(context.resolvedUrl)}`,
         statusCode: 302,
       },
     };
@@ -116,7 +117,7 @@ export const withFullAdmin: GetServerSideProps = async (
 
   if (!isFullAdmin(profile?.roles)) {
     return {
-      redirect: { destination: "/admin", statusCode: 302 },
+      redirect: { destination: ROUTES.ADMIN.DASHBOARD, statusCode: 302 },
     };
   }
 

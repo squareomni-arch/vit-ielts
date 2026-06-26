@@ -55,7 +55,7 @@ export const useAuth = () => {
       if (isAdminRole(profile?.roles)) {
         // Sign out immediately and block access
         await supabase.auth.signOut();
-        throw new Error("Admin accounts must sign in at /admin/login.");
+        throw new Error(`Admin accounts must sign in at ${ROUTES.ADMIN.LOGIN}.`);
       }
     }
 
@@ -124,9 +124,9 @@ export const useAuth = () => {
   };
 
   const signOut = async () => {
-    const isOnAdminPage = window.location.pathname.startsWith("/admin");
+    const isOnAdminPage = window.location.pathname.startsWith(ROUTES.ADMIN.BASE);
     await supabase.auth.signOut();
-    window.location.href = isOnAdminPage ? "/admin/login" : "/account/login";
+    window.location.href = isOnAdminPage ? ROUTES.ADMIN.LOGIN : "/account/login";
   };
 
   return {
@@ -151,7 +151,7 @@ const SIGNOUT_REDIRECT_BLOCKLIST = [
   "/account/register",
   "/account/forgot-password",
   "/account/reset-password",
-  "/admin/login",
+  ROUTES.ADMIN.LOGIN,
   "/auth/callback",
 ];
 
@@ -171,9 +171,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // a dead session.
       if (event === "SIGNED_OUT" && hasViewer) {
         if (typeof window === "undefined") return;
-        const onAdmin = window.location.pathname.startsWith("/admin");
+        const onAdmin = window.location.pathname.startsWith(ROUTES.ADMIN.BASE);
         if (isPublicAuthPath(window.location.pathname)) return;
-        const target = onAdmin ? "/admin/login" : "/account/login";
+        const target = onAdmin ? ROUTES.ADMIN.LOGIN : "/account/login";
         const redirect = encodeURIComponent(
           window.location.pathname + window.location.search
         );

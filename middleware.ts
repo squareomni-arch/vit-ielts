@@ -32,6 +32,19 @@ function hasSupabaseAuthCookie(request: NextRequest): boolean {
 }
 
 export async function middleware(request: NextRequest) {
+  // ─── 0. Hide the admin CMS behind a secret path ───────────────────────
+  // pages/admin/** is reachable only through the secret prefix (a
+  // next.config rewrite maps it onto /admin). A direct hit on /admin from
+  // anyone without a Supabase session is a 404 — anonymous scanners never
+  // see the login. Authenticated non-admins fall through to the per-page
+  // withAdmin guard, which bounces them to "/".
+  if (
+    request.nextUrl.pathname.startsWith("/admin") &&
+    !hasSupabaseAuthCookie(request)
+  ) {
+    return NextResponse.rewrite(new URL("/404", request.url));
+  }
+
   // Build the response we will eventually return. Both the affiliate logic
   // and the Supabase session refresh write Set-Cookie headers onto it.
   let response = NextResponse.next({
