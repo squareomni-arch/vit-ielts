@@ -25,11 +25,14 @@ export function ExamCollection({
   loading = false,
   data,
   optionsOverride,
+  titleClassName = "text-2xl font-extrabold font-noto-sans text-ink-700 leading-tight",
 }: {
   loading?: boolean;
   data?: IExamCollection["data"]["reading" | "listening"][number] & { skill?: string };
   /** Override Splide options */
   optionsOverride?: Record<string, unknown>;
+  /** Override the collection title classes (e.g. to match other section headings) */
+  titleClassName?: string;
 }) {
   const splideRef = useRef<{ splide: SplideType } | null>(null);
 
@@ -39,7 +42,7 @@ export function ExamCollection({
   return (
     <article className="space-y-6">
       <header className="mb-5 flex items-center justify-between">
-        <h3 className="text-2xl font-extrabold font-noto-sans text-ink-700 leading-tight">
+        <h3 className={titleClassName}>
           {data?.title ? (
             decode(data.title)
           ) : (

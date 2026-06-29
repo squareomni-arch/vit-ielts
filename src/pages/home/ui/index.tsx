@@ -24,10 +24,14 @@ interface PageHomeProps {
   examQuizzes: Quiz[];
   listeningQuizzes: Quiz[];
   readingQuizzes: Quiz[];
+  academicQuizzes: Quiz[];
+  generalQuizzes: Quiz[];
   mockCollections: ExamCollectionResponse["data"];
   totalExamsCount: number;
   listeningCount: number;
   readingCount: number;
+  academicCount: number;
+  generalCount: number;
   writingCount: number;
   speakingCount: number;
 }
@@ -40,10 +44,14 @@ export const PageHome = ({
   examQuizzes,
   listeningQuizzes,
   readingQuizzes,
+  academicQuizzes,
+  generalQuizzes,
   mockCollections,
   totalExamsCount,
   listeningCount,
   readingCount,
+  academicCount,
+  generalCount,
   writingCount,
   speakingCount,
 }: PageHomeProps) => {
@@ -82,25 +90,38 @@ export const PageHome = ({
       )} */}
 
       {/* === SECTION: Practice Tests — "Practice like it's exam day" === */}
-      <div data-section="practice-tests" className="w-full bg-[#f6f7f4]">
-        <div className=" mx-auto bg-white rounded-[40px] px-8 sm:px-12 py-10 flex flex-col gap-10">
+      <div data-section="practice-tests" className="w-full bg-[#f6f7f4] flex flex-col gap-10">
 
-          {/* Section heading + View all */}
-          <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between sm:items-center">
-            <h2 className="font-display font-bold text-[32px] sm:text-[38px] leading-[1.1] tracking-[-0.95px] text-[#191d24]">
-              Practice like it&apos;s exam day
-            </h2>
-            <Link
-              href={ROUTES.EXAM.ARCHIVE}
-              className="inline-flex items-center gap-2 bg-white hover:bg-[#f6f7f4] border-[1.5px] border-[rgba(25,29,36,0.1)] text-[#191d24] font-inter font-bold text-[14px] leading-[1.2] px-[26px] py-[13px] rounded-full transition-colors duration-200 whitespace-nowrap shrink-0"
-            >
-              View all {totalExamsCount} tests
-            </Link>
-          </div>
+        {/* Section heading + View all — outside the white box to align with "Master every part of the test" */}
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between sm:items-center">
+          <h2 className="font-display font-bold text-[32px] sm:text-[38px] leading-[1.1] tracking-[-0.95px] text-[#191d24]">
+            Practice like it&apos;s exam day
+          </h2>
+          <Link
+            href={ROUTES.EXAM.ARCHIVE}
+            className="inline-flex items-center gap-2 bg-white hover:bg-[#f6f7f4] border-[1.5px] border-[rgba(25,29,36,0.1)] text-[#191d24] font-inter font-bold text-[14px] leading-[1.2] px-[26px] py-[13px] rounded-full transition-colors duration-200 whitespace-nowrap shrink-0"
+          >
+            View all {totalExamsCount} tests
+          </Link>
+        </div>
 
-          {/* === Mock Collections (bộ đề thi thử) === */}
+        <div className=" mx-auto w-full bg-white rounded-[40px] px-8 sm:px-12 py-10 flex flex-col gap-10">
+
+          {/* === Mock Collections (bộ đề thi thử) — "Bộ đề thi máy 2026" === */}
           <MockCollectionSection collections={mockCollections} />
 
+          <PracticeSection
+            title="IELTS Academic"
+            viewMoreLink={`${ROUTES.EXAM.ARCHIVE}?type=academic`}
+            items={academicQuizzes}
+            useExamModal
+          />
+          <PracticeSection
+            title="IELTS General"
+            viewMoreLink={`${ROUTES.EXAM.ARCHIVE}?type=general`}
+            items={generalQuizzes}
+            useExamModal
+          />
           <PracticeSection
             title="IELTS Listening Practice"
             viewMoreLink={ROUTES.PRACTICE.ARCHIVE_LISTENING}

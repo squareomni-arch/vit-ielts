@@ -65,6 +65,7 @@ export const MockCollectionSection = ({ collections }: MockCollectionSectionProp
               key={col.id}
               data={col}
               optionsOverride={HOME_SLIDER_OPTIONS}
+              titleClassName="text-[32px] sm:text-[38px] font-extrabold font-noto-sans text-ink-700 leading-tight"
             />
           ))}
         </div>
