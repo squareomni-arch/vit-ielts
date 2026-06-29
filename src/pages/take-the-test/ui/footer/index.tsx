@@ -666,6 +666,7 @@ function Footer() {
         onCancel={() => setConfirmSubmitModal(false)}
         okButtonProps={{
           loading: isSubmitting || isSubmitted,
+          className: "bg-brand! text-ink-900! hover:bg-brand-hover! border-brand!",
         }}
       >
         <p>Are you sure you want to submit?</p>
