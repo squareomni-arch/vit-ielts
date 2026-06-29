@@ -25,7 +25,9 @@ export default async function handler(
 
             let query = supabaseAdmin
                 .from("admin_notifications")
-                .select("*", { count: "exact" })
+                // ponytail: "planned" count = planner estimate, no full COUNT(*)
+                // scan on every poll; a list-total badge doesn't need exact.
+                .select("*", { count: "planned" })
                 .order("created_at", { ascending: false })
                 .limit(limit);
 

@@ -379,7 +379,10 @@ export async function getCommissions(
         .from("commissions")
         .select(COMMISSION_COLUMNS)
         .eq("affiliate_id", affiliateId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        // ponytail: cap the commission history list; totals are computed separately
+        // in getAffiliateStats (full, uncapped). Add .range() if the table UI grows.
+        .limit(1000);
 
     if (error) throw error;
     return (data ?? []) as Commission[];
@@ -523,7 +526,10 @@ export async function getAffiliateVisits(
         .from("affiliate_visits")
         .select(AFFILIATE_VISIT_COLUMNS)
         .eq("affiliate_id", affiliateId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        // ponytail: visits grow per click (bots included) — cap the dashboard list
+        // to the most-recent 500; add .range() pagination if the UI needs older.
+        .limit(500);
 
     if (error) throw error;
     return (data ?? []) as AffiliateVisit[];

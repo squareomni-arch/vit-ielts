@@ -104,7 +104,11 @@ export async function getProgressOverview(
             .eq("status", "published")
             .not("score", "is", null)
             .not("submitted_at", "is", null)
-            .order("submitted_at", { ascending: false });
+            .order("submitted_at", { ascending: false })
+            // ponytail: cap the per-user fetch so a power user with thousands of
+            // attempts can't OOM SSR; aggregates cover the most-recent 2000. Move
+            // to a DB-side aggregate RPC if older results must count.
+            .limit(2000);
 
         if (error || !data) {
             return EMPTY_OVERVIEW;

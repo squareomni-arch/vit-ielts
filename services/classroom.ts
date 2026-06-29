@@ -521,7 +521,10 @@ export async function getClassroomAssignments(
         .eq("status", "published")
         .not("submitted_at", "is", null)
         .in("quiz_id", quizIds)
-        .in("user_id", allStudentIds.length ? allStudentIds : ["00000000-0000-0000-0000-000000000000"]);
+        .in("user_id", allStudentIds.length ? allStudentIds : ["00000000-0000-0000-0000-000000000000"])
+        // ponytail: bounded by students×assignments, but a large active class can
+        // still return many rows — cap to protect the small self-hosted box.
+        .limit(10000);
 
     return assignments.map((a) => {
         const quiz = (a.quizzes ?? {}) as {

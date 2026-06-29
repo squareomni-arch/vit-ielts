@@ -103,7 +103,10 @@ export async function getVocabularyOverview(
       .from("vocab_words")
       .select("*")
       .eq("owner_id", userId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      // ponytail: cap the personal corpus pull (each row carries JSON blobs);
+      // paginate the vocab page if a user genuinely exceeds 5000 words.
+      .limit(5000);
 
     if (wordsError) {
       console.error("[vocabulary] vocab_words fetch error:", wordsError.message);
@@ -523,7 +526,9 @@ export async function getVocabularyProgress(
         .eq("user_id", userId)
         .gte("created_at", windowStart.toISOString()),
       supabase.from("users").select("settings").eq("id", userId).single(),
-      supabase.from("vocab_words").select("topic").eq("owner_id", userId),
+      // ponytail: single small column, but still cap to bound memory; topic
+      // distribution covers up to 10000 words.
+      supabase.from("vocab_words").select("topic").eq("owner_id", userId).limit(10000),
     ]);
 
     // ── Daily goal (cast locally; UserSettings type is in do-not-touch dir) ──

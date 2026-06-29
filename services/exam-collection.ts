@@ -291,11 +291,16 @@ export async function getExamCollections(
             // JSONB.
             const wordNumber = /^\d+$/.test(word) ? parseInt(word, 10) : null;
             if (wordNumber !== null) {
+                // ponytail: numeric-range expansion needs titles to regex-scan;
+                // cap both pulls so a public search can't fetch unbounded rows.
+                // Lift the cap (or move range-matching into SQL) if the catalog
+                // ever exceeds these.
                 const [allMt, allColl] = await Promise.all([
-                    supabase.from("mock_tests").select("id, title"),
+                    supabase.from("mock_tests").select("id, title").limit(5000),
                     supabase
                         .from("mock_test_collections")
-                        .select("mock_test_ids, title"),
+                        .select("mock_test_ids, title")
+                        .limit(5000),
                 ]);
                 const rangeRegex = /(\d+)\s*[-–—]\s*(\d+)/g;
                 const numberInAnyRange = (title: string): boolean => {

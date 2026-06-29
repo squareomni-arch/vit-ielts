@@ -63,7 +63,10 @@ export async function getClubs(
         created_at,
         club_members(count)
       `)
-      .order("created_at", { ascending: true });
+      .order("created_at", { ascending: true })
+      // ponytail: public page — cap to bound the per-club count subquery fan-out;
+      // add pagination if the platform passes 200 clubs.
+      .limit(200);
 
     if (error) throw error;
 
