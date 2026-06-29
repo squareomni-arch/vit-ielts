@@ -211,14 +211,13 @@ export const getServerSideProps: GetServerSideProps = withMultipleWrapper(
       resultId: testResultRow.id,
     });
 
+    // getServerSideProps cannot serialize `undefined` values; strip them in
+    // one pass so optional fields (audio, matching/matrix sub-objects, …) that
+    // resolve to undefined don't 500 the result page.
     return {
-      props: {
-        post,
-        testResult,
-        user,
-        scoreData,
-        analytics,
-      },
+      props: JSON.parse(
+        JSON.stringify({ post, testResult, user, scoreData, analytics })
+      ),
     };
   }
 );
