@@ -83,8 +83,12 @@ export const TestCard = ({
               </PartTag>
             )}
           </div>
-          {isPro && (
+          {isPro ? (
             <ProBadge className="shadow-sm border border-white/20" />
+          ) : (
+            <span className="inline-flex shrink-0 select-none items-center justify-center rounded-[5px] h-[22px] w-[42px] text-[10px] leading-none font-noto-sans font-bold uppercase tracking-widest bg-red-600 text-white shadow-sm border border-white/20">
+              Free
+            </span>
           )}
         </div>
       </div>

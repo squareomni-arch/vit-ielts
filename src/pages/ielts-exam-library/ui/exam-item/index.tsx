@@ -110,12 +110,16 @@ export const ExamItem = ({
             unoptimized
           />
 
-          {/* PRO Badge */}
-          {quizFields.proUserOnly && (
-            <div className="absolute top-4 right-4 z-10">
+          {/* PRO / Free Tier Badge */}
+          <div className="absolute top-4 right-4 z-10">
+            {quizFields.proUserOnly ? (
               <ProBadge className="shadow-sm" />
-            </div>
-          )}
+            ) : (
+              <span className="inline-flex shrink-0 select-none items-center justify-center rounded-[5px] h-[22px] w-[42px] text-[10px] leading-none font-noto-sans font-bold uppercase tracking-widest bg-red-600 text-white shadow-sm">
+                Free
+              </span>
+            )}
+          </div>
 
           {/* "Đã làm" badge */}
           {isDone && !isProtected && (
